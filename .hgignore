@@ -1,0 +1,6 @@
+syntax: glob
+*.kdev4
+bin/CCEdit
+
+syntax: regexp
+^build/
