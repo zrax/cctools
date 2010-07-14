@@ -15,30 +15,39 @@
  * along with CCTools.  If not, see <http://www.gnu.org/licenses/>.           *
  ******************************************************************************/
 
-#ifndef _ERRORS_H
-#define _ERRORS_H
+#ifndef _CCEDIT_H
+#define _CCEDIT_H
 
-#include <exception>
-#include <string>
+#include <QMainWindow>
+#include <QAction>
+#include <QListWidget>
+#include <QTabWidget>
+#include "../Levelset.h"
 
-namespace ccl {
+class CCEditMain : public QMainWindow {
+    Q_OBJECT
 
-class Exception : public std::exception {
 public:
-    Exception(const char* msg) : m_msg(msg) { }
-    virtual ~Exception() throw() { }
+    CCEditMain(QWidget* parent = 0);
 
-    virtual const char* what() const throw() { return m_msg.c_str(); }
+    void loadLevelset(QString filename);
+    bool closeLevelset();
 
 private:
-    std::string m_msg;
-};
+    enum ActionType {
+        ActionNew, ActionOpen, ActionSave, ActionSaveAs, ActionExit,
+        NUM_ACTIONS
+    };
 
-class IOException : public ccl::Exception {
-public:
-    IOException(const char* msg) : ccl::Exception(msg) { }
-};
+    QAction* m_actions[NUM_ACTIONS];
+    QListWidget* m_levelList;
+    QTabWidget* m_editorTab;
 
-}
+    ccl::Levelset* m_levelset;
+    QString m_levelsetFilename;
+
+private slots:
+    void onOpenAction();
+};
 
 #endif

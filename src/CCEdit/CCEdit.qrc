@@ -1,0 +1,8 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>res/document-new.png</file>
+    <file>res/document-open.png</file>
+    <file>res/document-save.png</file>
+    <file>res/document-save-as.png</file>
+</qresource>
+</RCC>
