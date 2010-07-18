@@ -21,6 +21,9 @@
 #include <QMainWindow>
 #include <QAction>
 #include <QListWidget>
+#include <QLineEdit>
+#include <QToolButton>
+#include <QPlainTextEdit>
 #include <QTabWidget>
 #include "../Levelset.h"
 
@@ -36,18 +39,35 @@ public:
 private:
     enum ActionType {
         ActionNew, ActionOpen, ActionSave, ActionSaveAs, ActionExit,
+        ActionSelect, ActionCut, ActionCopy, ActionPaste, ActionClear,
+        ActionFill,
         NUM_ACTIONS
     };
 
     QAction* m_actions[NUM_ACTIONS];
-    QListWidget* m_levelList;
     QTabWidget* m_editorTab;
+    QListWidget* m_levelList;
+    QLineEdit* m_nameEdit;
+    QLineEdit* m_passwordEdit;
+    QLineEdit* m_chipEdit;
+    QLineEdit* m_timeEdit;
+    QToolButton* m_passwordButton;
+    QToolButton* m_chipsButton;
+    QPlainTextEdit* m_hintEdit;
 
     ccl::Levelset* m_levelset;
     QString m_levelsetFilename;
 
 private slots:
     void onOpenAction();
+    void onSelectToggled(bool);
+    void onSelectLevel(int);
+    void onPasswordGenAction();
+    void onChipCountAction();
+    void onNameChanged(QString);
+    void onPasswordChanged(QString);
+    void onChipsChanged(QString);
+    void onTimerChanged(QString);
 };
 
 #endif
