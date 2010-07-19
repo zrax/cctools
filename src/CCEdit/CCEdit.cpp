@@ -19,6 +19,7 @@
 
 #include <QApplication>
 #include <QMenuBar>
+#include <QToolBar>
 #include <QDockWidget>
 #include <QLabel>
 #include <QIntValidator>
@@ -127,7 +128,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionSaveAs] = new QAction(QIcon(":/res/document-save-as.png"), tr("Save &As..."), this);
     m_actions[ActionSaveAs]->setStatusTip(tr("Save the current levelset to a new file or location"));
     m_actions[ActionSaveAs]->setShortcut(QKeySequence::SaveAs);
-    m_actions[ActionExit] = new QAction(tr("E&xit"), this);
+    m_actions[ActionExit] = new QAction(QIcon(":/res/application-exit.png"), tr("E&xit"), this);
     m_actions[ActionExit]->setStatusTip(tr("Close CCEdit"));
     m_actions[ActionExit]->setShortcut(QKeySequence::Quit);
 
@@ -174,6 +175,12 @@ CCEditMain::CCEditMain(QWidget* parent)
     editMenu->addSeparator();
     editMenu->addAction(m_actions[ActionClear]);
     editMenu->addAction(m_actions[ActionFill]);
+
+    // Tool bars
+    QToolBar* tbarFile = addToolBar(QString());
+    tbarFile->addAction(m_actions[ActionNew]);
+    tbarFile->addAction(m_actions[ActionOpen]);
+    tbarFile->addAction(m_actions[ActionSave]);
 
     // Show status bar
     statusBar();
@@ -272,6 +279,7 @@ void CCEditMain::onSelectLevel(int idx)
         m_chipEdit->setText(QString());
         m_timeEdit->setText(QString());
         m_hintEdit->setPlainText(QString());
+        return;
     }
 
     ccl::LevelData* level = m_levelset->level(idx);
@@ -339,6 +347,7 @@ void CCEditMain::onTimerChanged(QString value)
 int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
+    app.setAttribute(Qt::AA_DontShowIconsInMenus, false);
     CCEditMain mainWin;
     mainWin.show();
     if (argc > 1)

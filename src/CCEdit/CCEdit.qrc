@@ -4,6 +4,7 @@
     <file>res/document-open.png</file>
     <file>res/document-save.png</file>
     <file>res/document-save-as.png</file>
+    <file>res/application-exit.png</file>
     <file>res/edit-select.png</file>
     <file>res/edit-cut.png</file>
     <file>res/edit-copy.png</file>
