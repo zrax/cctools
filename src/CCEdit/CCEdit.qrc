@@ -4,5 +4,16 @@
     <file>res/document-open.png</file>
     <file>res/document-save.png</file>
     <file>res/document-save-as.png</file>
+    <file>res/edit-select.png</file>
+    <file>res/edit-cut.png</file>
+    <file>res/edit-copy.png</file>
+    <file>res/edit-paste.png</file>
+    <file>res/edit-delete.png</file>
+    <file>res/edit-undo.png</file>
+    <file>res/edit-redo.png</file>
+    <file>res/view-refresh.png</file>
+    <file>res/zoom-in.png</file>
+    <file>res/zoom-out.png</file>
+    <file>res/zoom-original.png</file>
 </qresource>
 </RCC>
