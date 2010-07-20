@@ -7,10 +7,12 @@ set(CCEdit_SOURCES
     ../Levelset.cpp
     ../Tileset.cpp
     CCEdit.cpp
+    EditorWidget.cpp
 )
 
 set(CCEdit_MOCS
     CCEdit.h
+    EditorWidget.h
 )
 
 set(CCEdit_RCCS

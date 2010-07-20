@@ -16,5 +16,8 @@
     <file>res/zoom-in.png</file>
     <file>res/zoom-out.png</file>
     <file>res/zoom-original.png</file>
+
+    <!-- Temporary until proper TIS loading is available -->
+    <file>TW32.tis</file>
 </qresource>
 </RCC>
