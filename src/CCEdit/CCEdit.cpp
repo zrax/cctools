@@ -24,8 +24,11 @@
 #include <QLabel>
 #include <QIntValidator>
 #include <QGridLayout>
+#include <QScrollArea>
+#include <QToolBox>
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QStatusBar>
 #include <cstdio>
 
 class QMinimalTextEdit : public QPlainTextEdit {
@@ -109,11 +112,85 @@ CCEditMain::CCEditMain(QWidget* parent)
                         | QDockWidget::DockWidgetFloatable);
     toolTabs->addTab(levelManWidget, tr("Level &Manager"));
 
-    // Editor tab area
-    m_editorTab = new QTabWidget(this);
-    m_editorTab->setTabsClosable(true);
-    m_editorTab->setMovable(true);
-    setCentralWidget(m_editorTab);
+    m_tileset.load(":/TW32.tis");
+    QToolBox* tileBox = new QToolBox(toolDock);
+    QListWidget* standardTiles = new QListWidget(tileBox);
+    standardTiles->setIconSize(QSize(32, 32));
+    m_tileset.addTiles(standardTiles, QList<tile_t>()
+        << ccl::TileFloor << ccl::TileWall << ccl::TileChip << ccl::TileSocket
+        << ccl::TileExit << ccl::TileHint << ccl::TileBarrier_N
+        << ccl::TileBarrier_W << ccl::TileBarrier_S << ccl::TileBarrier_E
+        << ccl::TileBarrier_SE << ccl::TileBlock << ccl::TileDirt
+        << ccl::TileGravel << ccl::TilePlayer_S << ccl::TilePlayer_E
+        << ccl::TilePlayer_W << ccl::TilePlayer_N);
+    tileBox->addItem(standardTiles, tr("Standard"));
+    QListWidget* obstacleTiles = new QListWidget(tileBox);
+    obstacleTiles->setIconSize(QSize(32, 32));
+    m_tileset.addTiles(obstacleTiles, QList<tile_t>()
+        << ccl::TileWater << ccl::TileFire << ccl::TileBomb << ccl::TileForce_N
+        << ccl::TileForce_W << ccl::TileForce_S << ccl::TileForce_E
+        << ccl::TileForce_Rand << ccl::TileIce << ccl::TileIce_NW
+        << ccl::TileIce_NE << ccl::TileIce_SE << ccl::TileIce_SW
+        << ccl::TileTrap << ccl::TileTrapButton << ccl::TilePopUpWall
+        << ccl::TileAppearingWall << ccl::TileInvisWall);
+    tileBox->addItem(obstacleTiles, tr("Obstacles"));
+    QListWidget* doorTiles = new QListWidget(tileBox);
+    doorTiles->setIconSize(QSize(32, 32));
+    m_tileset.addTiles(doorTiles, QList<tile_t>()
+        << ccl::TileDoor_Blue << ccl::TileDoor_Red << ccl::TileDoor_Green
+        << ccl::TileDoor_Yellow << ccl::TileToggleFloor << ccl::TileToggleWall
+        << ccl::TileToggleButton);
+    tileBox->addItem(doorTiles, tr("Doors"));
+    QListWidget* itemTiles = new QListWidget(tileBox);
+    itemTiles->setIconSize(QSize(32, 32));
+    m_tileset.addTiles(itemTiles, QList<tile_t>()
+        << ccl::TileKey_Blue << ccl::TileKey_Red << ccl::TileKey_Green
+        << ccl::TileKey_Yellow << ccl::TileFlippers << ccl::TileFireBoots
+        << ccl::TileIceSkates << ccl::TileForceBoots);
+    tileBox->addItem(itemTiles, tr("Items"));
+    QListWidget* monsterTiles = new QListWidget(tileBox);
+    monsterTiles->setIconSize(QSize(32, 32));
+    m_tileset.addTiles(monsterTiles, QList<tile_t>()
+        << ccl::TileBug_N << ccl::TileBug_E << ccl::TileBug_S << ccl::TileBug_W
+        << ccl::TileFireball_N << ccl::TileFireball_E << ccl::TileFireball_S
+        << ccl::TileFireball_W << ccl::TileBall_N << ccl::TileBall_E
+        << ccl::TileBall_S << ccl::TileBall_W << ccl::TileTank_N
+        << ccl::TileTank_E << ccl::TileTank_S << ccl::TileTank_W
+        << ccl::TileTankButton << ccl::TileGlider_N << ccl::TileGlider_E
+        << ccl::TileGlider_S << ccl::TileGlider_W << ccl::TileTeeth_N
+        << ccl::TileTeeth_E << ccl::TileTeeth_S << ccl::TileTeeth_W
+        << ccl::TileWalker_N << ccl::TileWalker_E << ccl::TileWalker_S
+        << ccl::TileWalker_W << ccl::TileBlob_N << ccl::TileBlob_E
+        << ccl::TileBlob_S << ccl::TileBlob_W << ccl::TileCrawler_N
+        << ccl::TileCrawler_E << ccl::TileCrawler_S << ccl::TileCrawler_W);
+    tileBox->addItem(monsterTiles, tr("Monsters"));
+    QListWidget* miscTiles = new QListWidget(tileBox);
+    miscTiles->setIconSize(QSize(32, 32));
+    m_tileset.addTiles(miscTiles, QList<tile_t>()
+        << ccl::TileThief << ccl::TileBlueWall << ccl::TileBlueFloor
+        << ccl::TileTeleport << ccl::TileCloner << ccl::TileCloneButton
+        << ccl::TileBlock_N << ccl::TileBlock_W << ccl::TileBlock_S
+        << ccl::TileBlock_E);
+    tileBox->addItem(miscTiles, tr("Miscellaneous"));
+    QListWidget* specialTiles = new QListWidget(tileBox);
+    specialTiles->setIconSize(QSize(32, 32));
+    m_tileset.addTiles(specialTiles, QList<tile_t>()
+        << ccl::TilePlayerSplash << ccl::TilePlayerFire << ccl::TilePlayerBurnt
+        << ccl::TilePlayerExit << ccl::TileExitAnim2 << ccl::TileExitAnim3
+        << ccl::TilePlayerSwim_N << ccl::TilePlayerSwim_W
+        << ccl::TilePlayerSwim_S << ccl::TilePlayerSwim_E << ccl::Tile_UNUSED_20
+        << ccl::Tile_UNUSED_36 << ccl::Tile_UNUSED_37 << ccl::Tile_UNUSED_38);
+    tileBox->addItem(specialTiles, tr("Special (Advanced)"));
+    toolTabs->addTab(tileBox, tr("&Tiles"));
+
+    // Main Editor
+    QScrollArea* editorScroll = new QScrollArea(this);
+    m_editor = new EditorWidget(editorScroll);
+    m_editor->setTileset(&m_tileset);
+    editorScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    editorScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    editorScroll->setWidget(m_editor);
+    setCentralWidget(editorScroll);
 
     // Actions
     m_actions[ActionNew] = new QAction(QIcon(":/res/document-new.png"), tr("&New Levelset..."), this);
@@ -132,6 +209,14 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionExit]->setStatusTip(tr("Close CCEdit"));
     m_actions[ActionExit]->setShortcut(QKeySequence::Quit);
 
+    m_actions[ActionUndo] = new QAction(QIcon(":/res/edit-undo.png"), tr("&Undo"), this);
+    m_actions[ActionUndo]->setStatusTip(tr("Undo the last edit"));
+    m_actions[ActionUndo]->setShortcut(QKeySequence::Undo);
+    m_actions[ActionUndo]->setEnabled(false);
+    m_actions[ActionRedo] = new QAction(QIcon(":/res/edit-redo.png"), tr("&Redo"), this);
+    m_actions[ActionRedo]->setStatusTip(tr("Redo the last edit"));
+    m_actions[ActionRedo]->setShortcut(QKeySequence::Redo);
+    m_actions[ActionRedo]->setEnabled(false);
     m_actions[ActionSelect] = new QAction(QIcon(":/res/edit-select.png"), tr("&Select"), this);
     m_actions[ActionSelect]->setStatusTip(tr("Enter selection mode"));
     m_actions[ActionSelect]->setShortcut(QKeySequence::SelectAll);
@@ -168,6 +253,9 @@ CCEditMain::CCEditMain(QWidget* parent)
     fileMenu->addAction(m_actions[ActionExit]);
 
     QMenu* editMenu = menuBar()->addMenu(tr("&Edit"));
+    editMenu->addAction(m_actions[ActionUndo]);
+    editMenu->addAction(m_actions[ActionRedo]);
+    editMenu->addSeparator();
     editMenu->addAction(m_actions[ActionSelect]);
     editMenu->addAction(m_actions[ActionCut]);
     editMenu->addAction(m_actions[ActionCopy]);
@@ -195,6 +283,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_chipEdit, SIGNAL(textChanged(QString)), this, SLOT(onChipsChanged(QString)));
     connect(m_chipsButton, SIGNAL(clicked()), this, SLOT(onChipCountAction()));
     connect(m_timeEdit, SIGNAL(textChanged(QString)), this, SLOT(onTimerChanged(QString)));
+    connect(m_editor, SIGNAL(mouseInfo(QString)), statusBar(), SLOT(showMessage(QString)));
 
     // Visual tweaks
     resize(800, 600);
@@ -273,21 +362,23 @@ void CCEditMain::onSelectToggled(bool mode)
 
 void CCEditMain::onSelectLevel(int idx)
 {
-    if (idx < 0) {
+    if (m_levelset == 0 || idx < 0) {
         m_nameEdit->setText(QString());
         m_passwordEdit->setText(QString());
         m_chipEdit->setText(QString());
         m_timeEdit->setText(QString());
         m_hintEdit->setPlainText(QString());
-        return;
+        m_editor->setLevelData(0);
+    } else {
+        ccl::LevelData* level = m_levelset->level(idx);
+        m_nameEdit->setText(QString::fromAscii(level->name().c_str()));
+        m_passwordEdit->setText(QString::fromAscii(level->password().c_str()));
+        m_chipEdit->setText(QString("%1").arg(level->chips()));
+        m_timeEdit->setText(QString("%1").arg(level->timer()));
+        m_hintEdit->setPlainText(QString::fromAscii(level->hint().c_str()));
+        m_editor->setLevelData(level);
     }
-
-    ccl::LevelData* level = m_levelset->level(idx);
-    m_nameEdit->setText(QString::fromAscii(level->name().c_str()));
-    m_passwordEdit->setText(QString::fromAscii(level->password().c_str()));
-    m_chipEdit->setText(QString("%1").arg(level->chips()));
-    m_timeEdit->setText(QString("%1").arg(level->timer()));
-    m_hintEdit->setPlainText(QString::fromAscii(level->hint().c_str()));
+    m_editor->update();
 }
 
 void CCEditMain::onPasswordGenAction()
@@ -319,7 +410,11 @@ void CCEditMain::onNameChanged(QString value)
 {
     if (m_levelList->currentRow() < 0)
         return;
-    m_levelset->level(m_levelList->currentRow())->setName(m_nameEdit->text().toAscii().data());
+
+    ccl::LevelData* level = m_levelset->level(m_levelList->currentRow());
+    level->setName(m_nameEdit->text().toAscii().data());
+    m_levelList->currentItem()->setText(QString("%1 - %2")
+                                        .arg(level->levelNum()).arg(value));
 }
 
 void CCEditMain::onPasswordChanged(QString value)

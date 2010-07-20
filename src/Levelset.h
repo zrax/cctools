@@ -157,17 +157,18 @@ enum TileType {
     TileFloor, TileWall, TileChip, TileWater, TileFire, TileInvisWall,
     DIRTILE(Barrier), TileBlock, TileDirt, TileIce, TileForce_S, DIRTILE(Block),
     TileForce_N, TileForce_E, TileForce_W, TileExit, COLORTILE(Door),
-    TileIce_NW, TileIce_SW, TileBlueFloor, TileBlueWall, Tile_UNUSED_20,
-    TileThief, TileSocket, TileToggleButton, TileCloneButton, TileToggleWall,
-    TileToggleFloor, TileTrapButton, TileTankButton, TileTeleport, TileBomb,
-    TileTrap, TileAppearingWall, TileGravel, TilePopUpWall, TileHint,
-    TileBarrier_SE, TileCloner, TileForce_Rand, TileChipSplash, TileChipFire,
-    TileChipBurnt, Tile_UNUSED_36, Tile_UNUSED_37, Tile_UNUSED_38, TileChipExit,
-    TileExitAnim2, TileExitAnim3, DIRTILE(ChipSwim), DIRTILE(Bug),
-    DIRTILE(Fireball), DIRTILE(Ball), DIRTILE(Tank), DIRTILE(Glider),
-    DIRTILE(Teeth), DIRTILE(Dumbell), DIRTILE(Blob), DIRTILE(Crawler),
-    COLORTILE(Key), TileFlippers, TileFireBoots, TileIceSkates, TileForceBoots,
-    DIRTILE(Player), NUM_TILE_TYPES
+    TileIce_NW, TileIce_NE, TileIce_SE, TileIce_SW, TileBlueFloor, TileBlueWall,
+    Tile_UNUSED_20, TileThief, TileSocket, TileToggleButton, TileCloneButton,
+    TileToggleWall, TileToggleFloor, TileTrapButton, TileTankButton,
+    TileTeleport, TileBomb, TileTrap, TileAppearingWall, TileGravel,
+    TilePopUpWall, TileHint, TileBarrier_SE, TileCloner, TileForce_Rand,
+    TilePlayerSplash, TilePlayerFire, TilePlayerBurnt, Tile_UNUSED_36,
+    Tile_UNUSED_37, Tile_UNUSED_38, TilePlayerExit, TileExitAnim2, TileExitAnim3,
+    DIRTILE(PlayerSwim), DIRTILE(Bug), DIRTILE(Fireball), DIRTILE(Ball),
+    DIRTILE(Tank), DIRTILE(Glider), DIRTILE(Teeth), DIRTILE(Walker),
+    DIRTILE(Blob), DIRTILE(Crawler), COLORTILE(Key), TileFlippers,
+    TileFireBoots, TileIceSkates, TileForceBoots, DIRTILE(Player),
+    NUM_TILE_TYPES
 };
 
 } /* {ccl} */

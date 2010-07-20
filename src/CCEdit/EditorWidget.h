@@ -18,11 +18,11 @@
 #ifndef _EDITORWIDGET_H
 #define _EDITORWIDGET_H
 
-#include <QFrame>
-#include <../Tileset.h>
-#include <../Levelset.h>
+#include <QWidget>
+#include "../Tileset.h"
+#include "../Levelset.h"
 
-class EditorWidget : public QFrame {
+class EditorWidget : public QWidget {
     Q_OBJECT
 
 public:
@@ -31,11 +31,26 @@ public:
     void setTileset(CCETileset* tileset);
     CCETileset* tileset() const { return m_tileset; }
 
+    void setLevelData(ccl::LevelData* level) { m_levelData = level; }
+    ccl::LevelData* levelData() const { return m_levelData; }
+
     virtual void paintEvent(QPaintEvent*);
+    virtual void mouseMoveEvent(QMouseEvent*);
+
+    virtual QSize sizeHint() const
+    {
+        if (m_tileset == 0)
+            return QSize();
+        return QSize(m_tileset->size() * 32, m_tileset->size() * 32);
+    }
 
 private:
     CCETileset* m_tileset;
-    ccl::LevelData* m_level;
+    ccl::LevelData* m_levelData;
+    QList<QPoint> m_hilights;
+
+signals:
+    void mouseInfo(QString text);
 };
 
 #endif

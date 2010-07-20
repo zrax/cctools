@@ -26,6 +26,8 @@
 #include <QPlainTextEdit>
 #include <QTabWidget>
 #include "../Levelset.h"
+#include "../Tileset.h"
+#include "EditorWidget.h"
 
 class CCEditMain : public QMainWindow {
     Q_OBJECT
@@ -40,12 +42,12 @@ private:
     enum ActionType {
         ActionNew, ActionOpen, ActionSave, ActionSaveAs, ActionExit,
         ActionSelect, ActionCut, ActionCopy, ActionPaste, ActionClear,
-        ActionFill,
+        ActionFill, ActionUndo, ActionRedo,
         NUM_ACTIONS
     };
 
     QAction* m_actions[NUM_ACTIONS];
-    QTabWidget* m_editorTab;
+    EditorWidget* m_editor;
     QListWidget* m_levelList;
     QLineEdit* m_nameEdit;
     QLineEdit* m_passwordEdit;
@@ -54,6 +56,7 @@ private:
     QToolButton* m_passwordButton;
     QToolButton* m_chipsButton;
     QPlainTextEdit* m_hintEdit;
+    CCETileset m_tileset;
 
     ccl::Levelset* m_levelset;
     QString m_levelsetFilename;

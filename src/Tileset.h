@@ -19,6 +19,9 @@
 #define _TILESET_H
 
 #include <QPixmap>
+#include <QIcon>
+#include <QListWidget>
+#include "Levelset.h"
 
 typedef unsigned char tile_t;
 
@@ -29,17 +32,22 @@ public:
     QString name() const { return m_name; }
     QString description() const { return m_description; }
     int size() const { return m_size; }
+    QSize qsize() const { return QSize(m_size, m_size); }
 
     void load(QString filename);
-    void draw(QPainter painter, int x, int y, tile_t upper, tile_t lower = 0) const;
+    void draw(QPainter& painter, int x, int y, tile_t upper, tile_t lower = 0) const;
+    void addTiles(QListWidget* list, QList<tile_t> tiles) const;
+    QIcon getIcon(tile_t tile) const { return QIcon(m_base[tile]); }
+
+    static QString TileName(tile_t tile);
 
 private:
     QString m_name;
     QString m_description;
     int m_size;
 
-    QPixmap m_base;
-    QPixmap m_overlay;
+    QPixmap m_base[ccl::NUM_TILE_TYPES];
+    QPixmap m_overlay[ccl::NUM_TILE_TYPES];
 };
 
 #endif

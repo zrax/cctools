@@ -20,6 +20,10 @@
 #include <cstring>
 #include <cstdlib>
 
+#ifdef WIN32
+#define snprintf _sprintf_p
+#endif
+
 static unsigned char read8(FILE* stream)
 {
     unsigned char val;
@@ -459,6 +463,7 @@ ccl::LevelData* ccl::Levelset::addLevel()
     snprintf(nameBuf, 32, "Level %d", (int)m_levels.size());
     level->setName(nameBuf);
     level->setPassword(RandomPassword());
+    return level;
 }
 
 void ccl::Levelset::delLevel(int num)
