@@ -112,45 +112,39 @@ CCEditMain::CCEditMain(QWidget* parent)
                         | QDockWidget::DockWidgetFloatable);
     toolTabs->addTab(levelManWidget, tr("Level &Manager"));
 
-    m_tileset.load(":/TW32.tis");
     QToolBox* tileBox = new QToolBox(toolDock);
-    QListWidget* standardTiles = new QListWidget(tileBox);
-    standardTiles->setIconSize(QSize(32, 32));
-    m_tileset.addTiles(standardTiles, QList<tile_t>()
+    m_tileLists[ListStandard] = new QListWidget(tileBox);
+    m_tileset.addTiles(m_tileLists[ListStandard], QList<tile_t>()
         << ccl::TileFloor << ccl::TileWall << ccl::TileChip << ccl::TileSocket
         << ccl::TileExit << ccl::TileHint << ccl::TileBarrier_N
         << ccl::TileBarrier_W << ccl::TileBarrier_S << ccl::TileBarrier_E
         << ccl::TileBarrier_SE << ccl::TileBlock << ccl::TileDirt
         << ccl::TileGravel << ccl::TilePlayer_S << ccl::TilePlayer_E
         << ccl::TilePlayer_W << ccl::TilePlayer_N);
-    tileBox->addItem(standardTiles, tr("Standard"));
-    QListWidget* obstacleTiles = new QListWidget(tileBox);
-    obstacleTiles->setIconSize(QSize(32, 32));
-    m_tileset.addTiles(obstacleTiles, QList<tile_t>()
+    tileBox->addItem(m_tileLists[ListStandard], tr("Standard"));
+    m_tileLists[ListObstacles] = new QListWidget(tileBox);
+    m_tileset.addTiles(m_tileLists[ListObstacles], QList<tile_t>()
         << ccl::TileWater << ccl::TileFire << ccl::TileBomb << ccl::TileForce_N
         << ccl::TileForce_W << ccl::TileForce_S << ccl::TileForce_E
         << ccl::TileForce_Rand << ccl::TileIce << ccl::TileIce_NW
         << ccl::TileIce_NE << ccl::TileIce_SE << ccl::TileIce_SW
         << ccl::TileTrap << ccl::TileTrapButton << ccl::TilePopUpWall
         << ccl::TileAppearingWall << ccl::TileInvisWall);
-    tileBox->addItem(obstacleTiles, tr("Obstacles"));
-    QListWidget* doorTiles = new QListWidget(tileBox);
-    doorTiles->setIconSize(QSize(32, 32));
-    m_tileset.addTiles(doorTiles, QList<tile_t>()
+    tileBox->addItem(m_tileLists[ListObstacles], tr("Obstacles"));
+    m_tileLists[ListDoors] = new QListWidget(tileBox);
+    m_tileset.addTiles(m_tileLists[ListDoors], QList<tile_t>()
         << ccl::TileDoor_Blue << ccl::TileDoor_Red << ccl::TileDoor_Green
         << ccl::TileDoor_Yellow << ccl::TileToggleFloor << ccl::TileToggleWall
         << ccl::TileToggleButton);
-    tileBox->addItem(doorTiles, tr("Doors"));
-    QListWidget* itemTiles = new QListWidget(tileBox);
-    itemTiles->setIconSize(QSize(32, 32));
-    m_tileset.addTiles(itemTiles, QList<tile_t>()
+    tileBox->addItem(m_tileLists[ListDoors], tr("Doors"));
+    m_tileLists[ListItems] = new QListWidget(tileBox);
+    m_tileset.addTiles(m_tileLists[ListItems], QList<tile_t>()
         << ccl::TileKey_Blue << ccl::TileKey_Red << ccl::TileKey_Green
         << ccl::TileKey_Yellow << ccl::TileFlippers << ccl::TileFireBoots
         << ccl::TileIceSkates << ccl::TileForceBoots);
-    tileBox->addItem(itemTiles, tr("Items"));
-    QListWidget* monsterTiles = new QListWidget(tileBox);
-    monsterTiles->setIconSize(QSize(32, 32));
-    m_tileset.addTiles(monsterTiles, QList<tile_t>()
+    tileBox->addItem(m_tileLists[ListItems], tr("Items"));
+    m_tileLists[ListMonsters] = new QListWidget(tileBox);
+    m_tileset.addTiles(m_tileLists[ListMonsters], QList<tile_t>()
         << ccl::TileBug_N << ccl::TileBug_E << ccl::TileBug_S << ccl::TileBug_W
         << ccl::TileFireball_N << ccl::TileFireball_E << ccl::TileFireball_S
         << ccl::TileFireball_W << ccl::TileBall_N << ccl::TileBall_E
@@ -163,30 +157,27 @@ CCEditMain::CCEditMain(QWidget* parent)
         << ccl::TileWalker_W << ccl::TileBlob_N << ccl::TileBlob_E
         << ccl::TileBlob_S << ccl::TileBlob_W << ccl::TileCrawler_N
         << ccl::TileCrawler_E << ccl::TileCrawler_S << ccl::TileCrawler_W);
-    tileBox->addItem(monsterTiles, tr("Monsters"));
-    QListWidget* miscTiles = new QListWidget(tileBox);
-    miscTiles->setIconSize(QSize(32, 32));
-    m_tileset.addTiles(miscTiles, QList<tile_t>()
+    tileBox->addItem(m_tileLists[ListMonsters], tr("Monsters"));
+    m_tileLists[ListMisc] = new QListWidget(tileBox);
+    m_tileset.addTiles(m_tileLists[ListMisc], QList<tile_t>()
         << ccl::TileThief << ccl::TileBlueWall << ccl::TileBlueFloor
         << ccl::TileTeleport << ccl::TileCloner << ccl::TileCloneButton
         << ccl::TileBlock_N << ccl::TileBlock_W << ccl::TileBlock_S
         << ccl::TileBlock_E);
-    tileBox->addItem(miscTiles, tr("Miscellaneous"));
-    QListWidget* specialTiles = new QListWidget(tileBox);
-    specialTiles->setIconSize(QSize(32, 32));
-    m_tileset.addTiles(specialTiles, QList<tile_t>()
+    tileBox->addItem(m_tileLists[ListMisc], tr("Miscellaneous"));
+    m_tileLists[ListSpecial] = new QListWidget(tileBox);
+    m_tileset.addTiles(m_tileLists[ListSpecial], QList<tile_t>()
         << ccl::TilePlayerSplash << ccl::TilePlayerFire << ccl::TilePlayerBurnt
         << ccl::TilePlayerExit << ccl::TileExitAnim2 << ccl::TileExitAnim3
         << ccl::TilePlayerSwim_N << ccl::TilePlayerSwim_W
         << ccl::TilePlayerSwim_S << ccl::TilePlayerSwim_E << ccl::Tile_UNUSED_20
         << ccl::Tile_UNUSED_36 << ccl::Tile_UNUSED_37 << ccl::Tile_UNUSED_38);
-    tileBox->addItem(specialTiles, tr("Special (Advanced)"));
+    tileBox->addItem(m_tileLists[ListSpecial], tr("Special (Advanced)"));
     toolTabs->addTab(tileBox, tr("&Tiles"));
 
     // Main Editor
     QScrollArea* editorScroll = new QScrollArea(this);
     m_editor = new EditorWidget(editorScroll);
-    m_editor->setTileset(&m_tileset);
     editorScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     editorScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     editorScroll->setWidget(m_editor);
@@ -264,6 +255,9 @@ CCEditMain::CCEditMain(QWidget* parent)
     editMenu->addAction(m_actions[ActionClear]);
     editMenu->addAction(m_actions[ActionFill]);
 
+    QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
+    m_tilesetMenu = viewMenu->addMenu(tr("&Tileset"));
+
     // Tool bars
     QToolBar* tbarFile = addToolBar(QString());
     tbarFile->addAction(m_actions[ActionNew]);
@@ -288,6 +282,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     // Visual tweaks
     resize(800, 600);
     toolDock->resize(120, 0);
+    loadTileset(":/TW32.tis");
 }
 
 void CCEditMain::loadLevelset(QString filename)
@@ -341,6 +336,14 @@ bool CCEditMain::closeLevelset()
     delete m_levelset;
     m_levelset = 0;
     return true;
+}
+
+void CCEditMain::loadTileset(QString filename)
+{
+    m_tileset.load(filename);
+    m_editor->setTileset(&m_tileset);
+    for (int i=0; i<NUM_TILE_LISTS; ++i)
+        m_tileset.imageTiles(m_tileLists[i]);
 }
 
 void CCEditMain::onOpenAction()

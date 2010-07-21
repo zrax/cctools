@@ -36,8 +36,10 @@ public:
 
     void load(QString filename);
     void draw(QPainter& painter, int x, int y, tile_t upper, tile_t lower = 0) const;
-    void addTiles(QListWidget* list, QList<tile_t> tiles) const;
     QIcon getIcon(tile_t tile) const { return QIcon(m_base[tile]); }
+
+    void addTiles(QListWidget* list, QList<tile_t> tiles) const;
+    void imageTiles(QListWidget* list) const;
 
     static QString TileName(tile_t tile);
 

@@ -104,10 +104,18 @@ void CCETileset::draw(QPainter& painter, int x, int y, tile_t upper, tile_t lowe
 void CCETileset::addTiles(QListWidget* list, QList<tile_t> tiles) const
 {
     foreach (tile_t tile, tiles) {
-        QListWidgetItem* item = new QListWidgetItem(getIcon(tile), TileName(tile), list);
+        QListWidgetItem* item = new QListWidgetItem(TileName(tile), list);
         item->setData(Qt::UserRole, (int)tile);
     }
 }
+
+void CCETileset::imageTiles(QListWidget* list) const
+{
+    list->setIconSize(QSize(m_size, m_size));
+    for (int i=0; i<list->count(); ++i)
+        list->item(i)->setIcon(getIcon(list->item(i)->data(Qt::UserRole).toInt()));
+}
+
 
 #define DIRTILENAME(prefix) \
     prefix " - North", prefix " - West", prefix " - South", prefix " - East"

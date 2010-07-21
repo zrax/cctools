@@ -26,6 +26,10 @@ class EditorWidget : public QWidget {
     Q_OBJECT
 
 public:
+    enum DrawMode {
+        DrawPencil, DrawLine, DrawFill, DrawSelect
+    };
+
     EditorWidget(QWidget* parent = 0);
 
     void setTileset(CCETileset* tileset);

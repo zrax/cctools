@@ -20,6 +20,7 @@
 
 #include <QMainWindow>
 #include <QAction>
+#include <QMenu>
 #include <QListWidget>
 #include <QLineEdit>
 #include <QToolButton>
@@ -37,6 +38,8 @@ public:
 
     void loadLevelset(QString filename);
     bool closeLevelset();
+    void loadTileset(QString filename);
+    void findTilesets();
 
 private:
     enum ActionType {
@@ -44,6 +47,11 @@ private:
         ActionSelect, ActionCut, ActionCopy, ActionPaste, ActionClear,
         ActionFill, ActionUndo, ActionRedo,
         NUM_ACTIONS
+    };
+
+    enum TileListId {
+        ListStandard, ListObstacles, ListDoors, ListItems, ListMonsters,
+        ListMisc, ListSpecial, NUM_TILE_LISTS
     };
 
     QAction* m_actions[NUM_ACTIONS];
@@ -56,6 +64,8 @@ private:
     QToolButton* m_passwordButton;
     QToolButton* m_chipsButton;
     QPlainTextEdit* m_hintEdit;
+    QListWidget* m_tileLists[NUM_TILE_LISTS];
+    QMenu* m_tilesetMenu;
     CCETileset m_tileset;
 
     ccl::Levelset* m_levelset;

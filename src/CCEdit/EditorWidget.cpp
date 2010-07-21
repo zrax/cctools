@@ -30,6 +30,7 @@ EditorWidget::EditorWidget(QWidget* parent)
 void EditorWidget::setTileset(CCETileset* tileset)
 {
     m_tileset = tileset;
+    resize(sizeHint());
     repaint();
 }
 
@@ -50,11 +51,31 @@ void EditorWidget::paintEvent(QPaintEvent* event)
                 m_tileset->draw(painter, x, y, m_levelData->map().getFG(x, y),
                                 m_levelData->map().getBG(x, y));
 
+        // Hilight movers
         painter.setPen(QColor(0, 0, 255));
         std::list<ccl::Point>::const_iterator move_iter;
         for (move_iter = m_levelData->moveList().begin(); move_iter != m_levelData->moveList().end(); ++move_iter)
             painter.drawRect(move_iter->X * m_tileset->size(), move_iter->Y * m_tileset->size(),
                              m_tileset->size() - 1, m_tileset->size() - 1);
+
+        // Hilight active player only
+        bool playerFound = false;
+        painter.setPen(QColor(0, 255, 0));
+        for (int y = 31; !playerFound && y >= 0; --y) {
+            for (int x = 31; !playerFound && x >= 0; --x) {
+                if (m_levelData->map().getFG(x, y) >= ccl::TilePlayer_N
+                    && m_levelData->map().getFG(x, y) <= ccl::TilePlayer_E) {
+                    painter.drawRect(x * m_tileset->size(), y * m_tileset->size(),
+                                     m_tileset->size() - 1, m_tileset->size() - 1);
+                    playerFound = true;
+                }
+            }
+        }
+        if (!playerFound) {
+            painter.setPen(QColor(255, 255, 0));
+            painter.drawRect(1 * m_tileset->size(), 1 * m_tileset->size(),
+                             m_tileset->size() - 1, m_tileset->size() - 1);
+        }
 
         painter.setPen(QColor(255, 0, 0));
         foreach (QPoint hi, m_hilights)
