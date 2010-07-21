@@ -89,15 +89,13 @@ void CCETileset::load(QString filename)
     file.close();
 }
 
-void CCETileset::draw(QPainter& painter, int x, int y, tile_t upper, tile_t lower) const
+void CCETileset::drawAt(QPainter& painter, int x, int y, tile_t upper, tile_t lower) const
 {
-    int destX = x * m_size;
-    int destY = y * m_size;
     if (lower != 0) {
-        painter.drawPixmap(destX, destY, m_base[lower]);
-        painter.drawPixmap(destX, destY, m_overlay[upper]);
+        painter.drawPixmap(x, y, m_base[lower]);
+        painter.drawPixmap(x, y, m_overlay[upper]);
     } else {
-        painter.drawPixmap(destX, destY, m_base[upper]);
+        painter.drawPixmap(x, y, m_base[upper]);
     }
 }
 

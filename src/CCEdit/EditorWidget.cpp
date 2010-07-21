@@ -31,7 +31,7 @@ void EditorWidget::setTileset(CCETileset* tileset)
 {
     m_tileset = tileset;
     resize(sizeHint());
-    repaint();
+    update();
 }
 
 void EditorWidget::paintEvent(QPaintEvent* event)
@@ -72,11 +72,12 @@ void EditorWidget::paintEvent(QPaintEvent* event)
             }
         }
         if (!playerFound) {
-            painter.setPen(QColor(255, 255, 0));
+            painter.setPen(QColor(255, 127, 0));
             painter.drawRect(1 * m_tileset->size(), 1 * m_tileset->size(),
                              m_tileset->size() - 1, m_tileset->size() - 1);
         }
 
+        // Hilight context-sensitive objects
         painter.setPen(QColor(255, 0, 0));
         foreach (QPoint hi, m_hilights)
             painter.drawRect(hi.x() * m_tileset->size(), hi.y() * m_tileset->size(),

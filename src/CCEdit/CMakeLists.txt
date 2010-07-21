@@ -8,11 +8,13 @@ set(CCEdit_SOURCES
     ../Tileset.cpp
     CCEdit.cpp
     EditorWidget.cpp
+    LayerWidget.cpp
 )
 
 set(CCEdit_MOCS
     CCEdit.h
     EditorWidget.h
+    LayerWidget.h
 )
 
 set(CCEdit_RCCS

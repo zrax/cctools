@@ -26,9 +26,27 @@
 #include <QToolButton>
 #include <QPlainTextEdit>
 #include <QTabWidget>
+#include <QLabel>
 #include "../Levelset.h"
 #include "../Tileset.h"
 #include "EditorWidget.h"
+#include "LayerWidget.h"
+
+class TileListWidget : public QListWidget {
+    Q_OBJECT
+
+public:
+    TileListWidget(QWidget* parent = 0);
+
+protected:
+    virtual void mousePressEvent(QMouseEvent*);
+    Qt::MouseButton m_button;
+
+signals:
+    void itemSelectedLeft(tile_t);
+    void itemSelectedRight(tile_t);
+};
+
 
 class CCEditMain : public QMainWindow {
     Q_OBJECT
@@ -43,7 +61,7 @@ public:
 
 private:
     enum ActionType {
-        ActionNew, ActionOpen, ActionSave, ActionSaveAs, ActionExit,
+        ActionNew, ActionOpen, ActionSave, ActionSaveAs, ActionClose, ActionExit,
         ActionSelect, ActionCut, ActionCopy, ActionPaste, ActionClear,
         ActionFill, ActionUndo, ActionRedo,
         NUM_ACTIONS
@@ -55,6 +73,8 @@ private:
     };
 
     QAction* m_actions[NUM_ACTIONS];
+    QMenu* m_tilesetMenu;
+
     EditorWidget* m_editor;
     QListWidget* m_levelList;
     QLineEdit* m_nameEdit;
@@ -64,15 +84,23 @@ private:
     QToolButton* m_passwordButton;
     QToolButton* m_chipsButton;
     QPlainTextEdit* m_hintEdit;
-    QListWidget* m_tileLists[NUM_TILE_LISTS];
-    QMenu* m_tilesetMenu;
+    TileListWidget* m_tileLists[NUM_TILE_LISTS];
+    LayerWidget* m_layer;
+    QLabel* m_foreLabel;
+    QLabel* m_backLabel;
     CCETileset m_tileset;
 
     ccl::Levelset* m_levelset;
     QString m_levelsetFilename;
 
+protected:
+    void doLevelsetLoad();
+    virtual void closeEvent(QCloseEvent*);
+
 private slots:
+    void onNewAction();
     void onOpenAction();
+    void onCloseAction() { closeLevelset(); }
     void onSelectToggled(bool);
     void onSelectLevel(int);
     void onPasswordGenAction();
@@ -81,6 +109,8 @@ private slots:
     void onPasswordChanged(QString);
     void onChipsChanged(QString);
     void onTimerChanged(QString);
+    void setForeground(tile_t);
+    void setBackground(tile_t);
 };
 
 #endif

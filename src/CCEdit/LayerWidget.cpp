@@ -15,44 +15,45 @@
  * along with CCTools.  If not, see <http://www.gnu.org/licenses/>.           *
  ******************************************************************************/
 
-#ifndef _TILESET_H
-#define _TILESET_H
+#include "LayerWidget.h"
 
-#include <QPixmap>
-#include <QIcon>
-#include <QListWidget>
-#include "Levelset.h"
+#include <QPaintEvent>
+#include <QPainter>
 
-typedef unsigned char tile_t;
+LayerWidget::LayerWidget(QWidget* parent)
+           : QFrame(parent), m_tileset(0), m_upper(ccl::TileWall),
+             m_lower(ccl::TileFloor)
+{
+    setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+}
 
-class CCETileset {
-public:
-    CCETileset() { }
+void LayerWidget::setTileset(CCETileset* tileset)
+{
+    m_tileset = tileset;
+    resize(sizeHint());
+    update();
+}
 
-    QString name() const { return m_name; }
-    QString description() const { return m_description; }
-    int size() const { return m_size; }
-    QSize qsize() const { return QSize(m_size, m_size); }
+void LayerWidget::setUpper(tile_t tile)
+{
+    m_upper = tile;
+    update();
+}
 
-    void load(QString filename);
+void LayerWidget::setLower(tile_t tile)
+{
+    m_lower = tile;
+    update();
+}
 
-    void drawAt(QPainter& painter, int x, int y, tile_t upper, tile_t lower = 0) const;
-    void draw(QPainter& painter, int x, int y, tile_t upper, tile_t lower = 0) const
-    { drawAt(painter, x * m_size, y * m_size,  upper, lower); }
+void LayerWidget::paintEvent(QPaintEvent* event)
+{
+    QFrame::paintEvent(event);
+    if (m_tileset == 0)
+        return;
 
-    QIcon getIcon(tile_t tile) const { return QIcon(m_base[tile]); }
-    void addTiles(QListWidget* list, QList<tile_t> tiles) const;
-    void imageTiles(QListWidget* list) const;
-
-    static QString TileName(tile_t tile);
-
-private:
-    QString m_name;
-    QString m_description;
-    int m_size;
-
-    QPixmap m_base[ccl::NUM_TILE_TYPES];
-    QPixmap m_overlay[ccl::NUM_TILE_TYPES];
-};
-
-#endif
+    QPainter painter(this);
+    int halfway = m_tileset->size() / 2;
+    m_tileset->drawAt(painter, halfway, halfway, m_lower);
+    m_tileset->drawAt(painter, 0, 0, m_upper);
+}

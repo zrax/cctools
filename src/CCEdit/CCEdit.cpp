@@ -21,7 +21,6 @@
 #include <QMenuBar>
 #include <QToolBar>
 #include <QDockWidget>
-#include <QLabel>
 #include <QIntValidator>
 #include <QGridLayout>
 #include <QScrollArea>
@@ -29,6 +28,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QStatusBar>
+#include <QCloseEvent>
 #include <cstdio>
 
 class QMinimalTextEdit : public QPlainTextEdit {
@@ -39,6 +39,24 @@ public:
     virtual QSize sizeHint() const
     { return QSize(minimumWidth(), minimumHeight()); }
 };
+
+
+TileListWidget::TileListWidget(QWidget* parent)
+              : QListWidget(parent)
+{ }
+
+void TileListWidget::mousePressEvent(QMouseEvent* event)
+{
+    QAbstractItemView::mousePressEvent(event);
+    if (currentItem() == 0)
+        return;
+
+    if (event->button() == Qt::LeftButton)
+        emit itemSelectedLeft((tile_t)currentItem()->data(Qt::UserRole).toUInt());
+    else if (event->button() == Qt::RightButton)
+        emit itemSelectedRight((tile_t)currentItem()->data(Qt::UserRole).toUInt());
+}
+
 
 
 CCEditMain::CCEditMain(QWidget* parent)
@@ -112,8 +130,9 @@ CCEditMain::CCEditMain(QWidget* parent)
                         | QDockWidget::DockWidgetFloatable);
     toolTabs->addTab(levelManWidget, tr("Level &Manager"));
 
-    QToolBox* tileBox = new QToolBox(toolDock);
-    m_tileLists[ListStandard] = new QListWidget(tileBox);
+    QWidget* tileWidget = new QWidget(toolDock);
+    QToolBox* tileBox = new QToolBox(tileWidget);
+    m_tileLists[ListStandard] = new TileListWidget(tileBox);
     m_tileset.addTiles(m_tileLists[ListStandard], QList<tile_t>()
         << ccl::TileFloor << ccl::TileWall << ccl::TileChip << ccl::TileSocket
         << ccl::TileExit << ccl::TileHint << ccl::TileBarrier_N
@@ -122,7 +141,7 @@ CCEditMain::CCEditMain(QWidget* parent)
         << ccl::TileGravel << ccl::TilePlayer_S << ccl::TilePlayer_E
         << ccl::TilePlayer_W << ccl::TilePlayer_N);
     tileBox->addItem(m_tileLists[ListStandard], tr("Standard"));
-    m_tileLists[ListObstacles] = new QListWidget(tileBox);
+    m_tileLists[ListObstacles] = new TileListWidget(tileBox);
     m_tileset.addTiles(m_tileLists[ListObstacles], QList<tile_t>()
         << ccl::TileWater << ccl::TileFire << ccl::TileBomb << ccl::TileForce_N
         << ccl::TileForce_W << ccl::TileForce_S << ccl::TileForce_E
@@ -131,19 +150,19 @@ CCEditMain::CCEditMain(QWidget* parent)
         << ccl::TileTrap << ccl::TileTrapButton << ccl::TilePopUpWall
         << ccl::TileAppearingWall << ccl::TileInvisWall);
     tileBox->addItem(m_tileLists[ListObstacles], tr("Obstacles"));
-    m_tileLists[ListDoors] = new QListWidget(tileBox);
+    m_tileLists[ListDoors] = new TileListWidget(tileBox);
     m_tileset.addTiles(m_tileLists[ListDoors], QList<tile_t>()
         << ccl::TileDoor_Blue << ccl::TileDoor_Red << ccl::TileDoor_Green
         << ccl::TileDoor_Yellow << ccl::TileToggleFloor << ccl::TileToggleWall
         << ccl::TileToggleButton);
     tileBox->addItem(m_tileLists[ListDoors], tr("Doors"));
-    m_tileLists[ListItems] = new QListWidget(tileBox);
+    m_tileLists[ListItems] = new TileListWidget(tileBox);
     m_tileset.addTiles(m_tileLists[ListItems], QList<tile_t>()
         << ccl::TileKey_Blue << ccl::TileKey_Red << ccl::TileKey_Green
         << ccl::TileKey_Yellow << ccl::TileFlippers << ccl::TileFireBoots
         << ccl::TileIceSkates << ccl::TileForceBoots);
     tileBox->addItem(m_tileLists[ListItems], tr("Items"));
-    m_tileLists[ListMonsters] = new QListWidget(tileBox);
+    m_tileLists[ListMonsters] = new TileListWidget(tileBox);
     m_tileset.addTiles(m_tileLists[ListMonsters], QList<tile_t>()
         << ccl::TileBug_N << ccl::TileBug_E << ccl::TileBug_S << ccl::TileBug_W
         << ccl::TileFireball_N << ccl::TileFireball_E << ccl::TileFireball_S
@@ -158,14 +177,14 @@ CCEditMain::CCEditMain(QWidget* parent)
         << ccl::TileBlob_S << ccl::TileBlob_W << ccl::TileCrawler_N
         << ccl::TileCrawler_E << ccl::TileCrawler_S << ccl::TileCrawler_W);
     tileBox->addItem(m_tileLists[ListMonsters], tr("Monsters"));
-    m_tileLists[ListMisc] = new QListWidget(tileBox);
+    m_tileLists[ListMisc] = new TileListWidget(tileBox);
     m_tileset.addTiles(m_tileLists[ListMisc], QList<tile_t>()
         << ccl::TileThief << ccl::TileBlueWall << ccl::TileBlueFloor
         << ccl::TileTeleport << ccl::TileCloner << ccl::TileCloneButton
         << ccl::TileBlock_N << ccl::TileBlock_W << ccl::TileBlock_S
         << ccl::TileBlock_E);
     tileBox->addItem(m_tileLists[ListMisc], tr("Miscellaneous"));
-    m_tileLists[ListSpecial] = new QListWidget(tileBox);
+    m_tileLists[ListSpecial] = new TileListWidget(tileBox);
     m_tileset.addTiles(m_tileLists[ListSpecial], QList<tile_t>()
         << ccl::TilePlayerSplash << ccl::TilePlayerFire << ccl::TilePlayerBurnt
         << ccl::TilePlayerExit << ccl::TileExitAnim2 << ccl::TileExitAnim3
@@ -173,7 +192,20 @@ CCEditMain::CCEditMain(QWidget* parent)
         << ccl::TilePlayerSwim_S << ccl::TilePlayerSwim_E << ccl::Tile_UNUSED_20
         << ccl::Tile_UNUSED_36 << ccl::Tile_UNUSED_37 << ccl::Tile_UNUSED_38);
     tileBox->addItem(m_tileLists[ListSpecial], tr("Special (Advanced)"));
-    toolTabs->addTab(tileBox, tr("&Tiles"));
+
+    m_layer = new LayerWidget(tileWidget);
+    m_layer->setTileset(&m_tileset);
+    m_foreLabel = new QLabel(tileWidget);
+    m_backLabel = new QLabel(tileWidget);
+
+    QGridLayout* tileLayout = new QGridLayout(tileWidget);
+    tileLayout->setContentsMargins(0, 0, 0, 0);
+    tileLayout->setVerticalSpacing(4);
+    tileLayout->addWidget(tileBox, 0, 0, 1, 2);
+    tileLayout->addWidget(m_foreLabel, 1, 0);
+    tileLayout->addWidget(m_backLabel, 2, 0);
+    tileLayout->addWidget(m_layer, 1, 1, 2, 1);
+    toolTabs->addTab(tileWidget, tr("&Tiles"));
 
     // Main Editor
     QScrollArea* editorScroll = new QScrollArea(this);
@@ -196,6 +228,9 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionSaveAs] = new QAction(QIcon(":/res/document-save-as.png"), tr("Save &As..."), this);
     m_actions[ActionSaveAs]->setStatusTip(tr("Save the current levelset to a new file or location"));
     m_actions[ActionSaveAs]->setShortcut(QKeySequence::SaveAs);
+    m_actions[ActionClose] = new QAction(tr("&Close Levelset"), this);
+    m_actions[ActionClose]->setStatusTip(tr("Close the currently open levelset"));
+    m_actions[ActionClose]->setShortcut(QKeySequence::Close);
     m_actions[ActionExit] = new QAction(QIcon(":/res/application-exit.png"), tr("E&xit"), this);
     m_actions[ActionExit]->setStatusTip(tr("Close CCEdit"));
     m_actions[ActionExit]->setShortcut(QKeySequence::Quit);
@@ -240,6 +275,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     fileMenu->addAction(m_actions[ActionOpen]);
     fileMenu->addAction(m_actions[ActionSave]);
     fileMenu->addAction(m_actions[ActionSaveAs]);
+    fileMenu->addAction(m_actions[ActionClose]);
     fileMenu->addSeparator();
     fileMenu->addAction(m_actions[ActionExit]);
 
@@ -267,27 +303,36 @@ CCEditMain::CCEditMain(QWidget* parent)
     // Show status bar
     statusBar();
 
-    connect(m_actions[ActionExit], SIGNAL(triggered()), this, SLOT(close()));
-    connect(m_actions[ActionOpen], SIGNAL(triggered()), this, SLOT(onOpenAction()));
-    connect(m_actions[ActionSelect], SIGNAL(toggled(bool)), this, SLOT(onSelectToggled(bool)));
-    connect(m_levelList, SIGNAL(currentRowChanged(int)), this, SLOT(onSelectLevel(int)));
-    connect(m_nameEdit, SIGNAL(textChanged(QString)), this, SLOT(onNameChanged(QString)));
-    connect(m_passwordEdit, SIGNAL(textChanged(QString)), this, SLOT(onPasswordChanged(QString)));
-    connect(m_passwordButton, SIGNAL(clicked()), this, SLOT(onPasswordGenAction()));
-    connect(m_chipEdit, SIGNAL(textChanged(QString)), this, SLOT(onChipsChanged(QString)));
-    connect(m_chipsButton, SIGNAL(clicked()), this, SLOT(onChipCountAction()));
-    connect(m_timeEdit, SIGNAL(textChanged(QString)), this, SLOT(onTimerChanged(QString)));
+    connect(m_actions[ActionExit], SIGNAL(triggered()), SLOT(close()));
+    connect(m_actions[ActionNew], SIGNAL(triggered()), SLOT(onNewAction()));
+    connect(m_actions[ActionOpen], SIGNAL(triggered()), SLOT(onOpenAction()));
+    connect(m_actions[ActionClose], SIGNAL(triggered()), SLOT(onCloseAction()));
+    connect(m_actions[ActionSelect], SIGNAL(toggled(bool)), SLOT(onSelectToggled(bool)));
+    connect(m_levelList, SIGNAL(currentRowChanged(int)), SLOT(onSelectLevel(int)));
+    connect(m_nameEdit, SIGNAL(textChanged(QString)), SLOT(onNameChanged(QString)));
+    connect(m_passwordEdit, SIGNAL(textChanged(QString)), SLOT(onPasswordChanged(QString)));
+    connect(m_passwordButton, SIGNAL(clicked()), SLOT(onPasswordGenAction()));
+    connect(m_chipEdit, SIGNAL(textChanged(QString)), SLOT(onChipsChanged(QString)));
+    connect(m_chipsButton, SIGNAL(clicked()), SLOT(onChipCountAction()));
+    connect(m_timeEdit, SIGNAL(textChanged(QString)), SLOT(onTimerChanged(QString)));
     connect(m_editor, SIGNAL(mouseInfo(QString)), statusBar(), SLOT(showMessage(QString)));
+
+    for (int i=0; i<NUM_TILE_LISTS; ++i) {
+        connect(m_tileLists[i], SIGNAL(itemSelectedLeft(tile_t)), SLOT(setForeground(tile_t)));
+        connect(m_tileLists[i], SIGNAL(itemSelectedRight(tile_t)), SLOT(setBackground(tile_t)));
+    }
 
     // Visual tweaks
     resize(800, 600);
     toolDock->resize(120, 0);
     loadTileset(":/TW32.tis");
+    setForeground(ccl::TileWall);
+    setBackground(ccl::TileFloor);
 }
 
 void CCEditMain::loadLevelset(QString filename)
 {
-    if (m_levelset != 0 && !closeLevelset())
+    if (!closeLevelset())
         return;
 
     FILE* set = fopen(filename.toUtf8(), "rb");
@@ -306,17 +351,27 @@ void CCEditMain::loadLevelset(QString filename)
         QMessageBox::critical(this, tr("Error opening levelset"),
                               tr("Error: could not open file %1").arg(filename));
     }
-
     if (m_levelset != 0) {
-        for (int i=0; i<m_levelset->levelCount(); ++i) {
-            m_levelList->addItem(QString("%1 - %2")
-                        .arg(m_levelset->level(i)->levelNum())
-                        .arg(QString::fromAscii(m_levelset->level(i)->name().c_str())));
-        }
+        doLevelsetLoad();
         m_levelsetFilename = filename;
-        if (m_levelset->levelCount() > 0)
-            m_levelList->setCurrentRow(0);
     }
+}
+
+void CCEditMain::doLevelsetLoad()
+{
+    for (int i=0; i<m_levelset->levelCount(); ++i) {
+        m_levelList->addItem(QString("%1 - %2")
+                    .arg(m_levelset->level(i)->levelNum())
+                    .arg(QString::fromAscii(m_levelset->level(i)->name().c_str())));
+    }
+    if (m_levelset->levelCount() > 0)
+        m_levelList->setCurrentRow(0);
+}
+
+void CCEditMain::closeEvent(QCloseEvent* event)
+{
+    if (!closeLevelset())
+        event->setAccepted(false);
 }
 
 bool CCEditMain::closeLevelset()
@@ -344,6 +399,16 @@ void CCEditMain::loadTileset(QString filename)
     m_editor->setTileset(&m_tileset);
     for (int i=0; i<NUM_TILE_LISTS; ++i)
         m_tileset.imageTiles(m_tileLists[i]);
+}
+
+void CCEditMain::onNewAction()
+{
+    if (!closeLevelset())
+        return;
+
+    m_levelset = new ccl::Levelset();
+    doLevelsetLoad();
+    m_levelsetFilename = "Untitled";
 }
 
 void CCEditMain::onOpenAction()
@@ -439,6 +504,18 @@ void CCEditMain::onTimerChanged(QString value)
     if (m_levelList->currentRow() < 0)
         return;
     m_levelset->level(m_levelList->currentRow())->setTimer(m_timeEdit->text().toInt());
+}
+
+void CCEditMain::setForeground(tile_t tile)
+{
+    m_layer->setUpper(tile);
+    m_foreLabel->setText(tr("Foreground: ") + CCETileset::TileName(tile));
+}
+
+void CCEditMain::setBackground(tile_t tile)
+{
+    m_layer->setLower(tile);
+    m_backLabel->setText(tr("Background: ") + CCETileset::TileName(tile));
 }
 
 

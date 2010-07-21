@@ -15,44 +15,39 @@
  * along with CCTools.  If not, see <http://www.gnu.org/licenses/>.           *
  ******************************************************************************/
 
-#ifndef _TILESET_H
-#define _TILESET_H
+#ifndef _LAYERWIDGET_H
+#define _LAYERWIDGET_H
 
-#include <QPixmap>
-#include <QIcon>
-#include <QListWidget>
-#include "Levelset.h"
+#include <QFrame>
+#include "../Tileset.h"
 
-typedef unsigned char tile_t;
+class LayerWidget : public QFrame {
+    Q_OBJECT
 
-class CCETileset {
 public:
-    CCETileset() { }
+    LayerWidget(QWidget* parent = 0);
 
-    QString name() const { return m_name; }
-    QString description() const { return m_description; }
-    int size() const { return m_size; }
-    QSize qsize() const { return QSize(m_size, m_size); }
+    void setTileset(CCETileset* tileset);
+    CCETileset* tileset() const { return m_tileset; }
 
-    void load(QString filename);
+    void setUpper(tile_t tile);
+    void setLower(tile_t tile);
+    tile_t upper() const { return m_upper; }
+    tile_t lower() const { return m_lower; }
 
-    void drawAt(QPainter& painter, int x, int y, tile_t upper, tile_t lower = 0) const;
-    void draw(QPainter& painter, int x, int y, tile_t upper, tile_t lower = 0) const
-    { drawAt(painter, x * m_size, y * m_size,  upper, lower); }
+    virtual void paintEvent(QPaintEvent*);
 
-    QIcon getIcon(tile_t tile) const { return QIcon(m_base[tile]); }
-    void addTiles(QListWidget* list, QList<tile_t> tiles) const;
-    void imageTiles(QListWidget* list) const;
-
-    static QString TileName(tile_t tile);
+    virtual QSize sizeHint() const
+    {
+        if (m_tileset == 0)
+            return QSize();
+        int size = (m_tileset->size() * 3) / 2;
+        return QSize(size, size);
+    }
 
 private:
-    QString m_name;
-    QString m_description;
-    int m_size;
-
-    QPixmap m_base[ccl::NUM_TILE_TYPES];
-    QPixmap m_overlay[ccl::NUM_TILE_TYPES];
+    CCETileset* m_tileset;
+    tile_t m_upper, m_lower;
 };
 
 #endif
