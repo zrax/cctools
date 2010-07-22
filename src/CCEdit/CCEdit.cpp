@@ -62,7 +62,7 @@ void TileListWidget::mousePressEvent(QMouseEvent* event)
 CCEditMain::CCEditMain(QWidget* parent)
     : QMainWindow(parent), m_levelset(0)
 {
-    setWindowTitle("CCEdit 2.0");
+    setWindowTitle("CCEdit 2.0 ALPHA");
     setDockOptions(QMainWindow::AnimatedDocks);
 
     // Control Toolbox
@@ -87,17 +87,17 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_passwordButton = new QToolButton(levelManWidget);
     m_passwordButton->setIcon(QIcon(":/res/view-refresh.png"));
     m_passwordButton->setStatusTip(tr("Generate new random level password"));
-    m_chipEdit = new QLineEdit(levelManWidget);
+    m_chipEdit = new QSpinBox(levelManWidget);
     QLabel* chipLabel = new QLabel(tr("&Chips:"), levelManWidget);
     chipLabel->setBuddy(m_chipEdit);
-    m_chipEdit->setValidator(new QIntValidator(0, 32767, m_chipEdit));
+    m_chipEdit->setRange(0, 32767);
     m_chipsButton = new QToolButton(levelManWidget);
     m_chipsButton->setIcon(QIcon(":/res/view-refresh.png"));
     m_chipsButton->setStatusTip(tr("Count all chips in the selected level"));
-    m_timeEdit = new QLineEdit(levelManWidget);
+    m_timeEdit = new QSpinBox(levelManWidget);
     QLabel* timeLabel = new QLabel(tr("&Time:"), levelManWidget);
     timeLabel->setBuddy(m_timeEdit);
-    m_timeEdit->setValidator(new QIntValidator(0, 32767, m_timeEdit));
+    m_timeEdit->setRange(0, 32767);
     m_hintEdit = new QMinimalTextEdit(levelManWidget);
     QLabel* hintLabel = new QLabel(tr("&Hint Text:"), levelManWidget);
     hintLabel->setBuddy(m_hintEdit);
@@ -118,7 +118,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     levelManLayout->addWidget(m_chipEdit, 4, 1);
     levelManLayout->addWidget(m_chipsButton, 4, 2);
     levelManLayout->addWidget(timeLabel, 5, 0);
-    levelManLayout->addWidget(m_timeEdit, 5, 1, 1, 2);
+    levelManLayout->addWidget(m_timeEdit, 5, 1);
     levelManLayout->addItem(new QSpacerItem(0, 8), 6, 0, 1, 3);
     levelManLayout->addWidget(hintLabel, 7, 0, 1, 3);
     levelManLayout->addWidget(m_hintEdit, 8, 0, 1, 3);
@@ -312,9 +312,9 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_nameEdit, SIGNAL(textChanged(QString)), SLOT(onNameChanged(QString)));
     connect(m_passwordEdit, SIGNAL(textChanged(QString)), SLOT(onPasswordChanged(QString)));
     connect(m_passwordButton, SIGNAL(clicked()), SLOT(onPasswordGenAction()));
-    connect(m_chipEdit, SIGNAL(textChanged(QString)), SLOT(onChipsChanged(QString)));
+    connect(m_chipEdit, SIGNAL(valueChanged(int)), SLOT(onChipsChanged(int)));
     connect(m_chipsButton, SIGNAL(clicked()), SLOT(onChipCountAction()));
-    connect(m_timeEdit, SIGNAL(textChanged(QString)), SLOT(onTimerChanged(QString)));
+    connect(m_timeEdit, SIGNAL(valueChanged(int)), SLOT(onTimerChanged(int)));
     connect(m_editor, SIGNAL(mouseInfo(QString)), statusBar(), SLOT(showMessage(QString)));
 
     for (int i=0; i<NUM_TILE_LISTS; ++i) {
@@ -433,16 +433,16 @@ void CCEditMain::onSelectLevel(int idx)
     if (m_levelset == 0 || idx < 0) {
         m_nameEdit->setText(QString());
         m_passwordEdit->setText(QString());
-        m_chipEdit->setText(QString());
-        m_timeEdit->setText(QString());
+        m_chipEdit->setValue(0);
+        m_timeEdit->setValue(0);
         m_hintEdit->setPlainText(QString());
         m_editor->setLevelData(0);
     } else {
         ccl::LevelData* level = m_levelset->level(idx);
         m_nameEdit->setText(QString::fromAscii(level->name().c_str()));
         m_passwordEdit->setText(QString::fromAscii(level->password().c_str()));
-        m_chipEdit->setText(QString("%1").arg(level->chips()));
-        m_timeEdit->setText(QString("%1").arg(level->timer()));
+        m_chipEdit->setValue(level->chips());
+        m_timeEdit->setValue(level->timer());
         m_hintEdit->setPlainText(QString::fromAscii(level->hint().c_str()));
         m_editor->setLevelData(level);
     }
@@ -471,7 +471,7 @@ void CCEditMain::onChipCountAction()
                 ++chips;
         }
     }
-    m_chipEdit->setText(QString("%1").arg(chips));
+    m_chipEdit->setValue(chips);
 }
 
 void CCEditMain::onNameChanged(QString value)
@@ -492,18 +492,18 @@ void CCEditMain::onPasswordChanged(QString value)
     m_levelset->level(m_levelList->currentRow())->setPassword(m_passwordEdit->text().toAscii().data());
 }
 
-void CCEditMain::onChipsChanged(QString value)
+void CCEditMain::onChipsChanged(int value)
 {
     if (m_levelList->currentRow() < 0)
         return;
-    m_levelset->level(m_levelList->currentRow())->setChips(m_chipEdit->text().toInt());
+    m_levelset->level(m_levelList->currentRow())->setChips(m_chipEdit->value());
 }
 
-void CCEditMain::onTimerChanged(QString value)
+void CCEditMain::onTimerChanged(int value)
 {
     if (m_levelList->currentRow() < 0)
         return;
-    m_levelset->level(m_levelList->currentRow())->setTimer(m_timeEdit->text().toInt());
+    m_levelset->level(m_levelList->currentRow())->setTimer(m_timeEdit->value());
 }
 
 void CCEditMain::setForeground(tile_t tile)

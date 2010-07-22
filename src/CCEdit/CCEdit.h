@@ -23,6 +23,7 @@
 #include <QMenu>
 #include <QListWidget>
 #include <QLineEdit>
+#include <QSpinBox>
 #include <QToolButton>
 #include <QPlainTextEdit>
 #include <QTabWidget>
@@ -79,8 +80,8 @@ private:
     QListWidget* m_levelList;
     QLineEdit* m_nameEdit;
     QLineEdit* m_passwordEdit;
-    QLineEdit* m_chipEdit;
-    QLineEdit* m_timeEdit;
+    QSpinBox* m_chipEdit;
+    QSpinBox* m_timeEdit;
     QToolButton* m_passwordButton;
     QToolButton* m_chipsButton;
     QPlainTextEdit* m_hintEdit;
@@ -107,8 +108,8 @@ private slots:
     void onChipCountAction();
     void onNameChanged(QString);
     void onPasswordChanged(QString);
-    void onChipsChanged(QString);
-    void onTimerChanged(QString);
+    void onChipsChanged(int);
+    void onTimerChanged(int);
     void setForeground(tile_t);
     void setBackground(tile_t);
 };

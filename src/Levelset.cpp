@@ -24,6 +24,15 @@
 #define snprintf _sprintf_p
 #endif
 
+#ifdef BYTES_BIG_ENDIAN
+#define SWAP16(x)   (((x) << 8) & 0xFF00) | (((x) >> 8) & 0x00FF)
+#define SWAP32(x)   (((x) << 24) & 0xFF000000) | (((x) << 8) & 0x00FF0000) | \
+                    (((x) >> 24) & 0x000000FF) | (((x) >> 8) & 0x0000FF00)
+#else
+#define SWAP16(x)   (x)
+#define SWAP32(x)   (x)
+#endif
+
 static unsigned char read8(FILE* stream)
 {
     unsigned char val;
@@ -37,7 +46,7 @@ static unsigned short read16(FILE* stream)
     unsigned short val;
     if (fread(&val, sizeof(val), 1, stream) == 0)
         throw ccl::IOException("Read past end of stream");
-    return val;
+    return SWAP16(val);
 }
 
 static unsigned int read32(FILE* stream)
@@ -45,7 +54,7 @@ static unsigned int read32(FILE* stream)
     unsigned int val;
     if (fread(&val, sizeof(val), 1, stream) == 0)
         throw ccl::IOException("Read past end of stream");
-    return val;
+    return SWAP32(val);
 }
 
 static void read_rle(tile_t* dest, size_t size, FILE* stream)
@@ -101,13 +110,15 @@ static void write8(FILE* stream, unsigned char value)
 
 static void write16(FILE* stream, unsigned short value)
 {
-    if (fwrite(&value, sizeof(value), 1, stream) == 0)
+    unsigned short wval = SWAP16(value);
+    if (fwrite(&wval, sizeof(wval), 1, stream) == 0)
         throw ccl::IOException("Error writing to stream");
 }
 
 static void write32(FILE* stream, unsigned int value)
 {
-    if (fwrite(&value, sizeof(value), 1, stream) == 0)
+    unsigned int wval = SWAP32(value);
+    if (fwrite(&wval, sizeof(wval), 1, stream) == 0)
         throw ccl::IOException("Error writing to stream");
 }
 

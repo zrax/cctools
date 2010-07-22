@@ -22,6 +22,27 @@
 #include <cstdio>
 #include "Errors.h"
 
+#ifdef BYTES_BIG_ENDIAN
+#define SWAP32(x)   (((x) << 24) & 0xFF000000) | (((x) << 8) & 0x00FF0000) | \
+                    (((x) >> 24) & 0x000000FF) | (((x) >> 8) & 0x0000FF00)
+#else
+#define SWAP32(x)   (x)
+#endif
+
+static quint8 read8(QFile& file)
+{
+    quint8 value;
+    file.read((char*)&value, sizeof(quint8));
+    return value;
+}
+
+static quint32 read32(QFile& file)
+{
+    quint32 value;
+    file.read((char*)&value, sizeof(quint32));
+    return SWAP32(value);
+}
+
 void CCETileset::load(QString filename)
 {
     QFile file(filename);
@@ -40,7 +61,7 @@ void CCETileset::load(QString filename)
     QPixmap tempmap;
 
     // Tileset name
-    file.read((char*)&len, sizeof(quint32));
+    len = read32(file);
     utfbuffer = new char[len+1];
     file.read(utfbuffer, len);
     utfbuffer[len] = 0;
@@ -48,7 +69,7 @@ void CCETileset::load(QString filename)
     delete[] utfbuffer;
 
     // Description
-    file.read((char*)&len, sizeof(quint32));
+    len = read32(file);
     utfbuffer = new char[len+1];
     file.read(utfbuffer, len);
     utfbuffer[len] = 0;
@@ -56,12 +77,10 @@ void CCETileset::load(QString filename)
     delete[] utfbuffer;
 
     // Tile size
-    quint8 tsize;
-    file.read((char*)&tsize, sizeof(quint8));
-    m_size = tsize;
+    m_size = (int)read8(file);
 
     // Base tiles
-    file.read((char*)&len, sizeof(quint32));
+    len = read32(file);
     pixbuffer = new uchar[len];
     file.read((char*)pixbuffer, len);
     if (!tempmap.loadFromData(pixbuffer, len, "PNG")) {
@@ -74,7 +93,7 @@ void CCETileset::load(QString filename)
     delete[] pixbuffer;
 
     // Overlay tiles
-    file.read((char*)&len, sizeof(quint32));
+    len = read32(file);
     pixbuffer = new uchar[len];
     file.read((char*)pixbuffer, len);
     if (!tempmap.loadFromData(pixbuffer, len, "PNG")) {
