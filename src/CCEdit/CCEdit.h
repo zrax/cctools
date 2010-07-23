@@ -56,6 +56,7 @@ public:
     CCEditMain(QWidget* parent = 0);
 
     void loadLevelset(QString filename);
+    void saveLevelset(QString filename);
     bool closeLevelset();
     void loadTileset(QString filename);
     void findTilesets();
@@ -64,19 +65,21 @@ private:
     enum ActionType {
         ActionNew, ActionOpen, ActionSave, ActionSaveAs, ActionClose, ActionExit,
         ActionSelect, ActionCut, ActionCopy, ActionPaste, ActionClear,
-        ActionFill, ActionUndo, ActionRedo,
+        ActionFill, ActionUndo, ActionRedo, ActionDrawPencil, ActionDrawLine,
+        ActionDrawFill, ActionPathMaker, ActionTrapConnect, ActionCloneConnect,
         NUM_ACTIONS
     };
 
     enum TileListId {
         ListStandard, ListObstacles, ListDoors, ListItems, ListMonsters,
-        ListMisc, ListSpecial, NUM_TILE_LISTS
+        ListMisc, ListSpecial, ListAllTiles, NUM_TILE_LISTS
     };
 
     QAction* m_actions[NUM_ACTIONS];
     QMenu* m_tilesetMenu;
 
     EditorWidget* m_editor;
+    QTabWidget* m_toolTabs;
     QListWidget* m_levelList;
     QLineEdit* m_nameEdit;
     QLineEdit* m_passwordEdit;
@@ -101,6 +104,8 @@ protected:
 private slots:
     void onNewAction();
     void onOpenAction();
+    void onSaveAction();
+    void onSaveAsAction();
     void onCloseAction() { closeLevelset(); }
     void onSelectToggled(bool);
     void onSelectLevel(int);

@@ -189,6 +189,31 @@ ccl::LevelMap::LevelMap(int height, int width)
     memset(m_bgTiles, 0, width * height * sizeof(tile_t));
 }
 
+ccl::LevelMap& ccl::LevelMap::operator=(const ccl::LevelMap& source)
+{
+    delete[] m_fgTiles;
+    delete[] m_bgTiles;
+
+    m_height = source.m_height;
+    m_width = source.m_width;
+    m_fgTiles = new tile_t[m_width*m_height];
+    m_bgTiles = new tile_t[m_width*m_height];
+    memcpy(m_fgTiles, source.m_fgTiles, m_width * m_height * sizeof(tile_t));
+    memcpy(m_bgTiles, source.m_bgTiles, m_width * m_height * sizeof(tile_t));
+}
+
+void ccl::LevelMap::copyFrom(const ccl::LevelMap& source, int destX, int destY)
+{
+    int endX = std::max(destX + source.m_width, m_width);
+    int endY = std::max(destY + source.m_height, m_height);
+    for (int x = destX; x < endX; ++x) {
+        for (int y = destY; y < endY; ++y) {
+            m_fgTiles[(y*m_width) + x] = source.m_fgTiles[(y*source.m_width) + x];
+            m_bgTiles[(y*m_width) + x] = source.m_bgTiles[(y*source.m_width) + x];
+        }
+    }
+}
+
 void ccl::LevelMap::push(int x, int y, tile_t tile)
 {
     m_bgTiles[(y*m_width) + x] = m_fgTiles[(y*m_width) + x];
@@ -443,7 +468,7 @@ ccl::Levelset::Levelset(int levelCount)
     for (int i=0; i<levelCount; ++i) {
         snprintf(nameBuf, 32, "Level %d", i + 1);
         m_levels[i] = new ccl::LevelData();
-        m_levels[i]->setLevelNum(i + 1);
+        //m_levels[i]->setLevelNum(i + 1);
         m_levels[i]->setName(nameBuf);
         m_levels[i]->setPassword(RandomPassword());
     }
@@ -470,17 +495,23 @@ ccl::LevelData* ccl::Levelset::addLevel()
     ccl::LevelData* level = new ccl::LevelData();
     m_levels.push_back(level);
 
-    level->setLevelNum((int)m_levels.size());
+    //level->setLevelNum((int)m_levels.size());
     snprintf(nameBuf, 32, "Level %d", (int)m_levels.size());
     level->setName(nameBuf);
     level->setPassword(RandomPassword());
     return level;
 }
 
-void ccl::Levelset::delLevel(int num)
+void ccl::Levelset::insertLevel(int where, ccl::LevelData* level)
 {
-    delete m_levels[num];
+    m_levels.insert(m_levels.begin() + where, level);
+}
+
+ccl::LevelData* ccl::Levelset::takeLevel(int num)
+{
+    ccl::LevelData* level = m_levels[num];
     m_levels.erase(m_levels.begin() + num);
+    return level;
 }
 
 void ccl::Levelset::read(FILE* stream)
@@ -507,6 +538,10 @@ void ccl::Levelset::write(FILE* stream)
     write16(stream, m_levels.size());
 
     std::vector<ccl::LevelData*>::iterator it;
-    for (it = m_levels.begin(); it != m_levels.end(); ++it)
+    int levelNum = 0;
+    for (it = m_levels.begin(); it != m_levels.end(); ++it) {
+        // Re-set level number in case levels were re-ordered
+        (*it)->setLevelNum(++levelNum);
         (*it)->write(stream);
+    }
 }

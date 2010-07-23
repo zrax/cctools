@@ -36,11 +36,20 @@ class LevelMap {
 public:
     LevelMap(int height = 32, int width = 32);
 
+    LevelMap(const LevelMap& init)
+        : m_fgTiles(0), m_bgTiles(0)
+    {
+        operator=(init);
+    }
+
     ~LevelMap()
     {
         delete[] m_fgTiles;
         delete[] m_bgTiles;
     }
+
+    LevelMap& operator=(const LevelMap& source);
+    void copyFrom(const LevelMap& source, int destX = 0, int destY = 0);
 
     tile_t getFG(int x, int y) const
     { return m_fgTiles[(m_width*y) + x]; }
@@ -137,7 +146,8 @@ public:
     ccl::LevelData* level(int num) const { return m_levels[(size_t)num]; }
     int levelCount() const { return (int)m_levels.size(); }
     ccl::LevelData* addLevel();
-    void delLevel(int num);
+    void insertLevel(int where, ccl::LevelData* level);
+    ccl::LevelData* takeLevel(int num);
 
     void read(FILE* stream);
     void write(FILE* stream);
@@ -168,7 +178,10 @@ enum TileType {
     DIRTILE(Tank), DIRTILE(Glider), DIRTILE(Teeth), DIRTILE(Walker),
     DIRTILE(Blob), DIRTILE(Crawler), COLORTILE(Key), TileFlippers,
     TileFireBoots, TileIceSkates, TileForceBoots, DIRTILE(Player),
-    NUM_TILE_TYPES
+    NUM_TILE_TYPES,
+
+    MONSTER_FIRST = TileBug_N,
+    MONSTER_LAST = TileCrawler_E,
 };
 
 } /* {ccl} */

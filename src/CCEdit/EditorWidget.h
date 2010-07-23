@@ -27,7 +27,15 @@ class EditorWidget : public QWidget {
 
 public:
     enum DrawMode {
-        DrawPencil, DrawLine, DrawFill, DrawSelect
+        DrawPencil, DrawLine, DrawFill, DrawSelect, DrawTrapConnect,
+        DrawCloneConnect, DrawPathMaker,
+    };
+
+    enum PaintFlags {
+        ShowPlayer = (1<<0),
+        ShowMovement = (1<<1),
+        ShowTeleport = (1<<2),
+        ShowButtons = (1<<3),
     };
 
     EditorWidget(QWidget* parent = 0);
@@ -40,6 +48,8 @@ public:
 
     virtual void paintEvent(QPaintEvent*);
     virtual void mouseMoveEvent(QMouseEvent*);
+    virtual void mousePressEvent(QMouseEvent*);
+    virtual void mouseReleaseEvent(QMouseEvent*);
 
     virtual QSize sizeHint() const
     {
@@ -48,10 +58,23 @@ public:
         return QSize(m_tileset->size() * 32, m_tileset->size() * 32);
     }
 
+    void setLeftTile(tile_t tile) { m_leftTile = tile; }
+    void setRightTile(tile_t tile) { m_rightTile = tile; }
+    DrawMode drawMode() const { return m_drawMode; }
+    void setDrawMode(DrawMode mode) { m_drawMode = mode; }
+
+    void setPaintFlag(int flag) { m_paintFlags |= flag; }
+    void clearPaintFlag(int flag) { m_paintFlags &= ~flag; }
+
 private:
     CCETileset* m_tileset;
     ccl::LevelData* m_levelData;
     QList<QPoint> m_hilights;
+    tile_t m_leftTile, m_rightTile;
+    DrawMode m_drawMode;
+    int m_paintFlags;
+
+    void putTile(tile_t tile, int x, int y, bool bury);
 
 signals:
     void mouseInfo(QString text);

@@ -69,9 +69,9 @@ CCEditMain::CCEditMain(QWidget* parent)
     QDockWidget* toolDock = new QDockWidget(this);
     toolDock->setObjectName("ToolDock");
     toolDock->setWindowTitle("Toolbox");
-    QTabWidget* toolTabs = new QTabWidget(toolDock);
-    toolTabs->setTabPosition(QTabWidget::West);
-    toolDock->setWidget(toolTabs);
+    m_toolTabs = new QTabWidget(toolDock);
+    m_toolTabs->setTabPosition(QTabWidget::West);
+    toolDock->setWidget(m_toolTabs);
     addDockWidget(Qt::LeftDockWidgetArea, toolDock);
 
     QWidget* levelManWidget = new QWidget(toolDock);
@@ -128,7 +128,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     toolDock->setFeatures(QDockWidget::DockWidgetMovable
                         | QDockWidget::DockWidgetClosable
                         | QDockWidget::DockWidgetFloatable);
-    toolTabs->addTab(levelManWidget, tr("Level &Manager"));
+    m_toolTabs->addTab(levelManWidget, tr("Level &Manager"));
 
     QWidget* tileWidget = new QWidget(toolDock);
     QToolBox* tileBox = new QToolBox(tileWidget);
@@ -192,6 +192,12 @@ CCEditMain::CCEditMain(QWidget* parent)
         << ccl::TilePlayerSwim_S << ccl::TilePlayerSwim_E << ccl::Tile_UNUSED_20
         << ccl::Tile_UNUSED_36 << ccl::Tile_UNUSED_37 << ccl::Tile_UNUSED_38);
     tileBox->addItem(m_tileLists[ListSpecial], tr("Special (Advanced)"));
+    m_tileLists[ListAllTiles] = new TileListWidget(tileBox);
+    QList<tile_t> allRange;
+    for (tile_t i=0; i<ccl::NUM_TILE_TYPES; ++i)
+        allRange << i;
+    m_tileset.addTiles(m_tileLists[ListAllTiles], allRange);
+    tileBox->addItem(m_tileLists[ListAllTiles], tr("(All Tiles)"));
 
     m_layer = new LayerWidget(tileWidget);
     m_layer->setTileset(&m_tileset);
@@ -205,7 +211,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     tileLayout->addWidget(m_foreLabel, 1, 0);
     tileLayout->addWidget(m_backLabel, 2, 0);
     tileLayout->addWidget(m_layer, 1, 1, 2, 1);
-    toolTabs->addTab(tileWidget, tr("&Tiles"));
+    m_toolTabs->addTab(tileWidget, tr("&Tiles"));
 
     // Main Editor
     QScrollArea* editorScroll = new QScrollArea(this);
@@ -221,43 +227,42 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionNew]->setShortcut(Qt::Key_F2);
     m_actions[ActionOpen] = new QAction(QIcon(":/res/document-open.png"), tr("&Open Levelset..."), this);
     m_actions[ActionOpen]->setStatusTip(tr("Open a levelset from disk"));
-    m_actions[ActionOpen]->setShortcut(QKeySequence::Open);
+    m_actions[ActionOpen]->setShortcut(Qt::CTRL | Qt::Key_O);
     m_actions[ActionSave] = new QAction(QIcon(":/res/document-save.png"), tr("&Save"), this);
     m_actions[ActionSave]->setStatusTip(tr("Save the current levelset to the same file"));
-    m_actions[ActionSave]->setShortcut(QKeySequence::Save);
+    m_actions[ActionSave]->setShortcut(Qt::CTRL | Qt::Key_S);
     m_actions[ActionSaveAs] = new QAction(QIcon(":/res/document-save-as.png"), tr("Save &As..."), this);
     m_actions[ActionSaveAs]->setStatusTip(tr("Save the current levelset to a new file or location"));
-    m_actions[ActionSaveAs]->setShortcut(QKeySequence::SaveAs);
+    m_actions[ActionSaveAs]->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_S);
     m_actions[ActionClose] = new QAction(tr("&Close Levelset"), this);
     m_actions[ActionClose]->setStatusTip(tr("Close the currently open levelset"));
-    m_actions[ActionClose]->setShortcut(QKeySequence::Close);
+    m_actions[ActionClose]->setShortcut(Qt::CTRL | Qt::Key_W);
     m_actions[ActionExit] = new QAction(QIcon(":/res/application-exit.png"), tr("E&xit"), this);
     m_actions[ActionExit]->setStatusTip(tr("Close CCEdit"));
-    m_actions[ActionExit]->setShortcut(QKeySequence::Quit);
 
     m_actions[ActionUndo] = new QAction(QIcon(":/res/edit-undo.png"), tr("&Undo"), this);
     m_actions[ActionUndo]->setStatusTip(tr("Undo the last edit"));
-    m_actions[ActionUndo]->setShortcut(QKeySequence::Undo);
+    m_actions[ActionUndo]->setShortcut(Qt::CTRL | Qt::Key_Z);
     m_actions[ActionUndo]->setEnabled(false);
     m_actions[ActionRedo] = new QAction(QIcon(":/res/edit-redo.png"), tr("&Redo"), this);
     m_actions[ActionRedo]->setStatusTip(tr("Redo the last edit"));
-    m_actions[ActionRedo]->setShortcut(QKeySequence::Redo);
+    m_actions[ActionRedo]->setShortcut(Qt::CTRL | Qt::Key_Y);
     m_actions[ActionRedo]->setEnabled(false);
     m_actions[ActionSelect] = new QAction(QIcon(":/res/edit-select.png"), tr("&Select"), this);
     m_actions[ActionSelect]->setStatusTip(tr("Enter selection mode"));
-    m_actions[ActionSelect]->setShortcut(QKeySequence::SelectAll);
+    m_actions[ActionSelect]->setShortcut(Qt::CTRL | Qt::Key_A);
     m_actions[ActionSelect]->setCheckable(true);
     m_actions[ActionCut] = new QAction(QIcon(":/res/edit-cut.png"), tr("Cu&t"), this);
     m_actions[ActionCut]->setStatusTip(tr("Put the selection in the clipboard and clear it from the editor"));
-    m_actions[ActionCut]->setShortcut(QKeySequence::Cut);
+    m_actions[ActionCut]->setShortcut(Qt::CTRL | Qt::Key_X);
     m_actions[ActionCut]->setEnabled(false);
     m_actions[ActionCopy] = new QAction(QIcon(":/res/edit-copy.png"), tr("&Copy"), this);
     m_actions[ActionCopy]->setStatusTip(tr("Copy the current selection to the clipboard"));
-    m_actions[ActionCopy]->setShortcut(QKeySequence::Copy);
+    m_actions[ActionCopy]->setShortcut(Qt::CTRL | Qt::Key_C);
     m_actions[ActionCopy]->setEnabled(false);
     m_actions[ActionPaste] = new QAction(QIcon(":/res/edit-paste.png"), tr("&Paste"), this);
     m_actions[ActionPaste]->setStatusTip(tr("Paste the clipboard contents into the levelset at the selection position"));
-    m_actions[ActionPaste]->setShortcut(QKeySequence::Paste);
+    m_actions[ActionPaste]->setShortcut(Qt::CTRL | Qt::Key_V);
     m_actions[ActionPaste]->setEnabled(false);
     m_actions[ActionClear] = new QAction(QIcon(":/res/edit-delete.png"), tr("Clea&r"), this);
     m_actions[ActionClear]->setStatusTip(tr("Replace the selection contents with the current Background tile"));
@@ -267,6 +272,25 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionFill]->setStatusTip(tr("Replace the selection contents with the current Foreground tile"));
     m_actions[ActionFill]->setShortcut(Qt::CTRL | Qt::Key_F);
     m_actions[ActionFill]->setEnabled(false);
+
+    m_actions[ActionDrawPencil] = new QAction(tr("&Pencil"), this);
+    m_actions[ActionDrawPencil]->setStatusTip(tr("Draw tiles with the pencil tool"));
+    m_actions[ActionDrawPencil]->setShortcut(Qt::CTRL | Qt::Key_P);
+    m_actions[ActionDrawLine] = new QAction(tr("&Line"), this);
+    m_actions[ActionDrawLine]->setStatusTip(tr("Draw tiles with the line tool"));
+    m_actions[ActionDrawLine]->setShortcut(Qt::CTRL | Qt::Key_L);
+    m_actions[ActionDrawFill] = new QAction(tr("&Box"), this);
+    m_actions[ActionDrawFill]->setStatusTip(tr("Draw tiles with the box fill tool"));
+    m_actions[ActionDrawFill]->setShortcut(Qt::CTRL | Qt::Key_B);
+    m_actions[ActionPathMaker] = new QAction(tr("Path &Maker"), this);
+    m_actions[ActionPathMaker]->setStatusTip(tr("Draw a directional path of tiles"));
+    m_actions[ActionPathMaker]->setShortcut(Qt::CTRL | Qt::Key_M);
+    m_actions[ActionCloneConnect] = new QAction(tr("&Clone Connector"), this);
+    m_actions[ActionCloneConnect]->setStatusTip(tr("Connect Cloning machines to Clone buttons"));
+    m_actions[ActionCloneConnect]->setShortcut(Qt::CTRL | Qt::Key_G);
+    m_actions[ActionTrapConnect] = new QAction(tr("&Trap Connector"), this);
+    m_actions[ActionTrapConnect]->setStatusTip(tr("Connect Traps to Trap release buttons"));
+    m_actions[ActionTrapConnect]->setShortcut(Qt::CTRL | Qt::Key_T);
 
     // Main Menu
     QMenu* fileMenu = menuBar()->addMenu(tr("&File"));
@@ -291,6 +315,15 @@ CCEditMain::CCEditMain(QWidget* parent)
     editMenu->addAction(m_actions[ActionClear]);
     editMenu->addAction(m_actions[ActionFill]);
 
+    QMenu* toolsMenu = menuBar()->addMenu(tr("&Tools"));
+    toolsMenu->addAction(m_actions[ActionDrawPencil]);
+    toolsMenu->addAction(m_actions[ActionDrawLine]);
+    toolsMenu->addAction(m_actions[ActionDrawFill]);
+    toolsMenu->addAction(m_actions[ActionPathMaker]);
+    toolsMenu->addSeparator();
+    toolsMenu->addAction(m_actions[ActionCloneConnect]);
+    toolsMenu->addAction(m_actions[ActionTrapConnect]);
+
     QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
     m_tilesetMenu = viewMenu->addMenu(tr("&Tileset"));
 
@@ -306,6 +339,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionExit], SIGNAL(triggered()), SLOT(close()));
     connect(m_actions[ActionNew], SIGNAL(triggered()), SLOT(onNewAction()));
     connect(m_actions[ActionOpen], SIGNAL(triggered()), SLOT(onOpenAction()));
+    connect(m_actions[ActionSave], SIGNAL(triggered()), SLOT(onSaveAction()));
+    connect(m_actions[ActionSaveAs], SIGNAL(triggered()), SLOT(onSaveAsAction()));
     connect(m_actions[ActionClose], SIGNAL(triggered()), SLOT(onCloseAction()));
     connect(m_actions[ActionSelect], SIGNAL(toggled(bool)), SLOT(onSelectToggled(bool)));
     connect(m_levelList, SIGNAL(currentRowChanged(int)), SLOT(onSelectLevel(int)));
@@ -359,13 +394,50 @@ void CCEditMain::loadLevelset(QString filename)
 
 void CCEditMain::doLevelsetLoad()
 {
-    for (int i=0; i<m_levelset->levelCount(); ++i) {
-        m_levelList->addItem(QString("%1 - %2")
-                    .arg(m_levelset->level(i)->levelNum())
-                    .arg(QString::fromAscii(m_levelset->level(i)->name().c_str())));
+    // This can be used to refresh the level display as well as load a new
+    // set, so we should only adjust existing items rather than re-adding
+    // the whole list.  This will preserve selection states and scroll
+    // position, which in turn makes level re-ordering faster while
+    // maintaining correctness.
+
+    for (int i=m_levelList->count(); i<m_levelset->levelCount(); ++i) {
+        // Add items to match new count
+        m_levelList->addItem(QString());
     }
-    if (m_levelset->levelCount() > 0)
+    for (int i=m_levelset->levelCount(); i<m_levelList->count(); ++i) {
+        // Remove extra items from list
+        delete m_levelList->takeItem(i);
+    }
+    for (int i=0; i<m_levelset->levelCount(); ++i) {
+        // Use iterator for level number since stored level numbers may
+        // be meaningless until saved...
+        m_levelList->item(i)->setText(QString("%1 - %2").arg(i + 1)
+                .arg(QString::fromAscii(m_levelset->level(i)->name().c_str())));
+    }
+    if (m_levelList->currentItem() == 0 && m_levelset->levelCount() > 0)
         m_levelList->setCurrentRow(0);
+    m_toolTabs->setCurrentIndex(0);
+}
+
+void CCEditMain::saveLevelset(QString filename)
+{
+    if (m_levelset == 0)
+        return;
+
+    FILE* set = fopen(filename.toUtf8(), "wb");
+    if (set != 0) {
+        try {
+            m_levelset->write(set);
+        } catch (ccl::Exception e) {
+            QMessageBox::critical(this, tr("Error saving levelset"),
+                                tr("Error saving levelset: %1").arg(e.what()));
+        }
+        fclose(set);
+    } else {
+        QMessageBox::critical(this, tr("Error saving levelset"),
+                              tr("Error: could not open file %1").arg(filename));
+    }
+    m_levelsetFilename = filename;
 }
 
 void CCEditMain::closeEvent(QCloseEvent* event)
@@ -417,6 +489,19 @@ void CCEditMain::onOpenAction()
                             QString(), "CC Levelsets (*.dat *.ccl)");
     if (!filename.isEmpty())
         loadLevelset(filename);
+}
+
+void CCEditMain::onSaveAction()
+{
+    saveLevelset(m_levelsetFilename);
+}
+
+void CCEditMain::onSaveAsAction()
+{
+    QString filename = QFileDialog::getSaveFileName(this, tr("Save Levelset..."),
+                            m_levelsetFilename, "CC Levelsets (*.dat *.ccl)");
+    if (!filename.isEmpty())
+        saveLevelset(filename);
 }
 
 void CCEditMain::onSelectToggled(bool mode)
@@ -482,7 +567,7 @@ void CCEditMain::onNameChanged(QString value)
     ccl::LevelData* level = m_levelset->level(m_levelList->currentRow());
     level->setName(m_nameEdit->text().toAscii().data());
     m_levelList->currentItem()->setText(QString("%1 - %2")
-                                        .arg(level->levelNum()).arg(value));
+                    .arg(m_levelList->currentRow() + 1).arg(value));
 }
 
 void CCEditMain::onPasswordChanged(QString value)
@@ -510,12 +595,14 @@ void CCEditMain::setForeground(tile_t tile)
 {
     m_layer->setUpper(tile);
     m_foreLabel->setText(tr("Foreground: ") + CCETileset::TileName(tile));
+    m_editor->setLeftTile(tile);
 }
 
 void CCEditMain::setBackground(tile_t tile)
 {
     m_layer->setLower(tile);
     m_backLabel->setText(tr("Background: ") + CCETileset::TileName(tile));
+    m_editor->setRightTile(tile);
 }
 
 
