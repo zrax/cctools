@@ -52,6 +52,40 @@ void EditorWidget::paintEvent(QPaintEvent* event)
                 m_tileset->draw(painter, x, y, m_levelData->map().getFG(x, y),
                                 m_levelData->map().getBG(x, y));
 
+        // Draw current buffer
+        if (m_drawMode == DrawLine) {
+            // TODO
+        } else if (m_drawMode == DrawFill) {
+            int lowY = std::min(m_origin.y(), m_current.y());
+            int lowX = std::min(m_origin.x(), m_current.x());
+            int highY = std::max(m_origin.y(), m_current.y());
+            int highX = std::max(m_origin.x(), m_current.x());
+
+            if ((m_paintFlags & PaintLeftTemp) != 0) {
+                for (int y = lowY; y <= highY; ++y) {
+                    for (int x = lowX; x <= highX; ++x) {
+                        if ((m_paintFlags & PaintTempBury) != 0)
+                            m_tileset->draw(painter, x, y, m_levelData->map().getFG(x, y),
+                                            m_leftTile);
+                        else
+                            m_tileset->draw(painter, x, y, m_leftTile,
+                                            m_levelData->map().getBG(x, y));
+                    }
+                }
+            } else if ((m_paintFlags & PaintRightTemp) != 0) {
+                for (int y = lowY; y <= highY; ++y) {
+                    for (int x = lowX; x <= highX; ++x) {
+                        if ((m_paintFlags & PaintTempBury) != 0)
+                            m_tileset->draw(painter, x, y, m_levelData->map().getFG(x, y),
+                                            m_rightTile);
+                        else
+                            m_tileset->draw(painter, x, y, m_rightTile,
+                                            m_levelData->map().getBG(x, y));
+                    }
+                }
+            }
+        }
+
         if ((m_paintFlags & ShowMovement) != 0) {
             painter.setPen(QColor(0, 0, 255));
             std::list<ccl::Point>::const_iterator move_iter;
@@ -96,10 +130,21 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
     int posX = event->x() / m_tileset->size();
     int posY = event->y() / m_tileset->size();
 
-    if ((event->buttons() & Qt::LeftButton) != 0)
-        putTile(m_leftTile, posX, posY, (event->modifiers() & Qt::ShiftModifier) != 0);
-    else if ((event->buttons() & Qt::RightButton) != 0)
-        putTile(m_rightTile, posX, posY, (event->modifiers() & Qt::ShiftModifier) != 0);
+    m_paintFlags &= ~(PaintLeftTemp | PaintRightTemp | PaintTempBury);
+    if (m_drawMode == DrawPencil) {
+        if ((event->buttons() & Qt::LeftButton) != 0)
+            putTile(m_leftTile, posX, posY, (event->modifiers() & Qt::ShiftModifier) != 0);
+        else if ((event->buttons() & Qt::RightButton) != 0)
+            putTile(m_rightTile, posX, posY, (event->modifiers() & Qt::ShiftModifier) != 0);
+    } else if (m_drawMode == DrawLine || m_drawMode == DrawFill) {
+        m_current = QPoint(posX, posY);
+        if ((event->buttons() & Qt::LeftButton) != 0)
+            m_paintFlags |= PaintLeftTemp;
+        else if ((event->buttons() & Qt::RightButton) != 0)
+            m_paintFlags |= PaintRightTemp;
+        if ((event->modifiers() & Qt::ShiftModifier) != 0)
+            m_paintFlags |= PaintTempBury;
+    }
 
     if (m_levelData->map().getBG(posX, posY) == 0) {
         emit mouseInfo(QString("(%1, %2): %3").arg(posX).arg(posY)
@@ -148,6 +193,10 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
 
 void EditorWidget::mousePressEvent(QMouseEvent* event)
 {
+    int posX = event->x() / m_tileset->size();
+    int posY = event->y() / m_tileset->size();
+    m_origin = QPoint(posX, posY);
+
     mouseMoveEvent(event);
 }
 
@@ -155,6 +204,26 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
 {
     if (m_tileset == 0 || m_levelData == 0)
         return;
+
+    if (m_drawMode == DrawLine) {
+        // TODO: Finish line
+    } else if (m_drawMode == DrawFill) {
+        int lowY = std::min(m_origin.y(), m_current.y());
+        int lowX = std::min(m_origin.x(), m_current.x());
+        int highY = std::max(m_origin.y(), m_current.y());
+        int highX = std::max(m_origin.x(), m_current.x());
+
+        if (event->button() == Qt::LeftButton) {
+            for (int y = lowY; y <= highY; ++y)
+                for (int x = lowX; x <= highX; ++x)
+                    putTile(m_leftTile, x, y, (event->modifiers() & Qt::ShiftModifier) != 0);
+        } else if (event->button() == Qt::RightButton) {
+            for (int y = lowY; y <= highY; ++y)
+                for (int x = lowX; x <= highX; ++x)
+                    putTile(m_rightTile, x, y, (event->modifiers() & Qt::ShiftModifier) != 0);
+        }
+        update();
+    }
 
     //TODO: Emit save point
 }
@@ -186,5 +255,25 @@ void EditorWidget::putTile(tile_t tile, int x, int y, bool bury)
         m_levelData->map().setBG(x, y, ccl::TileFloor);
     } else {
         m_levelData->map().setFG(x, y, tile);
+    }
+
+    // Clear or add monsters from replaced tiles into move list
+    if ((oldUpper >= ccl::MONSTER_FIRST && oldUpper <= ccl::MONSTER_LAST)
+        && (tile < ccl::MONSTER_FIRST || tile > ccl::MONSTER_LAST)) {
+        std::list<ccl::Point>::iterator move_iter = m_levelData->moveList().begin();
+        while (move_iter != m_levelData->moveList().end()) {
+            if (move_iter->X == x && move_iter->Y == y)
+                move_iter = m_levelData->moveList().erase(move_iter);
+            else
+                ++move_iter;
+        }
+    } else if ((tile >= ccl::MONSTER_FIRST && tile <= ccl::MONSTER_LAST)
+               && (oldUpper < ccl::MONSTER_FIRST || oldUpper > ccl::MONSTER_LAST)) {
+        if (m_levelData->moveList().size() < 127) {
+            ccl::Point mover;
+            mover.X = x;
+            mover.Y = y;
+            m_levelData->moveList().push_back(mover);
+        }
     }
 }

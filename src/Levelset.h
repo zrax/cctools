@@ -98,6 +98,9 @@ public:
     const std::list<ccl::Trap>& traps() const { return m_traps; }
     const std::list<ccl::Clone>& clones() const { return m_clones; }
     const std::list<ccl::Point>& moveList() const { return m_moveList; }
+    std::list<ccl::Trap>& traps() { return m_traps; }
+    std::list<ccl::Clone>& clones() { return m_clones; }
+    std::list<ccl::Point>& moveList() { return m_moveList; }
 
     void setName(const std::string& name) { m_name = name; }
     void setHint(const std::string& hint) { m_hint = hint; }

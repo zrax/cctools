@@ -36,6 +36,9 @@ public:
         ShowMovement = (1<<1),
         ShowTeleport = (1<<2),
         ShowButtons = (1<<3),
+        PaintLeftTemp = (1<<4),
+        PaintRightTemp = (1<<5),
+        PaintTempBury = (1<<6),
     };
 
     EditorWidget(QWidget* parent = 0);
@@ -73,6 +76,7 @@ private:
     tile_t m_leftTile, m_rightTile;
     DrawMode m_drawMode;
     int m_paintFlags;
+    QPoint m_origin, m_current;
 
     void putTile(tile_t tile, int x, int y, bool bury);
 

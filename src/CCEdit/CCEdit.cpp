@@ -29,6 +29,7 @@
 #include <QFileDialog>
 #include <QStatusBar>
 #include <QCloseEvent>
+#include <QActionGroup>
 #include <cstdio>
 
 class QMinimalTextEdit : public QPlainTextEdit {
@@ -60,7 +61,7 @@ void TileListWidget::mousePressEvent(QMouseEvent* event)
 
 
 CCEditMain::CCEditMain(QWidget* parent)
-    : QMainWindow(parent), m_levelset(0)
+    : QMainWindow(parent), m_levelset(0), m_savedDrawMode(ActionDrawPencil)
 {
     setWindowTitle("CCEdit 2.0 ALPHA");
     setDockOptions(QMainWindow::AnimatedDocks);
@@ -278,7 +279,6 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionDrawPencil]->setStatusTip(tr("Draw tiles with the pencil tool"));
     m_actions[ActionDrawPencil]->setShortcut(Qt::CTRL | Qt::Key_P);
     m_actions[ActionDrawPencil]->setCheckable(true);
-    m_actions[ActionDrawPencil]->setChecked(true);
     m_actions[ActionDrawLine] = new QAction(QIcon(":/res/draw-line.png"), tr("&Line"), this);
     m_actions[ActionDrawLine]->setStatusTip(tr("Draw tiles with the line tool"));
     m_actions[ActionDrawLine]->setShortcut(Qt::CTRL | Qt::Key_L);
@@ -299,6 +299,15 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionCloneConnect]->setStatusTip(tr("Connect Cloning machines to Clone buttons"));
     m_actions[ActionCloneConnect]->setShortcut(Qt::CTRL | Qt::Key_G);
     m_actions[ActionCloneConnect]->setCheckable(true);
+
+    QActionGroup* drawModeGroup = new QActionGroup(this);
+    drawModeGroup->addAction(m_actions[ActionDrawPencil]);
+    drawModeGroup->addAction(m_actions[ActionDrawLine]);
+    drawModeGroup->addAction(m_actions[ActionDrawFill]);
+    drawModeGroup->addAction(m_actions[ActionPathMaker]);
+    drawModeGroup->addAction(m_actions[ActionTrapConnect]);
+    drawModeGroup->addAction(m_actions[ActionCloneConnect]);
+    m_actions[ActionDrawPencil]->setChecked(true);
 
     m_actions[ActionAddLevel] = new QAction(QIcon(":/res/list-add.png"), tr("&Add Level"), this);
     m_actions[ActionAddLevel]->setStatusTip(tr("Add a new level to the end of the levelset"));
@@ -384,6 +393,12 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionSaveAs], SIGNAL(triggered()), SLOT(onSaveAsAction()));
     connect(m_actions[ActionClose], SIGNAL(triggered()), SLOT(onCloseAction()));
     connect(m_actions[ActionSelect], SIGNAL(toggled(bool)), SLOT(onSelectToggled(bool)));
+    connect(m_actions[ActionDrawPencil], SIGNAL(triggered()), SLOT(onDrawPencilAction()));
+    connect(m_actions[ActionDrawLine], SIGNAL(triggered()), SLOT(onDrawLineAction()));
+    connect(m_actions[ActionDrawFill], SIGNAL(triggered()), SLOT(onDrawFillAction()));
+    connect(m_actions[ActionPathMaker], SIGNAL(triggered()), SLOT(onPathMakerAction()));
+    connect(m_actions[ActionTrapConnect], SIGNAL(triggered()), SLOT(onTrapConnectAction()));
+    connect(m_actions[ActionCloneConnect], SIGNAL(triggered()), SLOT(onCloneConnectAction()));
     connect(m_actions[ActionAddLevel], SIGNAL(triggered()), SLOT(onAddLevelAction()));
     connect(m_actions[ActionDelLevel], SIGNAL(triggered()), SLOT(onDelLevelAction()));
     connect(m_actions[ActionMoveUp], SIGNAL(triggered()), SLOT(onMoveUpAction()));
@@ -557,6 +572,57 @@ void CCEditMain::onSelectToggled(bool mode)
     m_actions[ActionPaste]->setEnabled(mode);
     m_actions[ActionClear]->setEnabled(mode);
     m_actions[ActionFill]->setEnabled(mode);
+
+    m_actions[ActionDrawPencil]->setChecked(false);
+    m_actions[ActionDrawLine]->setChecked(false);
+    m_actions[ActionDrawFill]->setChecked(false);
+    m_actions[ActionPathMaker]->setChecked(false);
+    m_actions[ActionTrapConnect]->setChecked(false);
+    m_actions[ActionCloneConnect]->setChecked(false);
+    if (!mode)
+        m_actions[m_savedDrawMode]->setChecked(true);
+}
+
+void CCEditMain::onDrawPencilAction()
+{
+    m_savedDrawMode = ActionDrawPencil;
+    m_actions[ActionSelect]->setChecked(false);
+    m_editor->setDrawMode(EditorWidget::DrawPencil);
+}
+
+void CCEditMain::onDrawLineAction()
+{
+    m_savedDrawMode = ActionDrawLine;
+    m_actions[ActionSelect]->setChecked(false);
+    m_editor->setDrawMode(EditorWidget::DrawLine);
+}
+
+void CCEditMain::onDrawFillAction()
+{
+    m_savedDrawMode = ActionDrawFill;
+    m_actions[ActionSelect]->setChecked(false);
+    m_editor->setDrawMode(EditorWidget::DrawFill);
+}
+
+void CCEditMain::onPathMakerAction()
+{
+    m_savedDrawMode = ActionPathMaker;
+    m_actions[ActionSelect]->setChecked(false);
+    m_editor->setDrawMode(EditorWidget::DrawPathMaker);
+}
+
+void CCEditMain::onTrapConnectAction()
+{
+    m_savedDrawMode = ActionTrapConnect;
+    m_actions[ActionSelect]->setChecked(false);
+    m_editor->setDrawMode(EditorWidget::DrawTrapConnect);
+}
+
+void CCEditMain::onCloneConnectAction()
+{
+    m_savedDrawMode = ActionCloneConnect;
+    m_actions[ActionSelect]->setChecked(false);
+    m_editor->setDrawMode(EditorWidget::DrawCloneConnect);
 }
 
 void CCEditMain::onAddLevelAction()

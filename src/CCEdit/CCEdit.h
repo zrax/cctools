@@ -97,6 +97,7 @@ private:
 
     ccl::Levelset* m_levelset;
     QString m_levelsetFilename;
+    ActionType m_savedDrawMode;
 
 protected:
     void doLevelsetLoad();
@@ -109,6 +110,12 @@ private slots:
     void onSaveAsAction();
     void onCloseAction() { closeLevelset(); }
     void onSelectToggled(bool);
+    void onDrawPencilAction();
+    void onDrawLineAction();
+    void onDrawFillAction();
+    void onPathMakerAction();
+    void onTrapConnectAction();
+    void onCloneConnectAction();
     void onAddLevelAction();
     void onDelLevelAction();
     void onMoveUpAction();
