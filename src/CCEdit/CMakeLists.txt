@@ -29,3 +29,8 @@ add_executable(CCEdit WIN32 MACOSX_BUNDLE
 target_link_libraries(CCEdit ${QT_LIBRARIES})
 set_target_properties(CCEdit PROPERTIES
                       RUNTIME_OUTPUT_DIRECTORY "${CCTools_SOURCE_DIR}/bin")
+
+if(APPLE)
+    add_custom_command(TARGET CCEdit POST_BUILD
+                       COMMAND cp ARGS -R ${CCTools_SOURCE_DIR}/share ${CCTools_SOURCE_DIR}/bin/CCEdit.app/Contents/ )
+endif()

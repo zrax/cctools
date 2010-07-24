@@ -1,6 +1,8 @@
 syntax: glob
 *.kdev4
+.DS_Store
 bin/CCEdit
+bin/CCEdit.app
 
 syntax: regexp
 ^build/
