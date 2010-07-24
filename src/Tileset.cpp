@@ -106,6 +106,7 @@ void CCETileset::load(QString filename)
     delete[] pixbuffer;
 
     file.close();
+    m_filename = filename;
 }
 
 void CCETileset::drawAt(QPainter& painter, int x, int y, tile_t upper, tile_t lower) const
@@ -115,14 +116,6 @@ void CCETileset::drawAt(QPainter& painter, int x, int y, tile_t upper, tile_t lo
         painter.drawPixmap(x, y, m_overlay[upper]);
     } else {
         painter.drawPixmap(x, y, m_base[upper]);
-    }
-}
-
-void CCETileset::addTiles(QListWidget* list, QList<tile_t> tiles) const
-{
-    foreach (tile_t tile, tiles) {
-        QListWidgetItem* item = new QListWidgetItem(TileName(tile), list);
-        item->setData(Qt::UserRole, (int)tile);
     }
 }
 

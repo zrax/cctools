@@ -46,6 +46,14 @@ TileListWidget::TileListWidget(QWidget* parent)
               : QListWidget(parent)
 { }
 
+void TileListWidget::addTiles(QList< tile_t > tiles)
+{
+    foreach (tile_t tile, tiles) {
+        QListWidgetItem* item = new QListWidgetItem(CCETileset::TileName(tile), this);
+        item->setData(Qt::UserRole, (int)tile);
+    }
+}
+
 void TileListWidget::mousePressEvent(QMouseEvent* event)
 {
     QAbstractItemView::mousePressEvent(event);
@@ -135,7 +143,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     QWidget* tileWidget = new QWidget(toolDock);
     QToolBox* tileBox = new QToolBox(tileWidget);
     m_tileLists[ListStandard] = new TileListWidget(tileBox);
-    m_tileset.addTiles(m_tileLists[ListStandard], QList<tile_t>()
+    m_tileLists[ListStandard]->addTiles(QList<tile_t>()
         << ccl::TileFloor << ccl::TileWall << ccl::TileChip << ccl::TileSocket
         << ccl::TileExit << ccl::TileHint << ccl::TileBarrier_N
         << ccl::TileBarrier_W << ccl::TileBarrier_S << ccl::TileBarrier_E
@@ -144,7 +152,7 @@ CCEditMain::CCEditMain(QWidget* parent)
         << ccl::TilePlayer_S << ccl::TilePlayer_E);
     tileBox->addItem(m_tileLists[ListStandard], tr("Standard"));
     m_tileLists[ListObstacles] = new TileListWidget(tileBox);
-    m_tileset.addTiles(m_tileLists[ListObstacles], QList<tile_t>()
+    m_tileLists[ListObstacles]->addTiles(QList<tile_t>()
         << ccl::TileWater << ccl::TileFire << ccl::TileBomb << ccl::TileForce_N
         << ccl::TileForce_W << ccl::TileForce_S << ccl::TileForce_E
         << ccl::TileForce_Rand << ccl::TileIce << ccl::TileIce_NW
@@ -153,19 +161,19 @@ CCEditMain::CCEditMain(QWidget* parent)
         << ccl::TileAppearingWall << ccl::TileInvisWall);
     tileBox->addItem(m_tileLists[ListObstacles], tr("Obstacles"));
     m_tileLists[ListDoors] = new TileListWidget(tileBox);
-    m_tileset.addTiles(m_tileLists[ListDoors], QList<tile_t>()
+    m_tileLists[ListDoors]->addTiles(QList<tile_t>()
         << ccl::TileDoor_Blue << ccl::TileDoor_Red << ccl::TileDoor_Green
         << ccl::TileDoor_Yellow << ccl::TileToggleFloor << ccl::TileToggleWall
         << ccl::TileToggleButton);
     tileBox->addItem(m_tileLists[ListDoors], tr("Doors"));
     m_tileLists[ListItems] = new TileListWidget(tileBox);
-    m_tileset.addTiles(m_tileLists[ListItems], QList<tile_t>()
+    m_tileLists[ListItems]->addTiles(QList<tile_t>()
         << ccl::TileKey_Blue << ccl::TileKey_Red << ccl::TileKey_Green
         << ccl::TileKey_Yellow << ccl::TileFlippers << ccl::TileFireBoots
         << ccl::TileIceSkates << ccl::TileForceBoots);
     tileBox->addItem(m_tileLists[ListItems], tr("Items"));
     m_tileLists[ListMonsters] = new TileListWidget(tileBox);
-    m_tileset.addTiles(m_tileLists[ListMonsters], QList<tile_t>()
+    m_tileLists[ListMonsters]->addTiles(QList<tile_t>()
         << ccl::TileBug_N << ccl::TileBug_W << ccl::TileBug_S << ccl::TileBug_E
         << ccl::TileFireball_N << ccl::TileFireball_W << ccl::TileFireball_S
         << ccl::TileFireball_E << ccl::TileBall_N << ccl::TileBall_W
@@ -180,14 +188,14 @@ CCEditMain::CCEditMain(QWidget* parent)
         << ccl::TileCrawler_W << ccl::TileCrawler_S << ccl::TileCrawler_E);
     tileBox->addItem(m_tileLists[ListMonsters], tr("Monsters"));
     m_tileLists[ListMisc] = new TileListWidget(tileBox);
-    m_tileset.addTiles(m_tileLists[ListMisc], QList<tile_t>()
+    m_tileLists[ListMisc]->addTiles(QList<tile_t>()
         << ccl::TileThief << ccl::TileBlueWall << ccl::TileBlueFloor
         << ccl::TileTeleport << ccl::TileCloner << ccl::TileCloneButton
         << ccl::TileBlock_N << ccl::TileBlock_W << ccl::TileBlock_S
         << ccl::TileBlock_E);
     tileBox->addItem(m_tileLists[ListMisc], tr("Miscellaneous"));
     m_tileLists[ListSpecial] = new TileListWidget(tileBox);
-    m_tileset.addTiles(m_tileLists[ListSpecial], QList<tile_t>()
+    m_tileLists[ListSpecial]->addTiles(QList<tile_t>()
         << ccl::TilePlayerSplash << ccl::TilePlayerFire << ccl::TilePlayerBurnt
         << ccl::TilePlayerExit << ccl::TileExitAnim2 << ccl::TileExitAnim3
         << ccl::TilePlayerSwim_N << ccl::TilePlayerSwim_W
@@ -198,11 +206,10 @@ CCEditMain::CCEditMain(QWidget* parent)
     QList<tile_t> allRange;
     for (tile_t i=0; i<ccl::NUM_TILE_TYPES; ++i)
         allRange << i;
-    m_tileset.addTiles(m_tileLists[ListAllTiles], allRange);
+    m_tileLists[ListAllTiles]->addTiles(allRange);
     tileBox->addItem(m_tileLists[ListAllTiles], tr("(All Tiles)"));
 
     m_layer = new LayerWidget(tileWidget);
-    m_layer->setTileset(&m_tileset);
     m_foreLabel = new QLabel(tileWidget);
     m_backLabel = new QLabel(tileWidget);
 
@@ -300,6 +307,19 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionCloneConnect]->setShortcut(Qt::CTRL | Qt::Key_G);
     m_actions[ActionCloneConnect]->setCheckable(true);
 
+    m_actions[ActionViewButtons] = new QAction(tr("Show &Button Connections"), this);
+    m_actions[ActionViewButtons]->setStatusTip(tr("Highlight connected buttons/traps/cloning machines in editor"));
+    m_actions[ActionViewButtons]->setCheckable(true);
+    m_actions[ActionViewTeleports] = new QAction(tr("Show Destination &Teleport"), this);
+    m_actions[ActionViewTeleports]->setStatusTip(tr("Highlight teleporter destination in level"));
+    m_actions[ActionViewTeleports]->setCheckable(true);
+    m_actions[ActionViewActivePlayer] = new QAction(tr("Highlight &Active Player"), this);
+    m_actions[ActionViewActivePlayer]->setStatusTip(tr("Highlight Active Player in level"));
+    m_actions[ActionViewActivePlayer]->setCheckable(true);
+    m_actions[ActionViewMovers] = new QAction(tr("Show Monster Order"), this);
+    m_actions[ActionViewMovers]->setStatusTip(tr("Display Monster Order in editor"));
+    m_actions[ActionViewMovers]->setCheckable(true);
+
     QActionGroup* drawModeGroup = new QActionGroup(this);
     drawModeGroup->addAction(m_actions[ActionDrawPencil]);
     drawModeGroup->addAction(m_actions[ActionDrawLine]);
@@ -351,7 +371,13 @@ CCEditMain::CCEditMain(QWidget* parent)
     toolsMenu->addAction(m_actions[ActionCloneConnect]);
 
     QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
+    viewMenu->addAction(m_actions[ActionViewButtons]);
+    viewMenu->addAction(m_actions[ActionViewTeleports]);
+    viewMenu->addAction(m_actions[ActionViewActivePlayer]);
+    viewMenu->addAction(m_actions[ActionViewMovers]);
+    viewMenu->addSeparator();
     m_tilesetMenu = viewMenu->addMenu(tr("&Tileset"));
+    m_tilesetGroup = new QActionGroup(this);
 
     // Tool bars
     QToolBar* tbarMain = addToolBar(QString());
@@ -399,6 +425,12 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionPathMaker], SIGNAL(triggered()), SLOT(onPathMakerAction()));
     connect(m_actions[ActionTrapConnect], SIGNAL(triggered()), SLOT(onTrapConnectAction()));
     connect(m_actions[ActionCloneConnect], SIGNAL(triggered()), SLOT(onCloneConnectAction()));
+    connect(m_actions[ActionViewButtons], SIGNAL(toggled(bool)), SLOT(onViewButtonsToggled(bool)));
+    connect(m_actions[ActionViewTeleports], SIGNAL(toggled(bool)), SLOT(onViewTeleportsToggled(bool)));
+    connect(m_actions[ActionViewActivePlayer], SIGNAL(toggled(bool)), SLOT(onViewActivePlayerToggled(bool)));
+    connect(m_actions[ActionViewMovers], SIGNAL(toggled(bool)), SLOT(onViewMoversToggled(bool)));
+    connect(m_tilesetGroup, SIGNAL(triggered(QAction*)), SLOT(onTilesetMenu(QAction*)));
+
     connect(m_actions[ActionAddLevel], SIGNAL(triggered()), SLOT(onAddLevelAction()));
     connect(m_actions[ActionDelLevel], SIGNAL(triggered()), SLOT(onDelLevelAction()));
     connect(m_actions[ActionMoveUp], SIGNAL(triggered()), SLOT(onMoveUpAction()));
@@ -421,7 +453,16 @@ CCEditMain::CCEditMain(QWidget* parent)
     // Visual tweaks
     resize(800, 600);
     toolDock->resize(120, 0);
-    loadTileset(":/TW32.tis");
+    findTilesets();
+    if (m_tilesetGroup->actions().size() == 0) {
+        QMessageBox::critical(this, tr("Error loading tilesets"),
+                tr("Error: No tilesets found.  Please check your CCTools installation"),
+                QMessageBox::Ok);
+        exit(1);
+    } else {
+        m_tilesetGroup->actions()[0]->setChecked(true);
+        loadTileset((CCETileset*)m_tilesetGroup->actions()[0]->data().value<void*>());
+    }
     setForeground(ccl::TileWall);
     setBackground(ccl::TileFloor);
 }
@@ -526,12 +567,59 @@ bool CCEditMain::closeLevelset()
     return true;
 }
 
-void CCEditMain::loadTileset(QString filename)
+void CCEditMain::loadTileset(CCETileset* tileset)
 {
-    m_tileset.load(filename);
-    m_editor->setTileset(&m_tileset);
+    m_editor->setTileset(tileset);
+    m_layer->setTileset(tileset);
     for (int i=0; i<NUM_TILE_LISTS; ++i)
-        m_tileset.imageTiles(m_tileLists[i]);
+        tileset->imageTiles(m_tileLists[i]);
+}
+
+void CCEditMain::registerTileset(QString filename)
+{
+    CCETileset* tileset = new CCETileset(this);
+    tileset->load(filename);
+    QAction* menuItem = m_tilesetMenu->addAction(tileset->name());
+    menuItem->setCheckable(true);
+    menuItem->setStatusTip(tileset->description());
+    menuItem->setData(qVariantFromValue((void*)tileset));
+    m_tilesetGroup->addAction(menuItem);
+}
+
+void CCEditMain::findTilesets()
+{
+    m_tilesetMenu->clear();
+
+    QDir path;
+#if defined(Q_OS_WIN32)
+    // Search app directory
+    path.setPath(qApp->applicationDirPath());
+    QStringList tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
+    foreach (QString file, tilesets)
+        registerTileset(path.absoluteFilePath(file));
+#else
+    // Search install path
+    path.setPath(qApp->applicationDirPath());
+    path.cdUp();
+    path.cd("share/cctools");
+    QStringList tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
+    foreach (QString file, tilesets)
+        registerTileset(path.absoluteFilePath(file));
+
+    // Search standard directories
+    path.setPath("/usr/share/cctools");
+    if (path.exists()) {
+        QStringList tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
+        foreach (QString file, tilesets)
+            registerTileset(path.absoluteFilePath(file));
+    }
+    path.setPath("/usr/local/share/cctools");
+    if (path.exists()) {
+        QStringList tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
+        foreach (QString file, tilesets)
+            registerTileset(path.absoluteFilePath(file));
+    }
+#endif
 }
 
 void CCEditMain::onNewAction()
@@ -623,6 +711,44 @@ void CCEditMain::onCloneConnectAction()
     m_savedDrawMode = ActionCloneConnect;
     m_actions[ActionSelect]->setChecked(false);
     m_editor->setDrawMode(EditorWidget::DrawCloneConnect);
+}
+
+void CCEditMain::onViewButtonsToggled(bool view)
+{
+    if (view)
+        m_editor->setPaintFlag(EditorWidget::ShowButtons);
+    else
+        m_editor->clearPaintFlag(EditorWidget::ShowButtons);
+}
+
+void CCEditMain::onViewTeleportsToggled(bool view)
+{
+    if (view)
+        m_editor->setPaintFlag(EditorWidget::ShowTeleport);
+    else
+        m_editor->clearPaintFlag(EditorWidget::ShowTeleport);
+}
+
+void CCEditMain::onViewActivePlayerToggled(bool view)
+{
+    if (view)
+        m_editor->setPaintFlag(EditorWidget::ShowPlayer);
+    else
+        m_editor->clearPaintFlag(EditorWidget::ShowPlayer);
+}
+
+void CCEditMain::onViewMoversToggled(bool view)
+{
+    if (view)
+        m_editor->setPaintFlag(EditorWidget::ShowMovement);
+    else
+        m_editor->clearPaintFlag(EditorWidget::ShowMovement);
+}
+
+void CCEditMain::onTilesetMenu(QAction* which)
+{
+    CCETileset* tileset = (CCETileset*)which->data().value<void*>();
+    loadTileset(tileset);
 }
 
 void CCEditMain::onAddLevelAction()

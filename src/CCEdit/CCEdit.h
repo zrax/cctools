@@ -38,6 +38,7 @@ class TileListWidget : public QListWidget {
 
 public:
     TileListWidget(QWidget* parent = 0);
+    void addTiles(QList<tile_t> tiles);
 
 protected:
     virtual void mousePressEvent(QMouseEvent*);
@@ -58,7 +59,7 @@ public:
     void loadLevelset(QString filename);
     void saveLevelset(QString filename);
     bool closeLevelset();
-    void loadTileset(QString filename);
+    void loadTileset(CCETileset* tileset);
     void findTilesets();
 
 private:
@@ -67,6 +68,8 @@ private:
         ActionSelect, ActionCut, ActionCopy, ActionPaste, ActionClear,
         ActionFill, ActionUndo, ActionRedo, ActionDrawPencil, ActionDrawLine,
         ActionDrawFill, ActionPathMaker, ActionTrapConnect, ActionCloneConnect,
+        ActionViewButtons, ActionViewTeleports, ActionViewActivePlayer,
+        ActionViewMovers,
         ActionAddLevel, ActionDelLevel, ActionMoveUp, ActionMoveDown,
         NUM_ACTIONS
     };
@@ -78,6 +81,7 @@ private:
 
     QAction* m_actions[NUM_ACTIONS];
     QMenu* m_tilesetMenu;
+    QActionGroup* m_tilesetGroup;
 
     EditorWidget* m_editor;
     QTabWidget* m_toolTabs;
@@ -93,13 +97,13 @@ private:
     LayerWidget* m_layer;
     QLabel* m_foreLabel;
     QLabel* m_backLabel;
-    CCETileset m_tileset;
 
     ccl::Levelset* m_levelset;
     QString m_levelsetFilename;
     ActionType m_savedDrawMode;
 
 protected:
+    void registerTileset(QString filename);
     void doLevelsetLoad();
     virtual void closeEvent(QCloseEvent*);
 
@@ -116,6 +120,12 @@ private slots:
     void onPathMakerAction();
     void onTrapConnectAction();
     void onCloneConnectAction();
+    void onViewButtonsToggled(bool);
+    void onViewTeleportsToggled(bool);
+    void onViewActivePlayerToggled(bool);
+    void onViewMoversToggled(bool);
+    void onTilesetMenu(QAction*);
+
     void onAddLevelAction();
     void onDelLevelAction();
     void onMoveUpAction();

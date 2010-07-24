@@ -26,9 +26,5 @@
     <file>res/draw-path.png</file>
     <file>res/cctools-clone.png</file>
     <file>res/cctools-trap.png</file>
-
-    <!-- Temporary until proper TIS loading is available -->
-    <file>TW32.tis</file>
-    <file>WEP.tis</file>
 </qresource>
 </RCC>

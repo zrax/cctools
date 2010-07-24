@@ -66,8 +66,17 @@ public:
     DrawMode drawMode() const { return m_drawMode; }
     void setDrawMode(DrawMode mode) { m_drawMode = mode; }
 
-    void setPaintFlag(int flag) { m_paintFlags |= flag; }
-    void clearPaintFlag(int flag) { m_paintFlags &= ~flag; }
+    void setPaintFlag(int flag)
+    {
+        m_paintFlags |= flag;
+        update();
+    }
+
+    void clearPaintFlag(int flag)
+    {
+        m_paintFlags &= ~flag;
+        update();
+    }
 
 private:
     CCETileset* m_tileset;

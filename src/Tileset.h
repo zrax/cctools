@@ -18,6 +18,7 @@
 #ifndef _TILESET_H
 #define _TILESET_H
 
+#include <QObject>
 #include <QPixmap>
 #include <QIcon>
 #include <QListWidget>
@@ -25,9 +26,13 @@
 
 typedef unsigned char tile_t;
 
-class CCETileset {
+class CCETileset : public QObject {
+    Q_OBJECT
+
 public:
-    CCETileset() { }
+    CCETileset(QObject* parent = 0)
+        : QObject(parent), m_size(0)
+    { }
 
     QString name() const { return m_name; }
     QString description() const { return m_description; }
@@ -35,19 +40,18 @@ public:
     QSize qsize() const { return QSize(m_size, m_size); }
 
     void load(QString filename);
+    QString filename() const { return m_filename; }
 
     void drawAt(QPainter& painter, int x, int y, tile_t upper, tile_t lower = 0) const;
     void draw(QPainter& painter, int x, int y, tile_t upper, tile_t lower = 0) const
     { drawAt(painter, x * m_size, y * m_size,  upper, lower); }
 
     QIcon getIcon(tile_t tile) const { return QIcon(m_base[tile]); }
-    void addTiles(QListWidget* list, QList<tile_t> tiles) const;
     void imageTiles(QListWidget* list) const;
-
     static QString TileName(tile_t tile);
 
 private:
-    QString m_name;
+    QString m_name, m_filename;
     QString m_description;
     int m_size;
 
