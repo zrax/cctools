@@ -108,20 +108,21 @@ CCEditMain::CCEditMain(QWidget* parent)
     levelManLayout->setVerticalSpacing(0);
     levelManLayout->setHorizontalSpacing(4);
     levelManLayout->addWidget(m_levelList, 0, 0, 1, 3);
-    levelManLayout->addItem(new QSpacerItem(0, 8), 1, 0, 1, 3);
-    levelManLayout->addWidget(nameLabel, 2, 0);
-    levelManLayout->addWidget(m_nameEdit, 2, 1, 1, 2);
-    levelManLayout->addWidget(passLabel, 3, 0);
-    levelManLayout->addWidget(m_passwordEdit, 3, 1);
-    levelManLayout->addWidget(m_passwordButton, 3, 2);
-    levelManLayout->addWidget(chipLabel, 4, 0);
-    levelManLayout->addWidget(m_chipEdit, 4, 1);
-    levelManLayout->addWidget(m_chipsButton, 4, 2);
-    levelManLayout->addWidget(timeLabel, 5, 0);
-    levelManLayout->addWidget(m_timeEdit, 5, 1);
-    levelManLayout->addItem(new QSpacerItem(0, 8), 6, 0, 1, 3);
-    levelManLayout->addWidget(hintLabel, 7, 0, 1, 3);
-    levelManLayout->addWidget(m_hintEdit, 8, 0, 1, 3);
+    // Row 1 reserved for Toolbar below
+    levelManLayout->addItem(new QSpacerItem(0, 8), 2, 0, 1, 3);
+    levelManLayout->addWidget(nameLabel, 3, 0);
+    levelManLayout->addWidget(m_nameEdit, 3, 1, 1, 2);
+    levelManLayout->addWidget(passLabel, 4, 0);
+    levelManLayout->addWidget(m_passwordEdit, 4, 1);
+    levelManLayout->addWidget(m_passwordButton, 4, 2);
+    levelManLayout->addWidget(chipLabel, 5, 0);
+    levelManLayout->addWidget(m_chipEdit, 5, 1);
+    levelManLayout->addWidget(m_chipsButton, 5, 2);
+    levelManLayout->addWidget(timeLabel, 6, 0);
+    levelManLayout->addWidget(m_timeEdit, 6, 1);
+    levelManLayout->addItem(new QSpacerItem(0, 8), 7, 0, 1, 3);
+    levelManLayout->addWidget(hintLabel, 8, 0, 1, 3);
+    levelManLayout->addWidget(m_hintEdit, 9, 0, 1, 3);
     m_hintEdit->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum));
 
     toolDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
@@ -138,8 +139,8 @@ CCEditMain::CCEditMain(QWidget* parent)
         << ccl::TileExit << ccl::TileHint << ccl::TileBarrier_N
         << ccl::TileBarrier_W << ccl::TileBarrier_S << ccl::TileBarrier_E
         << ccl::TileBarrier_SE << ccl::TileBlock << ccl::TileDirt
-        << ccl::TileGravel << ccl::TilePlayer_S << ccl::TilePlayer_E
-        << ccl::TilePlayer_W << ccl::TilePlayer_N);
+        << ccl::TileGravel << ccl::TilePlayer_N << ccl::TilePlayer_W
+        << ccl::TilePlayer_S << ccl::TilePlayer_E);
     tileBox->addItem(m_tileLists[ListStandard], tr("Standard"));
     m_tileLists[ListObstacles] = new TileListWidget(tileBox);
     m_tileset.addTiles(m_tileLists[ListObstacles], QList<tile_t>()
@@ -164,18 +165,18 @@ CCEditMain::CCEditMain(QWidget* parent)
     tileBox->addItem(m_tileLists[ListItems], tr("Items"));
     m_tileLists[ListMonsters] = new TileListWidget(tileBox);
     m_tileset.addTiles(m_tileLists[ListMonsters], QList<tile_t>()
-        << ccl::TileBug_N << ccl::TileBug_E << ccl::TileBug_S << ccl::TileBug_W
-        << ccl::TileFireball_N << ccl::TileFireball_E << ccl::TileFireball_S
-        << ccl::TileFireball_W << ccl::TileBall_N << ccl::TileBall_E
-        << ccl::TileBall_S << ccl::TileBall_W << ccl::TileTank_N
-        << ccl::TileTank_E << ccl::TileTank_S << ccl::TileTank_W
-        << ccl::TileTankButton << ccl::TileGlider_N << ccl::TileGlider_E
-        << ccl::TileGlider_S << ccl::TileGlider_W << ccl::TileTeeth_N
-        << ccl::TileTeeth_E << ccl::TileTeeth_S << ccl::TileTeeth_W
-        << ccl::TileWalker_N << ccl::TileWalker_E << ccl::TileWalker_S
-        << ccl::TileWalker_W << ccl::TileBlob_N << ccl::TileBlob_E
-        << ccl::TileBlob_S << ccl::TileBlob_W << ccl::TileCrawler_N
-        << ccl::TileCrawler_E << ccl::TileCrawler_S << ccl::TileCrawler_W);
+        << ccl::TileBug_N << ccl::TileBug_W << ccl::TileBug_S << ccl::TileBug_E
+        << ccl::TileFireball_N << ccl::TileFireball_W << ccl::TileFireball_S
+        << ccl::TileFireball_E << ccl::TileBall_N << ccl::TileBall_W
+        << ccl::TileBall_S << ccl::TileBall_E << ccl::TileTank_N
+        << ccl::TileTank_W << ccl::TileTank_S << ccl::TileTank_E
+        << ccl::TileTankButton << ccl::TileGlider_N << ccl::TileGlider_W
+        << ccl::TileGlider_S << ccl::TileGlider_E << ccl::TileTeeth_N
+        << ccl::TileTeeth_W << ccl::TileTeeth_S << ccl::TileTeeth_E
+        << ccl::TileWalker_N << ccl::TileWalker_W << ccl::TileWalker_S
+        << ccl::TileWalker_E << ccl::TileBlob_N << ccl::TileBlob_W
+        << ccl::TileBlob_S << ccl::TileBlob_E << ccl::TileCrawler_N
+        << ccl::TileCrawler_W << ccl::TileCrawler_S << ccl::TileCrawler_E);
     tileBox->addItem(m_tileLists[ListMonsters], tr("Monsters"));
     m_tileLists[ListMisc] = new TileListWidget(tileBox);
     m_tileset.addTiles(m_tileLists[ListMisc], QList<tile_t>()
@@ -273,24 +274,40 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionFill]->setShortcut(Qt::CTRL | Qt::Key_F);
     m_actions[ActionFill]->setEnabled(false);
 
-    m_actions[ActionDrawPencil] = new QAction(tr("&Pencil"), this);
+    m_actions[ActionDrawPencil] = new QAction(QIcon(":/res/draw-freehand.png"), tr("&Pencil"), this);
     m_actions[ActionDrawPencil]->setStatusTip(tr("Draw tiles with the pencil tool"));
     m_actions[ActionDrawPencil]->setShortcut(Qt::CTRL | Qt::Key_P);
-    m_actions[ActionDrawLine] = new QAction(tr("&Line"), this);
+    m_actions[ActionDrawPencil]->setCheckable(true);
+    m_actions[ActionDrawPencil]->setChecked(true);
+    m_actions[ActionDrawLine] = new QAction(QIcon(":/res/draw-line.png"), tr("&Line"), this);
     m_actions[ActionDrawLine]->setStatusTip(tr("Draw tiles with the line tool"));
     m_actions[ActionDrawLine]->setShortcut(Qt::CTRL | Qt::Key_L);
-    m_actions[ActionDrawFill] = new QAction(tr("&Box"), this);
+    m_actions[ActionDrawLine]->setCheckable(true);
+    m_actions[ActionDrawFill] = new QAction(QIcon(":/res/draw-box.png"), tr("&Box"), this);
     m_actions[ActionDrawFill]->setStatusTip(tr("Draw tiles with the box fill tool"));
     m_actions[ActionDrawFill]->setShortcut(Qt::CTRL | Qt::Key_B);
-    m_actions[ActionPathMaker] = new QAction(tr("Path &Maker"), this);
+    m_actions[ActionDrawFill]->setCheckable(true);
+    m_actions[ActionPathMaker] = new QAction(QIcon(":/res/draw-path.png"), tr("Path &Maker"), this);
     m_actions[ActionPathMaker]->setStatusTip(tr("Draw a directional path of tiles"));
     m_actions[ActionPathMaker]->setShortcut(Qt::CTRL | Qt::Key_M);
-    m_actions[ActionCloneConnect] = new QAction(tr("&Clone Connector"), this);
-    m_actions[ActionCloneConnect]->setStatusTip(tr("Connect Cloning machines to Clone buttons"));
-    m_actions[ActionCloneConnect]->setShortcut(Qt::CTRL | Qt::Key_G);
-    m_actions[ActionTrapConnect] = new QAction(tr("&Trap Connector"), this);
+    m_actions[ActionPathMaker]->setCheckable(true);
+    m_actions[ActionTrapConnect] = new QAction(QIcon(":/res/cctools-trap.png"), tr("&Trap Connector"), this);
     m_actions[ActionTrapConnect]->setStatusTip(tr("Connect Traps to Trap release buttons"));
     m_actions[ActionTrapConnect]->setShortcut(Qt::CTRL | Qt::Key_T);
+    m_actions[ActionTrapConnect]->setCheckable(true);
+    m_actions[ActionCloneConnect] = new QAction(QIcon(":/res/cctools-clone.png"), tr("&Clone Connector"), this);
+    m_actions[ActionCloneConnect]->setStatusTip(tr("Connect Cloning machines to Clone buttons"));
+    m_actions[ActionCloneConnect]->setShortcut(Qt::CTRL | Qt::Key_G);
+    m_actions[ActionCloneConnect]->setCheckable(true);
+
+    m_actions[ActionAddLevel] = new QAction(QIcon(":/res/list-add.png"), tr("&Add Level"), this);
+    m_actions[ActionAddLevel]->setStatusTip(tr("Add a new level to the end of the levelset"));
+    m_actions[ActionDelLevel] = new QAction(QIcon(":/res/list-remove.png"), tr("&Remove Level"), this);
+    m_actions[ActionDelLevel]->setStatusTip(tr("Remove the current level from the levelset"));
+    m_actions[ActionMoveUp] = new QAction(QIcon(":/res/arrow-up.png"), tr("Move &Up"), this);
+    m_actions[ActionMoveUp]->setStatusTip(tr("Move the current level up in the level list"));
+    m_actions[ActionMoveDown] = new QAction(QIcon(":/res/arrow-down.png"), tr("Move &Down"), this);
+    m_actions[ActionMoveDown]->setStatusTip(tr("Move the current level down in the level list"));
 
     // Main Menu
     QMenu* fileMenu = menuBar()->addMenu(tr("&File"));
@@ -321,17 +338,41 @@ CCEditMain::CCEditMain(QWidget* parent)
     toolsMenu->addAction(m_actions[ActionDrawFill]);
     toolsMenu->addAction(m_actions[ActionPathMaker]);
     toolsMenu->addSeparator();
-    toolsMenu->addAction(m_actions[ActionCloneConnect]);
     toolsMenu->addAction(m_actions[ActionTrapConnect]);
+    toolsMenu->addAction(m_actions[ActionCloneConnect]);
 
     QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
     m_tilesetMenu = viewMenu->addMenu(tr("&Tileset"));
 
     // Tool bars
-    QToolBar* tbarFile = addToolBar(QString());
-    tbarFile->addAction(m_actions[ActionNew]);
-    tbarFile->addAction(m_actions[ActionOpen]);
-    tbarFile->addAction(m_actions[ActionSave]);
+    QToolBar* tbarMain = addToolBar(QString());
+    tbarMain->addAction(m_actions[ActionNew]);
+    tbarMain->addAction(m_actions[ActionOpen]);
+    tbarMain->addAction(m_actions[ActionSave]);
+    tbarMain->addSeparator();
+    tbarMain->addAction(m_actions[ActionUndo]);
+    tbarMain->addAction(m_actions[ActionRedo]);
+    tbarMain->addSeparator();
+    tbarMain->addAction(m_actions[ActionSelect]);
+    tbarMain->addAction(m_actions[ActionCut]);
+    tbarMain->addAction(m_actions[ActionCopy]);
+    tbarMain->addAction(m_actions[ActionPaste]);
+    QToolBar* tbarTools = addToolBar(QString());
+    tbarTools->addAction(m_actions[ActionDrawPencil]);
+    tbarTools->addAction(m_actions[ActionDrawLine]);
+    tbarTools->addAction(m_actions[ActionDrawFill]);
+    tbarTools->addAction(m_actions[ActionPathMaker]);
+    tbarTools->addSeparator();
+    tbarTools->addAction(m_actions[ActionTrapConnect]);
+    tbarTools->addAction(m_actions[ActionCloneConnect]);
+
+    QToolBar* tbarLevelset = new QToolBar(levelManWidget);
+    tbarLevelset->addAction(m_actions[ActionAddLevel]);
+    tbarLevelset->addAction(m_actions[ActionDelLevel]);
+    tbarLevelset->addSeparator();
+    tbarLevelset->addAction(m_actions[ActionMoveUp]);
+    tbarLevelset->addAction(m_actions[ActionMoveDown]);
+    levelManLayout->addWidget(tbarLevelset, 1, 0, 1, 3);
 
     // Show status bar
     statusBar();
@@ -343,6 +384,11 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionSaveAs], SIGNAL(triggered()), SLOT(onSaveAsAction()));
     connect(m_actions[ActionClose], SIGNAL(triggered()), SLOT(onCloseAction()));
     connect(m_actions[ActionSelect], SIGNAL(toggled(bool)), SLOT(onSelectToggled(bool)));
+    connect(m_actions[ActionAddLevel], SIGNAL(triggered()), SLOT(onAddLevelAction()));
+    connect(m_actions[ActionDelLevel], SIGNAL(triggered()), SLOT(onDelLevelAction()));
+    connect(m_actions[ActionMoveUp], SIGNAL(triggered()), SLOT(onMoveUpAction()));
+    connect(m_actions[ActionMoveDown], SIGNAL(triggered()), SLOT(onMoveDownAction()));
+
     connect(m_levelList, SIGNAL(currentRowChanged(int)), SLOT(onSelectLevel(int)));
     connect(m_nameEdit, SIGNAL(textChanged(QString)), SLOT(onNameChanged(QString)));
     connect(m_passwordEdit, SIGNAL(textChanged(QString)), SLOT(onPasswordChanged(QString)));
@@ -511,6 +557,62 @@ void CCEditMain::onSelectToggled(bool mode)
     m_actions[ActionPaste]->setEnabled(mode);
     m_actions[ActionClear]->setEnabled(mode);
     m_actions[ActionFill]->setEnabled(mode);
+}
+
+void CCEditMain::onAddLevelAction()
+{
+    if (m_levelset == 0)
+        return;
+
+    m_levelset->addLevel();
+    doLevelsetLoad();
+    m_levelList->setCurrentRow(m_levelList->count() - 1);
+}
+
+void CCEditMain::onDelLevelAction()
+{
+    if (m_levelset == 0 || m_levelList->currentRow() < 0)
+        return;
+
+    int result = QMessageBox::question(this, tr("Delete Level"),
+                    tr("Are you sure you want to delete this level?\n"
+                       "This action cannot be undone!"),
+                    QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+    if (result == QMessageBox::No)
+        return;
+
+    int idx = m_levelList->currentRow();
+    m_levelList->setCurrentRow(idx - 1);
+    delete m_levelset->takeLevel(idx);
+    doLevelsetLoad();
+}
+
+void CCEditMain::onMoveUpAction()
+{
+    if (m_levelset == 0 || m_levelList->currentRow() < 0)
+        return;
+
+    int idx = m_levelList->currentRow();
+    if (idx > 0) {
+        ccl::LevelData* level = m_levelset->takeLevel(idx);
+        m_levelset->insertLevel(idx - 1, level);
+        doLevelsetLoad();
+        m_levelList->setCurrentRow(idx - 1);
+    }
+}
+
+void CCEditMain::onMoveDownAction()
+{
+    if (m_levelset == 0 || m_levelList->currentRow() < 0)
+        return;
+
+    int idx = m_levelList->currentRow();
+    if (idx < (m_levelList->count() - 1)) {
+        ccl::LevelData* level = m_levelset->takeLevel(idx);
+        m_levelset->insertLevel(idx + 1, level);
+        doLevelsetLoad();
+        m_levelList->setCurrentRow(idx + 1);
+    }
 }
 
 void CCEditMain::onSelectLevel(int idx)

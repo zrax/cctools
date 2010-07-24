@@ -200,6 +200,7 @@ ccl::LevelMap& ccl::LevelMap::operator=(const ccl::LevelMap& source)
     m_bgTiles = new tile_t[m_width*m_height];
     memcpy(m_fgTiles, source.m_fgTiles, m_width * m_height * sizeof(tile_t));
     memcpy(m_bgTiles, source.m_bgTiles, m_width * m_height * sizeof(tile_t));
+    return *this;
 }
 
 void ccl::LevelMap::copyFrom(const ccl::LevelMap& source, int destX, int destY)

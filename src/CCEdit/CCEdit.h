@@ -67,6 +67,7 @@ private:
         ActionSelect, ActionCut, ActionCopy, ActionPaste, ActionClear,
         ActionFill, ActionUndo, ActionRedo, ActionDrawPencil, ActionDrawLine,
         ActionDrawFill, ActionPathMaker, ActionTrapConnect, ActionCloneConnect,
+        ActionAddLevel, ActionDelLevel, ActionMoveUp, ActionMoveDown,
         NUM_ACTIONS
     };
 
@@ -108,6 +109,11 @@ private slots:
     void onSaveAsAction();
     void onCloseAction() { closeLevelset(); }
     void onSelectToggled(bool);
+    void onAddLevelAction();
+    void onDelLevelAction();
+    void onMoveUpAction();
+    void onMoveDownAction();
+
     void onSelectLevel(int);
     void onPasswordGenAction();
     void onChipCountAction();
@@ -115,6 +121,7 @@ private slots:
     void onPasswordChanged(QString);
     void onChipsChanged(int);
     void onTimerChanged(int);
+
     void setForeground(tile_t);
     void setBackground(tile_t);
 };

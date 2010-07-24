@@ -16,6 +16,16 @@
     <file>res/zoom-in.png</file>
     <file>res/zoom-out.png</file>
     <file>res/zoom-original.png</file>
+    <file>res/list-add.png</file>
+    <file>res/list-remove.png</file>
+    <file>res/arrow-up.png</file>
+    <file>res/arrow-down.png</file>
+    <file>res/draw-freehand.png</file>
+    <file>res/draw-line.png</file>
+    <file>res/draw-box.png</file>
+    <file>res/draw-path.png</file>
+    <file>res/cctools-clone.png</file>
+    <file>res/cctools-trap.png</file>
 
     <!-- Temporary until proper TIS loading is available -->
     <file>TW32.tis</file>
