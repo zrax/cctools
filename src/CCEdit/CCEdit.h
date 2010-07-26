@@ -25,7 +25,6 @@
 #include <QLineEdit>
 #include <QSpinBox>
 #include <QToolButton>
-#include <QPlainTextEdit>
 #include <QTabWidget>
 #include <QLabel>
 #include "../Levelset.h"
@@ -71,6 +70,7 @@ private:
         ActionViewButtons, ActionViewTeleports, ActionViewActivePlayer,
         ActionViewMovers,
         ActionAddLevel, ActionDelLevel, ActionMoveUp, ActionMoveDown,
+        ActionProperties,
         NUM_ACTIONS
     };
 
@@ -92,7 +92,7 @@ private:
     QSpinBox* m_timeEdit;
     QToolButton* m_passwordButton;
     QToolButton* m_chipsButton;
-    QPlainTextEdit* m_hintEdit;
+    QLineEdit* m_hintEdit;
     TileListWidget* m_tileLists[NUM_TILE_LISTS];
     LayerWidget* m_layer;
     QLabel* m_foreLabel;

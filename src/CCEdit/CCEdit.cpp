@@ -32,16 +32,6 @@
 #include <QActionGroup>
 #include <cstdio>
 
-class QMinimalTextEdit : public QPlainTextEdit {
-public:
-    QMinimalTextEdit(QWidget* parent = 0)
-    : QPlainTextEdit(parent) { }
-
-    virtual QSize sizeHint() const
-    { return QSize(minimumWidth(), minimumHeight()); }
-};
-
-
 TileListWidget::TileListWidget(QWidget* parent)
               : QListWidget(parent)
 { }
@@ -88,7 +78,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_nameEdit = new QLineEdit(levelManWidget);
     QLabel* nameLabel = new QLabel(tr("&Name:"), levelManWidget);
     nameLabel->setBuddy(m_nameEdit);
-    m_nameEdit->setMaxLength(31);
+    m_nameEdit->setMaxLength(254);
     m_passwordEdit = new QLineEdit(levelManWidget);
     QLabel* passLabel = new QLabel(tr("&Password:"), levelManWidget);
     passLabel->setBuddy(m_passwordEdit);
@@ -107,10 +97,10 @@ CCEditMain::CCEditMain(QWidget* parent)
     QLabel* timeLabel = new QLabel(tr("&Time:"), levelManWidget);
     timeLabel->setBuddy(m_timeEdit);
     m_timeEdit->setRange(0, 32767);
-    m_hintEdit = new QMinimalTextEdit(levelManWidget);
+    m_hintEdit = new QLineEdit(levelManWidget);
     QLabel* hintLabel = new QLabel(tr("&Hint Text:"), levelManWidget);
     hintLabel->setBuddy(m_hintEdit);
-    //m_hintEdit->setMaxLength(255);
+    m_hintEdit->setMaxLength(254);
 
     QGridLayout* levelManLayout = new QGridLayout(levelManWidget);
     levelManLayout->setContentsMargins(4, 4, 4, 4);
@@ -130,8 +120,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     levelManLayout->addWidget(timeLabel, 6, 0);
     levelManLayout->addWidget(m_timeEdit, 6, 1);
     levelManLayout->addItem(new QSpacerItem(0, 8), 7, 0, 1, 3);
-    levelManLayout->addWidget(hintLabel, 8, 0, 1, 3);
-    levelManLayout->addWidget(m_hintEdit, 9, 0, 1, 3);
+    levelManLayout->addWidget(hintLabel, 8, 0);
+    levelManLayout->addWidget(m_hintEdit, 8, 1, 1, 2);
     m_hintEdit->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum));
 
     toolDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
@@ -337,6 +327,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionMoveUp]->setStatusTip(tr("Move the current level up in the level list"));
     m_actions[ActionMoveDown] = new QAction(QIcon(":/res/arrow-down.png"), tr("Move &Down"), this);
     m_actions[ActionMoveDown]->setStatusTip(tr("Move the current level down in the level list"));
+    m_actions[ActionProperties] = new QAction(QIcon(":/res/document-properties.png"), tr("Levelset &Properties"), this);
+    m_actions[ActionProperties]->setStatusTip(tr("Change levelset and .DAC file properties"));
 
     // Main Menu
     QMenu* fileMenu = menuBar()->addMenu(tr("&File"));
@@ -407,6 +399,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     tbarLevelset->addSeparator();
     tbarLevelset->addAction(m_actions[ActionMoveUp]);
     tbarLevelset->addAction(m_actions[ActionMoveDown]);
+    tbarLevelset->addSeparator();
+    tbarLevelset->addAction(m_actions[ActionProperties]);
     levelManLayout->addWidget(tbarLevelset, 1, 0, 1, 3);
 
     // Show status bar
@@ -450,7 +444,7 @@ CCEditMain::CCEditMain(QWidget* parent)
         connect(m_tileLists[i], SIGNAL(itemSelectedRight(tile_t)), SLOT(setBackground(tile_t)));
     }
 
-    // Visual tweaks
+    // Default setup (TODO: save/load this to/from QSettings)
     resize(800, 600);
     toolDock->resize(120, 0);
     findTilesets();
@@ -814,7 +808,7 @@ void CCEditMain::onSelectLevel(int idx)
         m_passwordEdit->setText(QString());
         m_chipEdit->setValue(0);
         m_timeEdit->setValue(0);
-        m_hintEdit->setPlainText(QString());
+        m_hintEdit->setText(QString());
         m_editor->setLevelData(0);
     } else {
         ccl::LevelData* level = m_levelset->level(idx);
@@ -822,7 +816,7 @@ void CCEditMain::onSelectLevel(int idx)
         m_passwordEdit->setText(QString::fromAscii(level->password().c_str()));
         m_chipEdit->setValue(level->chips());
         m_timeEdit->setValue(level->timer());
-        m_hintEdit->setPlainText(QString::fromAscii(level->hint().c_str()));
+        m_hintEdit->setText(QString::fromAscii(level->hint().c_str()));
         m_editor->setLevelData(level);
     }
     m_editor->update();
