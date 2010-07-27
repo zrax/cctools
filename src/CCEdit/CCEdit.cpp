@@ -32,6 +32,8 @@
 #include <QActionGroup>
 #include <cstdio>
 
+#define CCEDIT_TITLE "CCEdit 2.0 ALPHA"
+
 TileListWidget::TileListWidget(QWidget* parent)
               : QListWidget(parent)
 { }
@@ -57,11 +59,28 @@ void TileListWidget::mousePressEvent(QMouseEvent* event)
 }
 
 
+enum LevelsetType { LevelsetError, LevelsetDac, LevelsetCcl };
+static LevelsetType determineLevelsetType(QString filename)
+{
+    QFile file(filename);
+    if (!file.open(QIODevice::ReadOnly))
+        return LevelsetError;
+
+    unsigned int magic;
+    qint64 bytes = file.read((char*)&magic, 4);
+    file.close();
+    if (bytes != 4)
+        return LevelsetError;
+    if (magic == ccl::Levelset::TypeLynx || magic == ccl::Levelset::TypeMS)
+        return LevelsetCcl;
+    return LevelsetDac;
+}
+
 
 CCEditMain::CCEditMain(QWidget* parent)
     : QMainWindow(parent), m_levelset(0), m_savedDrawMode(ActionDrawPencil)
 {
-    setWindowTitle("CCEdit 2.0 ALPHA");
+    setWindowTitle(CCEDIT_TITLE);
     setDockOptions(QMainWindow::AnimatedDocks);
 
     // Control Toolbox
@@ -466,25 +485,76 @@ void CCEditMain::loadLevelset(QString filename)
     if (!closeLevelset())
         return;
 
-    FILE* set = fopen(filename.toUtf8(), "rb");
-    if (set != 0) {
-        m_levelset = new ccl::Levelset(0);
-        try {
-            m_levelset->read(set);
-        } catch (ccl::Exception e) {
-            QMessageBox::critical(this, tr("Error reading levelset"),
-                                tr("Error loading levelset: %1").arg(e.what()));
-            delete m_levelset;
-            m_levelset = 0;
+    LevelsetType type = determineLevelsetType(filename);
+    if (type == LevelsetCcl) {
+        FILE* set = fopen(filename.toUtf8().data(), "rb");
+        if (set != 0) {
+            m_levelset = new ccl::Levelset(0);
+            try {
+                m_levelset->read(set);
+                fclose(set);
+            } catch (ccl::Exception& e) {
+                QMessageBox::critical(this, tr("Error reading levelset"),
+                                      tr("Error loading levelset: %1").arg(e.what()));
+                fclose(set);
+                delete m_levelset;
+                m_levelset = 0;
+                return;
+            }
+        } else {
+            QMessageBox::critical(this, tr("Error opening levelset"),
+                                  tr("Error: could not open file %1").arg(filename));
+            return;
         }
-        fclose(set);
-    } else {
-        QMessageBox::critical(this, tr("Error opening levelset"),
-                              tr("Error: could not open file %1").arg(filename));
-    }
-    if (m_levelset != 0) {
         doLevelsetLoad();
-        m_levelsetFilename = filename;
+        setLevelsetFilename(filename);
+        m_useDac = false;
+    } else if (type == LevelsetDac) {
+        FILE* dac = fopen(filename.toUtf8().data(), "rt");
+        if (dac != 0) {
+            try {
+                m_dacInfo.read(dac);
+                fclose(dac);
+            } catch (ccl::Exception& e) {
+                QMessageBox::critical(this, tr("Error reading levelset"),
+                                      tr("Error loading levelset descriptor: %1")
+                                      .arg(e.what()));
+                fclose(dac);
+                return;
+            }
+
+            QDir searchPath(filename);
+            searchPath.cdUp();
+
+            FILE* set = fopen(searchPath.absoluteFilePath(m_dacInfo.m_filename.c_str()).toUtf8().data(), "rb");
+            if (set != 0) {
+                m_levelset = new ccl::Levelset(0);
+                try {
+                    m_levelset->read(set);
+                    fclose(set);
+                } catch (ccl::Exception& e) {
+                    QMessageBox::critical(this, tr("Error reading levelset"),
+                                        tr("Error loading levelset: %1").arg(e.what()));
+                    fclose(set);
+                    delete m_levelset;
+                    m_levelset = 0;
+                    return;
+                }
+            } else {
+                QMessageBox::critical(this, tr("Error opening levelset"),
+                                    tr("Error: could not open file %1")
+                                    .arg(m_dacInfo.m_filename.c_str()));
+                return;
+            }
+            doLevelsetLoad();
+            setLevelsetFilename(filename);
+        } else {
+            QMessageBox::critical(this, tr("Error opening levelset"),
+                                  tr("Error: could not open file %1").arg(filename));
+        }
+    } else {
+        QMessageBox::critical(this, tr("Error reading levelset"),
+                              tr("Cannot determine file type for %1").arg(filename));
     }
 }
 
@@ -515,25 +585,76 @@ void CCEditMain::doLevelsetLoad()
     m_toolTabs->setCurrentIndex(0);
 }
 
+void CCEditMain::setLevelsetFilename(QString filename)
+{
+    m_levelsetFilename = filename;
+    setWindowTitle(CCEDIT_TITLE " - "
+                   + QDir(filename).absolutePath().section(QChar('/'), -1));
+}
+
 void CCEditMain::saveLevelset(QString filename)
 {
     if (m_levelset == 0)
         return;
 
-    FILE* set = fopen(filename.toUtf8(), "wb");
-    if (set != 0) {
-        try {
-            m_levelset->write(set);
-        } catch (ccl::Exception e) {
+    if (m_useDac) {
+        FILE* dac = fopen(filename.toUtf8().data(), "wt");
+        if (dac != 0) {
+            try {
+                m_dacInfo.write(dac);
+                fclose(dac);
+            } catch (ccl::Exception& e) {
+                QMessageBox::critical(this, tr("Error saving levelset"),
+                                      tr("Error saving levelset descriptor: %1")
+                                      .arg(e.what()));
+                fclose(dac);
+                return;
+            }
+
+            QDir searchPath(filename);
+            searchPath.cdUp();
+
+            FILE* set = fopen(searchPath.absoluteFilePath(m_dacInfo.m_filename.c_str()).toUtf8().data(), "wb");
+            if (set != 0) {
+                try {
+                    m_levelset->write(set);
+                    fclose(set);
+                } catch (ccl::Exception e) {
+                    QMessageBox::critical(this, tr("Error saving levelset"),
+                                          tr("Error saving levelset: %1").arg(e.what()));
+                    fclose(set);
+                    return;
+                }
+            } else {
+                QMessageBox::critical(this, tr("Error saving levelset"),
+                                      tr("Error: could not write file %1")
+                                      .arg(m_dacInfo.m_filename.c_str()));
+                return;
+            }
+        } else {
             QMessageBox::critical(this, tr("Error saving levelset"),
-                                tr("Error saving levelset: %1").arg(e.what()));
+                                  tr("Error: could not write file %1").arg(filename));
+            return;
         }
-        fclose(set);
     } else {
-        QMessageBox::critical(this, tr("Error saving levelset"),
-                              tr("Error: could not open file %1").arg(filename));
+        FILE* set = fopen(filename.toUtf8(), "wb");
+        if (set != 0) {
+            try {
+                m_levelset->write(set);
+                fclose(set);
+            } catch (ccl::Exception e) {
+                QMessageBox::critical(this, tr("Error saving levelset"),
+                                      tr("Error saving levelset: %1").arg(e.what()));
+                fclose(set);
+                return;
+            }
+        } else {
+            QMessageBox::critical(this, tr("Error saving levelset"),
+                                  tr("Error: could not write file %1").arg(filename));
+            return;
+        }
     }
-    m_levelsetFilename = filename;
+    setLevelsetFilename(filename);
 }
 
 void CCEditMain::closeEvent(QCloseEvent* event)
@@ -558,6 +679,7 @@ bool CCEditMain::closeLevelset()
     onSelectLevel(-1);
     delete m_levelset;
     m_levelset = 0;
+    setWindowTitle(CCEDIT_TITLE);
     return true;
 }
 
@@ -585,10 +707,11 @@ void CCEditMain::findTilesets()
     m_tilesetMenu->clear();
 
     QDir path;
+    QStringList tilesets;
 #if defined(Q_OS_WIN32)
     // Search app directory
     path.setPath(qApp->applicationDirPath());
-    QStringList tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
+    tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
     foreach (QString file, tilesets)
         registerTileset(path.absoluteFilePath(file));
 #else
@@ -596,24 +719,33 @@ void CCEditMain::findTilesets()
     path.setPath(qApp->applicationDirPath());
     path.cdUp();
     path.cd("share/cctools");
-    QStringList tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
+    tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
     foreach (QString file, tilesets)
         registerTileset(path.absoluteFilePath(file));
 
     // Search standard directories
     path.setPath("/usr/share/cctools");
     if (path.exists()) {
-        QStringList tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
+        tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
         foreach (QString file, tilesets)
             registerTileset(path.absoluteFilePath(file));
     }
     path.setPath("/usr/local/share/cctools");
     if (path.exists()) {
-        QStringList tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
+        tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
         foreach (QString file, tilesets)
             registerTileset(path.absoluteFilePath(file));
     }
 #endif
+
+    // User-space local data
+    path.setPath(QDir::homePath());
+    path.cd(".cctools");
+    if (path.exists()) {
+        tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
+        foreach (QString file, tilesets)
+            registerTileset(path.absoluteFilePath(file));
+    }
 }
 
 void CCEditMain::onNewAction()
@@ -623,13 +755,14 @@ void CCEditMain::onNewAction()
 
     m_levelset = new ccl::Levelset();
     doLevelsetLoad();
-    m_levelsetFilename = "Untitled";
+    setLevelsetFilename("Untitled");
+    m_useDac = false;
 }
 
 void CCEditMain::onOpenAction()
 {
     QString filename = QFileDialog::getOpenFileName(this, tr("Open Levelset..."),
-                            QString(), "CC Levelsets (*.dat *.ccl)");
+                            QString(), "CC Levelsets (*.dat *.dac *.ccl)");
     if (!filename.isEmpty())
         loadLevelset(filename);
 }
@@ -641,8 +774,11 @@ void CCEditMain::onSaveAction()
 
 void CCEditMain::onSaveAsAction()
 {
+    QString filter = m_useDac ? "TWorld Levelsets (*.dac)"
+                              : "CC Levelsets (*.dat *.ccl)";
+
     QString filename = QFileDialog::getSaveFileName(this, tr("Save Levelset..."),
-                            m_levelsetFilename, "CC Levelsets (*.dat *.ccl)");
+                                                    m_levelsetFilename, filter);
     if (!filename.isEmpty())
         saveLevelset(filename);
 }

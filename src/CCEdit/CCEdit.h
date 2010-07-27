@@ -27,10 +27,11 @@
 #include <QToolButton>
 #include <QTabWidget>
 #include <QLabel>
-#include "../Levelset.h"
-#include "../Tileset.h"
 #include "EditorWidget.h"
 #include "LayerWidget.h"
+#include "../Levelset.h"
+#include "../Tileset.h"
+#include "../DacFile.h"
 
 class TileListWidget : public QListWidget {
     Q_OBJECT
@@ -82,6 +83,7 @@ private:
     QAction* m_actions[NUM_ACTIONS];
     QMenu* m_tilesetMenu;
     QActionGroup* m_tilesetGroup;
+    ActionType m_savedDrawMode;
 
     EditorWidget* m_editor;
     QTabWidget* m_toolTabs;
@@ -99,12 +101,14 @@ private:
     QLabel* m_backLabel;
 
     ccl::Levelset* m_levelset;
+    ccl::DacFile m_dacInfo;
     QString m_levelsetFilename;
-    ActionType m_savedDrawMode;
+    bool m_useDac;
 
 protected:
     void registerTileset(QString filename);
     void doLevelsetLoad();
+    void setLevelsetFilename(QString filename);
     virtual void closeEvent(QCloseEvent*);
 
 private slots:

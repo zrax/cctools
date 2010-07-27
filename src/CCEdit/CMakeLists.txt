@@ -6,6 +6,7 @@ include_directories(${QT_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR})
 set(CCEdit_SOURCES
     ../Levelset.cpp
     ../Tileset.cpp
+    ../DacFile.cpp
     CCEdit.cpp
     EditorWidget.cpp
     LayerWidget.cpp

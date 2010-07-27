@@ -15,35 +15,32 @@
  * along with CCTools.  If not, see <http://www.gnu.org/licenses/>.           *
  ******************************************************************************/
 
-#ifndef _ERRORS_H
-#define _ERRORS_H
+#ifndef _DACFILE_H
+#define _DACFILE_H
 
-#include <exception>
 #include <string>
+#include "Levelset.h"
+
+#ifdef WIN32
+    #define strcasecmp  _stricmp
+#endif
 
 namespace ccl {
 
-class Exception : public std::exception {
-public:
-    Exception(const char* msg) : m_msg(msg) { }
-    virtual ~Exception() throw() { }
+struct DacFile {
+    DacFile();
+    DacFile(const Levelset& levelset);
 
-    virtual const char* what() const throw() { return m_msg.c_str(); }
+    void read(FILE* stream);
+    void write(FILE* stream);
 
-private:
-    std::string m_msg;
+    std::string m_filename;
+    unsigned int m_ruleset;
+    int m_lastLevel;        // use 0 to indicate default value
+    bool m_usePasswords;    // default = y
+    bool m_fixLynx;         // default = n
 };
 
-class IOException : public ccl::Exception {
-public:
-    IOException(const char* msg) : ccl::Exception(msg) { }
-};
-
-class FormatException : public ccl::Exception {
-public:
-    FormatException(const char* msg) : ccl::Exception(msg) { }
-};
-
-}
+} /* {ccl} */
 
 #endif
