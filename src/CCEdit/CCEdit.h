@@ -96,9 +96,9 @@ private:
     QToolButton* m_chipsButton;
     QLineEdit* m_hintEdit;
     TileListWidget* m_tileLists[NUM_TILE_LISTS];
-    LayerWidget* m_layer;
-    QLabel* m_foreLabel;
-    QLabel* m_backLabel;
+    LayerWidget* m_layer[2];
+    QLabel* m_foreLabel[2];
+    QLabel* m_backLabel[2];
 
     ccl::Levelset* m_levelset;
     ccl::DacFile m_dacInfo;

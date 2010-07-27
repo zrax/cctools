@@ -78,7 +78,8 @@ static LevelsetType determineLevelsetType(QString filename)
 
 
 CCEditMain::CCEditMain(QWidget* parent)
-    : QMainWindow(parent), m_levelset(0), m_savedDrawMode(ActionDrawPencil)
+    : QMainWindow(parent), m_savedDrawMode(ActionDrawPencil), m_levelset(0),
+      m_useDac(false)
 {
     setWindowTitle(CCEDIT_TITLE);
     setDockOptions(QMainWindow::AnimatedDocks);
@@ -211,25 +212,39 @@ CCEditMain::CCEditMain(QWidget* parent)
         << ccl::TilePlayerSwim_S << ccl::TilePlayerSwim_E << ccl::Tile_UNUSED_20
         << ccl::Tile_UNUSED_36 << ccl::Tile_UNUSED_37 << ccl::Tile_UNUSED_38);
     tileBox->addItem(m_tileLists[ListSpecial], tr("Special (Advanced)"));
-    m_tileLists[ListAllTiles] = new TileListWidget(tileBox);
-    QList<tile_t> allRange;
-    for (tile_t i=0; i<ccl::NUM_TILE_TYPES; ++i)
-        allRange << i;
-    m_tileLists[ListAllTiles]->addTiles(allRange);
-    tileBox->addItem(m_tileLists[ListAllTiles], tr("(All Tiles)"));
 
-    m_layer = new LayerWidget(tileWidget);
-    m_foreLabel = new QLabel(tileWidget);
-    m_backLabel = new QLabel(tileWidget);
+    m_layer[0] = new LayerWidget(tileWidget);
+    m_foreLabel[0] = new QLabel(tileWidget);
+    m_backLabel[0] = new QLabel(tileWidget);
 
     QGridLayout* tileLayout = new QGridLayout(tileWidget);
     tileLayout->setContentsMargins(0, 0, 0, 0);
     tileLayout->setVerticalSpacing(4);
     tileLayout->addWidget(tileBox, 0, 0, 1, 2);
-    tileLayout->addWidget(m_foreLabel, 1, 0);
-    tileLayout->addWidget(m_backLabel, 2, 0);
-    tileLayout->addWidget(m_layer, 1, 1, 2, 1);
-    m_toolTabs->addTab(tileWidget, tr("&Tiles"));
+    tileLayout->addWidget(m_foreLabel[0], 1, 0);
+    tileLayout->addWidget(m_backLabel[0], 2, 0);
+    tileLayout->addWidget(m_layer[0], 1, 1, 2, 1);
+    m_toolTabs->addTab(tileWidget, tr("&Tiles - Sorted"));
+
+    QWidget* allTileWidget = new QWidget(toolDock);
+    m_tileLists[ListAllTiles] = new TileListWidget(allTileWidget);
+    QList<tile_t> allRange;
+    for (tile_t i=0; i<ccl::NUM_TILE_TYPES; ++i)
+        allRange << i;
+    m_tileLists[ListAllTiles]->addTiles(allRange);
+
+    m_layer[1] = new LayerWidget(allTileWidget);
+    m_foreLabel[1] = new QLabel(allTileWidget);
+    m_backLabel[1] = new QLabel(allTileWidget);
+
+    QGridLayout* allTileLayout = new QGridLayout(allTileWidget);
+    allTileLayout->setContentsMargins(0, 0, 0, 0);
+    allTileLayout->setVerticalSpacing(4);
+    allTileLayout->addWidget(m_tileLists[ListAllTiles], 0, 0, 1, 2);
+    allTileLayout->addWidget(m_foreLabel[1], 1, 0);
+    allTileLayout->addWidget(m_backLabel[1], 2, 0);
+    allTileLayout->addWidget(m_layer[1], 1, 1, 2, 1);
+    m_toolTabs->addTab(allTileWidget, tr("&All Tiles"));
 
     // Main Editor
     QScrollArea* editorScroll = new QScrollArea(this);
@@ -548,6 +563,7 @@ void CCEditMain::loadLevelset(QString filename)
             }
             doLevelsetLoad();
             setLevelsetFilename(filename);
+            m_useDac = true;
         } else {
             QMessageBox::critical(this, tr("Error opening levelset"),
                                   tr("Error: could not open file %1").arg(filename));
@@ -686,7 +702,8 @@ bool CCEditMain::closeLevelset()
 void CCEditMain::loadTileset(CCETileset* tileset)
 {
     m_editor->setTileset(tileset);
-    m_layer->setTileset(tileset);
+    m_layer[0]->setTileset(tileset);
+    m_layer[1]->setTileset(tileset);
     for (int i=0; i<NUM_TILE_LISTS; ++i)
         tileset->imageTiles(m_tileLists[i]);
 }
@@ -762,7 +779,7 @@ void CCEditMain::onNewAction()
 void CCEditMain::onOpenAction()
 {
     QString filename = QFileDialog::getOpenFileName(this, tr("Open Levelset..."),
-                            QString(), "CC Levelsets (*.dat *.dac *.ccl)");
+                            QString(), "All Levelsets (*.dat *.dac *.ccl)");
     if (!filename.isEmpty())
         loadLevelset(filename);
 }
@@ -1017,15 +1034,19 @@ void CCEditMain::onTimerChanged(int value)
 
 void CCEditMain::setForeground(tile_t tile)
 {
-    m_layer->setUpper(tile);
-    m_foreLabel->setText(tr("Foreground: ") + CCETileset::TileName(tile));
+    m_layer[0]->setUpper(tile);
+    m_layer[1]->setUpper(tile);
+    m_foreLabel[0]->setText(tr("Foreground: ") + CCETileset::TileName(tile));
+    m_foreLabel[1]->setText(m_foreLabel[0]->text());
     m_editor->setLeftTile(tile);
 }
 
 void CCEditMain::setBackground(tile_t tile)
 {
-    m_layer->setLower(tile);
-    m_backLabel->setText(tr("Background: ") + CCETileset::TileName(tile));
+    m_layer[0]->setLower(tile);
+    m_layer[1]->setUpper(tile);
+    m_backLabel[0]->setText(tr("Background: ") + CCETileset::TileName(tile));
+    m_backLabel[1]->setText(m_backLabel[0]->text());
     m_editor->setRightTile(tile);
 }
 
