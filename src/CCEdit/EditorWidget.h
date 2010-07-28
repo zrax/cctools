@@ -39,6 +39,7 @@ public:
         PaintLeftTemp = (1<<4),
         PaintRightTemp = (1<<5),
         PaintTempBury = (1<<6),
+        PaintOverlayMask = PaintLeftTemp | PaintRightTemp,
     };
 
     EditorWidget(QWidget* parent = 0);
@@ -78,6 +79,10 @@ public:
         update();
     }
 
+public slots:
+    void viewTile(QPainter& painter, int x, int y);
+    void putTile(tile_t tile, int x, int y, bool bury);
+
 private:
     CCETileset* m_tileset;
     ccl::LevelData* m_levelData;
@@ -86,8 +91,6 @@ private:
     DrawMode m_drawMode;
     int m_paintFlags;
     QPoint m_origin, m_current;
-
-    void putTile(tile_t tile, int x, int y, bool bury);
 
 signals:
     void mouseInfo(QString text);

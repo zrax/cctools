@@ -20,6 +20,63 @@
 #include <QPaintEvent>
 #include <QMouseEvent>
 
+enum PlotMethod { PlotPreview, PlotDraw };
+
+static void plot_box(EditorWidget* self, QPoint from, QPoint to, PlotMethod method,
+                     QPainter* previewPainter, tile_t drawTile = 0, bool drawBury = false)
+{
+    int lowY = std::min(from.y(), to.y());
+    int lowX = std::min(from.x(), to.x());
+    int highY = std::max(from.y(), to.y());
+    int highX = std::max(from.x(), to.x());
+
+    if (method == PlotPreview) {
+        for (int y = lowY; y <= highY; ++y)
+            for (int x = lowX; x <= highX; ++x)
+                self->viewTile(*previewPainter, x, y);
+    } else if (method == PlotDraw) {
+        for (int y = lowY; y <= highY; ++y)
+            for (int x = lowX; x <= highX; ++x)
+                self->putTile(drawTile, x, y, drawBury);
+    }
+}
+
+static void plot_line(EditorWidget* self, QPoint from, QPoint to, PlotMethod method,
+                      QPainter* previewPainter, tile_t drawTile = 0, bool drawBury = false)
+{
+    int lowY = from.y();
+    int lowX = from.x();
+    int highY = to.y();
+    int highX = to.x();
+    bool steep = abs(highY - lowY) > abs(highX - lowX);
+    if (steep) {
+        std::swap(lowX, lowY);
+        std::swap(highX, highY);
+    }
+    if (lowX > highX) {
+        std::swap(lowX, highX);
+        std::swap(lowY, highY);
+    }
+
+    int dX = highX - lowX;
+    int dY = abs(highY - lowY);
+    int err = dX / 2;
+    int ystep = (lowY < highY) ? 1 : -1;
+    int y = lowY;
+    for (int x = lowX; x <= highX; ++x) {
+        if (method == PlotPreview)
+            self->viewTile(*previewPainter, steep ? y : x, steep ? x : y);
+        else if (method == PlotDraw)
+            self->putTile(drawTile, steep ? y : x, steep ? x : y, drawBury);
+        err -= dY;
+        if (err < 0) {
+            y += ystep;
+            err += dX;
+        }
+    }
+}
+
+
 EditorWidget::EditorWidget(QWidget* parent)
             : QWidget(parent), m_tileset(0), m_levelData(0), m_leftTile(0),
               m_rightTile(0), m_drawMode(DrawPencil), m_paintFlags(0)
@@ -53,38 +110,10 @@ void EditorWidget::paintEvent(QPaintEvent* event)
                                 m_levelData->map().getBG(x, y));
 
         // Draw current buffer
-        if (m_drawMode == DrawLine) {
-            // TODO
-        } else if (m_drawMode == DrawFill) {
-            int lowY = std::min(m_origin.y(), m_current.y());
-            int lowX = std::min(m_origin.x(), m_current.x());
-            int highY = std::max(m_origin.y(), m_current.y());
-            int highX = std::max(m_origin.x(), m_current.x());
-
-            if ((m_paintFlags & PaintLeftTemp) != 0) {
-                for (int y = lowY; y <= highY; ++y) {
-                    for (int x = lowX; x <= highX; ++x) {
-                        if ((m_paintFlags & PaintTempBury) != 0)
-                            m_tileset->draw(painter, x, y, m_levelData->map().getFG(x, y),
-                                            m_leftTile);
-                        else
-                            m_tileset->draw(painter, x, y, m_leftTile,
-                                            m_levelData->map().getBG(x, y));
-                    }
-                }
-            } else if ((m_paintFlags & PaintRightTemp) != 0) {
-                for (int y = lowY; y <= highY; ++y) {
-                    for (int x = lowX; x <= highX; ++x) {
-                        if ((m_paintFlags & PaintTempBury) != 0)
-                            m_tileset->draw(painter, x, y, m_levelData->map().getFG(x, y),
-                                            m_rightTile);
-                        else
-                            m_tileset->draw(painter, x, y, m_rightTile,
-                                            m_levelData->map().getBG(x, y));
-                    }
-                }
-            }
-        }
+        if (m_drawMode == DrawLine && (m_paintFlags & PaintOverlayMask) != 0)
+            plot_line(this, m_origin, m_current, PlotPreview, &painter);
+        else if (m_drawMode == DrawFill && (m_paintFlags & PaintOverlayMask) != 0)
+            plot_box(this, m_origin, m_current, PlotPreview, &painter);
 
         if ((m_paintFlags & ShowMovement) != 0) {
             painter.setPen(QColor(0, 0, 255));
@@ -206,26 +235,42 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
         return;
 
     if (m_drawMode == DrawLine) {
-        // TODO: Finish line
+        if (event->button() == Qt::LeftButton)
+            plot_line(this, m_origin, m_current, PlotDraw, 0, m_leftTile,
+                      (event->modifiers() & Qt::ShiftModifier) != 0);
+        else if (event->button() == Qt::RightButton)
+            plot_line(this, m_origin, m_current, PlotDraw, 0, m_rightTile,
+                      (event->modifiers() & Qt::ShiftModifier) != 0);
     } else if (m_drawMode == DrawFill) {
-        int lowY = std::min(m_origin.y(), m_current.y());
-        int lowX = std::min(m_origin.x(), m_current.x());
-        int highY = std::max(m_origin.y(), m_current.y());
-        int highX = std::max(m_origin.x(), m_current.x());
-
-        if (event->button() == Qt::LeftButton) {
-            for (int y = lowY; y <= highY; ++y)
-                for (int x = lowX; x <= highX; ++x)
-                    putTile(m_leftTile, x, y, (event->modifiers() & Qt::ShiftModifier) != 0);
-        } else if (event->button() == Qt::RightButton) {
-            for (int y = lowY; y <= highY; ++y)
-                for (int x = lowX; x <= highX; ++x)
-                    putTile(m_rightTile, x, y, (event->modifiers() & Qt::ShiftModifier) != 0);
-        }
-        update();
+        if (event->button() == Qt::LeftButton)
+            plot_box(this, m_origin, m_current, PlotDraw, 0, m_leftTile,
+                     (event->modifiers() & Qt::ShiftModifier) != 0);
+        else if (event->button() == Qt::RightButton)
+            plot_box(this, m_origin, m_current, PlotDraw, 0, m_rightTile,
+                     (event->modifiers() & Qt::ShiftModifier) != 0);
     }
+    update();
 
     //TODO: Emit save point
+}
+
+void EditorWidget::viewTile(QPainter& painter, int x, int y)
+{
+    if ((m_paintFlags & PaintLeftTemp) != 0) {
+        if ((m_paintFlags & PaintTempBury) != 0)
+            m_tileset->draw(painter, x, y, m_levelData->map().getFG(x, y),
+                            m_leftTile);
+        else
+            m_tileset->draw(painter, x, y, m_leftTile,
+                            m_levelData->map().getBG(x, y));
+    } else if ((m_paintFlags & PaintRightTemp) != 0) {
+        if ((m_paintFlags & PaintTempBury) != 0)
+            m_tileset->draw(painter, x, y, m_levelData->map().getFG(x, y),
+                            m_rightTile);
+        else
+            m_tileset->draw(painter, x, y, m_rightTile,
+                            m_levelData->map().getBG(x, y));
+    }
 }
 
 void EditorWidget::putTile(tile_t tile, int x, int y, bool bury)
