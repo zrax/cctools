@@ -23,14 +23,16 @@
 #include "Errors.h"
 
 ccl::DacFile::DacFile()
-   : m_ruleset(ccl::Levelset::TypeLynx), m_lastLevel(144),
-     m_usePasswords(true), m_fixLynx(false)
+   : m_ruleset(0), m_lastLevel(0), m_usePasswords(true), m_fixLynx(false)
 { }
 
-ccl::DacFile::DacFile(const ccl::Levelset& levelset)
-   : m_ruleset(levelset.type()), m_lastLevel(levelset.levelCount()),
-     m_usePasswords(true), m_fixLynx(false)
-{ }
+void ccl::DacFile::setFromLevelset(const ccl::Levelset& levelset)
+{
+    m_ruleset = levelset.type();
+    m_lastLevel = (levelset.levelCount() == 149) ? 144 : 0;
+    m_usePasswords = true;
+    m_fixLynx = false;
+}
 
 void ccl::DacFile::read(FILE* stream)
 {

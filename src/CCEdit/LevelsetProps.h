@@ -15,32 +15,44 @@
  * along with CCTools.  If not, see <http://www.gnu.org/licenses/>.           *
  ******************************************************************************/
 
-#ifndef _DACFILE_H
-#define _DACFILE_H
+#ifndef _LEVELSETPROPS_H
+#define _LEVELSETPROPS_H
 
-#include <string>
-#include "Levelset.h"
+#include <QDialog>
+#include <QComboBox>
+#include <QGroupBox>
+#include <QLineEdit>
+#include <QSpinBox>
+#include <QCheckBox>
+#include "../Levelset.h"
+#include "../DacFile.h"
 
-#ifdef WIN32
-    #define strcasecmp  _stricmp
-#endif
+class LevelsetProps : public QDialog {
+    Q_OBJECT
 
-namespace ccl {
+public:
+    LevelsetProps(QWidget* parent = 0);
 
-struct DacFile {
-    DacFile();
-    void setFromLevelset(const Levelset& levelset);
+    void setLevelset(ccl::Levelset* levelset);
+    void setDacFile(ccl::DacFile* dac);
 
-    void read(FILE* stream);
-    void write(FILE* stream);
+    int levelsetType() const;
+    bool useDac() const { return m_dacGroup->isChecked(); }
+    QString dacFilename() const { return m_dacFilename->text(); }
+    int dacRuleset() const;
+    int lastLevel() const { return m_lastLevel->value(); }
+    bool usePasswords() const { return m_usePasswords->isChecked(); }
 
-    std::string m_filename;
-    unsigned int m_ruleset;
-    int m_lastLevel;        // use 0 to indicate default value
-    bool m_usePasswords;    // default = y
-    bool m_fixLynx;         // default = n
+private:
+    ccl::Levelset* m_levelset;
+    ccl::DacFile* m_dacFile;
+
+    QComboBox* m_levelsetType;
+    QGroupBox* m_dacGroup;
+    QLineEdit* m_dacFilename;
+    QComboBox* m_dacRuleset;
+    QSpinBox* m_lastLevel;
+    QCheckBox* m_usePasswords;
 };
-
-} /* {ccl} */
 
 #endif

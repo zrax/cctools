@@ -10,6 +10,7 @@ set(CCEdit_SOURCES
     CCEdit.cpp
     EditorWidget.cpp
     LayerWidget.cpp
+    LevelsetProps.cpp
 )
 
 set(CCEdit_MOCS
@@ -17,6 +18,7 @@ set(CCEdit_MOCS
     CCEdit.h
     EditorWidget.h
     LayerWidget.h
+    LevelsetProps.h
 )
 
 set(CCEdit_RCCS

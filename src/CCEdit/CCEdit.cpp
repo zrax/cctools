@@ -31,6 +31,8 @@
 #include <QCloseEvent>
 #include <QActionGroup>
 #include <cstdio>
+#include <cstdlib>
+#include "LevelsetProps.h"
 
 #define CCEDIT_TITLE "CCEdit 2.0 ALPHA"
 
@@ -463,6 +465,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionDelLevel], SIGNAL(triggered()), SLOT(onDelLevelAction()));
     connect(m_actions[ActionMoveUp], SIGNAL(triggered()), SLOT(onMoveUpAction()));
     connect(m_actions[ActionMoveDown], SIGNAL(triggered()), SLOT(onMoveDownAction()));
+    connect(m_actions[ActionProperties], SIGNAL(triggered()), SLOT(onPropertiesAction()));
 
     connect(m_levelList, SIGNAL(currentRowChanged(int)), SLOT(onSelectLevel(int)));
     connect(m_nameEdit, SIGNAL(textChanged(QString)), SLOT(onNameChanged(QString)));
@@ -604,8 +607,9 @@ void CCEditMain::doLevelsetLoad()
 void CCEditMain::setLevelsetFilename(QString filename)
 {
     m_levelsetFilename = filename;
-    setWindowTitle(CCEDIT_TITLE " - "
-                   + QDir(filename).absolutePath().section(QChar('/'), -1));
+    QString displayName = filename.isEmpty() ? "Untitled"
+                        : QDir(filename).absolutePath().section(QChar('/'), -1);
+    setWindowTitle(CCEDIT_TITLE " - " + displayName);
 }
 
 void CCEditMain::saveLevelset(QString filename)
@@ -765,6 +769,14 @@ void CCEditMain::findTilesets()
     }
 }
 
+void CCEditMain::selectLevel(int level)
+{
+    if (level < m_levelList->count())
+        m_levelList->setCurrentRow(level - 1);
+    else
+        m_levelList->setCurrentRow(m_levelList->count() - 1);
+}
+
 void CCEditMain::onNewAction()
 {
     if (!closeLevelset())
@@ -772,7 +784,7 @@ void CCEditMain::onNewAction()
 
     m_levelset = new ccl::Levelset();
     doLevelsetLoad();
-    setLevelsetFilename("Untitled");
+    setLevelsetFilename(QString());
     m_useDac = false;
 }
 
@@ -786,7 +798,10 @@ void CCEditMain::onOpenAction()
 
 void CCEditMain::onSaveAction()
 {
-    saveLevelset(m_levelsetFilename);
+    if (m_levelsetFilename.isEmpty())
+        onSaveAsAction();
+    else
+        saveLevelset(m_levelsetFilename);
 }
 
 void CCEditMain::onSaveAsAction()
@@ -954,6 +969,32 @@ void CCEditMain::onMoveDownAction()
     }
 }
 
+void CCEditMain::onPropertiesAction()
+{
+    if (m_levelset == 0)
+        return;
+
+    LevelsetProps props(this);
+    props.setLevelset(m_levelset);
+    props.setDacFile(m_useDac ? &m_dacInfo : 0);
+    if (props.exec() == QDialog::Accepted) {
+        m_levelset->setType(props.levelsetType());
+        if (props.useDac()) {
+            m_dacInfo.m_filename = props.dacFilename().toUtf8().data();
+            m_dacInfo.m_ruleset = props.dacRuleset();
+            m_dacInfo.m_lastLevel = props.lastLevel();
+            m_dacInfo.m_usePasswords = props.usePasswords();
+        }
+        if (props.useDac() != m_useDac) {
+            // Fix filename
+            m_levelsetFilename = m_levelsetFilename.left(m_levelsetFilename.lastIndexOf(QChar('.')));
+            m_levelsetFilename += props.useDac() ? ".dac" : ".dat";
+            setLevelsetFilename(m_levelsetFilename);
+        }
+        m_useDac = props.useDac();
+    }
+}
+
 void CCEditMain::onSelectLevel(int idx)
 {
     if (m_levelset == 0 || idx < 0) {
@@ -1059,5 +1100,7 @@ int main(int argc, char* argv[])
     mainWin.show();
     if (argc > 1)
         mainWin.loadLevelset(argv[1]);
+    if (argc > 2)
+        mainWin.selectLevel((int)strtol(argv[2], NULL, 10));
     return app.exec();
 }

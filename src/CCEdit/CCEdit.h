@@ -61,6 +61,7 @@ public:
     bool closeLevelset();
     void loadTileset(CCETileset* tileset);
     void findTilesets();
+    void selectLevel(int level);
 
 private:
     enum ActionType {
@@ -134,6 +135,7 @@ private slots:
     void onDelLevelAction();
     void onMoveUpAction();
     void onMoveDownAction();
+    void onPropertiesAction();
 
     void onSelectLevel(int);
     void onPasswordGenAction();
