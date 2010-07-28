@@ -690,7 +690,7 @@ bool CCEditMain::closeLevelset()
 
     int reply =  QMessageBox::question(this, tr("Close levelset"),
                           tr("Save changes to %1 before closing?")
-                          .arg(m_levelsetFilename),
+                          .arg(m_levelsetFilename.isEmpty() ? "new levelset" : m_levelsetFilename),
                           QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
     if (reply == QMessageBox::Cancel)
         return false;
@@ -987,8 +987,9 @@ void CCEditMain::onPropertiesAction()
         }
         if (props.useDac() != m_useDac) {
             // Fix filename
-            m_levelsetFilename = m_levelsetFilename.left(m_levelsetFilename.lastIndexOf(QChar('.')));
-            m_levelsetFilename += props.useDac() ? ".dac" : ".dat";
+            QString fnameNoSuffix = m_levelsetFilename.left(m_levelsetFilename.lastIndexOf(QChar('.')));
+            if (!fnameNoSuffix.isEmpty())
+                m_levelsetFilename = fnameNoSuffix + (props.useDac() ? ".dac" : ".dat");
             setLevelsetFilename(m_levelsetFilename);
         }
         m_useDac = props.useDac();
