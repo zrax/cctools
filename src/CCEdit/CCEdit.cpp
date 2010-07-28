@@ -255,6 +255,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     editorScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     editorScroll->setWidget(m_editor);
     setCentralWidget(editorScroll);
+    m_editor->setPaintFlag(EditorWidget::ShowButtons | EditorWidget::ShowTeleport
+                           | EditorWidget::ShowMovement | EditorWidget::ShowPlayer);
 
     // Actions
     m_actions[ActionNew] = new QAction(QIcon(":/res/document-new.png"), tr("&New Levelset..."), this);
@@ -336,15 +338,19 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionViewButtons] = new QAction(tr("Show &Button Connections"), this);
     m_actions[ActionViewButtons]->setStatusTip(tr("Highlight connected buttons/traps/cloning machines in editor"));
     m_actions[ActionViewButtons]->setCheckable(true);
+    m_actions[ActionViewButtons]->setChecked(true);
     m_actions[ActionViewTeleports] = new QAction(tr("Show Destination &Teleport"), this);
     m_actions[ActionViewTeleports]->setStatusTip(tr("Highlight teleporter destination in level"));
     m_actions[ActionViewTeleports]->setCheckable(true);
-    m_actions[ActionViewActivePlayer] = new QAction(tr("Highlight &Active Player"), this);
-    m_actions[ActionViewActivePlayer]->setStatusTip(tr("Highlight Active Player in level"));
+    m_actions[ActionViewTeleports]->setChecked(true);
+    m_actions[ActionViewActivePlayer] = new QAction(tr("Highlight &Player Start"), this);
+    m_actions[ActionViewActivePlayer]->setStatusTip(tr("Highlight Player start position"));
     m_actions[ActionViewActivePlayer]->setCheckable(true);
-    m_actions[ActionViewMovers] = new QAction(tr("Show Monster Order"), this);
+    m_actions[ActionViewActivePlayer]->setChecked(true);
+    m_actions[ActionViewMovers] = new QAction(tr("Show &Monster Order"), this);
     m_actions[ActionViewMovers]->setStatusTip(tr("Display Monster Order in editor"));
     m_actions[ActionViewMovers]->setCheckable(true);
+    m_actions[ActionViewMovers]->setChecked(true);
 
     QActionGroup* drawModeGroup = new QActionGroup(this);
     drawModeGroup->addAction(m_actions[ActionDrawPencil]);
@@ -404,7 +410,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     viewMenu->addAction(m_actions[ActionViewActivePlayer]);
     viewMenu->addAction(m_actions[ActionViewMovers]);
     viewMenu->addSeparator();
-    m_tilesetMenu = viewMenu->addMenu(tr("&Tileset"));
+    m_tilesetMenu = viewMenu->addMenu(tr("Tile&set"));
     m_tilesetGroup = new QActionGroup(this);
 
     // Tool bars

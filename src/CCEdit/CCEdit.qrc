@@ -27,5 +27,7 @@
     <file>res/draw-path.png</file>
     <file>res/cctools-clone.png</file>
     <file>res/cctools-trap.png</file>
+
+    <file>res/numbers.png</file>
 </qresource>
 </RCC>

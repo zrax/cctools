@@ -79,7 +79,8 @@ static void plot_line(EditorWidget* self, QPoint from, QPoint to, PlotMethod met
 
 EditorWidget::EditorWidget(QWidget* parent)
             : QWidget(parent), m_tileset(0), m_levelData(0), m_leftTile(0),
-              m_rightTile(0), m_drawMode(DrawPencil), m_paintFlags(0)
+              m_rightTile(0), m_drawMode(DrawPencil), m_paintFlags(0),
+              m_numbers(":/res/numbers.png")
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     setMouseTracking(true);
@@ -116,11 +117,13 @@ void EditorWidget::paintEvent(QPaintEvent* event)
             plot_box(this, m_origin, m_current, PlotPreview, &painter);
 
         if ((m_paintFlags & ShowMovement) != 0) {
-            painter.setPen(QColor(0, 0, 255));
             std::list<ccl::Point>::const_iterator move_iter;
-            for (move_iter = m_levelData->moveList().begin(); move_iter != m_levelData->moveList().end(); ++move_iter)
-                painter.drawRect(move_iter->X * m_tileset->size(), move_iter->Y * m_tileset->size(),
-                                 m_tileset->size() - 1, m_tileset->size() - 1);
+            int num = 0;
+            for (move_iter = m_levelData->moveList().begin(); move_iter != m_levelData->moveList().end(); ++move_iter) {
+                painter.drawPixmap((move_iter->X + 1) * m_tileset->size() - 16,
+                                   (move_iter->Y + 1) * m_tileset->size() - 10,
+                                   m_numbers, 0, num++ * 10, 16, 10);
+            }
         }
 
         if ((m_paintFlags & ShowPlayer) != 0) {

@@ -91,6 +91,7 @@ private:
     DrawMode m_drawMode;
     int m_paintFlags;
     QPoint m_origin, m_current;
+    QPixmap m_numbers;
 
 signals:
     void mouseInfo(QString text);
