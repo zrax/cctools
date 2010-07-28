@@ -146,6 +146,24 @@ void EditorWidget::paintEvent(QPaintEvent* event)
             }
         }
 
+        if ((m_paintFlags & ShowButtons) != 0) {
+            painter.setPen(QColor(255, 0, 0));
+            std::list<ccl::Trap>::const_iterator trap_iter;
+            for (trap_iter = m_levelData->traps().begin(); trap_iter != m_levelData->traps().end(); ++trap_iter) {
+                painter.drawLine((trap_iter->button.X * m_tileset->size()) + (m_tileset->size() / 2),
+                                 (trap_iter->button.Y * m_tileset->size()) + (m_tileset->size() / 2),
+                                 (trap_iter->trap.X * m_tileset->size()) + (m_tileset->size() / 2),
+                                 (trap_iter->trap.Y * m_tileset->size()) + (m_tileset->size() / 2));
+            }
+            std::list<ccl::Clone>::const_iterator clone_iter;
+            for (clone_iter = m_levelData->clones().begin(); clone_iter != m_levelData->clones().end(); ++clone_iter) {
+                painter.drawLine((clone_iter->button.X * m_tileset->size()) + (m_tileset->size() / 2),
+                                 (clone_iter->button.Y * m_tileset->size()) + (m_tileset->size() / 2),
+                                 (clone_iter->clone.X * m_tileset->size()) + (m_tileset->size() / 2),
+                                 (clone_iter->clone.Y * m_tileset->size()) + (m_tileset->size() / 2));
+            }
+        }
+
         // Hilight context-sensitive objects
         painter.setPen(QColor(255, 0, 0));
         foreach (QPoint hi, m_hilights)
@@ -188,26 +206,23 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
     }
 
     m_hilights.clear();
-
-    if ((m_paintFlags & ShowButtons) != 0) {
-        std::list<ccl::Trap>::const_iterator trap_iter;
-        for (trap_iter = m_levelData->traps().begin(); trap_iter != m_levelData->traps().end(); ++trap_iter) {
-            if (trap_iter->button.X == posX && trap_iter->button.Y == posY)
-                m_hilights << QPoint(trap_iter->trap.X, trap_iter->trap.Y);
-            if (trap_iter->trap.X == posX && trap_iter->trap.Y == posY)
-                m_hilights << QPoint(trap_iter->button.X, trap_iter->button.Y);
-        }
-        std::list<ccl::Clone>::const_iterator clone_iter;
-        for (clone_iter = m_levelData->clones().begin(); clone_iter != m_levelData->clones().end(); ++clone_iter) {
-            if (clone_iter->button.X == posX && clone_iter->button.Y == posY)
-                m_hilights << QPoint(clone_iter->clone.X, clone_iter->clone.Y);
-            if (clone_iter->clone.X == posX && clone_iter->clone.Y == posY)
-                m_hilights << QPoint(clone_iter->button.X, clone_iter->button.Y);
-        }
+    std::list<ccl::Trap>::const_iterator trap_iter;
+    for (trap_iter = m_levelData->traps().begin(); trap_iter != m_levelData->traps().end(); ++trap_iter) {
+        if (trap_iter->button.X == posX && trap_iter->button.Y == posY)
+            m_hilights << QPoint(trap_iter->trap.X, trap_iter->trap.Y);
+        if (trap_iter->trap.X == posX && trap_iter->trap.Y == posY)
+            m_hilights << QPoint(trap_iter->button.X, trap_iter->button.Y);
     }
-    if (((m_paintFlags & ShowTeleport) != 0)
-        && (m_levelData->map().getFG(posX, posY) == ccl::TileTeleport
-            || m_levelData->map().getBG(posX, posY) == ccl::TileTeleport)) {
+    std::list<ccl::Clone>::const_iterator clone_iter;
+    for (clone_iter = m_levelData->clones().begin(); clone_iter != m_levelData->clones().end(); ++clone_iter) {
+        if (clone_iter->button.X == posX && clone_iter->button.Y == posY)
+            m_hilights << QPoint(clone_iter->clone.X, clone_iter->clone.Y);
+        if (clone_iter->clone.X == posX && clone_iter->clone.Y == posY)
+            m_hilights << QPoint(clone_iter->button.X, clone_iter->button.Y);
+    }
+
+    if (m_levelData->map().getFG(posX, posY) == ccl::TileTeleport
+        || m_levelData->map().getBG(posX, posY) == ccl::TileTeleport) {
         // Scan for next teleport
         do {
             if (--posX < 0) {

@@ -34,11 +34,10 @@ public:
     enum PaintFlags {
         ShowPlayer = (1<<0),
         ShowMovement = (1<<1),
-        ShowTeleport = (1<<2),
-        ShowButtons = (1<<3),
-        PaintLeftTemp = (1<<4),
-        PaintRightTemp = (1<<5),
-        PaintTempBury = (1<<6),
+        ShowButtons = (1<<2),
+        PaintLeftTemp = (1<<3),
+        PaintRightTemp = (1<<4),
+        PaintTempBury = (1<<5),
         PaintOverlayMask = PaintLeftTemp | PaintRightTemp,
     };
 

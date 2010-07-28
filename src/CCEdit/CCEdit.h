@@ -69,8 +69,7 @@ private:
         ActionSelect, ActionCut, ActionCopy, ActionPaste, ActionClear,
         ActionFill, ActionUndo, ActionRedo, ActionDrawPencil, ActionDrawLine,
         ActionDrawFill, ActionPathMaker, ActionTrapConnect, ActionCloneConnect,
-        ActionViewButtons, ActionViewTeleports, ActionViewActivePlayer,
-        ActionViewMovers,
+        ActionViewButtons, ActionViewMovers, ActionViewActivePlayer,
         ActionAddLevel, ActionDelLevel, ActionMoveUp, ActionMoveDown,
         ActionProperties,
         NUM_ACTIONS
@@ -126,9 +125,8 @@ private slots:
     void onTrapConnectAction();
     void onCloneConnectAction();
     void onViewButtonsToggled(bool);
-    void onViewTeleportsToggled(bool);
-    void onViewActivePlayerToggled(bool);
     void onViewMoversToggled(bool);
+    void onViewActivePlayerToggled(bool);
     void onTilesetMenu(QAction*);
 
     void onAddLevelAction();

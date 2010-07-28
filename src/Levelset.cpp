@@ -463,6 +463,7 @@ long ccl::LevelData::write(FILE* stream)
 
 
 ccl::Levelset::Levelset(int levelCount)
+   : m_magic(TypeMS)
 {
     m_levels.resize(levelCount);
     char nameBuf[32];

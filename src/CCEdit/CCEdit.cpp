@@ -255,8 +255,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     editorScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     editorScroll->setWidget(m_editor);
     setCentralWidget(editorScroll);
-    m_editor->setPaintFlag(EditorWidget::ShowButtons | EditorWidget::ShowTeleport
-                           | EditorWidget::ShowMovement | EditorWidget::ShowPlayer);
+    m_editor->setPaintFlag(EditorWidget::ShowButtons | EditorWidget::ShowMovement
+                           | EditorWidget::ShowPlayer);
 
     // Actions
     m_actions[ActionNew] = new QAction(QIcon(":/res/document-new.png"), tr("&New Levelset..."), this);
@@ -336,21 +336,17 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionCloneConnect]->setCheckable(true);
 
     m_actions[ActionViewButtons] = new QAction(tr("Show &Button Connections"), this);
-    m_actions[ActionViewButtons]->setStatusTip(tr("Highlight connected buttons/traps/cloning machines in editor"));
+    m_actions[ActionViewButtons]->setStatusTip(tr("Draw lines between connected buttons/traps/cloning machines in editor"));
     m_actions[ActionViewButtons]->setCheckable(true);
     m_actions[ActionViewButtons]->setChecked(true);
-    m_actions[ActionViewTeleports] = new QAction(tr("Show Destination &Teleport"), this);
-    m_actions[ActionViewTeleports]->setStatusTip(tr("Highlight teleporter destination in level"));
-    m_actions[ActionViewTeleports]->setCheckable(true);
-    m_actions[ActionViewTeleports]->setChecked(true);
-    m_actions[ActionViewActivePlayer] = new QAction(tr("Highlight &Player Start"), this);
-    m_actions[ActionViewActivePlayer]->setStatusTip(tr("Highlight Player start position"));
-    m_actions[ActionViewActivePlayer]->setCheckable(true);
-    m_actions[ActionViewActivePlayer]->setChecked(true);
     m_actions[ActionViewMovers] = new QAction(tr("Show &Monster Order"), this);
     m_actions[ActionViewMovers]->setStatusTip(tr("Display Monster Order in editor"));
     m_actions[ActionViewMovers]->setCheckable(true);
     m_actions[ActionViewMovers]->setChecked(true);
+    m_actions[ActionViewActivePlayer] = new QAction(tr("Highlight &Player Start"), this);
+    m_actions[ActionViewActivePlayer]->setStatusTip(tr("Highlight Player start position"));
+    m_actions[ActionViewActivePlayer]->setCheckable(true);
+    m_actions[ActionViewActivePlayer]->setChecked(true);
 
     QActionGroup* drawModeGroup = new QActionGroup(this);
     drawModeGroup->addAction(m_actions[ActionDrawPencil]);
@@ -406,9 +402,8 @@ CCEditMain::CCEditMain(QWidget* parent)
 
     QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(m_actions[ActionViewButtons]);
-    viewMenu->addAction(m_actions[ActionViewTeleports]);
-    viewMenu->addAction(m_actions[ActionViewActivePlayer]);
     viewMenu->addAction(m_actions[ActionViewMovers]);
+    viewMenu->addAction(m_actions[ActionViewActivePlayer]);
     viewMenu->addSeparator();
     m_tilesetMenu = viewMenu->addMenu(tr("Tile&set"));
     m_tilesetGroup = new QActionGroup(this);
@@ -462,9 +457,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionTrapConnect], SIGNAL(triggered()), SLOT(onTrapConnectAction()));
     connect(m_actions[ActionCloneConnect], SIGNAL(triggered()), SLOT(onCloneConnectAction()));
     connect(m_actions[ActionViewButtons], SIGNAL(toggled(bool)), SLOT(onViewButtonsToggled(bool)));
-    connect(m_actions[ActionViewTeleports], SIGNAL(toggled(bool)), SLOT(onViewTeleportsToggled(bool)));
-    connect(m_actions[ActionViewActivePlayer], SIGNAL(toggled(bool)), SLOT(onViewActivePlayerToggled(bool)));
     connect(m_actions[ActionViewMovers], SIGNAL(toggled(bool)), SLOT(onViewMoversToggled(bool)));
+    connect(m_actions[ActionViewActivePlayer], SIGNAL(toggled(bool)), SLOT(onViewActivePlayerToggled(bool)));
     connect(m_tilesetGroup, SIGNAL(triggered(QAction*)), SLOT(onTilesetMenu(QAction*)));
 
     connect(m_actions[ActionAddLevel], SIGNAL(triggered()), SLOT(onAddLevelAction()));
@@ -889,12 +883,12 @@ void CCEditMain::onViewButtonsToggled(bool view)
         m_editor->clearPaintFlag(EditorWidget::ShowButtons);
 }
 
-void CCEditMain::onViewTeleportsToggled(bool view)
+void CCEditMain::onViewMoversToggled(bool view)
 {
     if (view)
-        m_editor->setPaintFlag(EditorWidget::ShowTeleport);
+        m_editor->setPaintFlag(EditorWidget::ShowMovement);
     else
-        m_editor->clearPaintFlag(EditorWidget::ShowTeleport);
+        m_editor->clearPaintFlag(EditorWidget::ShowMovement);
 }
 
 void CCEditMain::onViewActivePlayerToggled(bool view)
@@ -903,14 +897,6 @@ void CCEditMain::onViewActivePlayerToggled(bool view)
         m_editor->setPaintFlag(EditorWidget::ShowPlayer);
     else
         m_editor->clearPaintFlag(EditorWidget::ShowPlayer);
-}
-
-void CCEditMain::onViewMoversToggled(bool view)
-{
-    if (view)
-        m_editor->setPaintFlag(EditorWidget::ShowMovement);
-    else
-        m_editor->clearPaintFlag(EditorWidget::ShowMovement);
 }
 
 void CCEditMain::onTilesetMenu(QAction* which)
@@ -1092,7 +1078,7 @@ void CCEditMain::setForeground(tile_t tile)
 void CCEditMain::setBackground(tile_t tile)
 {
     m_layer[0]->setLower(tile);
-    m_layer[1]->setUpper(tile);
+    m_layer[1]->setLower(tile);
     m_backLabel[0]->setText(tr("Background: ") + CCETileset::TileName(tile));
     m_backLabel[1]->setText(m_backLabel[0]->text());
     m_editor->setRightTile(tile);
