@@ -27,8 +27,8 @@ class EditorWidget : public QWidget {
 
 public:
     enum DrawMode {
-        DrawPencil, DrawLine, DrawFill, DrawSelect, DrawTrapConnect,
-        DrawCloneConnect, DrawPathMaker,
+        DrawPencil, DrawLine, DrawFill, DrawSelect, DrawButtonConnect,
+        DrawPathMaker,
     };
 
     enum PaintFlags {

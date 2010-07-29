@@ -112,7 +112,6 @@ public:
     void trapConnect(int buttonX, int buttonY, int trapX, int trapY);
     void cloneConnect(int buttonX, int buttonY, int cloneX, int cloneY);
     void addMover(int moverX, int moverY);
-    void clearLogic(int x, int y);
 
     long read(FILE* stream);
     long write(FILE* stream);
@@ -186,6 +185,10 @@ enum TileType {
     MONSTER_FIRST = TileBug_N,
     MONSTER_LAST = TileCrawler_E,
 };
+
+#define MOVING_TILE(tile) (((tile) >= ccl::TileBlock_N && (tile) <= ccl::TileBlock_E) \
+                           || ((tile) >= ccl::MONSTER_FIRST && (tile) <= ccl::MONSTER_LAST))
+#define MONSTER_TILE(tile) (((tile) >= ccl::MONSTER_FIRST && (tile) <= ccl::MONSTER_LAST))
 
 } /* {ccl} */
 

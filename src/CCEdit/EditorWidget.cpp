@@ -76,6 +76,56 @@ static void plot_line(EditorWidget* self, QPoint from, QPoint to, PlotMethod met
     }
 }
 
+enum ConnType { ConnNone, ConnTrap, ConnTrapRev, ConnClone, ConnCloneRev };
+
+static bool test_start_connect(ccl::LevelData* level, QPoint from)
+{
+    if (level->traps().size() < 25) {
+        if ((level->map().getFG(from.x(), from.y()) == ccl::TileTrapButton)
+            || (level->map().getBG(from.x(), from.y()) == ccl::TileTrapButton)
+            || (level->map().getFG(from.x(), from.y()) == ccl::TileTrap)
+            || (level->map().getBG(from.x(), from.y()) == ccl::TileTrap))
+            return true;
+    }
+    if (level->clones().size() < 31) {
+        if ((level->map().getFG(from.x(), from.y()) == ccl::TileCloneButton)
+            || (level->map().getBG(from.x(), from.y()) == ccl::TileCloneButton)
+            || (level->map().getFG(from.x(), from.y()) == ccl::TileCloner)
+            || (level->map().getBG(from.x(), from.y()) == ccl::TileCloner))
+            return true;
+    }
+    return false;
+}
+
+static ConnType test_connect(ccl::LevelData* level, QPoint from, QPoint to)
+{
+    if (level->traps().size() < 25) {
+        if (((level->map().getFG(from.x(), from.y()) == ccl::TileTrapButton)
+                || (level->map().getBG(from.x(), from.y()) == ccl::TileTrapButton))
+            && ((level->map().getFG(to.x(), to.y()) == ccl::TileTrap)
+                || (level->map().getBG(to.x(), to.y()) == ccl::TileTrap)))
+            return ConnTrap;
+        else if (((level->map().getFG(to.x(), to.y()) == ccl::TileTrapButton)
+                || (level->map().getBG(to.x(), to.y()) == ccl::TileTrapButton))
+            && ((level->map().getFG(from.x(), from.y()) == ccl::TileTrap)
+                || (level->map().getBG(from.x(), from.y()) == ccl::TileTrap)))
+            return ConnTrapRev;
+    }
+    if (level->clones().size() < 31) {
+        if (((level->map().getFG(from.x(), from.y()) == ccl::TileCloneButton)
+                || (level->map().getBG(from.x(), from.y()) == ccl::TileCloneButton))
+            && ((level->map().getFG(to.x(), to.y()) == ccl::TileCloner)
+                || (level->map().getBG(to.x(), to.y()) == ccl::TileCloner)))
+            return ConnClone;
+        else if (((level->map().getFG(to.x(), to.y()) == ccl::TileCloneButton)
+                || (level->map().getBG(to.x(), to.y()) == ccl::TileCloneButton))
+            && ((level->map().getFG(from.x(), from.y()) == ccl::TileCloner)
+                || (level->map().getBG(from.x(), from.y()) == ccl::TileCloner)))
+            return ConnCloneRev;
+    }
+    return ConnNone;
+}
+
 
 EditorWidget::EditorWidget(QWidget* parent)
             : QWidget(parent), m_tileset(0), m_levelData(0), m_leftTile(0),
@@ -84,6 +134,8 @@ EditorWidget::EditorWidget(QWidget* parent)
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     setMouseTracking(true);
+    m_origin = QPoint(-1, -1);
+    m_current = QPoint(-1, -1);
 }
 
 void EditorWidget::setTileset(CCETileset* tileset)
@@ -164,6 +216,17 @@ void EditorWidget::paintEvent(QPaintEvent* event)
             }
         }
 
+        if (m_drawMode == DrawButtonConnect && m_origin != QPoint(-1, -1)) {
+            if (test_connect(m_levelData, m_origin, m_current) != ConnNone)
+                painter.setPen(QColor(255, 0, 0));
+            else
+                painter.setPen(QColor(127, 127, 127));
+            painter.drawLine((m_origin.x() * m_tileset->size()) + (m_tileset->size() / 2),
+                             (m_origin.y() * m_tileset->size()) + (m_tileset->size() / 2),
+                             (m_current.x() * m_tileset->size()) + (m_tileset->size() / 2),
+                             (m_current.y() * m_tileset->size()) + (m_tileset->size() / 2));
+        }
+
         // Hilight context-sensitive objects
         painter.setPen(QColor(255, 0, 0));
         foreach (QPoint hi, m_hilights)
@@ -179,6 +242,7 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
 
     int posX = event->x() / m_tileset->size();
     int posY = event->y() / m_tileset->size();
+    m_current = QPoint(posX, posY);
 
     m_paintFlags &= ~(PaintLeftTemp | PaintRightTemp | PaintTempBury);
     if (m_drawMode == DrawPencil) {
@@ -187,7 +251,6 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
         else if ((event->buttons() & Qt::RightButton) != 0)
             putTile(m_rightTile, posX, posY, (event->modifiers() & Qt::ShiftModifier) != 0);
     } else if (m_drawMode == DrawLine || m_drawMode == DrawFill) {
-        m_current = QPoint(posX, posY);
         if ((event->buttons() & Qt::LeftButton) != 0)
             m_paintFlags |= PaintLeftTemp;
         else if ((event->buttons() & Qt::RightButton) != 0)
@@ -242,7 +305,15 @@ void EditorWidget::mousePressEvent(QMouseEvent* event)
 {
     int posX = event->x() / m_tileset->size();
     int posY = event->y() / m_tileset->size();
-    m_origin = QPoint(posX, posY);
+
+    if (m_drawMode == DrawButtonConnect) {
+        if (m_origin == QPoint(-1, -1) && test_start_connect(m_levelData, QPoint(posX, posY)))
+            m_origin = QPoint(posX, posY);
+        else if (m_origin == m_current)
+            m_origin = QPoint(-1, -1);
+    } else {
+        m_origin = QPoint(posX, posY);
+    }
 
     mouseMoveEvent(event);
 }
@@ -252,6 +323,7 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
     if (m_tileset == 0 || m_levelData == 0)
         return;
 
+    bool resetOrigin = true;
     if (m_drawMode == DrawLine) {
         if (event->button() == Qt::LeftButton)
             plot_line(this, m_origin, m_current, PlotDraw, 0, m_leftTile,
@@ -266,8 +338,33 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
         else if (event->button() == Qt::RightButton)
             plot_box(this, m_origin, m_current, PlotDraw, 0, m_rightTile,
                      (event->modifiers() & Qt::ShiftModifier) != 0);
+    } else if (m_drawMode == DrawButtonConnect) {
+        if (m_origin != m_current) {
+            switch (test_connect(m_levelData, m_origin, m_current)) {
+            case ConnTrap:
+                m_levelData->trapConnect(m_origin.x(), m_origin.y(), m_current.x(), m_current.y());
+                break;
+            case ConnTrapRev:
+                m_levelData->trapConnect(m_current.x(), m_current.y(), m_origin.x(), m_origin.y());
+                break;
+            case ConnClone:
+                m_levelData->cloneConnect(m_origin.x(), m_origin.y(), m_current.x(), m_current.y());
+                break;
+            case ConnCloneRev:
+                m_levelData->cloneConnect(m_current.x(), m_current.y(), m_origin.x(), m_origin.y());
+                break;
+            default:
+                // Do nothing
+                break;
+            }
+        } else {
+            resetOrigin = false;
+        }
     }
     update();
+
+    if (resetOrigin)
+        m_origin = QPoint(-1, -1);
 
     //TODO: Emit save point
 }
@@ -293,25 +390,19 @@ void EditorWidget::viewTile(QPainter& painter, int x, int y)
 
 void EditorWidget::putTile(tile_t tile, int x, int y, bool bury)
 {
-    if (bury) {
-        // No fancy smart stuff when sending to bottom layer
-        m_levelData->map().setBG(x, y, tile);
-        return;
-    }
-
     tile_t oldUpper = m_levelData->map().getFG(x, y);
     tile_t oldLower = m_levelData->map().getBG(x, y);
 
-    if (oldUpper == ccl::TileCloner
-        && ((tile >= ccl::MONSTER_FIRST && tile <= ccl::MONSTER_LAST)
-            || (tile >= ccl::TileBlock_N && tile <= ccl::TileBlock_E))) {
+    if ((bury && oldLower == tile) || (!bury && oldUpper == tile))
+        return;
+
+    if (bury) {
+        m_levelData->map().setBG(x, y, tile);
+    } else if (oldUpper == ccl::TileCloner && MOVING_TILE(tile)) {
         // Bury the cloner under a cloneable tile
         m_levelData->map().push(x, y, tile);
-    } else if (oldLower == ccl::TileCloner
-        && ((oldUpper >= ccl::MONSTER_FIRST && oldUpper <= ccl::MONSTER_LAST)
-            || (oldUpper >= ccl::TileBlock_N && oldUpper <= ccl::TileBlock_E))
-        && ((tile < ccl::MONSTER_FIRST || tile > ccl::MONSTER_LAST)
-            && (tile < ccl::TileBlock_N || tile > ccl::TileBlock_E))) {
+    } else if (oldLower == ccl::TileCloner && MOVING_TILE(oldUpper)
+               && !MOVING_TILE(tile)) {
         // Clear both the cloner and the cloneable before replacing it
         // with something non-cloneable
         m_levelData->map().setFG(x, y, tile);
@@ -321,22 +412,51 @@ void EditorWidget::putTile(tile_t tile, int x, int y, bool bury)
     }
 
     // Clear or add monsters from replaced tiles into move list
-    if ((oldUpper >= ccl::MONSTER_FIRST && oldUpper <= ccl::MONSTER_LAST)
-        && (tile < ccl::MONSTER_FIRST || tile > ccl::MONSTER_LAST)) {
-        std::list<ccl::Point>::iterator move_iter = m_levelData->moveList().begin();
-        while (move_iter != m_levelData->moveList().end()) {
-            if (move_iter->X == x && move_iter->Y == y)
-                move_iter = m_levelData->moveList().erase(move_iter);
-            else
-                ++move_iter;
+    if (!bury) {
+        if (MONSTER_TILE(oldUpper) && !MONSTER_TILE(tile)) {
+            std::list<ccl::Point>::iterator move_iter = m_levelData->moveList().begin();
+            while (move_iter != m_levelData->moveList().end()) {
+                if (move_iter->X == x && move_iter->Y == y)
+                    move_iter = m_levelData->moveList().erase(move_iter);
+                else
+                    ++move_iter;
+            }
+        } else if (MONSTER_TILE(tile) && !MONSTER_TILE(oldUpper)) {
+            if (m_levelData->moveList().size() < 127) {
+                ccl::Point mover;
+                mover.X = x;
+                mover.Y = y;
+                m_levelData->moveList().push_back(mover);
+            }
         }
-    } else if ((tile >= ccl::MONSTER_FIRST && tile <= ccl::MONSTER_LAST)
-               && (oldUpper < ccl::MONSTER_FIRST || oldUpper > ccl::MONSTER_LAST)) {
-        if (m_levelData->moveList().size() < 127) {
-            ccl::Point mover;
-            mover.X = x;
-            mover.Y = y;
-            m_levelData->moveList().push_back(mover);
-        }
+    }
+
+    // Clear connections from replaced tiles
+    std::list<ccl::Trap>::iterator trap_iter = m_levelData->traps().begin();
+    while (trap_iter != m_levelData->traps().end()) {
+        if (trap_iter->button.X == x && trap_iter->button.Y == y
+                && m_levelData->map().getFG(x, y) != ccl::TileTrapButton
+                && m_levelData->map().getBG(x, y) != ccl::TileTrapButton)
+            trap_iter = m_levelData->traps().erase(trap_iter);
+        else if (trap_iter->trap.X == x && trap_iter->trap.Y == y
+                && m_levelData->map().getFG(x, y) != ccl::TileTrap
+                && m_levelData->map().getBG(x, y) != ccl::TileTrap)
+            trap_iter = m_levelData->traps().erase(trap_iter);
+        else
+            ++trap_iter;
+    }
+
+    std::list<ccl::Clone>::iterator clone_iter = m_levelData->clones().begin();
+    while (clone_iter != m_levelData->clones().end()) {
+        if (clone_iter->button.X == x && clone_iter->button.Y == y
+                && m_levelData->map().getFG(x, y) != ccl::TileCloneButton
+                && m_levelData->map().getBG(x, y) != ccl::TileCloneButton)
+            clone_iter = m_levelData->clones().erase(clone_iter);
+        else if (clone_iter->clone.X == x && clone_iter->clone.Y == y
+                && m_levelData->map().getFG(x, y) != ccl::TileCloner
+                && m_levelData->map().getBG(x, y) != ccl::TileCloner)
+            clone_iter = m_levelData->clones().erase(clone_iter);
+        else
+            ++clone_iter;
     }
 }

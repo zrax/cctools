@@ -326,14 +326,10 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionPathMaker]->setStatusTip(tr("Draw a directional path of tiles"));
     m_actions[ActionPathMaker]->setShortcut(Qt::CTRL | Qt::Key_M);
     m_actions[ActionPathMaker]->setCheckable(true);
-    m_actions[ActionTrapConnect] = new QAction(QIcon(":/res/cctools-trap.png"), tr("&Trap Connector"), this);
-    m_actions[ActionTrapConnect]->setStatusTip(tr("Connect Traps to Trap release buttons"));
-    m_actions[ActionTrapConnect]->setShortcut(Qt::CTRL | Qt::Key_T);
-    m_actions[ActionTrapConnect]->setCheckable(true);
-    m_actions[ActionCloneConnect] = new QAction(QIcon(":/res/cctools-clone.png"), tr("&Clone Connector"), this);
-    m_actions[ActionCloneConnect]->setStatusTip(tr("Connect Cloning machines to Clone buttons"));
-    m_actions[ActionCloneConnect]->setShortcut(Qt::CTRL | Qt::Key_G);
-    m_actions[ActionCloneConnect]->setCheckable(true);
+    m_actions[ActionConnect] = new QAction(QIcon(":/res/cctools-button.png"), tr("&Button Connector"), this);
+    m_actions[ActionConnect]->setStatusTip(tr("Connect buttons to traps and cloning machines"));
+    m_actions[ActionConnect]->setShortcut(Qt::CTRL | Qt::Key_T);
+    m_actions[ActionConnect]->setCheckable(true);
 
     m_actions[ActionViewButtons] = new QAction(tr("Show &Button Connections"), this);
     m_actions[ActionViewButtons]->setStatusTip(tr("Draw lines between connected buttons/traps/cloning machines in editor"));
@@ -353,8 +349,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     drawModeGroup->addAction(m_actions[ActionDrawLine]);
     drawModeGroup->addAction(m_actions[ActionDrawFill]);
     drawModeGroup->addAction(m_actions[ActionPathMaker]);
-    drawModeGroup->addAction(m_actions[ActionTrapConnect]);
-    drawModeGroup->addAction(m_actions[ActionCloneConnect]);
+    drawModeGroup->addAction(m_actions[ActionConnect]);
     m_actions[ActionDrawPencil]->setChecked(true);
 
     m_actions[ActionAddLevel] = new QAction(QIcon(":/res/list-add.png"), tr("&Add Level"), this);
@@ -397,8 +392,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     toolsMenu->addAction(m_actions[ActionDrawFill]);
     toolsMenu->addAction(m_actions[ActionPathMaker]);
     toolsMenu->addSeparator();
-    toolsMenu->addAction(m_actions[ActionTrapConnect]);
-    toolsMenu->addAction(m_actions[ActionCloneConnect]);
+    toolsMenu->addAction(m_actions[ActionConnect]);
 
     QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(m_actions[ActionViewButtons]);
@@ -427,8 +421,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     tbarTools->addAction(m_actions[ActionDrawFill]);
     tbarTools->addAction(m_actions[ActionPathMaker]);
     tbarTools->addSeparator();
-    tbarTools->addAction(m_actions[ActionTrapConnect]);
-    tbarTools->addAction(m_actions[ActionCloneConnect]);
+    tbarTools->addAction(m_actions[ActionConnect]);
 
     QToolBar* tbarLevelset = new QToolBar(levelManWidget);
     tbarLevelset->addAction(m_actions[ActionAddLevel]);
@@ -454,8 +447,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionDrawLine], SIGNAL(triggered()), SLOT(onDrawLineAction()));
     connect(m_actions[ActionDrawFill], SIGNAL(triggered()), SLOT(onDrawFillAction()));
     connect(m_actions[ActionPathMaker], SIGNAL(triggered()), SLOT(onPathMakerAction()));
-    connect(m_actions[ActionTrapConnect], SIGNAL(triggered()), SLOT(onTrapConnectAction()));
-    connect(m_actions[ActionCloneConnect], SIGNAL(triggered()), SLOT(onCloneConnectAction()));
+    connect(m_actions[ActionConnect], SIGNAL(triggered()), SLOT(onConnectAction()));
     connect(m_actions[ActionViewButtons], SIGNAL(toggled(bool)), SLOT(onViewButtonsToggled(bool)));
     connect(m_actions[ActionViewMovers], SIGNAL(toggled(bool)), SLOT(onViewMoversToggled(bool)));
     connect(m_actions[ActionViewActivePlayer], SIGNAL(toggled(bool)), SLOT(onViewActivePlayerToggled(bool)));
@@ -827,8 +819,7 @@ void CCEditMain::onSelectToggled(bool mode)
     m_actions[ActionDrawLine]->setChecked(false);
     m_actions[ActionDrawFill]->setChecked(false);
     m_actions[ActionPathMaker]->setChecked(false);
-    m_actions[ActionTrapConnect]->setChecked(false);
-    m_actions[ActionCloneConnect]->setChecked(false);
+    m_actions[ActionConnect]->setChecked(false);
     if (!mode)
         m_actions[m_savedDrawMode]->setChecked(true);
 }
@@ -861,18 +852,11 @@ void CCEditMain::onPathMakerAction()
     m_editor->setDrawMode(EditorWidget::DrawPathMaker);
 }
 
-void CCEditMain::onTrapConnectAction()
+void CCEditMain::onConnectAction()
 {
-    m_savedDrawMode = ActionTrapConnect;
+    m_savedDrawMode = ActionConnect;
     m_actions[ActionSelect]->setChecked(false);
-    m_editor->setDrawMode(EditorWidget::DrawTrapConnect);
-}
-
-void CCEditMain::onCloneConnectAction()
-{
-    m_savedDrawMode = ActionCloneConnect;
-    m_actions[ActionSelect]->setChecked(false);
-    m_editor->setDrawMode(EditorWidget::DrawCloneConnect);
+    m_editor->setDrawMode(EditorWidget::DrawButtonConnect);
 }
 
 void CCEditMain::onViewButtonsToggled(bool view)

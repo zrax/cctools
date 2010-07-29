@@ -278,35 +278,6 @@ void ccl::LevelData::addMover(int moverX, int moverY)
     m_moveList.push_back(item);
 }
 
-void ccl::LevelData::clearLogic(int x, int y)
-{
-    std::list<ccl::Trap>::iterator ti = m_traps.begin();
-    while (ti != m_traps.end()) {
-        if ((ti->button.X == x && ti->button.Y == y)
-            || (ti->trap.X == x && ti->trap.Y == y))
-            ti = m_traps.erase(ti);
-        else
-            ++ti;
-    }
-
-    std::list<ccl::Clone>::iterator ci = m_clones.begin();
-    while (ci != m_clones.end()) {
-        if ((ci->button.X == x && ci->button.Y == y)
-            || (ci->clone.X == x && ci->clone.Y == y))
-            ci = m_clones.erase(ci);
-        else
-            ++ci;
-    }
-
-    std::list<ccl::Point>::iterator mi = m_moveList.begin();
-    while (mi != m_moveList.end()) {
-        if (mi->X == x && mi->Y == y)
-            mi = m_moveList.erase(mi);
-        else
-            ++mi;
-    }
-}
-
 long ccl::LevelData::read(FILE* stream)
 {
     long levelBegin = ftell(stream);
