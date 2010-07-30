@@ -401,6 +401,8 @@ void EditorWidget::putTile(tile_t tile, int x, int y, bool bury)
     } else if (oldUpper == ccl::TileCloner && MOVING_TILE(tile)) {
         // Bury the cloner under a cloneable tile
         m_levelData->map().push(x, y, tile);
+    } else if (tile == ccl::TileCloner && MOVING_TILE(oldUpper)) {
+        m_levelData->map().setBG(x, y, tile);
     } else if (oldLower == ccl::TileCloner && MOVING_TILE(oldUpper)
                && !MOVING_TILE(tile)) {
         // Clear both the cloner and the cloneable before replacing it
@@ -412,23 +414,23 @@ void EditorWidget::putTile(tile_t tile, int x, int y, bool bury)
     }
 
     // Clear or add monsters from replaced tiles into move list
-    if (!bury) {
-        if (MONSTER_TILE(oldUpper) && !MONSTER_TILE(tile)) {
-            std::list<ccl::Point>::iterator move_iter = m_levelData->moveList().begin();
-            while (move_iter != m_levelData->moveList().end()) {
-                if (move_iter->X == x && move_iter->Y == y)
-                    move_iter = m_levelData->moveList().erase(move_iter);
-                else
-                    ++move_iter;
-            }
-        } else if (MONSTER_TILE(tile) && !MONSTER_TILE(oldUpper)) {
-            if (m_levelData->moveList().size() < 127) {
-                ccl::Point mover;
-                mover.X = x;
-                mover.Y = y;
-                m_levelData->moveList().push_back(mover);
-            }
+    if (MONSTER_TILE(oldUpper) && (m_levelData->map().getBG(x, y) == ccl::TileCloner)
+        || !MONSTER_TILE(m_levelData->map().getFG(x, y))) {
+        std::list<ccl::Point>::iterator move_iter = m_levelData->moveList().begin();
+        while (move_iter != m_levelData->moveList().end()) {
+            if (move_iter->X == x && move_iter->Y == y)
+                move_iter = m_levelData->moveList().erase(move_iter);
+            else
+                ++move_iter;
         }
+    } else if (MONSTER_TILE(m_levelData->map().getFG(x, y)) && !MONSTER_TILE(oldUpper)
+               && m_levelData->map().getBG(x, y) != ccl::TileCloner) {
+        if (m_levelData->moveList().size() < 127)
+            m_levelData->addMover(x, y);
+    } else if (oldLower == ccl::TileCloner && m_levelData->map().getBG(x, y) != ccl::TileCloner
+               &&  MONSTER_TILE(m_levelData->map().getFG(x, y))) {
+        if (m_levelData->moveList().size() < 127)
+            m_levelData->addMover(x, y);
     }
 
     // Clear connections from replaced tiles
