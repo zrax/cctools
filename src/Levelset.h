@@ -85,6 +85,7 @@ public:
 
 public:
     LevelData();
+    LevelData(const LevelData& init);
 
     const ccl::LevelMap& map() const { return m_map; }
     ccl::LevelMap& map() { return m_map; }
@@ -140,6 +141,7 @@ public:
 
 public:
     Levelset(int levelCount = 1);
+    Levelset(const Levelset& init);
     ~Levelset();
 
     unsigned int type() const { return m_magic; }

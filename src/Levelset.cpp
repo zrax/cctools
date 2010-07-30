@@ -250,8 +250,24 @@ ccl::LevelData::LevelData()
     : m_levelNum(0), m_chips(0), m_timer(0)
 { }
 
+ccl::LevelData::LevelData(const ccl::LevelData& init)
+    : m_map(init.m_map), m_name(init.m_name), m_hint(init.m_hint),
+      m_password(init.m_password), m_levelNum(init.m_levelNum),
+      m_chips(init.m_chips), m_timer(init.m_timer), m_traps(init.m_traps),
+      m_clones(init.m_clones), m_moveList(init.m_moveList)
+{ }
+
 void ccl::LevelData::trapConnect(int buttonX, int buttonY, int trapX, int trapY)
 {
+    std::list<ccl::Trap>::iterator iter = m_traps.begin();
+    while (iter != m_traps.end()) {
+        if (iter->button.X == buttonX && iter->button.Y == buttonY
+            && iter->trap.X == trapX && iter->trap.Y == trapY)
+            return;
+        else
+            ++iter;
+    }
+
     ccl::Trap item;
     item.button.X = buttonX;
     item.button.Y = buttonY;
@@ -262,6 +278,15 @@ void ccl::LevelData::trapConnect(int buttonX, int buttonY, int trapX, int trapY)
 
 void ccl::LevelData::cloneConnect(int buttonX, int buttonY, int cloneX, int cloneY)
 {
+    std::list<ccl::Clone>::iterator iter = m_clones.begin();
+    while (iter != m_clones.end()) {
+        if (iter->button.X == buttonX && iter->button.Y == buttonY
+            && iter->clone.X == cloneX && iter->clone.Y == cloneY)
+            return;
+        else
+            ++iter;
+    }
+
     ccl::Clone item;
     item.button.X = buttonX;
     item.button.Y = buttonY;
@@ -272,6 +297,14 @@ void ccl::LevelData::cloneConnect(int buttonX, int buttonY, int cloneX, int clon
 
 void ccl::LevelData::addMover(int moverX, int moverY)
 {
+    std::list<ccl::Point>::iterator iter = m_moveList.begin();
+    while (iter != m_moveList.end()) {
+        if (iter->X == moverX && iter->Y == moverY)
+            return;
+        else
+            ++iter;
+    }
+
     ccl::Point item;
     item.X = moverX;
     item.Y = moverY;
@@ -445,6 +478,14 @@ ccl::Levelset::Levelset(int levelCount)
         m_levels[i]->setName(nameBuf);
         m_levels[i]->setPassword(RandomPassword());
     }
+}
+
+ccl::Levelset::Levelset(const ccl::Levelset& init)
+   : m_magic(init.m_magic)
+{
+    m_levels.resize(init.m_levels.size());
+    for (int i=0; i<m_levels.size(); ++i)
+        m_levels[i] = new ccl::LevelData(*init.m_levels[i]);
 }
 
 ccl::Levelset::~Levelset()

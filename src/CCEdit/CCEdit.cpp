@@ -283,7 +283,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionUndo]->setEnabled(false);
     m_actions[ActionRedo] = new QAction(QIcon(":/res/edit-redo.png"), tr("&Redo"), this);
     m_actions[ActionRedo]->setStatusTip(tr("Redo the last edit"));
-    m_actions[ActionRedo]->setShortcut(Qt::CTRL | Qt::Key_Y);
+    m_actions[ActionRedo]->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_Z);
     m_actions[ActionRedo]->setEnabled(false);
     m_actions[ActionSelect] = new QAction(QIcon(":/res/edit-select.png"), tr("&Select"), this);
     m_actions[ActionSelect]->setStatusTip(tr("Enter selection mode"));
@@ -488,6 +488,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     }
     setForeground(ccl::TileWall);
     setBackground(ccl::TileFloor);
+    onSelectLevel(-1);
 }
 
 void CCEditMain::loadLevelset(QString filename)
@@ -975,6 +976,11 @@ void CCEditMain::onPropertiesAction()
 void CCEditMain::onSelectLevel(int idx)
 {
     if (m_levelset == 0 || idx < 0) {
+        m_nameEdit->setEnabled(false);
+        m_passwordEdit->setEnabled(false);
+        m_chipEdit->setEnabled(false);
+        m_timeEdit->setEnabled(false);
+        m_hintEdit->setEnabled(false);
         m_nameEdit->setText(QString());
         m_passwordEdit->setText(QString());
         m_chipEdit->setValue(0);
@@ -983,6 +989,11 @@ void CCEditMain::onSelectLevel(int idx)
         m_editor->setLevelData(0);
     } else {
         ccl::LevelData* level = m_levelset->level(idx);
+        m_nameEdit->setEnabled(true);
+        m_passwordEdit->setEnabled(true);
+        m_chipEdit->setEnabled(true);
+        m_timeEdit->setEnabled(true);
+        m_hintEdit->setEnabled(true);
         m_nameEdit->setText(QString::fromAscii(level->name().c_str()));
         m_passwordEdit->setText(QString::fromAscii(level->password().c_str()));
         m_chipEdit->setValue(level->chips());

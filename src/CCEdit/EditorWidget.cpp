@@ -394,10 +394,30 @@ void EditorWidget::mousePressEvent(QMouseEvent* event)
     int posY = event->y() / m_tileset->size();
 
     if (m_drawMode == DrawButtonConnect) {
-        if (m_origin == QPoint(-1, -1) && test_start_connect(m_levelData, QPoint(posX, posY)))
-            m_origin = QPoint(posX, posY);
-        else if (m_origin == m_current)
+        if (event->button() == Qt::RightButton) {
+            std::list<ccl::Trap>::iterator trap_iter = m_levelData->traps().begin();
+            while (trap_iter != m_levelData->traps().end()) {
+                if ((trap_iter->button.X == posX && trap_iter->button.Y == posY)
+                    || (trap_iter->trap.X == posX && trap_iter->trap.Y == posY))
+                    trap_iter = m_levelData->traps().erase(trap_iter);
+                else
+                    ++trap_iter;
+            }
+
+            std::list<ccl::Clone>::iterator clone_iter = m_levelData->clones().begin();
+            while (clone_iter != m_levelData->clones().end()) {
+                if ((clone_iter->button.X == posX && clone_iter->button.Y == posY)
+                    || (clone_iter->clone.X == posX && clone_iter->clone.Y == posY))
+                    clone_iter = m_levelData->clones().erase(clone_iter);
+                else
+                    ++clone_iter;
+            }
             m_origin = QPoint(-1, -1);
+        } else  if (m_origin == QPoint(-1, -1) && test_start_connect(m_levelData, QPoint(posX, posY))) {
+            m_origin = QPoint(posX, posY);
+        } else if (m_origin == m_current) {
+            m_origin = QPoint(-1, -1);
+        }
     } else if (m_drawMode != DrawPathMaker) {
         m_origin = QPoint(posX, posY);
     }
