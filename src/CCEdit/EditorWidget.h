@@ -89,8 +89,9 @@ private:
     tile_t m_leftTile, m_rightTile;
     DrawMode m_drawMode;
     int m_paintFlags;
-    QPoint m_origin, m_current;
     QPixmap m_numbers;
+    QPoint m_origin, m_current;
+    ccl::Direction m_lastDir;
 
 signals:
     void mouseInfo(QString text);

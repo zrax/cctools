@@ -147,7 +147,7 @@ static long write_rle(const tile_t* src, size_t size, FILE* stream)
     try {
         long begin = ftell(stream);
         write16(stream, dataLen);
-        if (fwrite(dest, 1, dataLen, stream) != dataLen)
+        if (fwrite(dest, 1, dataLen, stream) != (size_t)dataLen)
             throw ccl::IOException("Error writing to stream");
         delete[] dest;
         return ftell(stream) - begin;

@@ -126,11 +126,47 @@ static ConnType test_connect(ccl::LevelData* level, QPoint from, QPoint to)
     return ConnNone;
 }
 
+static ccl::Direction calc_dir(QPoint from, QPoint to)
+{
+    int dX = to.x() - from.x();
+    int dY = to.y() - from.y();
+    if (dX < 0)
+        return ccl::DirWest;
+    else if (dX > 0)
+        return ccl::DirEast;
+    else if (dY < 0)
+        return ccl::DirNorth;
+    else if (dY > 0)
+        return ccl::DirSouth;
+    return ccl::DirInvalid;
+}
+
+static tile_t directionalize(tile_t tile, ccl::Direction dir)
+{
+    static tile_t _force_dir[4] = {
+        ccl::TileForce_N, ccl::TileForce_W, ccl::TileForce_S,
+        ccl::TileForce_E
+    };
+
+    if (dir == ccl::DirInvalid)
+        return tile;
+    else if (FORCE_TILE(tile))
+        // Not in order
+        return _force_dir[(int)dir-1];
+    else if (tile >= ccl::TileBlock_N && tile <= ccl::TileBlock_E)
+        // Not aligned to last 2 bits
+        return ccl::TileBlock_N + (int)dir - 1;
+    else if (MONSTER_TILE(tile) || (tile >= ccl::TilePlayer_N && tile <= ccl::TilePlayer_E)
+             || (tile >= ccl::TilePlayerSwim_N && tile <= ccl::TilePlayerSwim_E))
+        return (tile & ~3) + ((int)dir - 1);
+    return tile;
+}
+
 
 EditorWidget::EditorWidget(QWidget* parent)
             : QWidget(parent), m_tileset(0), m_levelData(0), m_leftTile(0),
               m_rightTile(0), m_drawMode(DrawPencil), m_paintFlags(0),
-              m_numbers(":/res/numbers.png")
+              m_numbers(":/res/numbers.png"), m_lastDir(ccl::DirInvalid)
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     setMouseTracking(true);
@@ -245,18 +281,69 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
     m_current = QPoint(posX, posY);
 
     m_paintFlags &= ~(PaintLeftTemp | PaintRightTemp | PaintTempBury);
-    if (m_drawMode == DrawPencil) {
-        if ((event->buttons() & Qt::LeftButton) != 0)
-            putTile(m_leftTile, posX, posY, (event->modifiers() & Qt::ShiftModifier) != 0);
-        else if ((event->buttons() & Qt::RightButton) != 0)
-            putTile(m_rightTile, posX, posY, (event->modifiers() & Qt::ShiftModifier) != 0);
-    } else if (m_drawMode == DrawLine || m_drawMode == DrawFill) {
-        if ((event->buttons() & Qt::LeftButton) != 0)
-            m_paintFlags |= PaintLeftTemp;
-        else if ((event->buttons() & Qt::RightButton) != 0)
-            m_paintFlags |= PaintRightTemp;
-        if ((event->modifiers() & Qt::ShiftModifier) != 0)
-            m_paintFlags |= PaintTempBury;
+    if ((event->buttons() & (Qt::LeftButton | Qt::RightButton)) != 0) {
+        tile_t curtile = ((event->buttons() & Qt::LeftButton) != 0)
+                       ? m_leftTile : m_rightTile;
+        if (m_drawMode == DrawPencil) {
+            putTile(curtile, posX, posY, (event->modifiers() & Qt::ShiftModifier) != 0);
+        } else if (m_drawMode == DrawLine || m_drawMode == DrawFill) {
+            if ((event->buttons() & Qt::LeftButton) != 0)
+                m_paintFlags |= PaintLeftTemp;
+            else if ((event->buttons() & Qt::RightButton) != 0)
+                m_paintFlags |= PaintRightTemp;
+            if ((event->modifiers() & Qt::ShiftModifier) != 0)
+                m_paintFlags |= PaintTempBury;
+        } else if (m_drawMode == DrawPathMaker) {
+            if (m_origin == QPoint(-1, -1)) {
+                putTile(curtile, posX, posY, (event->modifiers() & Qt::ShiftModifier) != 0);
+                m_origin = m_current;
+                m_lastDir = ccl::DirInvalid;
+            } else if (m_origin != m_current) {
+                ccl::Direction dir = calc_dir(m_origin, m_current);
+                tile_t dirtile = directionalize(curtile, dir);
+                if (FORCE_TILE(curtile)) {
+                    // Crossing a force floor should turn to ice
+                    tile_t oldTile = (event->modifiers() & Qt::ShiftModifier) == 0
+                                   ? m_levelData->map().getFG(posX, posY)
+                                   : m_levelData->map().getBG(posX, posY);
+                    if (((dirtile == ccl::TileForce_E || dirtile == ccl::TileForce_W)
+                            && (oldTile == ccl::TileForce_N || oldTile == ccl::TileForce_S))
+                        || ((dirtile == ccl::TileForce_N || dirtile == ccl::TileForce_S)
+                            && (oldTile == ccl::TileForce_E || oldTile == ccl::TileForce_W)))
+                        putTile(ccl::TileIce, posX, posY, (event->modifiers() & Qt::ShiftModifier) != 0);
+                    else
+                        putTile(dirtile, posX, posY, (event->modifiers() & Qt::ShiftModifier) != 0);
+                    oldTile = (event->modifiers() & Qt::ShiftModifier) == 0
+                            ? m_levelData->map().getFG(m_origin.x(), m_origin.y())
+                            : m_levelData->map().getBG(m_origin.x(), m_origin.y());
+                    if (oldTile != ccl::TileIce)
+                        putTile(dirtile, m_origin.x(), m_origin.y(), (event->modifiers() & Qt::ShiftModifier) != 0);
+                } else if (curtile == ccl::TileIce && m_lastDir != ccl::DirInvalid) {
+                    // Add curves to ice
+                    putTile(dirtile, posX, posY, (event->modifiers() & Qt::ShiftModifier) != 0);
+                    if ((m_lastDir == ccl::DirNorth && dir == ccl::DirEast)
+                        || (m_lastDir == ccl::DirWest && dir == ccl::DirSouth))
+                        putTile(ccl::TileIce_SE, m_origin.x(), m_origin.y(), (event->modifiers() & Qt::ShiftModifier) != 0);
+                    else if ((m_lastDir == ccl::DirNorth && dir == ccl::DirWest)
+                             || (m_lastDir == ccl::DirEast && dir == ccl::DirSouth))
+                        putTile(ccl::TileIce_SW, m_origin.x(), m_origin.y(), (event->modifiers() & Qt::ShiftModifier) != 0);
+                    else if ((m_lastDir == ccl::DirSouth && dir == ccl::DirEast)
+                             || (m_lastDir == ccl::DirWest && dir == ccl::DirNorth))
+                        putTile(ccl::TileIce_NE, m_origin.x(), m_origin.y(), (event->modifiers() & Qt::ShiftModifier) != 0);
+                    else if ((m_lastDir == ccl::DirSouth && dir == ccl::DirWest)
+                             || (m_lastDir == ccl::DirEast && dir == ccl::DirNorth))
+                        putTile(ccl::TileIce_NW, m_origin.x(), m_origin.y(), (event->modifiers() & Qt::ShiftModifier) != 0);
+                    else
+                        putTile(ccl::TileIce, m_origin.x(), m_origin.y(), (event->modifiers() & Qt::ShiftModifier) != 0);
+                } else {
+                    // Any other directional tile
+                    putTile(dirtile, posX, posY, (event->modifiers() & Qt::ShiftModifier) != 0);
+                    putTile(dirtile, m_origin.x(), m_origin.y(), (event->modifiers() & Qt::ShiftModifier) != 0);
+                }
+                m_origin = m_current;
+                m_lastDir = dir;
+            }
+        }
     }
 
     if (m_levelData->map().getBG(posX, posY) == 0) {
@@ -311,7 +398,7 @@ void EditorWidget::mousePressEvent(QMouseEvent* event)
             m_origin = QPoint(posX, posY);
         else if (m_origin == m_current)
             m_origin = QPoint(-1, -1);
-    } else {
+    } else if (m_drawMode != DrawPathMaker) {
         m_origin = QPoint(posX, posY);
     }
 
@@ -414,7 +501,7 @@ void EditorWidget::putTile(tile_t tile, int x, int y, bool bury)
     }
 
     // Clear or add monsters from replaced tiles into move list
-    if (MONSTER_TILE(oldUpper) && (m_levelData->map().getBG(x, y) == ccl::TileCloner)
+    if ((MONSTER_TILE(oldUpper) && (m_levelData->map().getBG(x, y) == ccl::TileCloner))
         || !MONSTER_TILE(m_levelData->map().getFG(x, y))) {
         std::list<ccl::Point>::iterator move_iter = m_levelData->moveList().begin();
         while (move_iter != m_levelData->moveList().end()) {

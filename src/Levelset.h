@@ -159,6 +159,8 @@ private:
     unsigned int m_magic;
 };
 
+enum Direction { DirInvalid, DirNorth, DirWest, DirSouth, DirEast };
+
 #define DIRTILE(name) \
     Tile##name##_N, Tile##name##_W, Tile##name##_S, Tile##name##_E
 
@@ -169,7 +171,7 @@ enum TileType {
     TileFloor, TileWall, TileChip, TileWater, TileFire, TileInvisWall,
     DIRTILE(Barrier), TileBlock, TileDirt, TileIce, TileForce_S, DIRTILE(Block),
     TileForce_N, TileForce_E, TileForce_W, TileExit, COLORTILE(Door),
-    TileIce_NW, TileIce_NE, TileIce_SE, TileIce_SW, TileBlueFloor, TileBlueWall,
+    TileIce_SE, TileIce_SW, TileIce_NW, TileIce_NE, TileBlueFloor, TileBlueWall,
     Tile_UNUSED_20, TileThief, TileSocket, TileToggleButton, TileCloneButton,
     TileToggleWall, TileToggleFloor, TileTrapButton, TileTankButton,
     TileTeleport, TileBomb, TileTrap, TileAppearingWall, TileGravel,
@@ -186,9 +188,11 @@ enum TileType {
     MONSTER_LAST = TileCrawler_E,
 };
 
-#define MOVING_TILE(tile) (((tile) >= ccl::TileBlock_N && (tile) <= ccl::TileBlock_E) \
-                           || ((tile) >= ccl::MONSTER_FIRST && (tile) <= ccl::MONSTER_LAST))
-#define MONSTER_TILE(tile) (((tile) >= ccl::MONSTER_FIRST && (tile) <= ccl::MONSTER_LAST))
+#define MOVING_TILE(tile)  (((tile) >= ccl::TileBlock_N && (tile) <= ccl::TileBlock_E) \
+                            || ((tile) >= ccl::MONSTER_FIRST && (tile) <= ccl::MONSTER_LAST))
+#define MONSTER_TILE(tile) ((tile) >= ccl::MONSTER_FIRST && (tile) <= ccl::MONSTER_LAST)
+#define FORCE_TILE(tile)   ((tile) == ccl::TileForce_S || (tile) == ccl::TileForce_N \
+                            || (tile) == ccl::TileForce_E || (tile) == ccl::TileForce_W)
 
 } /* {ccl} */
 
