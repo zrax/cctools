@@ -436,13 +436,15 @@ CCEditMain::CCEditMain(QWidget* parent)
     // Show status bar
     statusBar();
 
-    connect(m_actions[ActionExit], SIGNAL(triggered()), SLOT(close()));
     connect(m_actions[ActionNew], SIGNAL(triggered()), SLOT(onNewAction()));
     connect(m_actions[ActionOpen], SIGNAL(triggered()), SLOT(onOpenAction()));
     connect(m_actions[ActionSave], SIGNAL(triggered()), SLOT(onSaveAction()));
     connect(m_actions[ActionSaveAs], SIGNAL(triggered()), SLOT(onSaveAsAction()));
     connect(m_actions[ActionClose], SIGNAL(triggered()), SLOT(onCloseAction()));
+    connect(m_actions[ActionExit], SIGNAL(triggered()), SLOT(close()));
     connect(m_actions[ActionSelect], SIGNAL(toggled(bool)), SLOT(onSelectToggled(bool)));
+    connect(m_actions[ActionUndo], SIGNAL(triggered()), m_editor, SLOT(undo()));
+    connect(m_actions[ActionRedo], SIGNAL(triggered()), m_editor, SLOT(redo()));
     connect(m_actions[ActionDrawPencil], SIGNAL(triggered()), SLOT(onDrawPencilAction()));
     connect(m_actions[ActionDrawLine], SIGNAL(triggered()), SLOT(onDrawLineAction()));
     connect(m_actions[ActionDrawFill], SIGNAL(triggered()), SLOT(onDrawFillAction()));
@@ -467,6 +469,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_chipsButton, SIGNAL(clicked()), SLOT(onChipCountAction()));
     connect(m_timeEdit, SIGNAL(valueChanged(int)), SLOT(onTimerChanged(int)));
     connect(m_editor, SIGNAL(mouseInfo(QString)), statusBar(), SLOT(showMessage(QString)));
+    connect(m_editor, SIGNAL(canUndo(bool)), m_actions[ActionUndo], SLOT(setEnabled(bool)));
+    connect(m_editor, SIGNAL(canRedo(bool)), m_actions[ActionRedo], SLOT(setEnabled(bool)));
 
     for (int i=0; i<NUM_TILE_LISTS; ++i) {
         connect(m_tileLists[i], SIGNAL(itemSelectedLeft(tile_t)), SLOT(setForeground(tile_t)));

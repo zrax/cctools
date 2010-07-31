@@ -11,6 +11,7 @@ set(CCEdit_SOURCES
     EditorWidget.cpp
     LayerWidget.cpp
     LevelsetProps.cpp
+    History.cpp
 )
 
 set(CCEdit_MOCS

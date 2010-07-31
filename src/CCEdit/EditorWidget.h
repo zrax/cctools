@@ -19,6 +19,7 @@
 #define _EDITORWIDGET_H
 
 #include <QWidget>
+#include "History.h"
 #include "../Tileset.h"
 #include "../Levelset.h"
 
@@ -46,7 +47,7 @@ public:
     void setTileset(CCETileset* tileset);
     CCETileset* tileset() const { return m_tileset; }
 
-    void setLevelData(ccl::LevelData* level) { m_levelData = level; }
+    void setLevelData(ccl::LevelData* level);
     ccl::LevelData* levelData() const { return m_levelData; }
 
     virtual void paintEvent(QPaintEvent*);
@@ -81,6 +82,8 @@ public:
 public slots:
     void viewTile(QPainter& painter, int x, int y);
     void putTile(tile_t tile, int x, int y, bool bury);
+    void undo();
+    void redo();
 
 private:
     CCETileset* m_tileset;
@@ -92,9 +95,12 @@ private:
     QPixmap m_numbers;
     QPoint m_origin, m_current;
     ccl::Direction m_lastDir;
+    CCEHistory m_history;
 
 signals:
     void mouseInfo(QString text);
+    void canUndo(bool);
+    void canRedo(bool);
 };
 
 #endif

@@ -181,6 +181,15 @@ void EditorWidget::setTileset(CCETileset* tileset)
     update();
 }
 
+void EditorWidget::setLevelData(ccl::LevelData* level)
+{
+    m_levelData = level;
+    update();
+    m_history.clear();
+    emit canUndo(false);
+    emit canRedo(false);
+}
+
 void EditorWidget::paintEvent(QPaintEvent* event)
 {
     if (m_tileset == 0)
@@ -390,28 +399,45 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
 
 void EditorWidget::mousePressEvent(QMouseEvent* event)
 {
+    if (m_tileset == 0 || m_levelData == 0)
+        return;
+
     int posX = event->x() / m_tileset->size();
     int posY = event->y() / m_tileset->size();
 
+    if (m_drawMode == DrawPencil || m_drawMode == DrawLine || m_drawMode == DrawFill
+        || m_drawMode == DrawPathMaker)
+        m_history.beginEdit(CCEHistoryNode::HistDraw, m_levelData);
+
     if (m_drawMode == DrawButtonConnect) {
         if (event->button() == Qt::RightButton) {
+            bool madeChange = false;
+            m_history.beginEdit(CCEHistoryNode::HistDisconnect, m_levelData);
             std::list<ccl::Trap>::iterator trap_iter = m_levelData->traps().begin();
             while (trap_iter != m_levelData->traps().end()) {
                 if ((trap_iter->button.X == posX && trap_iter->button.Y == posY)
-                    || (trap_iter->trap.X == posX && trap_iter->trap.Y == posY))
+                    || (trap_iter->trap.X == posX && trap_iter->trap.Y == posY)) {
                     trap_iter = m_levelData->traps().erase(trap_iter);
-                else
+                    madeChange = true;
+                } else {
                     ++trap_iter;
+                }
             }
 
             std::list<ccl::Clone>::iterator clone_iter = m_levelData->clones().begin();
             while (clone_iter != m_levelData->clones().end()) {
                 if ((clone_iter->button.X == posX && clone_iter->button.Y == posY)
-                    || (clone_iter->clone.X == posX && clone_iter->clone.Y == posY))
+                    || (clone_iter->clone.X == posX && clone_iter->clone.Y == posY)) {
                     clone_iter = m_levelData->clones().erase(clone_iter);
-                else
+                    madeChange = true;
+                } else {
                     ++clone_iter;
+                }
             }
+            if (madeChange)
+                m_history.endEdit(m_levelData);
+            else
+                m_history.cancelEdit();
             m_origin = QPoint(-1, -1);
         } else  if (m_origin == QPoint(-1, -1) && test_start_connect(m_levelData, QPoint(posX, posY))) {
             m_origin = QPoint(posX, posY);
@@ -449,16 +475,24 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
         if (m_origin != m_current) {
             switch (test_connect(m_levelData, m_origin, m_current)) {
             case ConnTrap:
+                m_history.beginEdit(CCEHistoryNode::HistConnect, m_levelData);
                 m_levelData->trapConnect(m_origin.x(), m_origin.y(), m_current.x(), m_current.y());
+                m_history.endEdit(m_levelData);
                 break;
             case ConnTrapRev:
+                m_history.beginEdit(CCEHistoryNode::HistConnect, m_levelData);
                 m_levelData->trapConnect(m_current.x(), m_current.y(), m_origin.x(), m_origin.y());
+                m_history.endEdit(m_levelData);
                 break;
             case ConnClone:
+                m_history.beginEdit(CCEHistoryNode::HistConnect, m_levelData);
                 m_levelData->cloneConnect(m_origin.x(), m_origin.y(), m_current.x(), m_current.y());
+                m_history.endEdit(m_levelData);
                 break;
             case ConnCloneRev:
+                m_history.beginEdit(CCEHistoryNode::HistConnect, m_levelData);
                 m_levelData->cloneConnect(m_current.x(), m_current.y(), m_origin.x(), m_origin.y());
+                m_history.endEdit(m_levelData);
                 break;
             default:
                 // Do nothing
@@ -473,7 +507,11 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
     if (resetOrigin)
         m_origin = QPoint(-1, -1);
 
-    //TODO: Emit save point
+    if (m_drawMode == DrawPencil || m_drawMode == DrawLine || m_drawMode == DrawFill
+        || m_drawMode == DrawPathMaker)
+        m_history.endEdit(m_levelData);
+    emit canUndo(m_history.canUndo());
+    emit canRedo(m_history.canRedo());
 }
 
 void EditorWidget::viewTile(QPainter& painter, int x, int y)
@@ -568,4 +606,30 @@ void EditorWidget::putTile(tile_t tile, int x, int y, bool bury)
         else
             ++clone_iter;
     }
+}
+
+void EditorWidget::undo()
+{
+    ccl::LevelData* data = m_history.undo();
+    m_levelData->map().copyFrom(data->map());
+    m_levelData->traps() = data->traps();
+    m_levelData->clones() = data->clones();
+    m_levelData->moveList() = data->moveList();
+    update();
+
+    emit canUndo(m_history.canUndo());
+    emit canRedo(m_history.canRedo());
+}
+
+void EditorWidget::redo()
+{
+    ccl::LevelData* data = m_history.redo();
+    m_levelData->map().copyFrom(data->map());
+    m_levelData->traps() = data->traps();
+    m_levelData->clones() = data->clones();
+    m_levelData->moveList() = data->moveList();
+    update();
+
+    emit canUndo(m_history.canUndo());
+    emit canRedo(m_history.canRedo());
 }
