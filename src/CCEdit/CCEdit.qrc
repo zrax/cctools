@@ -28,5 +28,10 @@
     <file>res/cctools-button.png</file>
 
     <file>res/numbers.png</file>
+
+    <file>icons/boot-16.png</file>
+    <file>icons/boot-24.png</file>
+    <file>icons/boot-32.png</file>
+    <file>icons/boot-48.png</file>
 </qresource>
 </RCC>

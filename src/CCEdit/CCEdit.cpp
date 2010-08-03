@@ -86,6 +86,11 @@ CCEditMain::CCEditMain(QWidget* parent)
       m_useDac(false)
 {
     setWindowTitle(CCEDIT_TITLE);
+    QIcon appicon(":/icons/boot-48.png");
+    appicon.addFile(":/icons/boot-32.png");
+    appicon.addFile(":/icons/boot-24.png");
+    appicon.addFile(":/icons/boot-16.png");
+    setWindowIcon(appicon);
     setDockOptions(QMainWindow::AnimatedDocks);
 
     // Control Toolbox

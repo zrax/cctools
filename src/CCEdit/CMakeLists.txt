@@ -15,6 +15,10 @@ set(CCEdit_SOURCES
     History.cpp
 )
 
+if(WIN32)
+    set(CCEdit_SOURCES ${CCEdit_SOURCES} CCEdit.rc)
+endif()
+
 set(CCEdit_MOCS
     ../Tileset.h
     CCEdit.h
