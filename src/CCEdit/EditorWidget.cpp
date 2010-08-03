@@ -25,6 +25,9 @@ enum PlotMethod { PlotPreview, PlotDraw };
 static void plot_box(EditorWidget* self, QPoint from, QPoint to, PlotMethod method,
                      QPainter* previewPainter, tile_t drawTile = 0, bool drawBury = false)
 {
+    if (from == QPoint(-1, -1))
+        return;
+
     int lowY = std::min(from.y(), to.y());
     int lowX = std::min(from.x(), to.x());
     int highY = std::max(from.y(), to.y());
@@ -44,6 +47,9 @@ static void plot_box(EditorWidget* self, QPoint from, QPoint to, PlotMethod meth
 static void plot_line(EditorWidget* self, QPoint from, QPoint to, PlotMethod method,
                       QPainter* previewPainter, tile_t drawTile = 0, bool drawBury = false)
 {
+    if (from == QPoint(-1, -1))
+        return;
+
     int lowY = from.y();
     int lowX = from.x();
     int highY = to.y();
@@ -528,14 +534,14 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
     } else if (m_drawMode == DrawSelect) {
         resetOrigin = false;
     }
-    update();
 
     if (resetOrigin)
         m_origin = QPoint(-1, -1);
-
     if (m_drawMode == DrawPencil || m_drawMode == DrawLine || m_drawMode == DrawFill
         || m_drawMode == DrawPathMaker)
         endEdit();
+
+    update();
 }
 
 void EditorWidget::setDrawMode(DrawMode mode)
