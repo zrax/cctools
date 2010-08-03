@@ -80,14 +80,14 @@ enum ConnType { ConnNone, ConnTrap, ConnTrapRev, ConnClone, ConnCloneRev };
 
 static bool test_start_connect(ccl::LevelData* level, QPoint from)
 {
-    if (level->traps().size() < 25) {
+    if (level->traps().size() < MAX_TRAPS) {
         if ((level->map().getFG(from.x(), from.y()) == ccl::TileTrapButton)
             || (level->map().getBG(from.x(), from.y()) == ccl::TileTrapButton)
             || (level->map().getFG(from.x(), from.y()) == ccl::TileTrap)
             || (level->map().getBG(from.x(), from.y()) == ccl::TileTrap))
             return true;
     }
-    if (level->clones().size() < 31) {
+    if (level->clones().size() < MAX_CLONES) {
         if ((level->map().getFG(from.x(), from.y()) == ccl::TileCloneButton)
             || (level->map().getBG(from.x(), from.y()) == ccl::TileCloneButton)
             || (level->map().getFG(from.x(), from.y()) == ccl::TileCloner)
@@ -99,7 +99,7 @@ static bool test_start_connect(ccl::LevelData* level, QPoint from)
 
 static ConnType test_connect(ccl::LevelData* level, QPoint from, QPoint to)
 {
-    if (level->traps().size() < 25) {
+    if (level->traps().size() < MAX_TRAPS) {
         if (((level->map().getFG(from.x(), from.y()) == ccl::TileTrapButton)
                 || (level->map().getBG(from.x(), from.y()) == ccl::TileTrapButton))
             && ((level->map().getFG(to.x(), to.y()) == ccl::TileTrap)
@@ -111,7 +111,7 @@ static ConnType test_connect(ccl::LevelData* level, QPoint from, QPoint to)
                 || (level->map().getBG(from.x(), from.y()) == ccl::TileTrap)))
             return ConnTrapRev;
     }
-    if (level->clones().size() < 31) {
+    if (level->clones().size() < MAX_CLONES) {
         if (((level->map().getFG(from.x(), from.y()) == ccl::TileCloneButton)
                 || (level->map().getBG(from.x(), from.y()) == ccl::TileCloneButton))
             && ((level->map().getFG(to.x(), to.y()) == ccl::TileCloner)
@@ -170,8 +170,6 @@ EditorWidget::EditorWidget(QWidget* parent)
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     setMouseTracking(true);
-    m_origin = QPoint(-1, -1);
-    m_current = QPoint(-1, -1);
 }
 
 void EditorWidget::setTileset(CCETileset* tileset)
@@ -184,7 +182,10 @@ void EditorWidget::setTileset(CCETileset* tileset)
 void EditorWidget::setLevelData(ccl::LevelData* level)
 {
     m_levelData = level;
+    m_origin = QPoint(-1, -1);
+    m_selectRect = QRect(-1, -1, -1, -1);
     update();
+
     m_history.clear();
     emit canUndo(false);
     emit canRedo(false);
@@ -208,10 +209,19 @@ void EditorWidget::paintEvent(QPaintEvent* event)
                                 m_levelData->map().getBG(x, y));
 
         // Draw current buffer
-        if (m_drawMode == DrawLine && (m_paintFlags & PaintOverlayMask) != 0)
+        if (m_drawMode == DrawLine && (m_paintFlags & PaintOverlayMask) != 0) {
             plot_line(this, m_origin, m_current, PlotPreview, &painter);
-        else if (m_drawMode == DrawFill && (m_paintFlags & PaintOverlayMask) != 0)
+        } else if (m_drawMode == DrawFill && (m_paintFlags & PaintOverlayMask) != 0) {
             plot_box(this, m_origin, m_current, PlotPreview, &painter);
+        } else if (m_drawMode == DrawSelect && m_selectRect != QRect(-1, -1, -1, -1)) {
+            painter.setCompositionMode(QPainter::RasterOp_SourceXorDestination);
+            painter.fillRect(m_selectRect.left() * m_tileset->size(),
+                             m_selectRect.top() * m_tileset->size(),
+                             m_selectRect.width() * m_tileset->size(),
+                             m_selectRect.height() * m_tileset->size(),
+                             QBrush(Qt::white));
+            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+        }
 
         if ((m_paintFlags & ShowMovement) != 0) {
             std::list<ccl::Point>::const_iterator move_iter;
@@ -231,15 +241,14 @@ void EditorWidget::paintEvent(QPaintEvent* event)
                     if (m_levelData->map().getFG(x, y) >= ccl::TilePlayer_N
                         && m_levelData->map().getFG(x, y) <= ccl::TilePlayer_E) {
                         painter.drawRect(x * m_tileset->size(), y * m_tileset->size(),
-                                        m_tileset->size() - 1, m_tileset->size() - 1);
+                                         m_tileset->size() - 1, m_tileset->size() - 1);
                         playerFound = true;
                     }
                 }
             }
             if (!playerFound) {
                 painter.setPen(QColor(255, 127, 0));
-                painter.drawRect(1 * m_tileset->size(), 1 * m_tileset->size(),
-                                m_tileset->size() - 1, m_tileset->size() - 1);
+                painter.drawRect(0, 0, m_tileset->size() - 1, m_tileset->size() - 1);
             }
         }
 
@@ -352,6 +361,14 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
                 m_origin = m_current;
                 m_lastDir = dir;
             }
+        } else if (m_drawMode == DrawSelect && m_origin != QPoint(-1, -1)) {
+            int lowX = std::min(m_origin.x(), m_current.x());
+            int lowY = std::min(m_origin.y(), m_current.y());
+            int highX = std::max(m_origin.x(), m_current.x());
+            int highY = std::max(m_origin.y(), m_current.y());
+            selectRegion(lowX, lowY, highX - lowX + 1, highY - lowY + 1);
+
+            //TODO:  Allow dragging of floating selection without losing data
         }
     }
 
@@ -407,12 +424,12 @@ void EditorWidget::mousePressEvent(QMouseEvent* event)
 
     if (m_drawMode == DrawPencil || m_drawMode == DrawLine || m_drawMode == DrawFill
         || m_drawMode == DrawPathMaker)
-        m_history.beginEdit(CCEHistoryNode::HistDraw, m_levelData);
+        beginEdit(CCEHistoryNode::HistDraw);
 
     if (m_drawMode == DrawButtonConnect) {
         if (event->button() == Qt::RightButton) {
             bool madeChange = false;
-            m_history.beginEdit(CCEHistoryNode::HistDisconnect, m_levelData);
+            beginEdit(CCEHistoryNode::HistDisconnect);
             std::list<ccl::Trap>::iterator trap_iter = m_levelData->traps().begin();
             while (trap_iter != m_levelData->traps().end()) {
                 if ((trap_iter->button.X == posX && trap_iter->button.Y == posY)
@@ -435,14 +452,21 @@ void EditorWidget::mousePressEvent(QMouseEvent* event)
                 }
             }
             if (madeChange)
-                m_history.endEdit(m_levelData);
+                endEdit();
             else
-                m_history.cancelEdit();
+                cancelEdit();
             m_origin = QPoint(-1, -1);
         } else  if (m_origin == QPoint(-1, -1) && test_start_connect(m_levelData, QPoint(posX, posY))) {
             m_origin = QPoint(posX, posY);
         } else if (m_origin == m_current) {
             m_origin = QPoint(-1, -1);
+        }
+    } else if (m_drawMode == DrawSelect) {
+        if (event->button() == Qt::LeftButton) {
+            m_origin = QPoint(posX, posY);
+        } else if (event->button() == Qt::RightButton) {
+            m_origin = QPoint(-1, -1);
+            m_selectRect = QRect(-1, -1, -1, -1);
         }
     } else if (m_drawMode != DrawPathMaker) {
         m_origin = QPoint(posX, posY);
@@ -475,24 +499,24 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
         if (m_origin != m_current) {
             switch (test_connect(m_levelData, m_origin, m_current)) {
             case ConnTrap:
-                m_history.beginEdit(CCEHistoryNode::HistConnect, m_levelData);
+                beginEdit(CCEHistoryNode::HistConnect);
                 m_levelData->trapConnect(m_origin.x(), m_origin.y(), m_current.x(), m_current.y());
-                m_history.endEdit(m_levelData);
+                endEdit();
                 break;
             case ConnTrapRev:
-                m_history.beginEdit(CCEHistoryNode::HistConnect, m_levelData);
+                beginEdit(CCEHistoryNode::HistConnect);
                 m_levelData->trapConnect(m_current.x(), m_current.y(), m_origin.x(), m_origin.y());
-                m_history.endEdit(m_levelData);
+                endEdit();
                 break;
             case ConnClone:
-                m_history.beginEdit(CCEHistoryNode::HistConnect, m_levelData);
+                beginEdit(CCEHistoryNode::HistConnect);
                 m_levelData->cloneConnect(m_origin.x(), m_origin.y(), m_current.x(), m_current.y());
-                m_history.endEdit(m_levelData);
+                endEdit();
                 break;
             case ConnCloneRev:
-                m_history.beginEdit(CCEHistoryNode::HistConnect, m_levelData);
+                beginEdit(CCEHistoryNode::HistConnect);
                 m_levelData->cloneConnect(m_current.x(), m_current.y(), m_origin.x(), m_origin.y());
-                m_history.endEdit(m_levelData);
+                endEdit();
                 break;
             default:
                 // Do nothing
@@ -501,6 +525,8 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
         } else {
             resetOrigin = false;
         }
+    } else if (m_drawMode == DrawSelect) {
+        resetOrigin = false;
     }
     update();
 
@@ -509,9 +535,15 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
 
     if (m_drawMode == DrawPencil || m_drawMode == DrawLine || m_drawMode == DrawFill
         || m_drawMode == DrawPathMaker)
-        m_history.endEdit(m_levelData);
-    emit canUndo(m_history.canUndo());
-    emit canRedo(m_history.canRedo());
+        endEdit();
+}
+
+void EditorWidget::setDrawMode(DrawMode mode)
+{
+    m_drawMode = mode;
+    m_origin = QPoint(-1, -1);
+    m_selectRect = QRect(-1, -1, -1, -1);
+    update();
 }
 
 void EditorWidget::viewTile(QPainter& painter, int x, int y)
@@ -570,11 +602,11 @@ void EditorWidget::putTile(tile_t tile, int x, int y, bool bury)
         }
     } else if (MONSTER_TILE(m_levelData->map().getFG(x, y)) && !MONSTER_TILE(oldUpper)
                && m_levelData->map().getBG(x, y) != ccl::TileCloner) {
-        if (m_levelData->moveList().size() < 127)
+        if (m_levelData->moveList().size() < MAX_MOVERS)
             m_levelData->addMover(x, y);
     } else if (oldLower == ccl::TileCloner && m_levelData->map().getBG(x, y) != ccl::TileCloner
                &&  MONSTER_TILE(m_levelData->map().getFG(x, y))) {
-        if (m_levelData->moveList().size() < 127)
+        if (m_levelData->moveList().size() < MAX_MOVERS)
             m_levelData->addMover(x, y);
     }
 

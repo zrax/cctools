@@ -30,8 +30,10 @@
 #include <QStatusBar>
 #include <QCloseEvent>
 #include <QActionGroup>
+#include <QClipboard>
 #include <cstdio>
 #include <cstdlib>
+#include <ctime>
 #include "LevelsetProps.h"
 
 #define CCEDIT_TITLE "CCEdit 2.0 ALPHA"
@@ -40,7 +42,7 @@ TileListWidget::TileListWidget(QWidget* parent)
               : QListWidget(parent)
 { }
 
-void TileListWidget::addTiles(QList< tile_t > tiles)
+void TileListWidget::addTiles(const QList<tile_t>& tiles)
 {
     foreach (tile_t tile, tiles) {
         QListWidgetItem* item = new QListWidgetItem(CCETileset::TileName(tile), this);
@@ -220,7 +222,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_backLabel[0] = new QLabel(tileWidget);
 
     QGridLayout* tileLayout = new QGridLayout(tileWidget);
-    tileLayout->setContentsMargins(0, 0, 0, 0);
+    tileLayout->setContentsMargins(4, 4, 4, 4);
     tileLayout->setVerticalSpacing(4);
     tileLayout->addWidget(tileBox, 0, 0, 1, 2);
     tileLayout->addWidget(m_foreLabel[0], 1, 0);
@@ -240,7 +242,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_backLabel[1] = new QLabel(allTileWidget);
 
     QGridLayout* allTileLayout = new QGridLayout(allTileWidget);
-    allTileLayout->setContentsMargins(0, 0, 0, 0);
+    allTileLayout->setContentsMargins(4, 4, 4, 4);
     allTileLayout->setVerticalSpacing(4);
     allTileLayout->addWidget(m_tileLists[ListAllTiles], 0, 0, 1, 2);
     allTileLayout->addWidget(m_foreLabel[1], 1, 0);
@@ -302,13 +304,9 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionPaste]->setShortcut(Qt::CTRL | Qt::Key_V);
     m_actions[ActionPaste]->setEnabled(false);
     m_actions[ActionClear] = new QAction(QIcon(":/res/edit-delete.png"), tr("Clea&r"), this);
-    m_actions[ActionClear]->setStatusTip(tr("Replace the selection contents with the current Background tile"));
+    m_actions[ActionClear]->setStatusTip(tr("Clear all tiles and logic from the selected region"));
     m_actions[ActionClear]->setShortcut(Qt::Key_Delete);
     m_actions[ActionClear]->setEnabled(false);
-    m_actions[ActionFill] = new QAction(tr("&Fill"), this);
-    m_actions[ActionFill]->setStatusTip(tr("Replace the selection contents with the current Foreground tile"));
-    m_actions[ActionFill]->setShortcut(Qt::CTRL | Qt::Key_F);
-    m_actions[ActionFill]->setEnabled(false);
 
     m_actions[ActionDrawPencil] = new QAction(QIcon(":/res/draw-freehand.png"), tr("&Pencil"), this);
     m_actions[ActionDrawPencil]->setStatusTip(tr("Draw tiles with the pencil tool"));
@@ -330,6 +328,9 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionConnect]->setStatusTip(tr("Connect buttons to traps and cloning machines"));
     m_actions[ActionConnect]->setShortcut(Qt::CTRL | Qt::Key_T);
     m_actions[ActionConnect]->setCheckable(true);
+    m_actions[ActionAdvancedLogic] = new QAction(tr("&Advanced Logic"), this);
+    m_actions[ActionAdvancedLogic]->setStatusTip(tr("Manually manipulate gameplay logic for the current level"));
+    m_actions[ActionAdvancedLogic]->setShortcut(Qt::CTRL | Qt::Key_K);
 
     m_actions[ActionViewButtons] = new QAction(tr("Show &Button Connections"), this);
     m_actions[ActionViewButtons]->setStatusTip(tr("Draw lines between connected buttons/traps/cloning machines in editor"));
@@ -384,7 +385,6 @@ CCEditMain::CCEditMain(QWidget* parent)
     editMenu->addAction(m_actions[ActionPaste]);
     editMenu->addSeparator();
     editMenu->addAction(m_actions[ActionClear]);
-    editMenu->addAction(m_actions[ActionFill]);
 
     QMenu* toolsMenu = menuBar()->addMenu(tr("&Tools"));
     toolsMenu->addAction(m_actions[ActionDrawPencil]);
@@ -393,6 +393,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     toolsMenu->addAction(m_actions[ActionPathMaker]);
     toolsMenu->addSeparator();
     toolsMenu->addAction(m_actions[ActionConnect]);
+    toolsMenu->addAction(m_actions[ActionAdvancedLogic]);
 
     QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(m_actions[ActionViewButtons]);
@@ -443,6 +444,10 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionClose], SIGNAL(triggered()), SLOT(onCloseAction()));
     connect(m_actions[ActionExit], SIGNAL(triggered()), SLOT(close()));
     connect(m_actions[ActionSelect], SIGNAL(toggled(bool)), SLOT(onSelectToggled(bool)));
+    connect(m_actions[ActionCut], SIGNAL(triggered()), SLOT(onCutAction()));
+    connect(m_actions[ActionCopy], SIGNAL(triggered()), SLOT(onCopyAction()));
+    connect(m_actions[ActionPaste], SIGNAL(triggered()), SLOT(onPasteAction()));
+    connect(m_actions[ActionClear], SIGNAL(triggered()), SLOT(onClearAction()));
     connect(m_actions[ActionUndo], SIGNAL(triggered()), m_editor, SLOT(undo()));
     connect(m_actions[ActionRedo], SIGNAL(triggered()), m_editor, SLOT(redo()));
     connect(m_actions[ActionDrawPencil], SIGNAL(triggered()), SLOT(onDrawPencilAction()));
@@ -471,6 +476,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_editor, SIGNAL(mouseInfo(QString)), statusBar(), SLOT(showMessage(QString)));
     connect(m_editor, SIGNAL(canUndo(bool)), m_actions[ActionUndo], SLOT(setEnabled(bool)));
     connect(m_editor, SIGNAL(canRedo(bool)), m_actions[ActionRedo], SLOT(setEnabled(bool)));
+    connect(qApp->clipboard(), SIGNAL(dataChanged()), SLOT(onClipboardDataChanged()));
 
     for (int i=0; i<NUM_TILE_LISTS; ++i) {
         connect(m_tileLists[i], SIGNAL(itemSelectedLeft(tile_t)), SLOT(setForeground(tile_t)));
@@ -493,6 +499,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     setForeground(ccl::TileWall);
     setBackground(ccl::TileFloor);
     onSelectLevel(-1);
+    onClipboardDataChanged();
 }
 
 void CCEditMain::loadLevelset(QString filename)
@@ -502,16 +509,14 @@ void CCEditMain::loadLevelset(QString filename)
 
     LevelsetType type = determineLevelsetType(filename);
     if (type == LevelsetCcl) {
-        FILE* set = fopen(filename.toUtf8().data(), "rb");
-        if (set != 0) {
+        ccl::FileStream set;
+        if (set.open(filename.toUtf8().data(), "rb")) {
             m_levelset = new ccl::Levelset(0);
             try {
-                m_levelset->read(set);
-                fclose(set);
+                m_levelset->read(&set);
             } catch (ccl::Exception& e) {
                 QMessageBox::critical(this, tr("Error reading levelset"),
                                       tr("Error loading levelset: %1").arg(e.what()));
-                fclose(set);
                 delete m_levelset;
                 m_levelset = 0;
                 return;
@@ -541,16 +546,14 @@ void CCEditMain::loadLevelset(QString filename)
             QDir searchPath(filename);
             searchPath.cdUp();
 
-            FILE* set = fopen(searchPath.absoluteFilePath(m_dacInfo.m_filename.c_str()).toUtf8().data(), "rb");
-            if (set != 0) {
+            ccl::FileStream set;
+            if (set.open(searchPath.absoluteFilePath(m_dacInfo.m_filename.c_str()).toUtf8().data(), "rb")) {
                 m_levelset = new ccl::Levelset(0);
                 try {
-                    m_levelset->read(set);
-                    fclose(set);
+                    m_levelset->read(&set);
                 } catch (ccl::Exception& e) {
                     QMessageBox::critical(this, tr("Error reading levelset"),
                                         tr("Error loading levelset: %1").arg(e.what()));
-                    fclose(set);
                     delete m_levelset;
                     m_levelset = 0;
                     return;
@@ -631,15 +634,13 @@ void CCEditMain::saveLevelset(QString filename)
             QDir searchPath(filename);
             searchPath.cdUp();
 
-            FILE* set = fopen(searchPath.absoluteFilePath(m_dacInfo.m_filename.c_str()).toUtf8().data(), "wb");
-            if (set != 0) {
+            ccl::FileStream set;
+            if (set.open(searchPath.absoluteFilePath(m_dacInfo.m_filename.c_str()).toUtf8().data(), "wb")) {
                 try {
-                    m_levelset->write(set);
-                    fclose(set);
+                    m_levelset->write(&set);
                 } catch (ccl::Exception e) {
                     QMessageBox::critical(this, tr("Error saving levelset"),
                                           tr("Error saving levelset: %1").arg(e.what()));
-                    fclose(set);
                     return;
                 }
             } else {
@@ -654,15 +655,13 @@ void CCEditMain::saveLevelset(QString filename)
             return;
         }
     } else {
-        FILE* set = fopen(filename.toUtf8(), "wb");
-        if (set != 0) {
+        ccl::FileStream set;
+        if (set.open(filename.toUtf8(), "wb")) {
             try {
-                m_levelset->write(set);
-                fclose(set);
+                m_levelset->write(&set);
             } catch (ccl::Exception e) {
                 QMessageBox::critical(this, tr("Error saving levelset"),
                                       tr("Error saving levelset: %1").arg(e.what()));
-                fclose(set);
                 return;
             }
         } else {
@@ -816,17 +815,173 @@ void CCEditMain::onSelectToggled(bool mode)
 {
     m_actions[ActionCut]->setEnabled(mode);
     m_actions[ActionCopy]->setEnabled(mode);
-    m_actions[ActionPaste]->setEnabled(mode);
     m_actions[ActionClear]->setEnabled(mode);
-    m_actions[ActionFill]->setEnabled(mode);
 
     m_actions[ActionDrawPencil]->setChecked(false);
     m_actions[ActionDrawLine]->setChecked(false);
     m_actions[ActionDrawFill]->setChecked(false);
     m_actions[ActionPathMaker]->setChecked(false);
     m_actions[ActionConnect]->setChecked(false);
-    if (!mode)
+    if (mode)
+        m_editor->setDrawMode(EditorWidget::DrawSelect);
+    else
         m_actions[m_savedDrawMode]->setChecked(true);
+}
+
+void CCEditMain::onCutAction()
+{
+    onCopyAction();
+    onClearAction();
+}
+
+void CCEditMain::onCopyAction()
+{
+    if (m_editor->selection() == QRect(-1, -1, -1, -1))
+        return;
+
+    ccl::LevelData* copyRegion = new ccl::LevelData();
+    ccl::LevelData* current = m_editor->levelData();
+    copyRegion->map().copyFrom(m_editor->levelData()->map(),
+        m_editor->selection().left(), m_editor->selection().top(),
+        0, 0, m_editor->selection().width(), m_editor->selection().height());
+
+    // Gather any logic that is completely encompassed by this region
+    std::list<ccl::Trap>::const_iterator trap_iter;
+    for (trap_iter = current->traps().begin(); trap_iter != current->traps().end(); ++trap_iter) {
+        if (m_editor->selection().contains(trap_iter->button.X, trap_iter->button.Y)
+            && m_editor->selection().contains(trap_iter->trap.X, trap_iter->trap.Y))
+            copyRegion->trapConnect(trap_iter->button.X - m_editor->selection().left(),
+                                    trap_iter->button.Y - m_editor->selection().top(),
+                                    trap_iter->trap.X - m_editor->selection().left(),
+                                    trap_iter->trap.Y - m_editor->selection().top());
+    }
+
+    std::list<ccl::Clone>::const_iterator clone_iter;
+    for (clone_iter = current->clones().begin(); clone_iter != current->clones().end(); ++clone_iter) {
+        if (m_editor->selection().contains(clone_iter->button.X, clone_iter->button.Y)
+            && m_editor->selection().contains(clone_iter->clone.X, clone_iter->clone.Y))
+            copyRegion->cloneConnect(clone_iter->button.X - m_editor->selection().left(),
+                                     clone_iter->button.Y - m_editor->selection().top(),
+                                     clone_iter->clone.X - m_editor->selection().left(),
+                                     clone_iter->clone.Y - m_editor->selection().top());
+    }
+
+    std::list<ccl::Point>::const_iterator move_iter;
+    for (move_iter = current->moveList().begin(); move_iter != current->moveList().end(); ++move_iter) {
+        if (m_editor->selection().contains(move_iter->X, move_iter->Y))
+            copyRegion->addMover(move_iter->X - m_editor->selection().left(),
+                                 move_iter->Y - m_editor->selection().top());
+    }
+
+    try {
+        ccl::BufferStream cbStream;
+        cbStream.write32(m_editor->selection().width());
+        cbStream.write32(m_editor->selection().height());
+        cbStream.write16(0);    // Revisit after writing data
+        cbStream.write32(0);
+        copyRegion->write(&cbStream, true);
+        cbStream.seek(8, SEEK_SET);
+        cbStream.write16(cbStream.size() - 14); // Size of data buffer
+        QByteArray buffer((const char*)cbStream.buffer(), cbStream.size());
+
+        QMimeData* copyData = new QMimeData();
+        copyData->setData("CHIPEDIT MAPSECT", buffer);
+        qApp->clipboard()->setMimeData(copyData);
+    } catch (std::exception& e) {
+        QMessageBox::critical(this, tr("Error"),
+                tr("Error saving clipboard data: %1").arg(e.what()),
+                QMessageBox::Ok);
+    }
+    delete copyRegion;
+}
+
+void CCEditMain::onPasteAction()
+{
+    const QMimeData* cbData = qApp->clipboard()->mimeData();
+    if (cbData->hasFormat("CHIPEDIT MAPSECT")) {
+        QByteArray buffer = cbData->data("CHIPEDIT MAPSECT");
+        ccl::BufferStream cbStream;
+        cbStream.setFrom(buffer.data(), buffer.size());
+
+        int width, height;
+        ccl::LevelData* copyRegion = new ccl::LevelData();
+        try {
+            width = cbStream.read32();
+            height = cbStream.read32();
+            cbStream.read16();
+            cbStream.read32();
+            copyRegion->read(&cbStream, true);
+        } catch (std::exception& e) {
+            QMessageBox::critical(this, tr("Error"),
+                    tr("Error parsing clipboard data: %1").arg(e.what()),
+                    QMessageBox::Ok);
+            delete copyRegion;
+            return;
+        }
+
+        int destX, destY;
+        if (m_editor->selection() == QRect(-1, -1, -1, -1)) {
+            destX = 0;
+            destY = 0;
+        } else {
+            destX = m_editor->selection().left();
+            destY = m_editor->selection().top();
+        }
+        if (destX + width > CCL_WIDTH)
+            width = CCL_WIDTH - destX;
+        if (destY + height > CCL_HEIGHT)
+            height = CCL_HEIGHT - destY;
+
+        m_editor->beginEdit(CCEHistoryNode::HistPaste);
+        m_editor->selectRegion(destX, destY, width, height);
+        onClearAction();
+        m_editor->levelData()->map().copyFrom(copyRegion->map(),
+            0, 0, destX, destY, width, height);
+        ccl::LevelData* current = m_editor->levelData();
+
+        std::list<ccl::Trap>::const_iterator trap_iter;
+        for (trap_iter = copyRegion->traps().begin(); trap_iter != copyRegion->traps().end(); ++trap_iter) {
+            if (current->traps().size() < MAX_TRAPS && trap_iter->button.X + destX < CCL_WIDTH
+                && trap_iter->button.Y + destY < CCL_HEIGHT && trap_iter->trap.X + destX < CCL_WIDTH
+                && trap_iter->trap.Y + destY < CCL_HEIGHT)
+                current->trapConnect(trap_iter->button.X + destX, trap_iter->button.Y + destY,
+                                     trap_iter->trap.X + destX, trap_iter->trap.Y + destY);
+        }
+
+        std::list<ccl::Clone>::const_iterator clone_iter;
+        for (clone_iter = copyRegion->clones().begin(); clone_iter != copyRegion->clones().end(); ++clone_iter) {
+            if (current->clones().size() < MAX_CLONES && clone_iter->button.X + destX < CCL_WIDTH
+                && clone_iter->button.Y + destY < CCL_HEIGHT && clone_iter->clone.X + destX < CCL_WIDTH
+                && clone_iter->clone.Y + destY < CCL_HEIGHT)
+                current->cloneConnect(clone_iter->button.X + destX, clone_iter->button.Y + destY,
+                                      clone_iter->clone.X + destX, clone_iter->clone.Y + destY);
+        }
+
+        std::list<ccl::Point>::const_iterator move_iter;
+        for (move_iter = copyRegion->moveList().begin(); move_iter != copyRegion->moveList().end(); ++move_iter) {
+            if (current->moveList().size() < MAX_MOVERS && move_iter->X + destX < CCL_WIDTH
+                && move_iter->Y + destY < CCL_HEIGHT)
+                current->addMover(move_iter->X + destX, move_iter->Y + destY);
+        }
+
+        m_editor->endEdit();
+    }
+}
+
+void CCEditMain::onClearAction()
+{
+    if (m_editor->selection() == QRect(-1, -1, -1, -1))
+        return;
+
+    m_editor->beginEdit(CCEHistoryNode::HistClear);
+    for (int y = m_editor->selection().top(); y <= m_editor->selection().bottom(); ++y) {
+        for (int x = m_editor->selection().left(); x <= m_editor->selection().right(); ++x) {
+            m_editor->putTile(ccl::TileFloor, x, y, true);
+            m_editor->putTile(ccl::TileFloor, x, y, false);
+        }
+    }
+    m_editor->endEdit();
+    m_editor->update();
 }
 
 void CCEditMain::onDrawPencilAction()
@@ -1083,9 +1238,18 @@ void CCEditMain::setBackground(tile_t tile)
     m_editor->setRightTile(tile);
 }
 
+void CCEditMain::onClipboardDataChanged()
+{
+    const QMimeData* cbData = qApp->clipboard()->mimeData();
+    m_actions[ActionPaste]->setEnabled(cbData->hasFormat("CHIPEDIT MAPSECT"));
+}
+
 
 int main(int argc, char* argv[])
 {
+    // Set random seed for password generation
+    srand(time(NULL));
+
     QApplication app(argc, argv);
     app.setAttribute(Qt::AA_DontShowIconsInMenus, false);
     CCEditMain mainWin;

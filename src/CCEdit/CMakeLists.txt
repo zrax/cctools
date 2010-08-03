@@ -4,6 +4,7 @@ include(${QT_USE_FILE})
 include_directories(${QT_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(CCEdit_SOURCES
+    ../Stream.cpp
     ../Levelset.cpp
     ../Tileset.cpp
     ../DacFile.cpp

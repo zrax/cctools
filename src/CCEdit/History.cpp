@@ -17,7 +17,7 @@
 
 #include "History.h"
 
-CCEHistory::CCEHistory() : m_temp(0)
+CCEHistory::CCEHistory() : m_temp(0), m_entryCount(0)
 {
     m_history = new CCEHistoryNode(CCEHistoryNode::HistInit);
     m_present = m_history;
@@ -63,26 +63,31 @@ ccl::LevelData* CCEHistory::redo()
 
 void CCEHistory::beginEdit(CCEHistoryNode::Type type, ccl::LevelData* before)
 {
-    m_temp = new CCEHistoryNode(type);
-    m_temp->m_before = new ccl::LevelData(*before);
+    if (++m_entryCount == 1) {
+        m_temp = new CCEHistoryNode(type);
+        m_temp->m_before = new ccl::LevelData(*before);
+    }
 }
 
 void CCEHistory::endEdit(ccl::LevelData* after)
 {
-    m_temp->m_after = new ccl::LevelData(*after);
+    if (--m_entryCount == 0) {
+        m_temp->m_after = new ccl::LevelData(*after);
 
-    CCEHistoryNode* node = m_present->m_next;
-    while (node != 0) {
-        CCEHistoryNode* next = node->m_next;
-        delete node;
-        node = next;
+        CCEHistoryNode* node = m_present->m_next;
+        while (node != 0) {
+            CCEHistoryNode* next = node->m_next;
+            delete node;
+            node = next;
+        }
+        m_temp->m_prev = m_present;
+        m_present->m_next = m_temp;
+        m_present = m_temp;
     }
-    m_temp->m_prev = m_present;
-    m_present->m_next = m_temp;
-    m_present = m_temp;
 }
 
 void CCEHistory::cancelEdit()
 {
-    delete m_temp;
+    if (--m_entryCount == 0)
+        delete m_temp;
 }

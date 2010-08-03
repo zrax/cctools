@@ -22,9 +22,13 @@
 #include <list>
 #include <vector>
 #include <cstdio>
-#include "Errors.h"
+#include "Stream.h"
 
-typedef unsigned char tile_t;
+#define CCL_WIDTH   32
+#define CCL_HEIGHT  32
+#define MAX_TRAPS   25
+#define MAX_CLONES  31
+#define MAX_MOVERS  127
 
 namespace ccl {
 
@@ -34,7 +38,7 @@ struct Clone    { Point button, clone; };
 
 class LevelMap {
 public:
-    LevelMap(int height = 32, int width = 32);
+    LevelMap();
 
     LevelMap(const LevelMap& init)
         : m_fgTiles(0), m_bgTiles(0)
@@ -49,30 +53,31 @@ public:
     }
 
     LevelMap& operator=(const LevelMap& source);
-    void copyFrom(const LevelMap& source, int destX = 0, int destY = 0);
+    void copyFrom(const LevelMap& source, int srcX = 0, int srcY = 0,
+                  int destX = 0, int destY = 0,
+                  int width = CCL_WIDTH, int height = CCL_HEIGHT);
 
     tile_t getFG(int x, int y) const
-    { return m_fgTiles[(m_width*y) + x]; }
+    { return m_fgTiles[(CCL_WIDTH*y) + x]; }
 
     tile_t getBG(int x, int y) const
-    { return m_bgTiles[(m_width*y) + x]; }
+    { return m_bgTiles[(CCL_WIDTH*y) + x]; }
 
     void setFG(int x, int y, tile_t tile)
-    { m_fgTiles[(m_width*y) + x] = tile; }
+    { m_fgTiles[(CCL_WIDTH*y) + x] = tile; }
 
     void setBG(int x, int y, tile_t tile)
-    { m_bgTiles[(m_width*y) + x] = tile; }
+    { m_bgTiles[(CCL_WIDTH*y) + x] = tile; }
 
     void push(int x, int y, tile_t tile);
     tile_t pop(int x, int y);
 
-    long read(FILE* stream);
-    long write(FILE* stream);
+    long read(Stream* stream);
+    long write(Stream* stream);
 
 private:
     tile_t* m_fgTiles;
     tile_t* m_bgTiles;
-    int m_height, m_width;
 };
 
 
@@ -114,8 +119,8 @@ public:
     void cloneConnect(int buttonX, int buttonY, int cloneX, int cloneY);
     void addMover(int moverX, int moverY);
 
-    long read(FILE* stream);
-    long write(FILE* stream);
+    long read(Stream* stream, bool forClipboard = false);
+    long write(Stream* stream, bool forClipboard = false);
 
 private:
     ccl::LevelMap m_map;
@@ -153,8 +158,8 @@ public:
     void insertLevel(int where, ccl::LevelData* level);
     ccl::LevelData* takeLevel(int num);
 
-    void read(FILE* stream);
-    void write(FILE* stream);
+    void read(Stream* stream);
+    void write(Stream* stream);
 
 private:
     std::vector<ccl::LevelData*> m_levels;

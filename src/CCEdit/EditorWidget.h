@@ -65,7 +65,11 @@ public:
     void setLeftTile(tile_t tile) { m_leftTile = tile; }
     void setRightTile(tile_t tile) { m_rightTile = tile; }
     DrawMode drawMode() const { return m_drawMode; }
-    void setDrawMode(DrawMode mode) { m_drawMode = mode; }
+    void setDrawMode(DrawMode mode);
+
+    QRect selection() const { return m_selectRect; }
+    void selectRegion(int left, int top, int width, int height)
+    { m_selectRect = QRect(left, top, width, height); }
 
     void setPaintFlag(int flag)
     {
@@ -78,6 +82,18 @@ public:
         m_paintFlags &= ~flag;
         update();
     }
+
+    void beginEdit(CCEHistoryNode::Type type)
+    { m_history.beginEdit(type, m_levelData); }
+
+    void endEdit()
+    {
+         m_history.endEdit(m_levelData);
+         emit canUndo(m_history.canUndo());
+         emit canRedo(m_history.canRedo());
+    }
+
+    void cancelEdit() { m_history.cancelEdit(); }
 
 public slots:
     void viewTile(QPainter& painter, int x, int y);
@@ -96,6 +112,7 @@ private:
     QPoint m_origin, m_current;
     ccl::Direction m_lastDir;
     CCEHistory m_history;
+    QRect m_selectRect;
 
 signals:
     void mouseInfo(QString text);

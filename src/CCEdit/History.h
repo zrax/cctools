@@ -61,6 +61,7 @@ private:
     CCEHistoryNode* m_history;
     CCEHistoryNode* m_present;
     CCEHistoryNode* m_temp;
+    int m_entryCount;
 };
 
 #endif

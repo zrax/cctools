@@ -1,5 +1,8 @@
 syntax: glob
 *.kdev4
+*.dat
+*.dac
+*.ccl
 .DS_Store
 bin/CCEdit
 bin/CCEdit.app

@@ -38,7 +38,7 @@ class TileListWidget : public QListWidget {
 
 public:
     TileListWidget(QWidget* parent = 0);
-    void addTiles(QList<tile_t> tiles);
+    void addTiles(const QList<tile_t>& tiles);
 
 protected:
     virtual void mousePressEvent(QMouseEvent*);
@@ -67,11 +67,10 @@ private:
     enum ActionType {
         ActionNew, ActionOpen, ActionSave, ActionSaveAs, ActionClose, ActionExit,
         ActionSelect, ActionCut, ActionCopy, ActionPaste, ActionClear,
-        ActionFill, ActionUndo, ActionRedo, ActionDrawPencil, ActionDrawLine,
-        ActionDrawFill, ActionPathMaker, ActionConnect,
-        ActionViewButtons, ActionViewMovers, ActionViewActivePlayer,
-        ActionAddLevel, ActionDelLevel, ActionMoveUp, ActionMoveDown,
-        ActionProperties,
+        ActionUndo, ActionRedo, ActionDrawPencil, ActionDrawLine, ActionDrawFill,
+        ActionPathMaker, ActionConnect, ActionAdvancedLogic, ActionViewButtons,
+        ActionViewMovers, ActionViewActivePlayer, ActionAddLevel, ActionDelLevel,
+        ActionMoveUp, ActionMoveDown, ActionProperties,
         NUM_ACTIONS
     };
 
@@ -118,6 +117,10 @@ private slots:
     void onSaveAsAction();
     void onCloseAction() { closeLevelset(); }
     void onSelectToggled(bool);
+    void onCutAction();
+    void onCopyAction();
+    void onPasteAction();
+    void onClearAction();
     void onDrawPencilAction();
     void onDrawLineAction();
     void onDrawFillAction();
@@ -141,6 +144,7 @@ private slots:
     void onPasswordChanged(QString);
     void onChipsChanged(int);
     void onTimerChanged(int);
+    void onClipboardDataChanged();
 
     void setForeground(tile_t);
     void setBackground(tile_t);
