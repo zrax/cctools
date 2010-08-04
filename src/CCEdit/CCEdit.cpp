@@ -84,7 +84,7 @@ static LevelsetType determineLevelsetType(QString filename)
 
 CCEditMain::CCEditMain(QWidget* parent)
     : QMainWindow(parent), m_currentTileset(0), m_savedDrawMode(ActionDrawPencil),
-      m_levelset(0), m_useDac(false)
+      m_currentDrawMode(EditorWidget::DrawPencil),  m_levelset(0), m_useDac(false)
 {
     setWindowTitle(CCEDIT_TITLE);
     QIcon appicon(":/icons/boot-48.png");
