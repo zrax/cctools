@@ -89,11 +89,16 @@ public:
     void endEdit()
     {
          m_history.endEdit(m_levelData);
-         emit canUndo(m_history.canUndo());
-         emit canRedo(m_history.canRedo());
+         updateUndoStatus();
     }
 
     void cancelEdit() { m_history.cancelEdit(); }
+
+    void updateUndoStatus()
+    {
+         emit canUndo(m_history.canUndo());
+         emit canRedo(m_history.canRedo());
+    }
 
 public slots:
     void viewTile(QPainter& painter, int x, int y);

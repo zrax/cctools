@@ -24,7 +24,6 @@
 #include <QListWidget>
 #include <QLineEdit>
 #include <QSpinBox>
-#include <QToolButton>
 #include <QTabWidget>
 #include <QLabel>
 #include "EditorWidget.h"
@@ -63,6 +62,10 @@ public:
     void findTilesets();
     void selectLevel(int level);
 
+    EditorWidget* getEditorAt(int idx);
+    EditorWidget* addEditor(ccl::LevelData* level);
+    void closeAllTabs();
+
 private:
     enum ActionType {
         ActionNew, ActionOpen, ActionSave, ActionSaveAs, ActionClose, ActionExit,
@@ -82,17 +85,17 @@ private:
     QAction* m_actions[NUM_ACTIONS];
     QMenu* m_tilesetMenu;
     QActionGroup* m_tilesetGroup;
+    CCETileset* m_currentTileset;
     ActionType m_savedDrawMode;
+    EditorWidget::DrawMode m_currentDrawMode;
 
-    EditorWidget* m_editor;
+    QTabWidget* m_editorTabs;
     QTabWidget* m_toolTabs;
     QListWidget* m_levelList;
     QLineEdit* m_nameEdit;
     QLineEdit* m_passwordEdit;
     QSpinBox* m_chipEdit;
     QSpinBox* m_timeEdit;
-    QToolButton* m_passwordButton;
-    QToolButton* m_chipsButton;
     QLineEdit* m_hintEdit;
     TileListWidget* m_tileLists[NUM_TILE_LISTS];
     LayerWidget* m_layer[2];
@@ -121,6 +124,8 @@ private slots:
     void onCopyAction();
     void onPasteAction();
     void onClearAction();
+    void onUndoAction();
+    void onRedoAction();
     void onDrawPencilAction();
     void onDrawLineAction();
     void onDrawFillAction();
@@ -138,6 +143,7 @@ private slots:
     void onPropertiesAction();
 
     void onSelectLevel(int);
+    //void onLevelDClicked(QListWidgetItem*) { onNewTab(); }
     void onPasswordGenAction();
     void onChipCountAction();
     void onNameChanged(QString);
@@ -145,6 +151,11 @@ private slots:
     void onChipsChanged(int);
     void onTimerChanged(int);
     void onClipboardDataChanged();
+
+    void onNewTab();
+    void onCloseTab(int);
+    void onCloseCurrentTab();
+    void onTabChanged(int);
 
     void setForeground(tile_t);
     void setBackground(tile_t);

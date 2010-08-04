@@ -654,9 +654,7 @@ void EditorWidget::undo()
     m_levelData->clones() = data->clones();
     m_levelData->moveList() = data->moveList();
     update();
-
-    emit canUndo(m_history.canUndo());
-    emit canRedo(m_history.canRedo());
+    updateUndoStatus();
 }
 
 void EditorWidget::redo()
@@ -667,7 +665,5 @@ void EditorWidget::redo()
     m_levelData->clones() = data->clones();
     m_levelData->moveList() = data->moveList();
     update();
-
-    emit canUndo(m_history.canUndo());
-    emit canRedo(m_history.canRedo());
+    updateUndoStatus();
 }

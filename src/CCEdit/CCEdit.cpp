@@ -25,6 +25,7 @@
 #include <QGridLayout>
 #include <QScrollArea>
 #include <QToolBox>
+#include <QToolButton>
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QStatusBar>
@@ -82,8 +83,8 @@ static LevelsetType determineLevelsetType(QString filename)
 
 
 CCEditMain::CCEditMain(QWidget* parent)
-    : QMainWindow(parent), m_savedDrawMode(ActionDrawPencil), m_levelset(0),
-      m_useDac(false)
+    : QMainWindow(parent), m_currentTileset(0), m_savedDrawMode(ActionDrawPencil),
+      m_levelset(0), m_useDac(false)
 {
     setWindowTitle(CCEDIT_TITLE);
     QIcon appicon(":/icons/boot-48.png");
@@ -92,6 +93,110 @@ CCEditMain::CCEditMain(QWidget* parent)
     appicon.addFile(":/icons/boot-16.png");
     setWindowIcon(appicon);
     setDockOptions(QMainWindow::AnimatedDocks);
+
+    // Actions
+    m_actions[ActionNew] = new QAction(QIcon(":/res/document-new.png"), tr("&New Levelset..."), this);
+    m_actions[ActionNew]->setStatusTip(tr("Create new Levelset"));
+    m_actions[ActionNew]->setShortcut(Qt::Key_F2);
+    m_actions[ActionOpen] = new QAction(QIcon(":/res/document-open.png"), tr("&Open Levelset..."), this);
+    m_actions[ActionOpen]->setStatusTip(tr("Open a levelset from disk"));
+    m_actions[ActionOpen]->setShortcut(Qt::CTRL | Qt::Key_O);
+    m_actions[ActionSave] = new QAction(QIcon(":/res/document-save.png"), tr("&Save"), this);
+    m_actions[ActionSave]->setStatusTip(tr("Save the current levelset to the same file"));
+    m_actions[ActionSave]->setShortcut(Qt::CTRL | Qt::Key_S);
+    m_actions[ActionSaveAs] = new QAction(QIcon(":/res/document-save-as.png"), tr("Save &As..."), this);
+    m_actions[ActionSaveAs]->setStatusTip(tr("Save the current levelset to a new file or location"));
+    m_actions[ActionSaveAs]->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_S);
+    m_actions[ActionClose] = new QAction(tr("&Close Levelset"), this);
+    m_actions[ActionClose]->setStatusTip(tr("Close the currently open levelset"));
+    m_actions[ActionClose]->setShortcut(Qt::CTRL | Qt::Key_W);
+    m_actions[ActionExit] = new QAction(QIcon(":/res/application-exit.png"), tr("E&xit"), this);
+    m_actions[ActionExit]->setStatusTip(tr("Close CCEdit"));
+
+    m_actions[ActionUndo] = new QAction(QIcon(":/res/edit-undo.png"), tr("&Undo"), this);
+    m_actions[ActionUndo]->setStatusTip(tr("Undo the last edit"));
+    m_actions[ActionUndo]->setShortcut(Qt::CTRL | Qt::Key_Z);
+    m_actions[ActionUndo]->setEnabled(false);
+    m_actions[ActionRedo] = new QAction(QIcon(":/res/edit-redo.png"), tr("&Redo"), this);
+    m_actions[ActionRedo]->setStatusTip(tr("Redo the last edit"));
+    m_actions[ActionRedo]->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_Z);
+    m_actions[ActionRedo]->setEnabled(false);
+    m_actions[ActionSelect] = new QAction(QIcon(":/res/edit-select.png"), tr("&Select"), this);
+    m_actions[ActionSelect]->setStatusTip(tr("Enter selection mode"));
+    m_actions[ActionSelect]->setShortcut(Qt::CTRL | Qt::Key_A);
+    m_actions[ActionSelect]->setCheckable(true);
+    m_actions[ActionCut] = new QAction(QIcon(":/res/edit-cut.png"), tr("Cu&t"), this);
+    m_actions[ActionCut]->setStatusTip(tr("Put the selection in the clipboard and clear it from the editor"));
+    m_actions[ActionCut]->setShortcut(Qt::CTRL | Qt::Key_X);
+    m_actions[ActionCut]->setEnabled(false);
+    m_actions[ActionCopy] = new QAction(QIcon(":/res/edit-copy.png"), tr("&Copy"), this);
+    m_actions[ActionCopy]->setStatusTip(tr("Copy the current selection to the clipboard"));
+    m_actions[ActionCopy]->setShortcut(Qt::CTRL | Qt::Key_C);
+    m_actions[ActionCopy]->setEnabled(false);
+    m_actions[ActionPaste] = new QAction(QIcon(":/res/edit-paste.png"), tr("&Paste"), this);
+    m_actions[ActionPaste]->setStatusTip(tr("Paste the clipboard contents into the levelset at the selection position"));
+    m_actions[ActionPaste]->setShortcut(Qt::CTRL | Qt::Key_V);
+    m_actions[ActionPaste]->setEnabled(false);
+    m_actions[ActionClear] = new QAction(QIcon(":/res/edit-delete.png"), tr("Clea&r"), this);
+    m_actions[ActionClear]->setStatusTip(tr("Clear all tiles and logic from the selected region"));
+    m_actions[ActionClear]->setShortcut(Qt::Key_Delete);
+    m_actions[ActionClear]->setEnabled(false);
+
+    m_actions[ActionDrawPencil] = new QAction(QIcon(":/res/draw-freehand.png"), tr("&Pencil"), this);
+    m_actions[ActionDrawPencil]->setStatusTip(tr("Draw tiles with the pencil tool"));
+    m_actions[ActionDrawPencil]->setShortcut(Qt::CTRL | Qt::Key_P);
+    m_actions[ActionDrawPencil]->setCheckable(true);
+    m_actions[ActionDrawLine] = new QAction(QIcon(":/res/draw-line.png"), tr("&Line"), this);
+    m_actions[ActionDrawLine]->setStatusTip(tr("Draw tiles with the line tool"));
+    m_actions[ActionDrawLine]->setShortcut(Qt::CTRL | Qt::Key_L);
+    m_actions[ActionDrawLine]->setCheckable(true);
+    m_actions[ActionDrawFill] = new QAction(QIcon(":/res/draw-box.png"), tr("&Box"), this);
+    m_actions[ActionDrawFill]->setStatusTip(tr("Draw tiles with the box fill tool"));
+    m_actions[ActionDrawFill]->setShortcut(Qt::CTRL | Qt::Key_B);
+    m_actions[ActionDrawFill]->setCheckable(true);
+    m_actions[ActionPathMaker] = new QAction(QIcon(":/res/draw-path.png"), tr("Path &Maker"), this);
+    m_actions[ActionPathMaker]->setStatusTip(tr("Draw a directional path of tiles"));
+    m_actions[ActionPathMaker]->setShortcut(Qt::CTRL | Qt::Key_M);
+    m_actions[ActionPathMaker]->setCheckable(true);
+    m_actions[ActionConnect] = new QAction(QIcon(":/res/cctools-button.png"), tr("&Button Connector"), this);
+    m_actions[ActionConnect]->setStatusTip(tr("Connect buttons to traps and cloning machines"));
+    m_actions[ActionConnect]->setShortcut(Qt::CTRL | Qt::Key_T);
+    m_actions[ActionConnect]->setCheckable(true);
+    m_actions[ActionAdvancedLogic] = new QAction(tr("&Advanced Logic"), this);
+    m_actions[ActionAdvancedLogic]->setStatusTip(tr("Manually manipulate gameplay logic for the current level"));
+    m_actions[ActionAdvancedLogic]->setShortcut(Qt::CTRL | Qt::Key_K);
+
+    m_actions[ActionViewButtons] = new QAction(tr("Show &Button Connections"), this);
+    m_actions[ActionViewButtons]->setStatusTip(tr("Draw lines between connected buttons/traps/cloning machines in editor"));
+    m_actions[ActionViewButtons]->setCheckable(true);
+    m_actions[ActionViewButtons]->setChecked(true);
+    m_actions[ActionViewMovers] = new QAction(tr("Show &Monster Order"), this);
+    m_actions[ActionViewMovers]->setStatusTip(tr("Display Monster Order in editor"));
+    m_actions[ActionViewMovers]->setCheckable(true);
+    m_actions[ActionViewMovers]->setChecked(true);
+    m_actions[ActionViewActivePlayer] = new QAction(tr("Highlight &Player Start"), this);
+    m_actions[ActionViewActivePlayer]->setStatusTip(tr("Highlight Player start position"));
+    m_actions[ActionViewActivePlayer]->setCheckable(true);
+    m_actions[ActionViewActivePlayer]->setChecked(true);
+
+    QActionGroup* drawModeGroup = new QActionGroup(this);
+    drawModeGroup->addAction(m_actions[ActionDrawPencil]);
+    drawModeGroup->addAction(m_actions[ActionDrawLine]);
+    drawModeGroup->addAction(m_actions[ActionDrawFill]);
+    drawModeGroup->addAction(m_actions[ActionPathMaker]);
+    drawModeGroup->addAction(m_actions[ActionConnect]);
+    m_actions[ActionDrawPencil]->setChecked(true);
+
+    m_actions[ActionAddLevel] = new QAction(QIcon(":/res/list-add.png"), tr("&Add Level"), this);
+    m_actions[ActionAddLevel]->setStatusTip(tr("Add a new level to the end of the levelset"));
+    m_actions[ActionDelLevel] = new QAction(QIcon(":/res/list-remove.png"), tr("&Remove Level"), this);
+    m_actions[ActionDelLevel]->setStatusTip(tr("Remove the current level from the levelset"));
+    m_actions[ActionMoveUp] = new QAction(QIcon(":/res/arrow-up.png"), tr("Move &Up"), this);
+    m_actions[ActionMoveUp]->setStatusTip(tr("Move the current level up in the level list"));
+    m_actions[ActionMoveDown] = new QAction(QIcon(":/res/arrow-down.png"), tr("Move &Down"), this);
+    m_actions[ActionMoveDown]->setStatusTip(tr("Move the current level down in the level list"));
+    m_actions[ActionProperties] = new QAction(QIcon(":/res/document-properties.png"), tr("Levelset &Properties"), this);
+    m_actions[ActionProperties]->setStatusTip(tr("Change levelset and .DAC file properties"));
 
     // Control Toolbox
     QDockWidget* toolDock = new QDockWidget(this);
@@ -112,16 +217,18 @@ CCEditMain::CCEditMain(QWidget* parent)
     QLabel* passLabel = new QLabel(tr("&Password:"), levelManWidget);
     passLabel->setBuddy(m_passwordEdit);
     m_passwordEdit->setMaxLength(9);
-    m_passwordButton = new QToolButton(levelManWidget);
-    m_passwordButton->setIcon(QIcon(":/res/view-refresh.png"));
-    m_passwordButton->setStatusTip(tr("Generate new random level password"));
+    QToolButton* passwordButton = new QToolButton(levelManWidget);
+    passwordButton->setIcon(QIcon(":/res/view-refresh-sm.png"));
+    passwordButton->setStatusTip(tr("Generate new random level password"));
+    passwordButton->setAutoRaise(true);
     m_chipEdit = new QSpinBox(levelManWidget);
     QLabel* chipLabel = new QLabel(tr("&Chips:"), levelManWidget);
     chipLabel->setBuddy(m_chipEdit);
     m_chipEdit->setRange(0, 32767);
-    m_chipsButton = new QToolButton(levelManWidget);
-    m_chipsButton->setIcon(QIcon(":/res/view-refresh.png"));
-    m_chipsButton->setStatusTip(tr("Count all chips in the selected level"));
+    QToolButton* chipsButton = new QToolButton(levelManWidget);
+    chipsButton->setIcon(QIcon(":/res/view-refresh-sm.png"));
+    chipsButton->setStatusTip(tr("Count all chips in the selected level"));
+    chipsButton->setAutoRaise(true);
     m_timeEdit = new QSpinBox(levelManWidget);
     QLabel* timeLabel = new QLabel(tr("&Time:"), levelManWidget);
     timeLabel->setBuddy(m_timeEdit);
@@ -131,21 +238,30 @@ CCEditMain::CCEditMain(QWidget* parent)
     hintLabel->setBuddy(m_hintEdit);
     m_hintEdit->setMaxLength(254);
 
+    QToolBar* tbarLevelset = new QToolBar(levelManWidget);
+    tbarLevelset->addAction(m_actions[ActionAddLevel]);
+    tbarLevelset->addAction(m_actions[ActionDelLevel]);
+    tbarLevelset->addSeparator();
+    tbarLevelset->addAction(m_actions[ActionMoveUp]);
+    tbarLevelset->addAction(m_actions[ActionMoveDown]);
+    tbarLevelset->addSeparator();
+    tbarLevelset->addAction(m_actions[ActionProperties]);
+
     QGridLayout* levelManLayout = new QGridLayout(levelManWidget);
     levelManLayout->setContentsMargins(4, 4, 4, 4);
     levelManLayout->setVerticalSpacing(0);
     levelManLayout->setHorizontalSpacing(4);
     levelManLayout->addWidget(m_levelList, 0, 0, 1, 3);
-    // Row 1 reserved for Toolbar below
+    levelManLayout->addWidget(tbarLevelset, 1, 0, 1, 3);
     levelManLayout->addItem(new QSpacerItem(0, 8), 2, 0, 1, 3);
     levelManLayout->addWidget(nameLabel, 3, 0);
     levelManLayout->addWidget(m_nameEdit, 3, 1, 1, 2);
     levelManLayout->addWidget(passLabel, 4, 0);
     levelManLayout->addWidget(m_passwordEdit, 4, 1);
-    levelManLayout->addWidget(m_passwordButton, 4, 2);
+    levelManLayout->addWidget(passwordButton, 4, 2);
     levelManLayout->addWidget(chipLabel, 5, 0);
     levelManLayout->addWidget(m_chipEdit, 5, 1);
-    levelManLayout->addWidget(m_chipsButton, 5, 2);
+    levelManLayout->addWidget(chipsButton, 5, 2);
     levelManLayout->addWidget(timeLabel, 6, 0);
     levelManLayout->addWidget(m_timeEdit, 6, 1);
     levelManLayout->addItem(new QSpacerItem(0, 8), 7, 0, 1, 3);
@@ -255,119 +371,24 @@ CCEditMain::CCEditMain(QWidget* parent)
     allTileLayout->addWidget(m_layer[1], 1, 1, 2, 1);
     m_toolTabs->addTab(allTileWidget, tr("&All Tiles"));
 
-    // Main Editor
-    QScrollArea* editorScroll = new QScrollArea(this);
-    m_editor = new EditorWidget(editorScroll);
-    editorScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    editorScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    editorScroll->setWidget(m_editor);
-    setCentralWidget(editorScroll);
-    m_editor->setPaintFlag(EditorWidget::ShowButtons | EditorWidget::ShowMovement
-                           | EditorWidget::ShowPlayer);
-
-    // Actions
-    m_actions[ActionNew] = new QAction(QIcon(":/res/document-new.png"), tr("&New Levelset..."), this);
-    m_actions[ActionNew]->setStatusTip(tr("Create new Levelset"));
-    m_actions[ActionNew]->setShortcut(Qt::Key_F2);
-    m_actions[ActionOpen] = new QAction(QIcon(":/res/document-open.png"), tr("&Open Levelset..."), this);
-    m_actions[ActionOpen]->setStatusTip(tr("Open a levelset from disk"));
-    m_actions[ActionOpen]->setShortcut(Qt::CTRL | Qt::Key_O);
-    m_actions[ActionSave] = new QAction(QIcon(":/res/document-save.png"), tr("&Save"), this);
-    m_actions[ActionSave]->setStatusTip(tr("Save the current levelset to the same file"));
-    m_actions[ActionSave]->setShortcut(Qt::CTRL | Qt::Key_S);
-    m_actions[ActionSaveAs] = new QAction(QIcon(":/res/document-save-as.png"), tr("Save &As..."), this);
-    m_actions[ActionSaveAs]->setStatusTip(tr("Save the current levelset to a new file or location"));
-    m_actions[ActionSaveAs]->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_S);
-    m_actions[ActionClose] = new QAction(tr("&Close Levelset"), this);
-    m_actions[ActionClose]->setStatusTip(tr("Close the currently open levelset"));
-    m_actions[ActionClose]->setShortcut(Qt::CTRL | Qt::Key_W);
-    m_actions[ActionExit] = new QAction(QIcon(":/res/application-exit.png"), tr("E&xit"), this);
-    m_actions[ActionExit]->setStatusTip(tr("Close CCEdit"));
-
-    m_actions[ActionUndo] = new QAction(QIcon(":/res/edit-undo.png"), tr("&Undo"), this);
-    m_actions[ActionUndo]->setStatusTip(tr("Undo the last edit"));
-    m_actions[ActionUndo]->setShortcut(Qt::CTRL | Qt::Key_Z);
-    m_actions[ActionUndo]->setEnabled(false);
-    m_actions[ActionRedo] = new QAction(QIcon(":/res/edit-redo.png"), tr("&Redo"), this);
-    m_actions[ActionRedo]->setStatusTip(tr("Redo the last edit"));
-    m_actions[ActionRedo]->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_Z);
-    m_actions[ActionRedo]->setEnabled(false);
-    m_actions[ActionSelect] = new QAction(QIcon(":/res/edit-select.png"), tr("&Select"), this);
-    m_actions[ActionSelect]->setStatusTip(tr("Enter selection mode"));
-    m_actions[ActionSelect]->setShortcut(Qt::CTRL | Qt::Key_A);
-    m_actions[ActionSelect]->setCheckable(true);
-    m_actions[ActionCut] = new QAction(QIcon(":/res/edit-cut.png"), tr("Cu&t"), this);
-    m_actions[ActionCut]->setStatusTip(tr("Put the selection in the clipboard and clear it from the editor"));
-    m_actions[ActionCut]->setShortcut(Qt::CTRL | Qt::Key_X);
-    m_actions[ActionCut]->setEnabled(false);
-    m_actions[ActionCopy] = new QAction(QIcon(":/res/edit-copy.png"), tr("&Copy"), this);
-    m_actions[ActionCopy]->setStatusTip(tr("Copy the current selection to the clipboard"));
-    m_actions[ActionCopy]->setShortcut(Qt::CTRL | Qt::Key_C);
-    m_actions[ActionCopy]->setEnabled(false);
-    m_actions[ActionPaste] = new QAction(QIcon(":/res/edit-paste.png"), tr("&Paste"), this);
-    m_actions[ActionPaste]->setStatusTip(tr("Paste the clipboard contents into the levelset at the selection position"));
-    m_actions[ActionPaste]->setShortcut(Qt::CTRL | Qt::Key_V);
-    m_actions[ActionPaste]->setEnabled(false);
-    m_actions[ActionClear] = new QAction(QIcon(":/res/edit-delete.png"), tr("Clea&r"), this);
-    m_actions[ActionClear]->setStatusTip(tr("Clear all tiles and logic from the selected region"));
-    m_actions[ActionClear]->setShortcut(Qt::Key_Delete);
-    m_actions[ActionClear]->setEnabled(false);
-
-    m_actions[ActionDrawPencil] = new QAction(QIcon(":/res/draw-freehand.png"), tr("&Pencil"), this);
-    m_actions[ActionDrawPencil]->setStatusTip(tr("Draw tiles with the pencil tool"));
-    m_actions[ActionDrawPencil]->setShortcut(Qt::CTRL | Qt::Key_P);
-    m_actions[ActionDrawPencil]->setCheckable(true);
-    m_actions[ActionDrawLine] = new QAction(QIcon(":/res/draw-line.png"), tr("&Line"), this);
-    m_actions[ActionDrawLine]->setStatusTip(tr("Draw tiles with the line tool"));
-    m_actions[ActionDrawLine]->setShortcut(Qt::CTRL | Qt::Key_L);
-    m_actions[ActionDrawLine]->setCheckable(true);
-    m_actions[ActionDrawFill] = new QAction(QIcon(":/res/draw-box.png"), tr("&Box"), this);
-    m_actions[ActionDrawFill]->setStatusTip(tr("Draw tiles with the box fill tool"));
-    m_actions[ActionDrawFill]->setShortcut(Qt::CTRL | Qt::Key_B);
-    m_actions[ActionDrawFill]->setCheckable(true);
-    m_actions[ActionPathMaker] = new QAction(QIcon(":/res/draw-path.png"), tr("Path &Maker"), this);
-    m_actions[ActionPathMaker]->setStatusTip(tr("Draw a directional path of tiles"));
-    m_actions[ActionPathMaker]->setShortcut(Qt::CTRL | Qt::Key_M);
-    m_actions[ActionPathMaker]->setCheckable(true);
-    m_actions[ActionConnect] = new QAction(QIcon(":/res/cctools-button.png"), tr("&Button Connector"), this);
-    m_actions[ActionConnect]->setStatusTip(tr("Connect buttons to traps and cloning machines"));
-    m_actions[ActionConnect]->setShortcut(Qt::CTRL | Qt::Key_T);
-    m_actions[ActionConnect]->setCheckable(true);
-    m_actions[ActionAdvancedLogic] = new QAction(tr("&Advanced Logic"), this);
-    m_actions[ActionAdvancedLogic]->setStatusTip(tr("Manually manipulate gameplay logic for the current level"));
-    m_actions[ActionAdvancedLogic]->setShortcut(Qt::CTRL | Qt::Key_K);
-
-    m_actions[ActionViewButtons] = new QAction(tr("Show &Button Connections"), this);
-    m_actions[ActionViewButtons]->setStatusTip(tr("Draw lines between connected buttons/traps/cloning machines in editor"));
-    m_actions[ActionViewButtons]->setCheckable(true);
-    m_actions[ActionViewButtons]->setChecked(true);
-    m_actions[ActionViewMovers] = new QAction(tr("Show &Monster Order"), this);
-    m_actions[ActionViewMovers]->setStatusTip(tr("Display Monster Order in editor"));
-    m_actions[ActionViewMovers]->setCheckable(true);
-    m_actions[ActionViewMovers]->setChecked(true);
-    m_actions[ActionViewActivePlayer] = new QAction(tr("Highlight &Player Start"), this);
-    m_actions[ActionViewActivePlayer]->setStatusTip(tr("Highlight Player start position"));
-    m_actions[ActionViewActivePlayer]->setCheckable(true);
-    m_actions[ActionViewActivePlayer]->setChecked(true);
-
-    QActionGroup* drawModeGroup = new QActionGroup(this);
-    drawModeGroup->addAction(m_actions[ActionDrawPencil]);
-    drawModeGroup->addAction(m_actions[ActionDrawLine]);
-    drawModeGroup->addAction(m_actions[ActionDrawFill]);
-    drawModeGroup->addAction(m_actions[ActionPathMaker]);
-    drawModeGroup->addAction(m_actions[ActionConnect]);
-    m_actions[ActionDrawPencil]->setChecked(true);
-
-    m_actions[ActionAddLevel] = new QAction(QIcon(":/res/list-add.png"), tr("&Add Level"), this);
-    m_actions[ActionAddLevel]->setStatusTip(tr("Add a new level to the end of the levelset"));
-    m_actions[ActionDelLevel] = new QAction(QIcon(":/res/list-remove.png"), tr("&Remove Level"), this);
-    m_actions[ActionDelLevel]->setStatusTip(tr("Remove the current level from the levelset"));
-    m_actions[ActionMoveUp] = new QAction(QIcon(":/res/arrow-up.png"), tr("Move &Up"), this);
-    m_actions[ActionMoveUp]->setStatusTip(tr("Move the current level up in the level list"));
-    m_actions[ActionMoveDown] = new QAction(QIcon(":/res/arrow-down.png"), tr("Move &Down"), this);
-    m_actions[ActionMoveDown]->setStatusTip(tr("Move the current level down in the level list"));
-    m_actions[ActionProperties] = new QAction(QIcon(":/res/document-properties.png"), tr("Levelset &Properties"), this);
-    m_actions[ActionProperties]->setStatusTip(tr("Change levelset and .DAC file properties"));
+    // Editor area
+    m_editorTabs = new QTabWidget(this);
+    QToolButton* newTabButton = new QToolButton(m_editorTabs);
+    newTabButton->setIcon(QIcon(":/res/tab-new-sm.png"));
+    newTabButton->setStatusTip(tr("Open a new editor tab"));
+    newTabButton->setAutoRaise(true);
+    m_editorTabs->setCornerWidget(newTabButton, Qt::TopLeftCorner);
+#if QT_VERSION >= 0x040500
+    m_editorTabs->setMovable(true);
+    m_editorTabs->setTabsClosable(true);
+#else
+    QToolButton* closeTabButton = new QToolButton(m_editorTabs);
+    closeTabButton->setIcon(QIcon(":/res/tab-close-sm.png"));
+    closeTabButton->setStatusTip(tr("Close the current editor tab"));
+    closeTabButton->setAutoRaise(true);
+    m_editorTabs->setCornerWidget(closeTabButton, Qt::TopRightCorner);
+#endif
+    setCentralWidget(m_editorTabs);
 
     // Main Menu
     QMenu* fileMenu = menuBar()->addMenu(tr("&File"));
@@ -429,16 +450,6 @@ CCEditMain::CCEditMain(QWidget* parent)
     tbarTools->addSeparator();
     tbarTools->addAction(m_actions[ActionConnect]);
 
-    QToolBar* tbarLevelset = new QToolBar(levelManWidget);
-    tbarLevelset->addAction(m_actions[ActionAddLevel]);
-    tbarLevelset->addAction(m_actions[ActionDelLevel]);
-    tbarLevelset->addSeparator();
-    tbarLevelset->addAction(m_actions[ActionMoveUp]);
-    tbarLevelset->addAction(m_actions[ActionMoveDown]);
-    tbarLevelset->addSeparator();
-    tbarLevelset->addAction(m_actions[ActionProperties]);
-    levelManLayout->addWidget(tbarLevelset, 1, 0, 1, 3);
-
     // Show status bar
     statusBar();
 
@@ -453,8 +464,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionCopy], SIGNAL(triggered()), SLOT(onCopyAction()));
     connect(m_actions[ActionPaste], SIGNAL(triggered()), SLOT(onPasteAction()));
     connect(m_actions[ActionClear], SIGNAL(triggered()), SLOT(onClearAction()));
-    connect(m_actions[ActionUndo], SIGNAL(triggered()), m_editor, SLOT(undo()));
-    connect(m_actions[ActionRedo], SIGNAL(triggered()), m_editor, SLOT(redo()));
+    connect(m_actions[ActionUndo], SIGNAL(triggered()), SLOT(onUndoAction()));
+    connect(m_actions[ActionRedo], SIGNAL(triggered()), SLOT(onRedoAction()));
     connect(m_actions[ActionDrawPencil], SIGNAL(triggered()), SLOT(onDrawPencilAction()));
     connect(m_actions[ActionDrawLine], SIGNAL(triggered()), SLOT(onDrawLineAction()));
     connect(m_actions[ActionDrawFill], SIGNAL(triggered()), SLOT(onDrawFillAction()));
@@ -472,16 +483,22 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionProperties], SIGNAL(triggered()), SLOT(onPropertiesAction()));
 
     connect(m_levelList, SIGNAL(currentRowChanged(int)), SLOT(onSelectLevel(int)));
+    //connect(m_levelList, SIGNAL(itemDoubleClicked(QListWidgetItem*)), SLOT(onLevelDClicked(QListWidgetItem*)));
     connect(m_nameEdit, SIGNAL(textChanged(QString)), SLOT(onNameChanged(QString)));
     connect(m_passwordEdit, SIGNAL(textChanged(QString)), SLOT(onPasswordChanged(QString)));
-    connect(m_passwordButton, SIGNAL(clicked()), SLOT(onPasswordGenAction()));
+    connect(passwordButton, SIGNAL(clicked()), SLOT(onPasswordGenAction()));
     connect(m_chipEdit, SIGNAL(valueChanged(int)), SLOT(onChipsChanged(int)));
-    connect(m_chipsButton, SIGNAL(clicked()), SLOT(onChipCountAction()));
+    connect(chipsButton, SIGNAL(clicked()), SLOT(onChipCountAction()));
     connect(m_timeEdit, SIGNAL(valueChanged(int)), SLOT(onTimerChanged(int)));
-    connect(m_editor, SIGNAL(mouseInfo(QString)), statusBar(), SLOT(showMessage(QString)));
-    connect(m_editor, SIGNAL(canUndo(bool)), m_actions[ActionUndo], SLOT(setEnabled(bool)));
-    connect(m_editor, SIGNAL(canRedo(bool)), m_actions[ActionRedo], SLOT(setEnabled(bool)));
     connect(qApp->clipboard(), SIGNAL(dataChanged()), SLOT(onClipboardDataChanged()));
+
+#if QT_VERSION >= 0x040500
+    connect(m_editorTabs, SIGNAL(tabCloseRequested(int)), SLOT(onCloseTab(int)));
+#else
+    connect(closeTabButton, SIGNAL(clicked()), SLOT(onCloseCurrentTab()));
+#endif
+    connect(m_editorTabs, SIGNAL(currentChanged(int)), SLOT(onTabChanged(int)));
+    connect(newTabButton, SIGNAL(clicked()), SLOT(onNewTab()));
 
     for (int i=0; i<NUM_TILE_LISTS; ++i) {
         connect(m_tileLists[i], SIGNAL(itemSelectedLeft(tile_t)), SLOT(setForeground(tile_t)));
@@ -696,6 +713,7 @@ bool CCEditMain::closeLevelset()
     if (reply == QMessageBox::Cancel)
         return false;
 
+    closeAllTabs();
     m_levelList->clear();
     onSelectLevel(-1);
     delete m_levelset;
@@ -706,11 +724,13 @@ bool CCEditMain::closeLevelset()
 
 void CCEditMain::loadTileset(CCETileset* tileset)
 {
-    m_editor->setTileset(tileset);
+    m_currentTileset = tileset;
     m_layer[0]->setTileset(tileset);
     m_layer[1]->setTileset(tileset);
     for (int i=0; i<NUM_TILE_LISTS; ++i)
         tileset->imageTiles(m_tileLists[i]);
+    for (int i=0; i<m_editorTabs->count(); ++i)
+        getEditorAt(i)->setTileset(tileset);
 }
 
 void CCEditMain::registerTileset(QString filename)
@@ -778,6 +798,49 @@ void CCEditMain::selectLevel(int level)
         m_levelList->setCurrentRow(m_levelList->count() - 1);
 }
 
+EditorWidget* CCEditMain::getEditorAt(int idx)
+{
+    if (idx < 0 || idx >= m_editorTabs->count())
+        return 0;
+
+    QScrollArea* scroll = (QScrollArea*)m_editorTabs->widget(idx);
+    return (EditorWidget*)scroll->widget();
+}
+
+EditorWidget* CCEditMain::addEditor(ccl::LevelData* level)
+{
+    QScrollArea* scroll = new QScrollArea(m_editorTabs);
+    EditorWidget* editor = new EditorWidget(scroll);
+    scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    scroll->setWidget(editor);
+    if (m_actions[ActionViewButtons]->isChecked())
+        editor->setPaintFlag(EditorWidget::ShowButtons);
+    if (m_actions[ActionViewMovers]->isChecked())
+        editor->setPaintFlag(EditorWidget::ShowMovement);
+    if (m_actions[ActionViewActivePlayer]->isChecked())
+        editor->setPaintFlag(EditorWidget::ShowPlayer);
+    editor->setDrawMode(m_currentDrawMode);
+    editor->setTileset(m_currentTileset);
+    editor->setLevelData(level);
+    editor->setLeftTile(m_layer[0]->upper());
+    editor->setRightTile(m_layer[0]->lower());
+    m_editorTabs->addTab(scroll, level->name().c_str());
+
+    connect(editor, SIGNAL(mouseInfo(QString)), statusBar(), SLOT(showMessage(QString)));
+    connect(editor, SIGNAL(canUndo(bool)), m_actions[ActionUndo], SLOT(setEnabled(bool)));
+    connect(editor, SIGNAL(canRedo(bool)), m_actions[ActionRedo], SLOT(setEnabled(bool)));
+    return editor;
+}
+
+void CCEditMain::closeAllTabs()
+{
+    while (getEditorAt(0) != 0) {
+        delete m_editorTabs->widget(0);
+        m_editorTabs->removeTab(0);
+    }
+}
+
 void CCEditMain::onNewAction()
 {
     if (!closeLevelset())
@@ -827,10 +890,13 @@ void CCEditMain::onSelectToggled(bool mode)
     m_actions[ActionDrawFill]->setChecked(false);
     m_actions[ActionPathMaker]->setChecked(false);
     m_actions[ActionConnect]->setChecked(false);
-    if (mode)
-        m_editor->setDrawMode(EditorWidget::DrawSelect);
-    else
+    if (mode) {
+        m_currentDrawMode = EditorWidget::DrawSelect;
+        for (int i=0; i<m_editorTabs->count(); ++i)
+            getEditorAt(i)->setDrawMode(m_currentDrawMode);
+    } else {
         m_actions[m_savedDrawMode]->setChecked(true);
+    }
 }
 
 void CCEditMain::onCutAction()
@@ -841,47 +907,48 @@ void CCEditMain::onCutAction()
 
 void CCEditMain::onCopyAction()
 {
-    if (m_editor->selection() == QRect(-1, -1, -1, -1))
+    EditorWidget* editor = getEditorAt(m_editorTabs->currentIndex());
+    if (editor == 0 || editor->selection() == QRect(-1, -1, -1, -1))
         return;
 
     ccl::LevelData* copyRegion = new ccl::LevelData();
-    ccl::LevelData* current = m_editor->levelData();
-    copyRegion->map().copyFrom(m_editor->levelData()->map(),
-        m_editor->selection().left(), m_editor->selection().top(),
-        0, 0, m_editor->selection().width(), m_editor->selection().height());
+    ccl::LevelData* current = editor->levelData();
+    copyRegion->map().copyFrom(editor->levelData()->map(),
+        editor->selection().left(), editor->selection().top(),
+        0, 0, editor->selection().width(), editor->selection().height());
 
     // Gather any logic that is completely encompassed by this region
     std::list<ccl::Trap>::const_iterator trap_iter;
     for (trap_iter = current->traps().begin(); trap_iter != current->traps().end(); ++trap_iter) {
-        if (m_editor->selection().contains(trap_iter->button.X, trap_iter->button.Y)
-            && m_editor->selection().contains(trap_iter->trap.X, trap_iter->trap.Y))
-            copyRegion->trapConnect(trap_iter->button.X - m_editor->selection().left(),
-                                    trap_iter->button.Y - m_editor->selection().top(),
-                                    trap_iter->trap.X - m_editor->selection().left(),
-                                    trap_iter->trap.Y - m_editor->selection().top());
+        if (editor->selection().contains(trap_iter->button.X, trap_iter->button.Y)
+            && editor->selection().contains(trap_iter->trap.X, trap_iter->trap.Y))
+            copyRegion->trapConnect(trap_iter->button.X - editor->selection().left(),
+                                    trap_iter->button.Y - editor->selection().top(),
+                                    trap_iter->trap.X - editor->selection().left(),
+                                    trap_iter->trap.Y - editor->selection().top());
     }
 
     std::list<ccl::Clone>::const_iterator clone_iter;
     for (clone_iter = current->clones().begin(); clone_iter != current->clones().end(); ++clone_iter) {
-        if (m_editor->selection().contains(clone_iter->button.X, clone_iter->button.Y)
-            && m_editor->selection().contains(clone_iter->clone.X, clone_iter->clone.Y))
-            copyRegion->cloneConnect(clone_iter->button.X - m_editor->selection().left(),
-                                     clone_iter->button.Y - m_editor->selection().top(),
-                                     clone_iter->clone.X - m_editor->selection().left(),
-                                     clone_iter->clone.Y - m_editor->selection().top());
+        if (editor->selection().contains(clone_iter->button.X, clone_iter->button.Y)
+            && editor->selection().contains(clone_iter->clone.X, clone_iter->clone.Y))
+            copyRegion->cloneConnect(clone_iter->button.X - editor->selection().left(),
+                                     clone_iter->button.Y - editor->selection().top(),
+                                     clone_iter->clone.X - editor->selection().left(),
+                                     clone_iter->clone.Y - editor->selection().top());
     }
 
     std::list<ccl::Point>::const_iterator move_iter;
     for (move_iter = current->moveList().begin(); move_iter != current->moveList().end(); ++move_iter) {
-        if (m_editor->selection().contains(move_iter->X, move_iter->Y))
-            copyRegion->addMover(move_iter->X - m_editor->selection().left(),
-                                 move_iter->Y - m_editor->selection().top());
+        if (editor->selection().contains(move_iter->X, move_iter->Y))
+            copyRegion->addMover(move_iter->X - editor->selection().left(),
+                                 move_iter->Y - editor->selection().top());
     }
 
     try {
         ccl::BufferStream cbStream;
-        cbStream.write32(m_editor->selection().width());
-        cbStream.write32(m_editor->selection().height());
+        cbStream.write32(editor->selection().width());
+        cbStream.write32(editor->selection().height());
         cbStream.write16(0);    // Revisit after writing data
         cbStream.write32(0);
         copyRegion->write(&cbStream, true);
@@ -902,6 +969,10 @@ void CCEditMain::onCopyAction()
 
 void CCEditMain::onPasteAction()
 {
+    EditorWidget* editor = getEditorAt(m_editorTabs->currentIndex());
+    if (editor == 0)
+        return;
+
     const QMimeData* cbData = qApp->clipboard()->mimeData();
     if (cbData->hasFormat("CHIPEDIT MAPSECT")) {
         QByteArray buffer = cbData->data("CHIPEDIT MAPSECT");
@@ -925,24 +996,24 @@ void CCEditMain::onPasteAction()
         }
 
         int destX, destY;
-        if (m_editor->selection() == QRect(-1, -1, -1, -1)) {
+        if (editor->selection() == QRect(-1, -1, -1, -1)) {
             destX = 0;
             destY = 0;
         } else {
-            destX = m_editor->selection().left();
-            destY = m_editor->selection().top();
+            destX = editor->selection().left();
+            destY = editor->selection().top();
         }
         if (destX + width > CCL_WIDTH)
             width = CCL_WIDTH - destX;
         if (destY + height > CCL_HEIGHT)
             height = CCL_HEIGHT - destY;
 
-        m_editor->beginEdit(CCEHistoryNode::HistPaste);
-        m_editor->selectRegion(destX, destY, width, height);
+        editor->beginEdit(CCEHistoryNode::HistPaste);
+        editor->selectRegion(destX, destY, width, height);
         onClearAction();
-        m_editor->levelData()->map().copyFrom(copyRegion->map(),
+        editor->levelData()->map().copyFrom(copyRegion->map(),
             0, 0, destX, destY, width, height);
-        ccl::LevelData* current = m_editor->levelData();
+        ccl::LevelData* current = editor->levelData();
 
         std::list<ccl::Trap>::const_iterator trap_iter;
         for (trap_iter = copyRegion->traps().begin(); trap_iter != copyRegion->traps().end(); ++trap_iter) {
@@ -969,83 +1040,118 @@ void CCEditMain::onPasteAction()
                 current->addMover(move_iter->X + destX, move_iter->Y + destY);
         }
 
-        m_editor->endEdit();
+        editor->endEdit();
+        delete copyRegion;
     }
 }
 
 void CCEditMain::onClearAction()
 {
-    if (m_editor->selection() == QRect(-1, -1, -1, -1))
+    EditorWidget* editor = getEditorAt(m_editorTabs->currentIndex());
+    if (editor == 0 || editor->selection() == QRect(-1, -1, -1, -1))
         return;
 
-    m_editor->beginEdit(CCEHistoryNode::HistClear);
-    for (int y = m_editor->selection().top(); y <= m_editor->selection().bottom(); ++y) {
-        for (int x = m_editor->selection().left(); x <= m_editor->selection().right(); ++x) {
-            m_editor->putTile(ccl::TileFloor, x, y, true);
-            m_editor->putTile(ccl::TileFloor, x, y, false);
+    editor->beginEdit(CCEHistoryNode::HistClear);
+    for (int y = editor->selection().top(); y <= editor->selection().bottom(); ++y) {
+        for (int x = editor->selection().left(); x <= editor->selection().right(); ++x) {
+            editor->putTile(ccl::TileFloor, x, y, true);
+            editor->putTile(ccl::TileFloor, x, y, false);
         }
     }
-    m_editor->endEdit();
-    m_editor->update();
+    editor->endEdit();
+    editor->update();
+}
+
+void CCEditMain::onUndoAction()
+{
+    EditorWidget* editor = getEditorAt(m_editorTabs->currentIndex());
+    if (editor != 0)
+        editor->undo();
+}
+
+void CCEditMain::onRedoAction()
+{
+    EditorWidget* editor = getEditorAt(m_editorTabs->currentIndex());
+    if (editor != 0)
+        editor->redo();
 }
 
 void CCEditMain::onDrawPencilAction()
 {
     m_savedDrawMode = ActionDrawPencil;
+    m_currentDrawMode = EditorWidget::DrawPencil;
     m_actions[ActionSelect]->setChecked(false);
-    m_editor->setDrawMode(EditorWidget::DrawPencil);
+    for (int i=0; i<m_editorTabs->count(); ++i)
+        getEditorAt(i)->setDrawMode(m_currentDrawMode);
 }
 
 void CCEditMain::onDrawLineAction()
 {
     m_savedDrawMode = ActionDrawLine;
+    m_currentDrawMode = EditorWidget::DrawLine;
     m_actions[ActionSelect]->setChecked(false);
-    m_editor->setDrawMode(EditorWidget::DrawLine);
+    for (int i=0; i<m_editorTabs->count(); ++i)
+        getEditorAt(i)->setDrawMode(m_currentDrawMode);
 }
 
 void CCEditMain::onDrawFillAction()
 {
     m_savedDrawMode = ActionDrawFill;
+    m_currentDrawMode = EditorWidget::DrawFill;
     m_actions[ActionSelect]->setChecked(false);
-    m_editor->setDrawMode(EditorWidget::DrawFill);
+    for (int i=0; i<m_editorTabs->count(); ++i)
+        getEditorAt(i)->setDrawMode(m_currentDrawMode);
 }
 
 void CCEditMain::onPathMakerAction()
 {
     m_savedDrawMode = ActionPathMaker;
+    m_currentDrawMode = EditorWidget::DrawPathMaker;
     m_actions[ActionSelect]->setChecked(false);
-    m_editor->setDrawMode(EditorWidget::DrawPathMaker);
+    for (int i=0; i<m_editorTabs->count(); ++i)
+        getEditorAt(i)->setDrawMode(m_currentDrawMode);
 }
 
 void CCEditMain::onConnectAction()
 {
     m_savedDrawMode = ActionConnect;
+    m_currentDrawMode = EditorWidget::DrawButtonConnect;
     m_actions[ActionSelect]->setChecked(false);
-    m_editor->setDrawMode(EditorWidget::DrawButtonConnect);
+    for (int i=0; i<m_editorTabs->count(); ++i)
+        getEditorAt(i)->setDrawMode(m_currentDrawMode);
 }
 
 void CCEditMain::onViewButtonsToggled(bool view)
 {
-    if (view)
-        m_editor->setPaintFlag(EditorWidget::ShowButtons);
-    else
-        m_editor->clearPaintFlag(EditorWidget::ShowButtons);
+    if (view) {
+        for (int i=0; i<m_editorTabs->count(); ++i)
+            getEditorAt(i)->setPaintFlag(EditorWidget::ShowButtons);
+    } else {
+        for (int i=0; i<m_editorTabs->count(); ++i)
+            getEditorAt(i)->clearPaintFlag(EditorWidget::ShowButtons);
+    }
 }
 
 void CCEditMain::onViewMoversToggled(bool view)
 {
-    if (view)
-        m_editor->setPaintFlag(EditorWidget::ShowMovement);
-    else
-        m_editor->clearPaintFlag(EditorWidget::ShowMovement);
+    if (view) {
+        for (int i=0; i<m_editorTabs->count(); ++i)
+            getEditorAt(i)->setPaintFlag(EditorWidget::ShowMovement);
+    } else {
+        for (int i=0; i<m_editorTabs->count(); ++i)
+            getEditorAt(i)->clearPaintFlag(EditorWidget::ShowMovement);
+    }
 }
 
 void CCEditMain::onViewActivePlayerToggled(bool view)
 {
-    if (view)
-        m_editor->setPaintFlag(EditorWidget::ShowPlayer);
-    else
-        m_editor->clearPaintFlag(EditorWidget::ShowPlayer);
+    if (view) {
+        for (int i=0; i<m_editorTabs->count(); ++i)
+            getEditorAt(i)->setPaintFlag(EditorWidget::ShowPlayer);
+    } else {
+        for (int i=0; i<m_editorTabs->count(); ++i)
+            getEditorAt(i)->clearPaintFlag(EditorWidget::ShowPlayer);
+    }
 }
 
 void CCEditMain::onTilesetMenu(QAction* which)
@@ -1078,7 +1184,11 @@ void CCEditMain::onDelLevelAction()
 
     int idx = m_levelList->currentRow();
     m_levelList->setCurrentRow(idx - 1);
-    delete m_levelset->takeLevel(idx);
+    ccl::LevelData* level = m_levelset->takeLevel(idx);
+    for (int i=0; i<m_editorTabs->count(); ++i) {
+        if (getEditorAt(i)->levelData() == level)
+            onCloseTab(i);
+    }
     doLevelsetLoad();
 }
 
@@ -1150,7 +1260,7 @@ void CCEditMain::onSelectLevel(int idx)
         m_chipEdit->setValue(0);
         m_timeEdit->setValue(0);
         m_hintEdit->setText(QString());
-        m_editor->setLevelData(0);
+        closeAllTabs();
     } else {
         ccl::LevelData* level = m_levelset->level(idx);
         m_nameEdit->setEnabled(true);
@@ -1163,9 +1273,16 @@ void CCEditMain::onSelectLevel(int idx)
         m_chipEdit->setValue(level->chips());
         m_timeEdit->setValue(level->timer());
         m_hintEdit->setText(QString::fromAscii(level->hint().c_str()));
-        m_editor->setLevelData(level);
+
+        EditorWidget* editor = getEditorAt(m_editorTabs->currentIndex());
+        if (editor == 0) {
+            editor = addEditor(level);
+        } else {
+            editor->setLevelData(level);
+            m_editorTabs->setTabText(m_editorTabs->currentIndex(), level->name().c_str());
+            editor->update();
+        }
     }
-    m_editor->update();
 }
 
 void CCEditMain::onPasswordGenAction()
@@ -1202,6 +1319,11 @@ void CCEditMain::onNameChanged(QString value)
     level->setName(m_nameEdit->text().toAscii().data());
     m_levelList->currentItem()->setText(QString("%1 - %2")
                     .arg(m_levelList->currentRow() + 1).arg(value));
+
+    for (int i=0; i<m_editorTabs->count(); ++i) {
+        if (getEditorAt(i)->levelData() == level)
+            m_editorTabs->setTabText(i, value);
+    }
 }
 
 void CCEditMain::onPasswordChanged(QString value)
@@ -1231,7 +1353,8 @@ void CCEditMain::setForeground(tile_t tile)
     m_layer[1]->setUpper(tile);
     m_foreLabel[0]->setText(tr("Foreground: ") + CCETileset::TileName(tile));
     m_foreLabel[1]->setText(m_foreLabel[0]->text());
-    m_editor->setLeftTile(tile);
+    for (int i=0; i<m_editorTabs->count(); ++i)
+        getEditorAt(i)->setLeftTile(tile);
 }
 
 void CCEditMain::setBackground(tile_t tile)
@@ -1240,13 +1363,45 @@ void CCEditMain::setBackground(tile_t tile)
     m_layer[1]->setLower(tile);
     m_backLabel[0]->setText(tr("Background: ") + CCETileset::TileName(tile));
     m_backLabel[1]->setText(m_backLabel[0]->text());
-    m_editor->setRightTile(tile);
+    for (int i=0; i<m_editorTabs->count(); ++i)
+        getEditorAt(i)->setRightTile(tile);
 }
 
 void CCEditMain::onClipboardDataChanged()
 {
     const QMimeData* cbData = qApp->clipboard()->mimeData();
     m_actions[ActionPaste]->setEnabled(cbData->hasFormat("CHIPEDIT MAPSECT"));
+}
+
+void CCEditMain::onNewTab()
+{
+    if (m_levelList->currentRow() >= 0) {
+        addEditor(m_levelset->level(m_levelList->currentRow()));
+        m_editorTabs->setCurrentIndex(m_editorTabs->count() - 1);
+    }
+}
+
+void CCEditMain::onCloseTab(int tabIdx)
+{
+    if (m_editorTabs->count() == 1)
+        return;
+    delete m_editorTabs->widget(tabIdx);
+}
+
+void CCEditMain::onCloseCurrentTab()
+{
+    onCloseTab(m_editorTabs->currentIndex());
+}
+
+void CCEditMain::onTabChanged(int tabIdx)
+{
+    if (tabIdx < 0)
+        return;
+    EditorWidget* editor = getEditorAt(tabIdx);
+
+    //m_levelList->setCurrentRow();
+    editor->update();
+    editor->updateUndoStatus();
 }
 
 

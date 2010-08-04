@@ -13,7 +13,7 @@
     <file>res/edit-delete.png</file>
     <file>res/edit-undo.png</file>
     <file>res/edit-redo.png</file>
-    <file>res/view-refresh.png</file>
+    <file>res/view-refresh-sm.png</file>
     <file>res/zoom-in.png</file>
     <file>res/zoom-out.png</file>
     <file>res/zoom-original.png</file>
@@ -26,6 +26,8 @@
     <file>res/draw-box.png</file>
     <file>res/draw-path.png</file>
     <file>res/cctools-button.png</file>
+    <file>res/tab-new-sm.png</file>
+    <file>res/tab-close-sm.png</file>
 
     <file>res/numbers.png</file>
 
