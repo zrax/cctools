@@ -71,7 +71,7 @@ private:
         ActionNew, ActionOpen, ActionSave, ActionSaveAs, ActionClose, ActionExit,
         ActionSelect, ActionCut, ActionCopy, ActionPaste, ActionClear,
         ActionUndo, ActionRedo, ActionDrawPencil, ActionDrawLine, ActionDrawFill,
-        ActionPathMaker, ActionConnect, ActionAdvancedLogic, ActionViewButtons,
+        ActionPathMaker, ActionConnect, ActionAdvancedMech, ActionViewButtons,
         ActionViewMovers, ActionViewActivePlayer, ActionAddLevel, ActionDelLevel,
         ActionMoveUp, ActionMoveDown, ActionProperties,
         NUM_ACTIONS
@@ -131,6 +131,7 @@ private slots:
     void onDrawFillAction();
     void onPathMakerAction();
     void onConnectAction();
+    void onAdvancedMechAction();
     void onViewButtonsToggled(bool);
     void onViewMoversToggled(bool);
     void onViewActivePlayerToggled(bool);

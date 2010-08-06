@@ -36,6 +36,7 @@
 #include <cstdlib>
 #include <ctime>
 #include "LevelsetProps.h"
+#include "AdvancedMechanics.h"
 
 #define CCEDIT_TITLE "CCEdit 2.0 ALPHA"
 
@@ -104,12 +105,15 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionSave] = new QAction(QIcon(":/res/document-save.png"), tr("&Save"), this);
     m_actions[ActionSave]->setStatusTip(tr("Save the current levelset to the same file"));
     m_actions[ActionSave]->setShortcut(Qt::CTRL | Qt::Key_S);
+    m_actions[ActionSave]->setEnabled(false);
     m_actions[ActionSaveAs] = new QAction(QIcon(":/res/document-save-as.png"), tr("Save &As..."), this);
     m_actions[ActionSaveAs]->setStatusTip(tr("Save the current levelset to a new file or location"));
     m_actions[ActionSaveAs]->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_S);
+    m_actions[ActionSaveAs]->setEnabled(false);
     m_actions[ActionClose] = new QAction(tr("&Close Levelset"), this);
     m_actions[ActionClose]->setStatusTip(tr("Close the currently open levelset"));
     m_actions[ActionClose]->setShortcut(Qt::CTRL | Qt::Key_W);
+    m_actions[ActionClose]->setEnabled(false);
     m_actions[ActionExit] = new QAction(QIcon(":/res/application-exit.png"), tr("E&xit"), this);
     m_actions[ActionExit]->setStatusTip(tr("Close CCEdit"));
 
@@ -138,7 +142,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionPaste]->setShortcut(Qt::CTRL | Qt::Key_V);
     m_actions[ActionPaste]->setEnabled(false);
     m_actions[ActionClear] = new QAction(QIcon(":/res/edit-delete.png"), tr("Clea&r"), this);
-    m_actions[ActionClear]->setStatusTip(tr("Clear all tiles and logic from the selected region"));
+    m_actions[ActionClear]->setStatusTip(tr("Clear all tiles and mechanics from the selected region"));
     m_actions[ActionClear]->setShortcut(Qt::Key_Delete);
     m_actions[ActionClear]->setEnabled(false);
 
@@ -162,9 +166,10 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionConnect]->setStatusTip(tr("Connect buttons to traps and cloning machines"));
     m_actions[ActionConnect]->setShortcut(Qt::CTRL | Qt::Key_T);
     m_actions[ActionConnect]->setCheckable(true);
-    m_actions[ActionAdvancedLogic] = new QAction(tr("&Advanced Logic"), this);
-    m_actions[ActionAdvancedLogic]->setStatusTip(tr("Manually manipulate gameplay logic for the current level"));
-    m_actions[ActionAdvancedLogic]->setShortcut(Qt::CTRL | Qt::Key_K);
+    m_actions[ActionAdvancedMech] = new QAction(QIcon(":/res/cctools-teeth.png"), tr("&Advanced Mechanics"), this);
+    m_actions[ActionAdvancedMech]->setStatusTip(tr("Manually manipulate gameplay mechanics for the current level"));
+    m_actions[ActionAdvancedMech]->setShortcut(Qt::CTRL | Qt::Key_K);
+    m_actions[ActionAdvancedMech]->setEnabled(false);
 
     m_actions[ActionViewButtons] = new QAction(tr("Show &Button Connections"), this);
     m_actions[ActionViewButtons]->setStatusTip(tr("Draw lines between connected buttons/traps/cloning machines in editor"));
@@ -189,14 +194,19 @@ CCEditMain::CCEditMain(QWidget* parent)
 
     m_actions[ActionAddLevel] = new QAction(QIcon(":/res/list-add.png"), tr("&Add Level"), this);
     m_actions[ActionAddLevel]->setStatusTip(tr("Add a new level to the end of the levelset"));
+    m_actions[ActionAddLevel]->setEnabled(false);
     m_actions[ActionDelLevel] = new QAction(QIcon(":/res/list-remove.png"), tr("&Remove Level"), this);
     m_actions[ActionDelLevel]->setStatusTip(tr("Remove the current level from the levelset"));
+    m_actions[ActionDelLevel]->setEnabled(false);
     m_actions[ActionMoveUp] = new QAction(QIcon(":/res/arrow-up.png"), tr("Move &Up"), this);
     m_actions[ActionMoveUp]->setStatusTip(tr("Move the current level up in the level list"));
+    m_actions[ActionMoveUp]->setEnabled(false);
     m_actions[ActionMoveDown] = new QAction(QIcon(":/res/arrow-down.png"), tr("Move &Down"), this);
     m_actions[ActionMoveDown]->setStatusTip(tr("Move the current level down in the level list"));
+    m_actions[ActionMoveDown]->setEnabled(false);
     m_actions[ActionProperties] = new QAction(QIcon(":/res/document-properties.png"), tr("Levelset &Properties"), this);
     m_actions[ActionProperties]->setStatusTip(tr("Change levelset and .DAC file properties"));
+    m_actions[ActionProperties]->setEnabled(false);
 
     // Control Toolbox
     QDockWidget* toolDock = new QDockWidget(this);
@@ -419,7 +429,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     toolsMenu->addAction(m_actions[ActionPathMaker]);
     toolsMenu->addSeparator();
     toolsMenu->addAction(m_actions[ActionConnect]);
-    toolsMenu->addAction(m_actions[ActionAdvancedLogic]);
+    toolsMenu->addAction(m_actions[ActionAdvancedMech]);
 
     QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(m_actions[ActionViewButtons]);
@@ -449,6 +459,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     tbarTools->addAction(m_actions[ActionPathMaker]);
     tbarTools->addSeparator();
     tbarTools->addAction(m_actions[ActionConnect]);
+    tbarTools->addAction(m_actions[ActionAdvancedMech]);
 
     // Show status bar
     statusBar();
@@ -471,6 +482,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionDrawFill], SIGNAL(triggered()), SLOT(onDrawFillAction()));
     connect(m_actions[ActionPathMaker], SIGNAL(triggered()), SLOT(onPathMakerAction()));
     connect(m_actions[ActionConnect], SIGNAL(triggered()), SLOT(onConnectAction()));
+    connect(m_actions[ActionAdvancedMech], SIGNAL(triggered()), SLOT(onAdvancedMechAction()));
     connect(m_actions[ActionViewButtons], SIGNAL(toggled(bool)), SLOT(onViewButtonsToggled(bool)));
     connect(m_actions[ActionViewMovers], SIGNAL(toggled(bool)), SLOT(onViewMoversToggled(bool)));
     connect(m_actions[ActionViewActivePlayer], SIGNAL(toggled(bool)), SLOT(onViewActivePlayerToggled(bool)));
@@ -597,6 +609,14 @@ void CCEditMain::loadLevelset(QString filename)
         QMessageBox::critical(this, tr("Error reading levelset"),
                               tr("Cannot determine file type for %1").arg(filename));
     }
+
+    m_actions[ActionSave]->setEnabled(true);
+    m_actions[ActionSaveAs]->setEnabled(true);
+    m_actions[ActionClose]->setEnabled(true);
+    m_actions[ActionAddLevel]->setEnabled(true);
+    m_actions[ActionDelLevel]->setEnabled(m_levelset->levelCount() > 0);
+    m_actions[ActionProperties]->setEnabled(true);
+    m_actions[ActionAdvancedMech]->setEnabled(true);
 }
 
 void CCEditMain::doLevelsetLoad()
@@ -719,6 +739,15 @@ bool CCEditMain::closeLevelset()
     delete m_levelset;
     m_levelset = 0;
     setWindowTitle(CCEDIT_TITLE);
+
+    m_actions[ActionSave]->setEnabled(false);
+    m_actions[ActionSaveAs]->setEnabled(false);
+    m_actions[ActionClose]->setEnabled(false);
+    m_actions[ActionAddLevel]->setEnabled(false);
+    m_actions[ActionDelLevel]->setEnabled(false);
+    m_actions[ActionProperties]->setEnabled(false);
+    m_actions[ActionAdvancedMech]->setEnabled(false);
+
     return true;
 }
 
@@ -850,6 +879,14 @@ void CCEditMain::onNewAction()
     doLevelsetLoad();
     setLevelsetFilename(QString());
     m_useDac = false;
+
+    m_actions[ActionSave]->setEnabled(true);
+    m_actions[ActionSaveAs]->setEnabled(true);
+    m_actions[ActionClose]->setEnabled(true);
+    m_actions[ActionAddLevel]->setEnabled(true);
+    m_actions[ActionDelLevel]->setEnabled(true);
+    m_actions[ActionProperties]->setEnabled(true);
+    m_actions[ActionAdvancedMech]->setEnabled(true);
 }
 
 void CCEditMain::onOpenAction()
@@ -917,7 +954,7 @@ void CCEditMain::onCopyAction()
         editor->selection().left(), editor->selection().top(),
         0, 0, editor->selection().width(), editor->selection().height());
 
-    // Gather any logic that is completely encompassed by this region
+    // Gather any mechanics that are completely encompassed by this region
     std::list<ccl::Trap>::const_iterator trap_iter;
     for (trap_iter = current->traps().begin(); trap_iter != current->traps().end(); ++trap_iter) {
         if (editor->selection().contains(trap_iter->button.X, trap_iter->button.Y)
@@ -1121,6 +1158,21 @@ void CCEditMain::onConnectAction()
         getEditorAt(i)->setDrawMode(m_currentDrawMode);
 }
 
+void CCEditMain::onAdvancedMechAction()
+{
+    EditorWidget* editor = getEditorAt(m_editorTabs->currentIndex());
+    if (editor == 0)
+        return;
+
+    AdvancedMechanicsDialog mechDlg(this);
+    mechDlg.setFrom(editor->levelData());
+    editor->beginEdit(CCEHistoryNode::HistEditMech);
+    if (mechDlg.exec() == QDialog::Accepted)
+        editor->endEdit();
+    else
+        editor->cancelEdit();
+}
+
 void CCEditMain::onViewButtonsToggled(bool view)
 {
     if (view) {
@@ -1190,6 +1242,12 @@ void CCEditMain::onDelLevelAction()
             onCloseTab(i);
     }
     doLevelsetLoad();
+
+    // Checked here for the case where the last level is deleted.
+    // The selection changes before the item is removed, so we can have
+    // a state where the buttons are enabled erroneously.
+    m_actions[ActionMoveDown]->setEnabled(m_levelList->currentRow() < m_levelList->count() - 1);
+    m_actions[ActionDelLevel]->setEnabled(m_levelset->levelCount() > 0);
 }
 
 void CCEditMain::onMoveUpAction()
@@ -1261,6 +1319,10 @@ void CCEditMain::onSelectLevel(int idx)
         m_timeEdit->setValue(0);
         m_hintEdit->setText(QString());
         closeAllTabs();
+
+        m_actions[ActionMoveUp]->setEnabled(false);
+        m_actions[ActionMoveDown]->setEnabled(false);
+        m_actions[ActionDelLevel]->setEnabled(false);
     } else {
         ccl::LevelData* level = m_levelset->level(idx);
         m_nameEdit->setEnabled(true);
@@ -1282,6 +1344,10 @@ void CCEditMain::onSelectLevel(int idx)
             m_editorTabs->setTabText(m_editorTabs->currentIndex(), level->name().c_str());
             editor->update();
         }
+
+        m_actions[ActionMoveUp]->setEnabled(idx > 0);
+        m_actions[ActionMoveDown]->setEnabled(idx < m_levelList->count() - 1);
+        m_actions[ActionDelLevel]->setEnabled(true);
     }
 }
 

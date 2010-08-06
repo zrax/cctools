@@ -168,6 +168,11 @@ static tile_t directionalize(tile_t tile, ccl::Direction dir)
     return tile;
 }
 
+static bool isValidPoint(const ccl::Point& point)
+{
+    return (point.X >= 0 && point.X < 32 && point.Y >= 0 && point.Y < 32);
+}
+
 
 EditorWidget::EditorWidget(QWidget* parent)
             : QWidget(parent), m_tileset(0), m_levelData(0), m_leftTile(0),
@@ -232,7 +237,10 @@ void EditorWidget::paintEvent(QPaintEvent* event)
         if ((m_paintFlags & ShowMovement) != 0) {
             std::list<ccl::Point>::const_iterator move_iter;
             int num = 0;
-            for (move_iter = m_levelData->moveList().begin(); move_iter != m_levelData->moveList().end(); ++move_iter) {
+            for (move_iter = m_levelData->moveList().begin();
+                 move_iter != m_levelData->moveList().end(); ++move_iter) {
+                if (!isValidPoint(*move_iter))
+                    continue;
                 painter.drawPixmap((move_iter->X + 1) * m_tileset->size() - 16,
                                    (move_iter->Y + 1) * m_tileset->size() - 10,
                                    m_numbers, 0, num++ * 10, 16, 10);
@@ -262,6 +270,8 @@ void EditorWidget::paintEvent(QPaintEvent* event)
             painter.setPen(QColor(255, 0, 0));
             std::list<ccl::Trap>::const_iterator trap_iter;
             for (trap_iter = m_levelData->traps().begin(); trap_iter != m_levelData->traps().end(); ++trap_iter) {
+                if (!isValidPoint(trap_iter->button) || !isValidPoint(trap_iter->trap))
+                    continue;
                 painter.drawLine((trap_iter->button.X * m_tileset->size()) + (m_tileset->size() / 2),
                                  (trap_iter->button.Y * m_tileset->size()) + (m_tileset->size() / 2),
                                  (trap_iter->trap.X * m_tileset->size()) + (m_tileset->size() / 2),
@@ -269,6 +279,8 @@ void EditorWidget::paintEvent(QPaintEvent* event)
             }
             std::list<ccl::Clone>::const_iterator clone_iter;
             for (clone_iter = m_levelData->clones().begin(); clone_iter != m_levelData->clones().end(); ++clone_iter) {
+                if (!isValidPoint(clone_iter->button) || !isValidPoint(clone_iter->clone))
+                    continue;
                 painter.drawLine((clone_iter->button.X * m_tileset->size()) + (m_tileset->size() / 2),
                                  (clone_iter->button.Y * m_tileset->size()) + (m_tileset->size() / 2),
                                  (clone_iter->clone.X * m_tileset->size()) + (m_tileset->size() / 2),
@@ -289,9 +301,10 @@ void EditorWidget::paintEvent(QPaintEvent* event)
 
         // Hilight context-sensitive objects
         painter.setPen(QColor(255, 0, 0));
-        foreach (QPoint hi, m_hilights)
+        foreach (QPoint hi, m_hilights) {
             painter.drawRect(hi.x() * m_tileset->size(), hi.y() * m_tileset->size(),
                              m_tileset->size() - 1, m_tileset->size() - 1);
+        }
     }
 }
 
@@ -390,16 +403,20 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
     m_hilights.clear();
     std::list<ccl::Trap>::const_iterator trap_iter;
     for (trap_iter = m_levelData->traps().begin(); trap_iter != m_levelData->traps().end(); ++trap_iter) {
-        if (trap_iter->button.X == posX && trap_iter->button.Y == posY)
+        if (trap_iter->button.X == posX && trap_iter->button.Y == posY
+            && isValidPoint(trap_iter->trap))
             m_hilights << QPoint(trap_iter->trap.X, trap_iter->trap.Y);
-        if (trap_iter->trap.X == posX && trap_iter->trap.Y == posY)
+        if (trap_iter->trap.X == posX && trap_iter->trap.Y == posY
+            && isValidPoint(trap_iter->button))
             m_hilights << QPoint(trap_iter->button.X, trap_iter->button.Y);
     }
     std::list<ccl::Clone>::const_iterator clone_iter;
     for (clone_iter = m_levelData->clones().begin(); clone_iter != m_levelData->clones().end(); ++clone_iter) {
-        if (clone_iter->button.X == posX && clone_iter->button.Y == posY)
+        if (clone_iter->button.X == posX && clone_iter->button.Y == posY
+            && isValidPoint(clone_iter->clone))
             m_hilights << QPoint(clone_iter->clone.X, clone_iter->clone.Y);
-        if (clone_iter->clone.X == posX && clone_iter->clone.Y == posY)
+        if (clone_iter->clone.X == posX && clone_iter->clone.Y == posY
+            && isValidPoint(clone_iter->button))
             m_hilights << QPoint(clone_iter->button.X, clone_iter->button.Y);
     }
 
