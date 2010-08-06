@@ -225,13 +225,16 @@ void EditorWidget::paintEvent(QPaintEvent* event)
         } else if (m_drawMode == DrawFill && (m_paintFlags & PaintOverlayMask) != 0) {
             plot_box(this, m_origin, m_current, PlotPreview, &painter);
         } else if (m_drawMode == DrawSelect && m_selectRect != QRect(-1, -1, -1, -1)) {
-            painter.setCompositionMode(QPainter::RasterOp_SourceXorDestination);
             painter.fillRect(m_selectRect.left() * m_tileset->size(),
                              m_selectRect.top() * m_tileset->size(),
                              m_selectRect.width() * m_tileset->size(),
                              m_selectRect.height() * m_tileset->size(),
-                             QBrush(Qt::white));
-            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+                             QBrush(QColor(95, 95, 191, 127)));
+            painter.setPen(QColor(63, 63, 191));
+            painter.drawRect(m_selectRect.left() * m_tileset->size(),
+                             m_selectRect.top() * m_tileset->size(),
+                             m_selectRect.width() * m_tileset->size() - 1,
+                             m_selectRect.height() * m_tileset->size() - 1);
         }
 
         if ((m_paintFlags & ShowMovement) != 0) {
