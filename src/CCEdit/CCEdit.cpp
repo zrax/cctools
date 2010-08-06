@@ -616,7 +616,6 @@ void CCEditMain::loadLevelset(QString filename)
     m_actions[ActionAddLevel]->setEnabled(true);
     m_actions[ActionDelLevel]->setEnabled(m_levelset->levelCount() > 0);
     m_actions[ActionProperties]->setEnabled(true);
-    m_actions[ActionAdvancedMech]->setEnabled(true);
 }
 
 void CCEditMain::doLevelsetLoad()
@@ -746,7 +745,6 @@ bool CCEditMain::closeLevelset()
     m_actions[ActionAddLevel]->setEnabled(false);
     m_actions[ActionDelLevel]->setEnabled(false);
     m_actions[ActionProperties]->setEnabled(false);
-    m_actions[ActionAdvancedMech]->setEnabled(false);
 
     return true;
 }
@@ -886,7 +884,6 @@ void CCEditMain::onNewAction()
     m_actions[ActionAddLevel]->setEnabled(true);
     m_actions[ActionDelLevel]->setEnabled(true);
     m_actions[ActionProperties]->setEnabled(true);
-    m_actions[ActionAdvancedMech]->setEnabled(true);
 }
 
 void CCEditMain::onOpenAction()
@@ -1323,6 +1320,7 @@ void CCEditMain::onSelectLevel(int idx)
         m_actions[ActionMoveUp]->setEnabled(false);
         m_actions[ActionMoveDown]->setEnabled(false);
         m_actions[ActionDelLevel]->setEnabled(false);
+        m_actions[ActionAdvancedMech]->setEnabled(false);
     } else {
         ccl::LevelData* level = m_levelset->level(idx);
         m_nameEdit->setEnabled(true);
@@ -1348,6 +1346,7 @@ void CCEditMain::onSelectLevel(int idx)
         m_actions[ActionMoveUp]->setEnabled(idx > 0);
         m_actions[ActionMoveDown]->setEnabled(idx < m_levelList->count() - 1);
         m_actions[ActionDelLevel]->setEnabled(true);
+        m_actions[ActionAdvancedMech]->setEnabled(true);
     }
 }
 
