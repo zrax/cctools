@@ -212,6 +212,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     QDockWidget* toolDock = new QDockWidget(this);
     toolDock->setObjectName("ToolDock");
     toolDock->setWindowTitle("Toolbox");
+    toolDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+    toolDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     m_toolTabs = new QTabWidget(toolDock);
     m_toolTabs->setTabPosition(QTabWidget::West);
     toolDock->setWidget(m_toolTabs);
@@ -278,11 +280,6 @@ CCEditMain::CCEditMain(QWidget* parent)
     levelManLayout->addWidget(hintLabel, 8, 0);
     levelManLayout->addWidget(m_hintEdit, 8, 1, 1, 2);
     m_hintEdit->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum));
-
-    toolDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-    toolDock->setFeatures(QDockWidget::DockWidgetMovable
-                        | QDockWidget::DockWidgetClosable
-                        | QDockWidget::DockWidgetFloatable);
     m_toolTabs->addTab(levelManWidget, tr("Level &Manager"));
 
     QWidget* tileWidget = new QWidget(toolDock);
@@ -502,6 +499,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_chipEdit, SIGNAL(valueChanged(int)), SLOT(onChipsChanged(int)));
     connect(chipsButton, SIGNAL(clicked()), SLOT(onChipCountAction()));
     connect(m_timeEdit, SIGNAL(valueChanged(int)), SLOT(onTimerChanged(int)));
+    connect(toolDock, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)), SLOT(onDockChanged(Qt::DockWidgetArea)));
     connect(qApp->clipboard(), SIGNAL(dataChanged()), SLOT(onClipboardDataChanged()));
 
 #if QT_VERSION >= 0x040500
@@ -1467,6 +1465,14 @@ void CCEditMain::onTabChanged(int tabIdx)
     //m_levelList->setCurrentRow();
     editor->update();
     editor->updateUndoStatus();
+}
+
+void CCEditMain::onDockChanged(Qt::DockWidgetArea area)
+{
+    if (area == Qt::RightDockWidgetArea)
+        m_toolTabs->setTabPosition(QTabWidget::East);
+    else
+        m_toolTabs->setTabPosition(QTabWidget::West);
 }
 
 

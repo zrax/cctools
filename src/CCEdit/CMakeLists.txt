@@ -42,6 +42,15 @@ set_target_properties(CCEdit PROPERTIES
                       RUNTIME_OUTPUT_DIRECTORY "${CCTools_SOURCE_DIR}/bin")
 
 if(APPLE)
+    set(MACOSX_BUNDLE true)
+    set(MACOSX_BUNDLE_NAME CCEdit)
+    set(MACOSX_BUNDLE_INFO_STRING "CCEdit 2.0 ALPHA")
+    set(MACOSX_BUNDLE_LONG_VERSION_STRING "1.90.0.38")
+    set(MACOSX_BUNDLE_SHORT_VERSION_STRING "1.90.0.38")
+    set(MACOSX_BUNDLE_COPYRIGHT "Copyright (C) 2010 Michael Hansen")
+    set(MACOSX_BUNDLE_ICON_FILE "boot.icns")
     add_custom_command(TARGET CCEdit POST_BUILD
-                       COMMAND cp ARGS -R ${CCTools_SOURCE_DIR}/share ${CCTools_SOURCE_DIR}/bin/CCEdit.app/Contents/ )
+                       COMMAND cp ARGS -R ${CCTools_SOURCE_DIR}/share ${CCTools_SOURCE_DIR}/bin/CCEdit.app/Contents/
+                       COMMAND mkdir ARGS -p ${CCTools_SOURCE_DIR}/bin/CCEdit.app/Contents/Resources
+                       COMMAND cp ARGS ${CMAKE_CURRENT_SOURCE_DIR}/icons/boot.icns ${CCTools_SOURCE_DIR}/bin/CCEdit.app/Contents/Resources/ )
 endif()

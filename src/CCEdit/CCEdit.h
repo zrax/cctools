@@ -157,6 +157,7 @@ private slots:
     void onCloseTab(int);
     void onCloseCurrentTab();
     void onTabChanged(int);
+    void onDockChanged(Qt::DockWidgetArea);
 
     void setForeground(tile_t);
     void setBackground(tile_t);
