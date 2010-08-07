@@ -106,6 +106,7 @@ private:
     ccl::DacFile m_dacInfo;
     QString m_levelsetFilename;
     bool m_useDac;
+    bool m_checkSave;
 
 protected:
     void registerTileset(QString filename);

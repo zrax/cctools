@@ -19,6 +19,7 @@
 
 #include <QPainter>
 #include <QFile>
+#include <QDir>
 #include <cstdio>
 #include "Errors.h"
 
@@ -106,7 +107,7 @@ void CCETileset::load(QString filename)
     delete[] pixbuffer;
 
     file.close();
-    m_filename = filename;
+    m_filename = QDir(filename).absolutePath().section(QChar('/'), -1);
 }
 
 void CCETileset::drawAt(QPainter& painter, int x, int y, tile_t upper, tile_t lower) const

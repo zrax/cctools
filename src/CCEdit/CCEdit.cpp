@@ -32,6 +32,7 @@
 #include <QCloseEvent>
 #include <QActionGroup>
 #include <QClipboard>
+#include <QSettings>
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
@@ -215,6 +216,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     toolDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
     toolDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     m_toolTabs = new QTabWidget(toolDock);
+    m_toolTabs->setObjectName("ToolTabs");
     m_toolTabs->setTabPosition(QTabWidget::West);
     toolDock->setWidget(m_toolTabs);
     addDockWidget(Qt::LeftDockWidgetArea, toolDock);
@@ -438,6 +440,7 @@ CCEditMain::CCEditMain(QWidget* parent)
 
     // Tool bars
     QToolBar* tbarMain = addToolBar(QString());
+    tbarMain->setObjectName("ToolbarMain");
     tbarMain->addAction(m_actions[ActionNew]);
     tbarMain->addAction(m_actions[ActionOpen]);
     tbarMain->addAction(m_actions[ActionSave]);
@@ -450,6 +453,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     tbarMain->addAction(m_actions[ActionCopy]);
     tbarMain->addAction(m_actions[ActionPaste]);
     QToolBar* tbarTools = addToolBar(QString());
+    tbarTools->setObjectName("ToolbarTools");
     tbarTools->addAction(m_actions[ActionDrawPencil]);
     tbarTools->addAction(m_actions[ActionDrawLine]);
     tbarTools->addAction(m_actions[ActionDrawFill]);
@@ -515,15 +519,35 @@ CCEditMain::CCEditMain(QWidget* parent)
         connect(m_tileLists[i], SIGNAL(itemSelectedRight(tile_t)), SLOT(setBackground(tile_t)));
     }
 
-    // Default setup (TODO: save/load this to/from QSettings)
-    resize(800, 600);
-    toolDock->resize(120, 0);
+    // Load window settings and defaults
+    QSettings settings("CCTools", "CCEdit");
+    resize(settings.value("WindowSize", QSize(800, 600)).toSize());
+    if (settings.value("WindowMaximized", false).toBool())
+        showMaximized();
+    if (settings.contains("WindowState"))
+        restoreState(settings.value("WindowState").toByteArray());
     findTilesets();
     if (m_tilesetGroup->actions().size() == 0) {
         QMessageBox::critical(this, tr("Error loading tilesets"),
                 tr("Error: No tilesets found.  Please check your CCTools installation"),
                 QMessageBox::Ok);
         exit(1);
+    } else if (settings.contains("TilesetName")) {
+        QString tilesetFilename = settings.value("TilesetName").toString();
+        bool foundTset = false;
+        for (int i=0; i<m_tilesetGroup->actions().size(); ++i) {
+            CCETileset* tileset = (CCETileset*)m_tilesetGroup->actions()[i]->data().value<void*>();
+            if (tileset->filename() == tilesetFilename) {
+                m_tilesetGroup->actions()[i]->setChecked(true);
+                loadTileset(tileset);
+                foundTset = true;
+                break;
+            }
+        }
+        if (!foundTset) {
+            m_tilesetGroup->actions()[0]->setChecked(true);
+            loadTileset((CCETileset*)m_tilesetGroup->actions()[0]->data().value<void*>());
+        }
     } else {
         m_tilesetGroup->actions()[0]->setChecked(true);
         loadTileset((CCETileset*)m_tilesetGroup->actions()[0]->data().value<void*>());
@@ -710,12 +734,22 @@ void CCEditMain::saveLevelset(QString filename)
         }
     }
     setLevelsetFilename(filename);
+    m_checkSave = true;
 }
 
 void CCEditMain::closeEvent(QCloseEvent* event)
 {
-    if (!closeLevelset())
+    if (!closeLevelset()) {
         event->setAccepted(false);
+        return;
+    }
+
+    QSettings settings("CCTools", "CCEdit");
+    settings.setValue("WindowMaximized", (windowState() & Qt::WindowMaximized) != 0);
+    showNormal();
+    settings.setValue("WindowSize", size());
+    settings.setValue("WindowState", saveState());
+    settings.setValue("TilesetName", m_currentTileset->filename());
 }
 
 bool CCEditMain::closeLevelset()
@@ -724,11 +758,17 @@ bool CCEditMain::closeLevelset()
         return true;
 
     int reply =  QMessageBox::question(this, tr("Close levelset"),
-                          tr("Save changes to %1 before closing?")
-                          .arg(m_levelsetFilename.isEmpty() ? "new levelset" : m_levelsetFilename),
-                          QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-    if (reply == QMessageBox::Cancel)
+                        tr("Save changes to %1 before closing?")
+                        .arg(m_levelsetFilename.isEmpty() ? "new levelset" : m_levelsetFilename),
+                        QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+    if (reply == QMessageBox::Cancel) {
         return false;
+    } else if (reply == QMessageBox::Yes) {
+        m_checkSave = false;
+        onSaveAction();
+        if (!m_checkSave)
+            return false;
+    }
 
     closeAllTabs();
     m_levelList->clear();
