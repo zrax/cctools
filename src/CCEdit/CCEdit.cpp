@@ -526,6 +526,7 @@ CCEditMain::CCEditMain(QWidget* parent)
         showMaximized();
     if (settings.contains("WindowState"))
         restoreState(settings.value("WindowState").toByteArray());
+
     findTilesets();
     if (m_tilesetGroup->actions().size() == 0) {
         QMessageBox::critical(this, tr("Error loading tilesets"),
@@ -552,6 +553,7 @@ CCEditMain::CCEditMain(QWidget* parent)
         m_tilesetGroup->actions()[0]->setChecked(true);
         loadTileset((CCETileset*)m_tilesetGroup->actions()[0]->data().value<void*>());
     }
+
     setForeground(ccl::TileWall);
     setBackground(ccl::TileFloor);
     onSelectLevel(-1);

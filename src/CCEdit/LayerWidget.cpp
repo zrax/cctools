@@ -19,6 +19,7 @@
 
 #include <QPaintEvent>
 #include <QPainter>
+#include <QLayout>
 
 LayerWidget::LayerWidget(QWidget* parent)
            : QFrame(parent), m_tileset(0), m_upper(ccl::TileWall),
@@ -31,6 +32,7 @@ void LayerWidget::setTileset(CCETileset* tileset)
 {
     m_tileset = tileset;
     resize(sizeHint());
+    updateGeometry();
     update();
 }
 
