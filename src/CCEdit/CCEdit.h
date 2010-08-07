@@ -72,8 +72,8 @@ private:
         ActionSelect, ActionCut, ActionCopy, ActionPaste, ActionClear,
         ActionUndo, ActionRedo, ActionDrawPencil, ActionDrawLine, ActionDrawFill,
         ActionPathMaker, ActionConnect, ActionAdvancedMech, ActionViewButtons,
-        ActionViewMovers, ActionViewActivePlayer, ActionAddLevel, ActionDelLevel,
-        ActionMoveUp, ActionMoveDown, ActionProperties,
+        ActionViewMovers, ActionViewActivePlayer, ActionAbout,
+        ActionAddLevel, ActionDelLevel, ActionMoveUp, ActionMoveDown, ActionProperties,
         NUM_ACTIONS
     };
 
@@ -137,6 +137,7 @@ private slots:
     void onViewMoversToggled(bool);
     void onViewActivePlayerToggled(bool);
     void onTilesetMenu(QAction*);
+    void onAboutAction();
 
     void onAddLevelAction();
     void onDelLevelAction();

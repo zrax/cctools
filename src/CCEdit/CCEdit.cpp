@@ -38,6 +38,7 @@
 #include <ctime>
 #include "LevelsetProps.h"
 #include "AdvancedMechanics.h"
+#include "About.h"
 
 #define CCEDIT_TITLE "CCEdit 2.0 ALPHA"
 
@@ -192,6 +193,9 @@ CCEditMain::CCEditMain(QWidget* parent)
     drawModeGroup->addAction(m_actions[ActionPathMaker]);
     drawModeGroup->addAction(m_actions[ActionConnect]);
     m_actions[ActionDrawPencil]->setChecked(true);
+
+    m_actions[ActionAbout] = new QAction(QIcon(":/res/help-about.png"), tr("&About CCEdit"), this);
+    m_actions[ActionAbout]->setStatusTip(tr("Show information about CCEdit"));
 
     m_actions[ActionAddLevel] = new QAction(QIcon(":/res/list-add.png"), tr("&Add Level"), this);
     m_actions[ActionAddLevel]->setStatusTip(tr("Add a new level to the end of the levelset"));
@@ -438,6 +442,9 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_tilesetMenu = viewMenu->addMenu(tr("Tile&set"));
     m_tilesetGroup = new QActionGroup(this);
 
+    QMenu* helpMenu = menuBar()->addMenu(tr("&Help"));
+    helpMenu->addAction(m_actions[ActionAbout]);
+
     // Tool bars
     QToolBar* tbarMain = addToolBar(QString());
     tbarMain->setObjectName("ToolbarMain");
@@ -488,6 +495,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionViewMovers], SIGNAL(toggled(bool)), SLOT(onViewMoversToggled(bool)));
     connect(m_actions[ActionViewActivePlayer], SIGNAL(toggled(bool)), SLOT(onViewActivePlayerToggled(bool)));
     connect(m_tilesetGroup, SIGNAL(triggered(QAction*)), SLOT(onTilesetMenu(QAction*)));
+    connect(m_actions[ActionAbout], SIGNAL(triggered()), SLOT(onAboutAction()));
 
     connect(m_actions[ActionAddLevel], SIGNAL(triggered()), SLOT(onAddLevelAction()));
     connect(m_actions[ActionDelLevel], SIGNAL(triggered()), SLOT(onDelLevelAction()));
@@ -1247,6 +1255,12 @@ void CCEditMain::onTilesetMenu(QAction* which)
 {
     CCETileset* tileset = (CCETileset*)which->data().value<void*>();
     loadTileset(tileset);
+}
+
+void CCEditMain::onAboutAction()
+{
+    AboutDialog about;
+    about.exec();
 }
 
 void CCEditMain::onAddLevelAction()
