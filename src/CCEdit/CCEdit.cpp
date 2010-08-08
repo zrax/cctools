@@ -64,6 +64,7 @@ void TileListWidget::mousePressEvent(QMouseEvent* event)
         emit itemSelectedLeft((tile_t)currentItem()->data(Qt::UserRole).toUInt());
     else if (event->button() == Qt::RightButton)
         emit itemSelectedRight((tile_t)currentItem()->data(Qt::UserRole).toUInt());
+    setCurrentItem(0);
 }
 
 

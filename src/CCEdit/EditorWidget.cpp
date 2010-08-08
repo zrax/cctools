@@ -313,7 +313,7 @@ void EditorWidget::paintEvent(QPaintEvent* event)
 
 void EditorWidget::mouseMoveEvent(QMouseEvent* event)
 {
-    if (m_tileset == 0 || m_levelData == 0)
+    if (m_tileset == 0 || m_levelData == 0 || !rect().contains(event->pos()))
         return;
 
     int posX = event->x() / m_tileset->size();
