@@ -906,6 +906,9 @@ EditorWidget* CCEditMain::addEditor(ccl::LevelData* level)
     connect(editor, SIGNAL(mouseInfo(QString)), statusBar(), SLOT(showMessage(QString)));
     connect(editor, SIGNAL(canUndo(bool)), m_actions[ActionUndo], SLOT(setEnabled(bool)));
     connect(editor, SIGNAL(canRedo(bool)), m_actions[ActionRedo], SLOT(setEnabled(bool)));
+    connect(editor, SIGNAL(hasSelection(bool)), m_actions[ActionCut], SLOT(setEnabled(bool)));
+    connect(editor, SIGNAL(hasSelection(bool)), m_actions[ActionCopy], SLOT(setEnabled(bool)));
+    connect(editor, SIGNAL(hasSelection(bool)), m_actions[ActionClear], SLOT(setEnabled(bool)));
     return editor;
 }
 
@@ -964,10 +967,6 @@ void CCEditMain::onSaveAsAction()
 
 void CCEditMain::onSelectToggled(bool mode)
 {
-    m_actions[ActionCut]->setEnabled(mode);
-    m_actions[ActionCopy]->setEnabled(mode);
-    m_actions[ActionClear]->setEnabled(mode);
-
     m_actions[ActionDrawPencil]->setChecked(false);
     m_actions[ActionDrawLine]->setChecked(false);
     m_actions[ActionDrawFill]->setChecked(false);
@@ -1522,6 +1521,11 @@ void CCEditMain::onTabChanged(int tabIdx)
     //m_levelList->setCurrentRow();
     editor->update();
     editor->updateUndoStatus();
+
+    bool hasSelection = editor->selection() != QRect(-1, -1, -1, -1);
+    m_actions[ActionCut]->setEnabled(hasSelection);
+    m_actions[ActionCopy]->setEnabled(hasSelection);
+    m_actions[ActionClear]->setEnabled(hasSelection);
 }
 
 void CCEditMain::onDockChanged(Qt::DockWidgetArea area)

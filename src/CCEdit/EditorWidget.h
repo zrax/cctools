@@ -123,6 +123,7 @@ signals:
     void mouseInfo(QString text);
     void canUndo(bool);
     void canRedo(bool);
+    void hasSelection(bool);
 };
 
 #endif

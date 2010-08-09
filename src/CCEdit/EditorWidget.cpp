@@ -200,6 +200,7 @@ void EditorWidget::setLevelData(ccl::LevelData* level)
     m_history.clear();
     emit canUndo(false);
     emit canRedo(false);
+    emit hasSelection(false);
 }
 
 void EditorWidget::paintEvent(QPaintEvent* event)
@@ -224,7 +225,7 @@ void EditorWidget::paintEvent(QPaintEvent* event)
             plot_line(this, m_origin, m_current, PlotPreview, &painter);
         } else if (m_drawMode == DrawFill && (m_paintFlags & PaintOverlayMask) != 0) {
             plot_box(this, m_origin, m_current, PlotPreview, &painter);
-        } else if (m_drawMode == DrawSelect && m_selectRect != QRect(-1, -1, -1, -1)) {
+        } else if (m_selectRect != QRect(-1, -1, -1, -1)) {
             painter.fillRect(m_selectRect.left() * m_tileset->size(),
                              m_selectRect.top() * m_tileset->size(),
                              m_selectRect.width() * m_tileset->size(),
@@ -321,7 +322,14 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
     m_current = QPoint(posX, posY);
 
     m_paintFlags &= ~(PaintLeftTemp | PaintRightTemp | PaintTempBury);
-    if ((event->buttons() & (Qt::LeftButton | Qt::RightButton)) != 0) {
+    if ((event->buttons() & Qt::MidButton) != 0 && m_origin != QPoint(-1, -1)) {
+        int lowX = std::min(m_origin.x(), m_current.x());
+        int lowY = std::min(m_origin.y(), m_current.y());
+        int highX = std::max(m_origin.x(), m_current.x());
+        int highY = std::max(m_origin.y(), m_current.y());
+        selectRegion(lowX, lowY, highX - lowX + 1, highY - lowY + 1);
+        emit hasSelection(true);
+    } else if ((event->buttons() & (Qt::LeftButton | Qt::RightButton)) != 0) {
         tile_t curtile = ((event->buttons() & Qt::LeftButton) != 0)
                        ? m_leftTile : m_rightTile;
         if (m_drawMode == DrawPencil) {
@@ -389,6 +397,7 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
             int highX = std::max(m_origin.x(), m_current.x());
             int highY = std::max(m_origin.y(), m_current.y());
             selectRegion(lowX, lowY, highX - lowX + 1, highY - lowY + 1);
+            emit hasSelection(true);
 
             //TODO:  Allow dragging of floating selection without losing data
         }
@@ -448,9 +457,15 @@ void EditorWidget::mousePressEvent(QMouseEvent* event)
     int posX = event->x() / m_tileset->size();
     int posY = event->y() / m_tileset->size();
 
-    if (m_drawMode == DrawPencil || m_drawMode == DrawLine || m_drawMode == DrawFill
-        || m_drawMode == DrawPathMaker)
+    if ((event->button() == Qt::LeftButton || event->button() == Qt::RightButton)
+        && (m_drawMode == DrawPencil || m_drawMode == DrawLine || m_drawMode == DrawFill
+            || m_drawMode == DrawPathMaker))
         beginEdit(CCEHistoryNode::HistDraw);
+
+    if (m_drawMode != DrawSelect && event->button() != Qt::MidButton) {
+        m_selectRect = QRect(-1, -1, -1, -1);
+        emit hasSelection(false);
+    }
 
     if (m_drawMode == DrawButtonConnect) {
         if (event->button() == Qt::RightButton) {
@@ -488,13 +503,14 @@ void EditorWidget::mousePressEvent(QMouseEvent* event)
             m_origin = QPoint(-1, -1);
         }
     } else if (m_drawMode == DrawSelect) {
-        if (event->button() == Qt::LeftButton) {
+        if (event->button() == Qt::LeftButton || event->button() == Qt::MidButton) {
             m_origin = QPoint(posX, posY);
         } else if (event->button() == Qt::RightButton) {
             m_origin = QPoint(-1, -1);
             m_selectRect = QRect(-1, -1, -1, -1);
+            emit hasSelection(false);
         }
-    } else if (m_drawMode != DrawPathMaker) {
+    } else {
         m_origin = QPoint(posX, posY);
     }
 
@@ -551,14 +567,15 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
         } else {
             resetOrigin = false;
         }
-    } else if (m_drawMode == DrawSelect) {
+    } else if (m_drawMode == DrawSelect || event->button() == Qt::MidButton) {
         resetOrigin = false;
     }
 
     if (resetOrigin)
         m_origin = QPoint(-1, -1);
-    if (m_drawMode == DrawPencil || m_drawMode == DrawLine || m_drawMode == DrawFill
-        || m_drawMode == DrawPathMaker)
+    if ((event->button() == Qt::LeftButton || event->button() == Qt::RightButton)
+        && (m_drawMode == DrawPencil || m_drawMode == DrawLine || m_drawMode == DrawFill
+            || m_drawMode == DrawPathMaker))
         endEdit();
 
     update();
@@ -570,6 +587,7 @@ void EditorWidget::setDrawMode(DrawMode mode)
     m_origin = QPoint(-1, -1);
     m_selectRect = QRect(-1, -1, -1, -1);
     update();
+    emit hasSelection(false);
 }
 
 void EditorWidget::viewTile(QPainter& painter, int x, int y)
