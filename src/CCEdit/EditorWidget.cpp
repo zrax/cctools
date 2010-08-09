@@ -177,7 +177,8 @@ static bool isValidPoint(const ccl::Point& point)
 EditorWidget::EditorWidget(QWidget* parent)
             : QWidget(parent), m_tileset(0), m_levelData(0), m_leftTile(0),
               m_rightTile(0), m_drawMode(DrawPencil), m_paintFlags(0),
-              m_numbers(":/res/numbers.png"), m_lastDir(ccl::DirInvalid)
+              m_cachedButton(Qt::NoButton),  m_numbers(":/res/numbers.png"),
+              m_lastDir(ccl::DirInvalid)
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     setMouseTracking(true);
@@ -292,7 +293,8 @@ void EditorWidget::paintEvent(QPaintEvent* event)
             }
         }
 
-        if (m_drawMode == DrawButtonConnect && m_origin != QPoint(-1, -1)) {
+        if (m_drawMode == DrawButtonConnect && m_origin != QPoint(-1, -1)
+            && m_selectRect == QRect(-1, -1, -1, -1)) {
             if (test_connect(m_levelData, m_origin, m_current) != ConnNone)
                 painter.setPen(QColor(255, 0, 0));
             else
@@ -471,7 +473,9 @@ void EditorWidget::mousePressEvent(QMouseEvent* event)
         emit hasSelection(false);
     }
 
-    if (m_drawMode == DrawButtonConnect) {
+    if (m_cachedButton == Qt::MidButton) {
+        m_origin = QPoint(posX, posY);
+    } else if (m_drawMode == DrawButtonConnect) {
         if (m_cachedButton == Qt::RightButton) {
             bool madeChange = false;
             beginEdit(CCEHistoryNode::HistDisconnect);
@@ -507,7 +511,7 @@ void EditorWidget::mousePressEvent(QMouseEvent* event)
             m_origin = QPoint(-1, -1);
         }
     } else if (m_drawMode == DrawSelect) {
-        if (m_cachedButton == Qt::LeftButton || m_cachedButton == Qt::MidButton) {
+        if (m_cachedButton == Qt::LeftButton) {
             m_origin = QPoint(posX, posY);
         } else if (m_cachedButton == Qt::RightButton) {
             m_origin = QPoint(-1, -1);
@@ -529,7 +533,9 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
         return;
 
     bool resetOrigin = true;
-    if (m_drawMode == DrawLine) {
+    if (m_drawMode == DrawSelect || m_cachedButton == Qt::MidButton) {
+        resetOrigin = false;
+    } else if (m_drawMode == DrawLine) {
         if (m_cachedButton == Qt::LeftButton)
             plot_line(this, m_origin, m_current, PlotDraw, 0, m_leftTile,
                       (event->modifiers() & Qt::ShiftModifier) != 0);
@@ -573,8 +579,6 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
         } else {
             resetOrigin = false;
         }
-    } else if (m_drawMode == DrawSelect || m_cachedButton == Qt::MidButton) {
-        resetOrigin = false;
     }
 
     if (resetOrigin)
