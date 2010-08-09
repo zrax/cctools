@@ -4,8 +4,10 @@ syntax: glob
 *.dac
 *.ccl
 .DS_Store
-bin/CCEdit
-bin/CCEdit.app
+bin/CCEdit*
+bin/CCPlay*
+bin/Release
+bin/Debug
 
 syntax: regexp
 ^build/

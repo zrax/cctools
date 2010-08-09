@@ -1337,9 +1337,15 @@ void CCEditMain::onPropertiesAction()
     LevelsetProps props(this);
     props.setLevelset(m_levelset);
     props.setDacFile(m_useDac ? &m_dacInfo : 0);
-    if (props.exec() == QDialog::Accepted) {
+    while (props.exec() == QDialog::Accepted) {
         m_levelset->setType(props.levelsetType());
         if (props.useDac()) {
+            if (props.dacFilename().isEmpty()) {
+                QMessageBox::critical(this, tr("Error"),
+                        tr("You must specify a levelset filename when using a DAC file"),
+                        QMessageBox::Ok);
+                continue;
+            }
             m_dacInfo.m_filename = props.dacFilename().toUtf8().data();
             m_dacInfo.m_ruleset = props.dacRuleset();
             m_dacInfo.m_lastLevel = props.lastLevel();
@@ -1353,6 +1359,7 @@ void CCEditMain::onPropertiesAction()
             setLevelsetFilename(m_levelsetFilename);
         }
         m_useDac = props.useDac();
+        break;
     }
 }
 

@@ -15,3 +15,4 @@ elseif(MSVC)
 endif()
 
 add_subdirectory(src/CCEdit)
+add_subdirectory(src/CCPlay)
