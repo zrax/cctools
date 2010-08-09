@@ -322,22 +322,22 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
     m_current = QPoint(posX, posY);
 
     m_paintFlags &= ~(PaintLeftTemp | PaintRightTemp | PaintTempBury);
-    if ((event->buttons() & Qt::MidButton) != 0 && m_origin != QPoint(-1, -1)) {
+    if (m_cachedButton == Qt::MidButton && m_origin != QPoint(-1, -1)) {
         int lowX = std::min(m_origin.x(), m_current.x());
         int lowY = std::min(m_origin.y(), m_current.y());
         int highX = std::max(m_origin.x(), m_current.x());
         int highY = std::max(m_origin.y(), m_current.y());
         selectRegion(lowX, lowY, highX - lowX + 1, highY - lowY + 1);
         emit hasSelection(true);
-    } else if ((event->buttons() & (Qt::LeftButton | Qt::RightButton)) != 0) {
-        tile_t curtile = ((event->buttons() & Qt::LeftButton) != 0)
+    } else if ((m_cachedButton & (Qt::LeftButton | Qt::RightButton)) != 0) {
+        tile_t curtile = (m_cachedButton == Qt::LeftButton)
                        ? m_leftTile : m_rightTile;
         if (m_drawMode == DrawPencil) {
             putTile(curtile, posX, posY, (event->modifiers() & Qt::ShiftModifier) != 0);
         } else if (m_drawMode == DrawLine || m_drawMode == DrawFill) {
-            if ((event->buttons() & Qt::LeftButton) != 0)
+            if (m_cachedButton == Qt::LeftButton)
                 m_paintFlags |= PaintLeftTemp;
-            else if ((event->buttons() & Qt::RightButton) != 0)
+            else if (m_cachedButton == Qt::RightButton)
                 m_paintFlags |= PaintRightTemp;
             if ((event->modifiers() & Qt::ShiftModifier) != 0)
                 m_paintFlags |= PaintTempBury;
@@ -451,13 +451,17 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
 
 void EditorWidget::mousePressEvent(QMouseEvent* event)
 {
+    if (m_cachedButton != Qt::NoButton
+        || (event->button() & (Qt::LeftButton | Qt ::MidButton | Qt::RightButton)) == 0)
+        return;
     if (m_tileset == 0 || m_levelData == 0)
         return;
 
     int posX = event->x() / m_tileset->size();
     int posY = event->y() / m_tileset->size();
+    m_cachedButton = event->button();
 
-    if ((event->button() == Qt::LeftButton || event->button() == Qt::RightButton)
+    if ((m_cachedButton == Qt::LeftButton || m_cachedButton == Qt::RightButton)
         && (m_drawMode == DrawPencil || m_drawMode == DrawLine || m_drawMode == DrawFill
             || m_drawMode == DrawPathMaker))
         beginEdit(CCEHistoryNode::HistDraw);
@@ -468,7 +472,7 @@ void EditorWidget::mousePressEvent(QMouseEvent* event)
     }
 
     if (m_drawMode == DrawButtonConnect) {
-        if (event->button() == Qt::RightButton) {
+        if (m_cachedButton == Qt::RightButton) {
             bool madeChange = false;
             beginEdit(CCEHistoryNode::HistDisconnect);
             std::list<ccl::Trap>::iterator trap_iter = m_levelData->traps().begin();
@@ -503,9 +507,9 @@ void EditorWidget::mousePressEvent(QMouseEvent* event)
             m_origin = QPoint(-1, -1);
         }
     } else if (m_drawMode == DrawSelect) {
-        if (event->button() == Qt::LeftButton || event->button() == Qt::MidButton) {
+        if (m_cachedButton == Qt::LeftButton || m_cachedButton == Qt::MidButton) {
             m_origin = QPoint(posX, posY);
-        } else if (event->button() == Qt::RightButton) {
+        } else if (m_cachedButton == Qt::RightButton) {
             m_origin = QPoint(-1, -1);
             m_selectRect = QRect(-1, -1, -1, -1);
             emit hasSelection(false);
@@ -519,22 +523,24 @@ void EditorWidget::mousePressEvent(QMouseEvent* event)
 
 void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
 {
+    if (event->button() != m_cachedButton)
+        return;
     if (m_tileset == 0 || m_levelData == 0)
         return;
 
     bool resetOrigin = true;
     if (m_drawMode == DrawLine) {
-        if (event->button() == Qt::LeftButton)
+        if (m_cachedButton == Qt::LeftButton)
             plot_line(this, m_origin, m_current, PlotDraw, 0, m_leftTile,
                       (event->modifiers() & Qt::ShiftModifier) != 0);
-        else if (event->button() == Qt::RightButton)
+        else if (m_cachedButton == Qt::RightButton)
             plot_line(this, m_origin, m_current, PlotDraw, 0, m_rightTile,
                       (event->modifiers() & Qt::ShiftModifier) != 0);
     } else if (m_drawMode == DrawFill) {
-        if (event->button() == Qt::LeftButton)
+        if (m_cachedButton == Qt::LeftButton)
             plot_box(this, m_origin, m_current, PlotDraw, 0, m_leftTile,
                      (event->modifiers() & Qt::ShiftModifier) != 0);
-        else if (event->button() == Qt::RightButton)
+        else if (m_cachedButton == Qt::RightButton)
             plot_box(this, m_origin, m_current, PlotDraw, 0, m_rightTile,
                      (event->modifiers() & Qt::ShiftModifier) != 0);
     } else if (m_drawMode == DrawButtonConnect) {
@@ -567,18 +573,19 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
         } else {
             resetOrigin = false;
         }
-    } else if (m_drawMode == DrawSelect || event->button() == Qt::MidButton) {
+    } else if (m_drawMode == DrawSelect || m_cachedButton == Qt::MidButton) {
         resetOrigin = false;
     }
 
     if (resetOrigin)
         m_origin = QPoint(-1, -1);
-    if ((event->button() == Qt::LeftButton || event->button() == Qt::RightButton)
+    if ((m_cachedButton == Qt::LeftButton || m_cachedButton == Qt::RightButton)
         && (m_drawMode == DrawPencil || m_drawMode == DrawLine || m_drawMode == DrawFill
             || m_drawMode == DrawPathMaker))
         endEdit();
 
     update();
+    m_cachedButton = Qt::NoButton;
 }
 
 void EditorWidget::setDrawMode(DrawMode mode)
