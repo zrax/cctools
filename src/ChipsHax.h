@@ -66,7 +66,7 @@ public:
     void open(ccl::Stream* stream) { m_stream = stream; }
 
     /* Enter all available hacks here */
-    HACK_BOOL16(IgnorePasswords,    0x482E      )
+    HACK_BOOL16(IgnorePasswords,    0x482E      )   // No need for the menu cheat
     HACK_STRING(DialogTitle,        0x4868,   17)   // Used for message boxes
     HACK_STRING(FireDeathMsg,       0x4976,   49)
     HACK_STRING(WaterDeathMsg,      0x49A8,   41)
@@ -80,10 +80,10 @@ public:
     HACK_STRING(WindowTitle,        0x4D16,   16)   // Displayed in main window
     HACK_STRING(DefaultDeath,       0x4D7C,    6)
     HACK_STRING(CorruptFileMsg,     0x5166,   39)
-    HACK_STRING(FirstTryMsg,        0x5334,   18)   // Yowser!
+    HACK_STRING(FirstTryMsg,        0x5334,   18)   // Yowser! First Try!
     HACK_STRING(ThirdTryMsg,        0x5347,   14)   // Go Bit Buster!
-    HACK_STRING(FifthTryMsg,        0x5356,   20)   // Finished!  Good work!
-    HACK_STRING(FinalTryMsg,        0x536B,   20)   // At last!  You did it!
+    HACK_STRING(FifthTryMsg,        0x5356,   20)   // Finished! Good work!
+    HACK_STRING(FinalTryMsg,        0x536B,   20)   // At last! You did it!
     HACK_STRING(EndgameMsg1,        0x546E,   57)
     HACK_STRING(EndgameMsg2,        0x54A8,  155)
     HACK_STRING(ProgressMsg1,       0x56D6,  129)
@@ -101,6 +101,9 @@ public:
     void set_FakeLastLevel(int level);
     int get_LastLevel();
     int get_FakeLastLevel();
+
+    void set_AlwaysFirstTry(bool on);
+    bool get_AlwaysFirstTry();
 
     // CCExplore's patch for a crash when chip enters a square occupied
     // by two masked objects (e.g. monsters and keys)

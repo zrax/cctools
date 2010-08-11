@@ -63,6 +63,24 @@ int ccl::ChipsHax::get_FakeLastLevel()
 }
 
 
+static uint8_t firstTry_enabled[]  = { 0xB8, 0x00, 0x00, 0x90 };  // mov  ax, 0
+static uint8_t firstTry_disabled[] = { 0x8B, 0x87, 0x30, 0x0A };  // mov  ax, [bx+0A30h]
+
+void ccl::ChipsHax::set_AlwaysFirstTry(bool on)
+{
+    m_stream->seek(0xAA57, SEEK_SET);
+    m_stream->write(on ? firstTry_enabled : firstTry_disabled, 1, 4);
+}
+
+bool ccl::ChipsHax::get_AlwaysFirstTry()
+{
+    uint8_t buffer[4];
+    m_stream->seek(0xAA57, SEEK_SET);
+    m_stream->read(buffer, 1, 4);
+    return (memcmp(buffer, firstTry_enabled, 4) == 0);
+}
+
+
 #define CCPATCH_SIZE    82
 #define CCPATCH_ADDR    0x7C93
 
