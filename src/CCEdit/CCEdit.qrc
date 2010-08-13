@@ -2,6 +2,7 @@
 <qresource>
     <file>res/document-new.png</file>
     <file>res/document-open.png</file>
+    <file>res/document-open-folder-sm.png</file>
     <file>res/document-save.png</file>
     <file>res/document-save-as.png</file>
     <file>res/document-properties.png</file>

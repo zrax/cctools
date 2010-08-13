@@ -40,6 +40,7 @@
 #include <ctime>
 #include "LevelsetProps.h"
 #include "AdvancedMechanics.h"
+#include "TestSetup.h"
 #include "About.h"
 #include "../IniFile.h"
 #include "../ChipsHax.h"
@@ -507,6 +508,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionTestChips], SIGNAL(triggered()), SLOT(onTestChips()));
     connect(m_actions[ActionTestTWorldCC], SIGNAL(triggered()), SLOT(onTestTWorldCC()));
     connect(m_actions[ActionTestTWorldLynx], SIGNAL(triggered()), SLOT(onTestTWorldLynx()));
+    connect(m_actions[ActionTestSetup], SIGNAL(triggered()), SLOT(onTestSetup()));
     connect(m_actions[ActionAbout], SIGNAL(triggered()), SLOT(onAboutAction()));
 
     connect(m_actions[ActionAddLevel], SIGNAL(triggered()), SLOT(onAddLevelAction()));
@@ -1484,6 +1486,12 @@ void CCEditMain::onTestTWorld(unsigned int levelsetType)
     QProcess::execute(tworldExe, QStringList() << "-pr" << tempDat
                       << QString("%1").arg(m_levelList->currentRow() + 1));
     QDir::setCurrent(cwd);
+}
+
+void CCEditMain::onTestSetup()
+{
+    TestSetupDialog dlg;
+    dlg.exec();
 }
 
 void CCEditMain::onAboutAction()

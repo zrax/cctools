@@ -16,6 +16,7 @@ set(CCEdit_SOURCES
     LevelsetProps.cpp
     History.cpp
     AdvancedMechanics.cpp
+    TestSetup.cpp
 )
 
 if(WIN32)
@@ -29,6 +30,7 @@ set(CCEdit_MOCS
     LayerWidget.h
     LevelsetProps.h
     AdvancedMechanics.h
+    TestSetup.h
 )
 
 set(CCEdit_RCCS

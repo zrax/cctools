@@ -142,6 +142,7 @@ private slots:
     void onTestTWorld(unsigned int levelsetType);
     void onTestTWorldCC() { onTestTWorld(ccl::Levelset::TypeMS); }
     void onTestTWorldLynx() { onTestTWorld(ccl::Levelset::TypeLynx); }
+    void onTestSetup();
     void onAboutAction();
 
     void onAddLevelAction();
