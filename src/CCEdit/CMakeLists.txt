@@ -52,6 +52,9 @@ if(APPLE)
     set(MACOSX_BUNDLE_COPYRIGHT "Copyright (C) 2010 Michael Hansen")
     set(MACOSX_BUNDLE_ICON_FILE "boot.icns")
 
+    install(TARGETS CCEdit
+            BUNDLE DESTINATION .
+    )
     install(FILES ${CCTools_Tilesets}
             DESTINATION CCEdit.app/Contents/share/cctools
     )
