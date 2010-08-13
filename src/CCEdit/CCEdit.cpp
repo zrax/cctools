@@ -33,12 +33,16 @@
 #include <QActionGroup>
 #include <QClipboard>
 #include <QSettings>
+#include <QTextCodec>
+#include <QProcess>
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
 #include "LevelsetProps.h"
 #include "AdvancedMechanics.h"
 #include "About.h"
+#include "../IniFile.h"
+#include "../ChipsHax.h"
 
 #define CCEDIT_TITLE "CCEdit 2.0 ALPHA"
 
@@ -194,6 +198,21 @@ CCEditMain::CCEditMain(QWidget* parent)
     drawModeGroup->addAction(m_actions[ActionPathMaker]);
     drawModeGroup->addAction(m_actions[ActionConnect]);
     m_actions[ActionDrawPencil]->setChecked(true);
+
+    m_actions[ActionTestChips] = new QAction(tr("Test in &MSCC"), this);
+    m_actions[ActionTestChips]->setStatusTip(tr("Test the current level in Chips.exe"));
+    m_actions[ActionTestChips]->setShortcut(Qt::Key_F5);
+    m_actions[ActionTestChips]->setEnabled(false);
+    m_actions[ActionTestTWorldCC] = new QAction(tr("Test in &Tile World (MSCC)"), this);
+    m_actions[ActionTestTWorldCC]->setStatusTip(tr("Test the current level in Tile World with the MSCC Ruleset"));
+    m_actions[ActionTestTWorldCC]->setShortcut(Qt::Key_F6);
+    m_actions[ActionTestTWorldCC]->setEnabled(false);
+    m_actions[ActionTestTWorldLynx] = new QAction(tr("Test in &Tile World (Lynx)"), this);
+    m_actions[ActionTestTWorldLynx]->setStatusTip(tr("Test the current level in Tile World with the Lynx Ruleset"));
+    m_actions[ActionTestTWorldLynx]->setShortcut(Qt::Key_F7);
+    m_actions[ActionTestTWorldLynx]->setEnabled(false);
+    m_actions[ActionTestSetup] = new QAction(tr("&Setup Testing..."), this);
+    m_actions[ActionTestSetup]->setStatusTip(tr("Setup testing parameters and options"));
 
     m_actions[ActionAbout] = new QAction(QIcon(":/res/help-about.png"), tr("&About CCEdit"), this);
     m_actions[ActionAbout]->setStatusTip(tr("Show information about CCEdit"));
@@ -443,6 +462,13 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_tilesetMenu = viewMenu->addMenu(tr("Tile&set"));
     m_tilesetGroup = new QActionGroup(this);
 
+    QMenu* testMenu = menuBar()->addMenu(tr("Te&st"));
+    testMenu->addAction(m_actions[ActionTestChips]);
+    testMenu->addAction(m_actions[ActionTestTWorldCC]);
+    testMenu->addAction(m_actions[ActionTestTWorldLynx]);
+    testMenu->addSeparator();
+    testMenu->addAction(m_actions[ActionTestSetup]);
+
     QMenu* helpMenu = menuBar()->addMenu(tr("&Help"));
     helpMenu->addAction(m_actions[ActionAbout]);
 
@@ -496,6 +522,9 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionViewMovers], SIGNAL(toggled(bool)), SLOT(onViewMoversToggled(bool)));
     connect(m_actions[ActionViewActivePlayer], SIGNAL(toggled(bool)), SLOT(onViewActivePlayerToggled(bool)));
     connect(m_tilesetGroup, SIGNAL(triggered(QAction*)), SLOT(onTilesetMenu(QAction*)));
+    connect(m_actions[ActionTestChips], SIGNAL(triggered()), SLOT(onTestChips()));
+    connect(m_actions[ActionTestTWorldCC], SIGNAL(triggered()), SLOT(onTestTWorldCC()));
+    connect(m_actions[ActionTestTWorldLynx], SIGNAL(triggered()), SLOT(onTestTWorldLynx()));
     connect(m_actions[ActionAbout], SIGNAL(triggered()), SLOT(onAboutAction()));
 
     connect(m_actions[ActionAddLevel], SIGNAL(triggered()), SLOT(onAddLevelAction()));
@@ -646,6 +675,9 @@ void CCEditMain::loadLevelset(QString filename)
     m_actions[ActionSave]->setEnabled(true);
     m_actions[ActionSaveAs]->setEnabled(true);
     m_actions[ActionClose]->setEnabled(true);
+    m_actions[ActionTestChips]->setEnabled(true);
+    m_actions[ActionTestTWorldCC]->setEnabled(true);
+    m_actions[ActionTestTWorldLynx]->setEnabled(true);
     m_actions[ActionAddLevel]->setEnabled(true);
     m_actions[ActionDelLevel]->setEnabled(m_levelset->levelCount() > 0);
     m_actions[ActionProperties]->setEnabled(true);
@@ -791,6 +823,9 @@ bool CCEditMain::closeLevelset()
     m_actions[ActionSave]->setEnabled(false);
     m_actions[ActionSaveAs]->setEnabled(false);
     m_actions[ActionClose]->setEnabled(false);
+    m_actions[ActionTestChips]->setEnabled(false);
+    m_actions[ActionTestTWorldCC]->setEnabled(false);
+    m_actions[ActionTestTWorldLynx]->setEnabled(false);
     m_actions[ActionAddLevel]->setEnabled(false);
     m_actions[ActionDelLevel]->setEnabled(false);
     m_actions[ActionProperties]->setEnabled(false);
@@ -933,6 +968,9 @@ void CCEditMain::onNewAction()
     m_actions[ActionSave]->setEnabled(true);
     m_actions[ActionSaveAs]->setEnabled(true);
     m_actions[ActionClose]->setEnabled(true);
+    m_actions[ActionTestChips]->setEnabled(true);
+    m_actions[ActionTestTWorldCC]->setEnabled(true);
+    m_actions[ActionTestTWorldLynx]->setEnabled(true);
     m_actions[ActionAddLevel]->setEnabled(true);
     m_actions[ActionDelLevel]->setEnabled(true);
     m_actions[ActionProperties]->setEnabled(true);
@@ -1255,6 +1293,198 @@ void CCEditMain::onTilesetMenu(QAction* which)
 {
     CCETileset* tileset = (CCETileset*)which->data().value<void*>();
     loadTileset(tileset);
+}
+
+void CCEditMain::onTestChips()
+{
+    if (m_levelset == 0 || m_levelList->currentRow() < 0)
+        return;
+
+    QSettings settings("CCTools", "CCEdit");
+    QString chipsExe = settings.value("ChipsExe").toString();
+    if (chipsExe.isEmpty() || !QFile::exists(chipsExe)) {
+        QMessageBox::critical(this, tr("Could not find CHIPS.EXE"),
+                tr("Could not find Chip's Challenge executable.\n"
+                   "Please configure MSCC in the Test Setup dialog."));
+        return;
+    }
+#ifndef Q_OS_WIN32
+    QString winePath = settings.value("WineExe").toString();
+    if (winePath.isEmpty() || !QFile::exists(winePath)) {
+        // Try standard paths
+        if (QFile::exists("/usr/bin/wine")) {
+            winePath = "/usr/bin/wine";
+        } else if (QFile::exists("/usr/local/bin/wine")) {
+            winePath = "/usr/local/bin/wine";
+        } else {
+            QMessageBox::critical(this, tr("Could not find WINE"),
+                    tr("Could not find WINE executable.\n"
+                       "Please configure WINE in the Test Setup dialog."));
+            return;
+        }
+    }
+#endif
+
+    QString tempExe = QDir::tempPath() + "/CCRun.exe";
+    QString tempDat = QDir::tempPath() + "/CCRun.dat";
+    QFile::remove(tempExe);
+    if (!QFile::copy(chipsExe, tempExe)) {
+        QMessageBox::critical(this, tr("Error Creating Test EXE"),
+                tr("Error copying %1 to temp path").arg(chipsExe));
+        return;
+    }
+    ccl::FileStream stream;
+    if (!stream.open(tempExe.toUtf8().data(), "r+b")) {
+        QMessageBox::critical(this, tr("Error Creating Test EXE"),
+                tr("Error opening %1 for writing").arg(tempExe));
+        return;
+    }
+
+    // Make a CHIPS.EXE that we can use
+    ccl::ChipsHax hax;
+    hax.open(&stream);
+    hax.set_CCPatch(ccl::CCPatchPatched);
+    hax.set_LastLevel(m_levelset->levelCount());
+    if (m_useDac && m_dacInfo.m_lastLevel < m_levelset->levelCount())
+        hax.set_FakeLastLevel(m_dacInfo.m_lastLevel);
+    else
+        hax.set_FakeLastLevel(m_levelset->levelCount());
+    hax.set_IgnorePasswords(true);
+    hax.set_DataFilename("CCRun.dat");
+    hax.set_IniFilename("./CCRun.ini");
+    hax.set_IniEntryName("CCEdit Playtest");
+    hax.set_DialogTitle("CCEdit Playtest");
+    hax.set_WindowTitle("CCEdit Playtest");
+    stream.close();
+
+    // Save the levelset to the temp file
+    if (!stream.open(tempDat.toUtf8().data(), "wb")) {
+        QMessageBox::critical(this, tr("Error Creating Test Data File"),
+                tr("Error opening %1 for writing").arg(tempDat));
+        return;
+    }
+    unsigned int saveType = m_levelset->type();
+    m_levelset->setType(ccl::Levelset::TypeMS);
+    try {
+        m_levelset->write(&stream);
+    } catch (std::exception& e) {
+        QMessageBox::critical(this, tr("Error Creating Test Data File"),
+                tr("Error writing data file: %1").arg(e.what()));
+        m_levelset->setType(saveType);
+        stream.close();
+        return;
+    }
+    m_levelset->setType(saveType);
+    stream.close();
+
+    // Configure the INI file
+    QString cwd = QDir::currentPath();
+    QDir exePath = chipsExe;
+    exePath.cdUp();
+
+    QString tempIni = exePath.absoluteFilePath("CCRun.ini");
+    FILE* iniStream = fopen(tempIni.toUtf8().data(), "r+t");
+    if (iniStream == 0)
+        iniStream = fopen(tempIni.toUtf8().data(), "w+t");
+    if (iniStream == 0) {
+        QMessageBox::critical(this, tr("Error Creating CCRun.ini"),
+                tr("Error: Could not open or create CCRun.ini file"));
+        QFile::remove(tempExe);
+        QFile::remove(tempDat);
+        return;
+    }
+    try {
+        ccl::IniFile ini;
+        ini.read(iniStream);
+        ini.setSection("CCEdit Playtest");
+        ini.setInt("Current Level", m_levelList->currentRow() + 1);
+        ini.setString(QString("Level%1").arg(m_levelList->currentRow() + 1).toUtf8().data(),
+                      m_levelset->level(m_levelList->currentRow())->password());
+        ini.write(iniStream);
+        fclose(iniStream);
+    } catch (std::exception& e) {
+        QMessageBox::critical(this, tr("Error writing CCRun.ini"),
+                tr("Error writing INI file: %1").arg(e.what()));
+        fclose(iniStream);
+        QFile::remove(tempExe);
+        QFile::remove(tempDat);
+        QFile::remove(tempIni);
+        return;
+    }
+
+    QDir::setCurrent(exePath.absolutePath());
+#ifdef Q_OS_WIN32
+    // Native execution
+    QProcess::execute(tempExe);
+#else
+    // Try to use WINE
+    QProcess::execute(winePath, QStringList() << tempExe);
+#endif
+    QDir::setCurrent(cwd);
+
+    // Remove temp files
+    QFile::remove(tempExe);
+    QFile::remove(tempDat);
+    QFile::remove(tempIni);
+}
+
+void CCEditMain::onTestTWorld(unsigned int levelsetType)
+{
+    if (m_levelset == 0 || m_levelList->currentRow() < 0)
+        return;
+
+    QSettings settings("CCTools", "CCEdit");
+    QString tworldExe = settings.value("TWorldExe").toString();
+    if (tworldExe.isEmpty() || !QFile::exists(tworldExe)) {
+#ifndef Q_OS_WIN32
+        // Try standard paths
+        if (QFile::exists("/usr/games/tworld")) {
+            tworldExe = "/usr/games/tworld";
+        } else if (QFile::exists("/usr/local/games/tworld")) {
+            tworldExe = "/usr/local/games/tworld";
+        } else {
+            QMessageBox::critical(this, tr("Could not find Tile World"),
+                    tr("Could not find Tile World executable.\n"
+                       "Please configure Tile World in the Test Setup dialog."));
+            return;
+        }
+#else
+        QMessageBox::critical(this, tr("Could not find Tile World"),
+                tr("Could not find Tile World executable.\n"
+                   "Please configure Tile World in the Test Setup dialog."));
+        return;
+#endif
+    }
+
+    // Save the levelset to the temp file
+    QString tempDat = QDir::tempPath() + "/CCRun.dat";
+    ccl::FileStream stream;
+    if (!stream.open(tempDat.toUtf8().data(), "wb")) {
+        QMessageBox::critical(this, tr("Error Creating Test Data File"),
+                tr("Error opening %1 for writing").arg(tempDat));
+        return;
+    }
+    unsigned int saveType = m_levelset->type();
+    m_levelset->setType(levelsetType);
+    try {
+        m_levelset->write(&stream);
+    } catch (std::exception& e) {
+        QMessageBox::critical(this, tr("Error Creating Test Data File"),
+                tr("Error writing data file: %1").arg(e.what()));
+        m_levelset->setType(saveType);
+        stream.close();
+        return;
+    }
+    m_levelset->setType(saveType);
+    stream.close();
+
+    QString cwd = QDir::currentPath();
+    QDir exePath = tworldExe;
+    exePath.cdUp();
+    QDir::setCurrent(exePath.absolutePath());
+    QProcess::execute(tworldExe, QStringList() << "-pr" << tempDat
+                      << QString("%1").arg(m_levelList->currentRow() + 1));
+    QDir::setCurrent(cwd);
 }
 
 void CCEditMain::onAboutAction()

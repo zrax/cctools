@@ -8,6 +8,7 @@ set(CCEdit_SOURCES
     ../Levelset.cpp
     ../Tileset.cpp
     ../DacFile.cpp
+    ../IniFile.cpp
     ../ChipsHax.cpp
     CCEdit.cpp
     EditorWidget.cpp

@@ -72,7 +72,8 @@ private:
         ActionSelect, ActionCut, ActionCopy, ActionPaste, ActionClear,
         ActionUndo, ActionRedo, ActionDrawPencil, ActionDrawLine, ActionDrawFill,
         ActionPathMaker, ActionConnect, ActionAdvancedMech, ActionViewButtons,
-        ActionViewMovers, ActionViewActivePlayer, ActionAbout,
+        ActionViewMovers, ActionViewActivePlayer, ActionTestChips,
+        ActionTestTWorldCC, ActionTestTWorldLynx, ActionTestSetup, ActionAbout,
         ActionAddLevel, ActionDelLevel, ActionMoveUp, ActionMoveDown, ActionProperties,
         NUM_ACTIONS
     };
@@ -137,6 +138,10 @@ private slots:
     void onViewMoversToggled(bool);
     void onViewActivePlayerToggled(bool);
     void onTilesetMenu(QAction*);
+    void onTestChips();
+    void onTestTWorld(unsigned int levelsetType);
+    void onTestTWorldCC() { onTestTWorld(ccl::Levelset::TypeMS); }
+    void onTestTWorldLynx() { onTestTWorld(ccl::Levelset::TypeLynx); }
     void onAboutAction();
 
     void onAddLevelAction();

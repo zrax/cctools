@@ -337,7 +337,7 @@ ccl::Levelset::Levelset(const ccl::Levelset& init)
    : m_magic(init.m_magic)
 {
     m_levels.resize(init.m_levels.size());
-    for (int i=0; i<m_levels.size(); ++i)
+    for (size_t i=0; i<m_levels.size(); ++i)
         m_levels[i] = new ccl::LevelData(*init.m_levels[i]);
 }
 
