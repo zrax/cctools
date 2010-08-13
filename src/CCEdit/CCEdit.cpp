@@ -1472,7 +1472,7 @@ void CCEditMain::onTestTWorld(unsigned int levelsetType)
     }
 
     // Save the levelset to the temp file
-    QString tempDat = QDir::tempPath() + "/CCRun.dat";
+    QString tempDat = QDir::toNativeSeparators(QDir::tempPath() + "/CCRun.dat");
     ccl::FileStream stream;
     if (!stream.open(tempDat.toUtf8().data(), "wb")) {
         QMessageBox::critical(this, tr("Error Creating Test Data File"),

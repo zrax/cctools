@@ -21,6 +21,13 @@
 #include <cstdlib>
 #include "Errors.h"
 
+#ifdef _MSC_VER
+    #include <io.h>
+    #define ftruncate _chsize
+    #define snprintf sprintf_s
+    #define fileno _fileno
+#endif
+
 void ccl::IniFile::read(FILE* stream)
 {
     char buffer[1024];
