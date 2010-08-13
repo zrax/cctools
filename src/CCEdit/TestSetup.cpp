@@ -94,8 +94,12 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     layout->addWidget(new QLabel(
             tr("Note: Leave WINE or Tile World paths empty to use system-installed locations"),
             this), POSIX_OFFSET + 2, 0, 1, 3);
+#else
+    layout->addWidget(new QLabel(
+            tr("Note: MSCC will not work on 64-bit Windows platforms"),
+            this), POSIX_OFFSET + 2, 0, 1, 3);
 #endif
-    layout->addWidget(buttons, (POSIX_OFFSET * 2) + 2, 0, 1, 3);
+    layout->addWidget(buttons, POSIX_OFFSET + 3, 0, 1, 3);
     resize(400, sizeHint().height());
 
     connect(buttons, SIGNAL(rejected()), SLOT(reject()));
