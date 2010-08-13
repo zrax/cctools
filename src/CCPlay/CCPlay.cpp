@@ -28,6 +28,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include "../Levelset.h"
+#include "../DacFile.h"
 
 CCPlayMain::CCPlayMain(QWidget* parent)
           : QMainWindow(parent)
@@ -133,13 +134,41 @@ void CCPlayMain::onPathChanged(QString path)
     foreach (QString set, setList) {
         ccl::Levelset levelset;
         ccl::FileStream stream;
-        try {
-            if (!stream.open(levelsetDir.absoluteFilePath(set).toUtf8().data(), "rb"))
+        QString filename = levelsetDir.absoluteFilePath(set);
+        ccl::LevelsetType type = ccl::DetermineLevelsetType(filename.toUtf8().data());
+        if (type == ccl::LevelsetCcl) {
+            try {
+                if (!stream.open(filename.toUtf8().data(), "rb"))
+                    continue;
+                levelset.read(&stream);
+                stream.close();
+            } catch (...) {
                 continue;
-            levelset.read(&stream);
-            stream.close();
-        } catch (...) {
-            continue;
+            }
+        } else if (type == ccl::LevelsetDac) {
+            FILE* dac = fopen(filename.toUtf8().data(), "rt");
+            if (dac == 0)
+                continue;
+
+            ccl::DacFile dacInfo;
+            try {
+                dacInfo.read(dac);
+                fclose(dac);
+            } catch (...) {
+                fclose(dac);
+                continue;
+            }
+
+            QDir searchPath(filename);
+            searchPath.cdUp();
+            try {
+                if (!stream.open(searchPath.absoluteFilePath(dacInfo.m_filename.c_str()).toUtf8().data(), "rb"))
+                    continue;
+                levelset.read(&stream);
+                stream.close();
+            } catch (...) {
+                continue;
+            }
         }
 
         QTreeWidgetItem* item = new QTreeWidgetItem(m_levelsetList);
@@ -165,17 +194,62 @@ void CCPlayMain::onLevelsetChanged(QTreeWidgetItem* item, QTreeWidgetItem*)
     ccl::FileStream stream;
     QString filename = item->data(0, Qt::UserRole).toString();
 
-    try {
-        if (!stream.open(filename.toUtf8().data(), "rb")) {
+    ccl::LevelsetType type = ccl::DetermineLevelsetType(filename.toUtf8().data());
+    if (type == ccl::LevelsetCcl) {
+        try {
+            if (!stream.open(filename.toUtf8().data(), "rb")) {
+                QMessageBox::critical(this, tr("Error Reading Levelset"),
+                        tr("Error Opening levelset file %1").arg(filename));
+                return;
+            }
+            levelset.read(&stream);
+            stream.close();
+        } catch (std::exception& e) {
             QMessageBox::critical(this, tr("Error Reading Levelset"),
-                    tr("Error Opening levelset file %1").arg(filename));
+                    tr("Error Reading levelset file: %1").arg(e.what()));
             return;
         }
-        levelset.read(&stream);
-        stream.close();
-    } catch (std::exception& e) {
-        QMessageBox::critical(this, tr("Error Reading Levelset"),
-                tr("Error Reading levelset file: %1").arg(e.what()));
+    } else if (type == ccl::LevelsetDac) {
+        FILE* dac = fopen(filename.toUtf8().data(), "rt");
+        if (dac == 0) {
+            QMessageBox::critical(this, tr("Error reading levelset"),
+                                  tr("Could not open file: %1")
+                                  .arg(filename));
+            return;
+        }
+        ccl::DacFile dacInfo;
+        try {
+            dacInfo.read(dac);
+            fclose(dac);
+        } catch (ccl::Exception& e) {
+            QMessageBox::critical(this, tr("Error reading levelset"),
+                                    tr("Error loading levelset descriptor: %1")
+                                    .arg(e.what()));
+            fclose(dac);
+            return;
+        }
+
+        QDir searchPath(filename);
+        searchPath.cdUp();
+        if (stream.open(searchPath.absoluteFilePath(dacInfo.m_filename.c_str()).toUtf8().data(), "rb")) {
+            try {
+                levelset.read(&stream);
+                stream.close();
+            } catch (std::exception& e) {
+                QMessageBox::critical(this, tr("Error reading levelset"),
+                                      tr("Error loading levelset: %1").arg(e.what()));
+                stream.close();
+                return;
+            }
+        } else {
+            QMessageBox::critical(this, tr("Error opening levelset"),
+                                tr("Error: could not open file %1")
+                                .arg(dacInfo.m_filename.c_str()));
+            return;
+        }
+    } else {
+        QMessageBox::critical(this, tr("Error reading levelset"),
+                              tr("Cannot determine file type for %1").arg(filename));
         return;
     }
 

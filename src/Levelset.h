@@ -166,29 +166,33 @@ private:
     unsigned int m_magic;
 };
 
+enum LevelsetType { LevelsetError, LevelsetDac, LevelsetCcl };
+LevelsetType DetermineLevelsetType(const char* filename);
+
 enum Direction { DirInvalid, DirNorth, DirWest, DirSouth, DirEast };
 
-#define DIRTILE(name) \
+#define MK_DIRTILE(name) \
     Tile##name##_N, Tile##name##_W, Tile##name##_S, Tile##name##_E
 
-#define COLORTILE(name) \
+#define MK_COLORTILE(name) \
     Tile##name##_Blue, Tile##name##_Red, Tile##name##_Green, Tile##name##_Yellow
 
 enum TileType {
     TileFloor, TileWall, TileChip, TileWater, TileFire, TileInvisWall,
-    DIRTILE(Barrier), TileBlock, TileDirt, TileIce, TileForce_S, DIRTILE(Block),
-    TileForce_N, TileForce_E, TileForce_W, TileExit, COLORTILE(Door),
-    TileIce_SE, TileIce_SW, TileIce_NW, TileIce_NE, TileBlueFloor, TileBlueWall,
-    Tile_UNUSED_20, TileThief, TileSocket, TileToggleButton, TileCloneButton,
-    TileToggleWall, TileToggleFloor, TileTrapButton, TileTankButton,
-    TileTeleport, TileBomb, TileTrap, TileAppearingWall, TileGravel,
-    TilePopUpWall, TileHint, TileBarrier_SE, TileCloner, TileForce_Rand,
-    TilePlayerSplash, TilePlayerFire, TilePlayerBurnt, Tile_UNUSED_36,
-    Tile_UNUSED_37, Tile_UNUSED_38, TilePlayerExit, TileExitAnim2, TileExitAnim3,
-    DIRTILE(PlayerSwim), DIRTILE(Bug), DIRTILE(Fireball), DIRTILE(Ball),
-    DIRTILE(Tank), DIRTILE(Glider), DIRTILE(Teeth), DIRTILE(Walker),
-    DIRTILE(Blob), DIRTILE(Crawler), COLORTILE(Key), TileFlippers,
-    TileFireBoots, TileIceSkates, TileForceBoots, DIRTILE(Player),
+    MK_DIRTILE(Barrier), TileBlock, TileDirt, TileIce, TileForce_S,
+    MK_DIRTILE(Block), TileForce_N, TileForce_E, TileForce_W, TileExit,
+    MK_COLORTILE(Door), TileIce_SE, TileIce_SW, TileIce_NW, TileIce_NE,
+    TileBlueFloor, TileBlueWall, Tile_UNUSED_20, TileThief, TileSocket,
+    TileToggleButton, TileCloneButton, TileToggleWall, TileToggleFloor,
+    TileTrapButton, TileTankButton, TileTeleport, TileBomb, TileTrap,
+    TileAppearingWall, TileGravel, TilePopUpWall, TileHint, TileBarrier_SE,
+    TileCloner, TileForce_Rand, TilePlayerSplash, TilePlayerFire,
+    TilePlayerBurnt, Tile_UNUSED_36, Tile_UNUSED_37, Tile_UNUSED_38,
+    TilePlayerExit, TileExitAnim2, TileExitAnim3, MK_DIRTILE(PlayerSwim),
+    MK_DIRTILE(Bug), MK_DIRTILE(Fireball), MK_DIRTILE(Ball), MK_DIRTILE(Tank),
+    MK_DIRTILE(Glider), MK_DIRTILE(Teeth), MK_DIRTILE(Walker), MK_DIRTILE(Blob),
+    MK_DIRTILE(Crawler), MK_COLORTILE(Key), TileFlippers,
+    TileFireBoots, TileIceSkates, TileForceBoots, MK_DIRTILE(Player),
     NUM_TILE_TYPES,
 
     MONSTER_FIRST = TileBug_N,

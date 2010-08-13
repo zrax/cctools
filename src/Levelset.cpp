@@ -412,3 +412,20 @@ void ccl::Levelset::write(ccl::Stream* stream)
         (*it)->write(stream);
     }
 }
+
+
+ccl::LevelsetType ccl::DetermineLevelsetType(const char* filename)
+{
+    ccl::FileStream stream;
+    if (!stream.open(filename, "rb"))
+        return LevelsetError;
+
+    uint32_t magic;
+    size_t count = stream.read(&magic, sizeof(uint32_t), 1);
+    stream.close();
+    if (count == 0)
+        return LevelsetError;
+    if (magic == Levelset::TypeLynx || magic == Levelset::TypeMS)
+        return LevelsetCcl;
+    return LevelsetDac;
+}

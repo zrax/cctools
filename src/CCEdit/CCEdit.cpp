@@ -72,24 +72,6 @@ void TileListWidget::mousePressEvent(QMouseEvent* event)
 }
 
 
-enum LevelsetType { LevelsetError, LevelsetDac, LevelsetCcl };
-static LevelsetType determineLevelsetType(QString filename)
-{
-    QFile file(filename);
-    if (!file.open(QIODevice::ReadOnly))
-        return LevelsetError;
-
-    unsigned int magic;
-    qint64 bytes = file.read((char*)&magic, 4);
-    file.close();
-    if (bytes != 4)
-        return LevelsetError;
-    if (magic == ccl::Levelset::TypeLynx || magic == ccl::Levelset::TypeMS)
-        return LevelsetCcl;
-    return LevelsetDac;
-}
-
-
 CCEditMain::CCEditMain(QWidget* parent)
     : QMainWindow(parent), m_currentTileset(0), m_savedDrawMode(ActionDrawPencil),
       m_currentDrawMode(EditorWidget::DrawPencil),  m_levelset(0), m_useDac(false)
@@ -603,14 +585,14 @@ void CCEditMain::loadLevelset(QString filename)
     if (!closeLevelset())
         return;
 
-    LevelsetType type = determineLevelsetType(filename);
-    if (type == LevelsetCcl) {
+    ccl::LevelsetType type = ccl::DetermineLevelsetType(filename.toUtf8().data());
+    if (type == ccl::LevelsetCcl) {
         ccl::FileStream set;
         if (set.open(filename.toUtf8().data(), "rb")) {
             m_levelset = new ccl::Levelset(0);
             try {
                 m_levelset->read(&set);
-            } catch (ccl::Exception& e) {
+            } catch (std::exception& e) {
                 QMessageBox::critical(this, tr("Error reading levelset"),
                                       tr("Error loading levelset: %1").arg(e.what()));
                 delete m_levelset;
@@ -625,51 +607,53 @@ void CCEditMain::loadLevelset(QString filename)
         doLevelsetLoad();
         setLevelsetFilename(filename);
         m_useDac = false;
-    } else if (type == LevelsetDac) {
+    } else if (type == ccl::LevelsetDac) {
         FILE* dac = fopen(filename.toUtf8().data(), "rt");
-        if (dac != 0) {
-            try {
-                m_dacInfo.read(dac);
-                fclose(dac);
-            } catch (ccl::Exception& e) {
-                QMessageBox::critical(this, tr("Error reading levelset"),
-                                      tr("Error loading levelset descriptor: %1")
-                                      .arg(e.what()));
-                fclose(dac);
-                return;
-            }
-
-            QDir searchPath(filename);
-            searchPath.cdUp();
-
-            ccl::FileStream set;
-            if (set.open(searchPath.absoluteFilePath(m_dacInfo.m_filename.c_str()).toUtf8().data(), "rb")) {
-                m_levelset = new ccl::Levelset(0);
-                try {
-                    m_levelset->read(&set);
-                } catch (ccl::Exception& e) {
-                    QMessageBox::critical(this, tr("Error reading levelset"),
-                                        tr("Error loading levelset: %1").arg(e.what()));
-                    delete m_levelset;
-                    m_levelset = 0;
-                    return;
-                }
-            } else {
-                QMessageBox::critical(this, tr("Error opening levelset"),
-                                    tr("Error: could not open file %1")
-                                    .arg(m_dacInfo.m_filename.c_str()));
-                return;
-            }
-            doLevelsetLoad();
-            setLevelsetFilename(filename);
-            m_useDac = true;
-        } else {
+        if (dac == 0) {
             QMessageBox::critical(this, tr("Error opening levelset"),
                                   tr("Error: could not open file %1").arg(filename));
+            return;
         }
+
+        try {
+            m_dacInfo.read(dac);
+            fclose(dac);
+        } catch (ccl::Exception& e) {
+            QMessageBox::critical(this, tr("Error reading levelset"),
+                                    tr("Error loading levelset descriptor: %1")
+                                    .arg(e.what()));
+            fclose(dac);
+            return;
+        }
+
+        QDir searchPath(filename);
+        searchPath.cdUp();
+
+        ccl::FileStream set;
+        if (set.open(searchPath.absoluteFilePath(m_dacInfo.m_filename.c_str()).toUtf8().data(), "rb")) {
+            m_levelset = new ccl::Levelset(0);
+            try {
+                m_levelset->read(&set);
+            } catch (std::exception& e) {
+                QMessageBox::critical(this, tr("Error reading levelset"),
+                                        tr("Error loading levelset: %1").arg(e.what()));
+                delete m_levelset;
+                m_levelset = 0;
+                return;
+            }
+        } else {
+            QMessageBox::critical(this, tr("Error opening levelset"),
+                                tr("Error: could not open file %1")
+                                .arg(m_dacInfo.m_filename.c_str()));
+            return;
+        }
+        doLevelsetLoad();
+        setLevelsetFilename(filename);
+        m_useDac = true;
     } else {
         QMessageBox::critical(this, tr("Error reading levelset"),
                               tr("Cannot determine file type for %1").arg(filename));
+        return;
     }
 
     m_actions[ActionSave]->setEnabled(true);
