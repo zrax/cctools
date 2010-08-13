@@ -51,8 +51,16 @@ if(APPLE)
     set(MACOSX_BUNDLE_SHORT_VERSION_STRING "1.90.2.47")
     set(MACOSX_BUNDLE_COPYRIGHT "Copyright (C) 2010 Michael Hansen")
     set(MACOSX_BUNDLE_ICON_FILE "boot.icns")
-    add_custom_command(TARGET CCEdit POST_BUILD
-                       COMMAND cp ARGS -R ${CCTools_SOURCE_DIR}/share ${CCTools_SOURCE_DIR}/bin/CCEdit.app/Contents/
-                       COMMAND mkdir ARGS -p ${CCTools_SOURCE_DIR}/bin/CCEdit.app/Contents/Resources
-                       COMMAND cp ARGS ${CMAKE_CURRENT_SOURCE_DIR}/icons/boot.icns ${CCTools_SOURCE_DIR}/bin/CCEdit.app/Contents/Resources/ )
+
+    install(TARGETS CCEdit)
+    install(FILES ${CCTools_Tilesets}
+            DESTINATION CCEdit.app/Contents
+    )
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/icons/boot.icns
+            DESTINATION CCEdit.app/Contents/Resources
+    )
+elseif(NOT WIN32)
+    install(TARGETS CCEdit
+            RUNTIME DESTINATION bin
+    )
 endif()

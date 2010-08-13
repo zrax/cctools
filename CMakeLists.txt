@@ -14,5 +14,16 @@ elseif(MSVC)
     add_definitions("/D_CRT_SECURE_NO_WARNINGS")
 endif()
 
+set(CCTools_Tilesets
+    ${CMAKE_CURRENT_SOURCE_DIR}/share/cctools/TW32.tis
+    ${CMAKE_CURRENT_SOURCE_DIR}/share/cctools/WEP.tis
+)
+
 add_subdirectory(src/CCEdit)
 add_subdirectory(src/CCPlay)
+
+if(NOT WIN32 AND NOT APPLE)
+    install(FILES ${CCTools_Tilesets}
+            DESTINATION share/cctools
+    )
+endif()
