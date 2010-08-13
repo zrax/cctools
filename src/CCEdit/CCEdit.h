@@ -128,11 +128,11 @@ private slots:
     void onClearAction();
     void onUndoAction();
     void onRedoAction();
-    void onDrawPencilAction();
-    void onDrawLineAction();
-    void onDrawFillAction();
-    void onPathMakerAction();
-    void onConnectAction();
+    void onDrawPencilAction(bool);
+    void onDrawLineAction(bool);
+    void onDrawFillAction(bool);
+    void onPathMakerAction(bool);
+    void onConnectAction(bool);
     void onAdvancedMechAction();
     void onViewButtonsToggled(bool);
     void onViewMoversToggled(bool);
