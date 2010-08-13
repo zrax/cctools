@@ -41,10 +41,6 @@ if(APPLE)
     set(MACOSX_BUNDLE_COPYRIGHT "Copyright (C) 2010 Michael Hansen")
     #set(MACOSX_BUNDLE_ICON_FILE "boot.icns")
 
-    install(TARGETS CCPlay)
-    install(FILES ${CCTools_Tilesets}
-            DESTINATION CCPlay.app/Contents
-    )
     #install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/icons/boot.icns
     #        DESTINATION CCPlay.app/Contents/Resources
     #)

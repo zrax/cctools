@@ -22,7 +22,11 @@ set(CCTools_Tilesets
 add_subdirectory(src/CCEdit)
 add_subdirectory(src/CCPlay)
 
-if(NOT WIN32 AND NOT APPLE)
+if(WIN32)
+    install(FILES ${CCTools_Tilesets}
+            DESTINATION .
+    )
+elseif(NOT APPLE)
     install(FILES ${CCTools_Tilesets}
             DESTINATION share/cctools
     )
