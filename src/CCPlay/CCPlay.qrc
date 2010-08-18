@@ -1,5 +1,10 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
     <file>res/document-open-folder.png</file>
+    <file>res/document-properties.png</file>
+    <file>res/application-exit.png</file>
+    <file>res/play-chips.png</file>
+    <file>res/play-tworld.png</file>
+    <file>res/edit-ccedit.png</file>
 </qresource>
 </RCC>

@@ -19,8 +19,10 @@
 #define _CCPLAY_H
 
 #include <QMainWindow>
+#include <QAction>
 #include <QLineEdit>
 #include <QTreeWidget>
+#include <QSqlDatabase>
 
 class CCPlayMain : public QMainWindow {
     Q_OBJECT
@@ -28,17 +30,30 @@ class CCPlayMain : public QMainWindow {
 public:
     CCPlayMain(QWidget* parent = 0);
 
+    bool initDatabase();
     void setLevelsetPath(QString path) { m_levelsetPath->setText(path); }
 
 protected:
     virtual void closeEvent(QCloseEvent*);
 
 private:
+    enum {
+        ActionPlayMSCC, ActionPlayTWorld, ActionEdit,
+        ActionSetup, ActionExit,
+        NUM_ACTIONS
+    };
+
+    QAction* m_actions[NUM_ACTIONS];
     QLineEdit* m_levelsetPath;
     QTreeWidget* m_levelsetList;
     QTreeWidget* m_levelList;
+    QSqlDatabase m_scoredb;
 
 private slots:
+    void onPlayMSCC();
+    void onPlayTWorld();
+    void onEditDefault();
+
     void onBrowseLevelsetPath();
     void onPathChanged(QString);
     void onLevelsetChanged(QTreeWidgetItem*, QTreeWidgetItem*);

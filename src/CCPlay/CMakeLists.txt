@@ -1,4 +1,4 @@
-find_package(Qt4 COMPONENTS QtCore QtGui QtMain REQUIRED)
+find_package(Qt4 COMPONENTS QtCore QtGui QtSql QtMain REQUIRED)
 include(${QT_USE_FILE})
 
 include_directories(${QT_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR})
@@ -6,8 +6,8 @@ include_directories(${QT_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR})
 set(CCPlay_SOURCES
     ../Stream.cpp
     ../Levelset.cpp
-    ../Tileset.cpp
     ../DacFile.cpp
+    ../IniFile.cpp
     CCPlay.cpp
 )
 
@@ -16,7 +16,6 @@ if(WIN32)
 endif()
 
 set(CCPlay_MOCS
-    ../Tileset.h
     CCPlay.h
 )
 

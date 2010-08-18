@@ -1381,6 +1381,14 @@ void CCEditMain::onZoomCust()
         for (int i=0; i<m_editorTabs->count(); ++i)
             getEditorAt(i)->setZoom(m_zoomFactor);
     }
+    if (m_zoomFactor == 1.0)
+        m_actions[ActionZoom100]->setChecked(true);
+    else if (m_zoomFactor == 0.5)
+        m_actions[ActionZoom50]->setChecked(true);
+    else if (m_zoomFactor == 0.25)
+        m_actions[ActionZoom25]->setChecked(true);
+    else if (m_zoomFactor == 0.125)
+        m_actions[ActionZoom125]->setChecked(true);
 }
 
 void CCEditMain::onTilesetMenu(QAction* which)
