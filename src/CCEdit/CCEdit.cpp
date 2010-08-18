@@ -28,6 +28,7 @@
 #include <QToolButton>
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QInputDialog>
 #include <QStatusBar>
 #include <QCloseEvent>
 #include <QActionGroup>
@@ -197,11 +198,16 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionZoom125]->setStatusTip(tr("Zoom to 12.5%"));
     m_actions[ActionZoom125]->setShortcut(Qt::CTRL | Qt::Key_3);
     m_actions[ActionZoom125]->setCheckable(true);
+    m_actions[ActionZoomCust] = new QAction(tr("&Custom..."), this);
+    m_actions[ActionZoomCust]->setStatusTip(tr("Zoom to custom percentage"));
+    m_actions[ActionZoomCust]->setShortcut(Qt::CTRL | Qt::Key_9);
+    m_actions[ActionZoomCust]->setCheckable(true);
     QActionGroup* zoomGroup = new QActionGroup(this);
     zoomGroup->addAction(m_actions[ActionZoom100]);
     zoomGroup->addAction(m_actions[ActionZoom50]);
     zoomGroup->addAction(m_actions[ActionZoom25]);
     zoomGroup->addAction(m_actions[ActionZoom125]);
+    zoomGroup->addAction(m_actions[ActionZoomCust]);
 
     m_actions[ActionTestChips] = new QAction(tr("Test in &MSCC"), this);
     m_actions[ActionTestChips]->setStatusTip(tr("Test the current level in Chips.exe"));
@@ -470,6 +476,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     zoomMenu->addAction(m_actions[ActionZoom50]);
     zoomMenu->addAction(m_actions[ActionZoom25]);
     zoomMenu->addAction(m_actions[ActionZoom125]);
+    zoomMenu->addAction(m_actions[ActionZoomCust]);
 
     QMenu* testMenu = menuBar()->addMenu(tr("Te&st"));
     testMenu->addAction(m_actions[ActionTestChips]);
@@ -535,6 +542,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionZoom50], SIGNAL(triggered()), SLOT(onZoom50()));
     connect(m_actions[ActionZoom25], SIGNAL(triggered()), SLOT(onZoom25()));
     connect(m_actions[ActionZoom125], SIGNAL(triggered()), SLOT(onZoom125()));
+    connect(m_actions[ActionZoomCust], SIGNAL(triggered()), SLOT(onZoomCust()));
     connect(m_actions[ActionTestChips], SIGNAL(triggered()), SLOT(onTestChips()));
     connect(m_actions[ActionTestTWorldCC], SIGNAL(triggered()), SLOT(onTestTWorldCC()));
     connect(m_actions[ActionTestTWorldLynx], SIGNAL(triggered()), SLOT(onTestTWorldLynx()));
@@ -548,7 +556,6 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionProperties], SIGNAL(triggered()), SLOT(onPropertiesAction()));
 
     connect(m_levelList, SIGNAL(currentRowChanged(int)), SLOT(onSelectLevel(int)));
-    //connect(m_levelList, SIGNAL(itemDoubleClicked(QListWidgetItem*)), SLOT(onLevelDClicked(QListWidgetItem*)));
     connect(m_nameEdit, SIGNAL(textChanged(QString)), SLOT(onNameChanged(QString)));
     connect(m_passwordEdit, SIGNAL(textChanged(QString)), SLOT(onPasswordChanged(QString)));
     connect(passwordButton, SIGNAL(clicked()), SLOT(onPasswordGenAction()));
@@ -615,8 +622,8 @@ CCEditMain::CCEditMain(QWidget* parent)
         m_actions[ActionZoom25]->setChecked(true);
     else if (m_zoomFactor == 0.125)
         m_actions[ActionZoom125]->setChecked(true);
-    //else
-    //    m_actions[ActionZoomCust]->setChecked(true);
+    else
+        m_actions[ActionZoomCust]->setChecked(true);
 
     setForeground(ccl::TileWall);
     setBackground(ccl::TileFloor);
@@ -1338,34 +1345,42 @@ void CCEditMain::onZoom100()
 {
     m_zoomFactor = 1.0;
     for (int i=0; i<m_editorTabs->count(); ++i)
-        getEditorAt(i)->setZoom(1.0);
+        getEditorAt(i)->setZoom(m_zoomFactor);
 }
 
 void CCEditMain::onZoom50()
 {
     m_zoomFactor = 0.5;
     for (int i=0; i<m_editorTabs->count(); ++i)
-        getEditorAt(i)->setZoom(0.5);
+        getEditorAt(i)->setZoom(m_zoomFactor);
 }
 
 void CCEditMain::onZoom25()
 {
     m_zoomFactor = 0.25;
     for (int i=0; i<m_editorTabs->count(); ++i)
-        getEditorAt(i)->setZoom(0.25);
+        getEditorAt(i)->setZoom(m_zoomFactor);
 }
 
 void CCEditMain::onZoom125()
 {
     m_zoomFactor = 0.125;
     for (int i=0; i<m_editorTabs->count(); ++i)
-        getEditorAt(i)->setZoom(0.125);
+        getEditorAt(i)->setZoom(m_zoomFactor);
 
 }
 
-void CCEditMain::onZoomFit()
+void CCEditMain::onZoomCust()
 {
-    //TODO
+    bool ok;
+    double zoom = QInputDialog::getDouble(this, tr("Set Custom Zoom"),
+                        tr("Custom Zoom Percentage"), m_zoomFactor * 100.0,
+                        2.5, 800.0, 2, &ok);
+    if (ok) {
+        m_zoomFactor = zoom / 100.0;
+        for (int i=0; i<m_editorTabs->count(); ++i)
+            getEditorAt(i)->setZoom(m_zoomFactor);
+    }
 }
 
 void CCEditMain::onTilesetMenu(QAction* which)

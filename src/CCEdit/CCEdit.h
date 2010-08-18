@@ -73,7 +73,7 @@ private:
         ActionUndo, ActionRedo, ActionDrawPencil, ActionDrawLine, ActionDrawFill,
         ActionPathMaker, ActionConnect, ActionAdvancedMech, ActionViewButtons,
         ActionViewMovers, ActionViewActivePlayer, ActionZoom100, ActionZoom50,
-        ActionZoom25, ActionZoom125, ActiobnZoomFit, ActionTestChips,
+        ActionZoom25, ActionZoom125, ActionZoomCust, ActionTestChips,
         ActionTestTWorldCC, ActionTestTWorldLynx, ActionTestSetup, ActionAbout,
         ActionAddLevel, ActionDelLevel, ActionMoveUp, ActionMoveDown, ActionProperties,
         NUM_ACTIONS
@@ -143,7 +143,7 @@ private slots:
     void onZoom50();
     void onZoom25();
     void onZoom125();
-    void onZoomFit();
+    void onZoomCust();
     void onTilesetMenu(QAction*);
     void onTestChips();
     void onTestTWorld(unsigned int levelsetType);
@@ -159,7 +159,6 @@ private slots:
     void onPropertiesAction();
 
     void onSelectLevel(int);
-    //void onLevelDClicked(QListWidgetItem*) { onNewTab(); }
     void onPasswordGenAction();
     void onChipCountAction();
     void onNameChanged(QString);
