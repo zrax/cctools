@@ -92,6 +92,7 @@ public:
     {
          m_history.endEdit(m_levelData);
          updateUndoStatus();
+         dirtyBuffer();
     }
 
     void cancelEdit() { m_history.cancelEdit(); }
@@ -103,6 +104,7 @@ public:
     }
 
     void renderTileBuffer();
+    void dirtyBuffer() { m_cacheDirty = true; }
     double zoom() const { return m_zoomFactor; }
 
 public slots:

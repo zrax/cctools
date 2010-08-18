@@ -187,6 +187,7 @@ void EditorWidget::setTileset(CCETileset* tileset)
 {
     m_tileset = tileset;
     m_tileBuffer = QPixmap(32 * m_tileset->size(), 32 * m_tileset->size());
+    dirtyBuffer();
     resize(sizeHint());
     update();
 }
@@ -196,7 +197,7 @@ void EditorWidget::setLevelData(ccl::LevelData* level)
     m_levelData = level;
     m_origin = QPoint(-1, -1);
     m_selectRect = QRect(-1, -1, -1, -1);
-    renderTileBuffer();
+    dirtyBuffer();
     update();
 
     m_history.clear();
@@ -219,7 +220,7 @@ void EditorWidget::renderTileBuffer()
     else if (m_drawMode == DrawFill && (m_paintFlags & PaintOverlayMask) != 0)
         plot_box(this, m_origin, m_current, PlotPreview, &tilePainter);
 
-    m_cacheDirty = true;
+    dirtyBuffer();
 }
 
 void EditorWidget::paintEvent(QPaintEvent* event)
@@ -229,6 +230,7 @@ void EditorWidget::paintEvent(QPaintEvent* event)
 
     QPainter painter(this);
     if (m_cacheDirty) {
+        renderTileBuffer();
         m_tileCache = m_tileBuffer.scaled(sizeHint());
         m_cacheDirty = false;
     }
@@ -313,7 +315,7 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
 
     int posX = event->x() / (int)(m_tileset->size() * m_zoomFactor);
     int posY = event->y() / (int)(m_tileset->size() * m_zoomFactor);
-    if (m_current == QPoint(posX, posY))
+    if (m_current == QPoint(posX, posY) && !m_cacheDirty)
         return;
     m_current = QPoint(posX, posY);
 
@@ -337,13 +339,9 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
                 m_paintFlags |= PaintRightTemp;
             if ((event->modifiers() & Qt::ShiftModifier) != 0)
                 m_paintFlags |= PaintTempBury;
-            renderTileBuffer();
+            dirtyBuffer();
         } else if (m_drawMode == DrawPathMaker) {
-            if (m_origin == QPoint(-1, -1)) {
-                putTile(curtile, posX, posY, (event->modifiers() & Qt::ShiftModifier) != 0);
-                m_origin = m_current;
-                m_lastDir = ccl::DirInvalid;
-            } else if (m_origin != m_current) {
+            if (m_origin != m_current) {
                 ccl::Direction dir = calc_dir(m_origin, m_current);
                 tile_t dirtile = directionalize(curtile, dir);
                 if (FORCE_TILE(curtile)) {
@@ -387,6 +385,10 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
                 }
                 m_origin = m_current;
                 m_lastDir = dir;
+            } else {
+                putTile(curtile, posX, posY, (event->modifiers() & Qt::ShiftModifier) != 0);
+                m_origin = m_current;
+                m_lastDir = ccl::DirInvalid;
             }
         } else if (m_drawMode == DrawSelect && m_origin != QPoint(-1, -1)) {
             int lowX = std::min(m_origin.x(), m_current.x());
@@ -456,6 +458,7 @@ void EditorWidget::mousePressEvent(QMouseEvent* event)
 
     int posX = event->x() / (int)(m_tileset->size() * m_zoomFactor);
     int posY = event->y() / (int)(m_tileset->size() * m_zoomFactor);
+    m_current = QPoint(-1, -1);
     m_cachedButton = event->button();
 
     if ((m_cachedButton == Qt::LeftButton || m_cachedButton == Qt::RightButton)
@@ -613,7 +616,7 @@ void EditorWidget::viewTile(QPainter& painter, int x, int y)
             m_tileset->draw(painter, x, y, m_rightTile,
                             m_levelData->map().getBG(x, y));
     }
-    m_cacheDirty = true;
+    dirtyBuffer();
 }
 
 void EditorWidget::putTile(tile_t tile, int x, int y, bool bury)
@@ -690,10 +693,7 @@ void EditorWidget::putTile(tile_t tile, int x, int y, bool bury)
             ++clone_iter;
     }
 
-    QPainter painter(&m_tileBuffer);
-    m_tileset->draw(painter, x, y, m_levelData->map().getFG(x, y),
-                    m_levelData->map().getBG(x, y));
-    m_cacheDirty = true;
+    dirtyBuffer();
 }
 
 void EditorWidget::undo()
@@ -703,7 +703,7 @@ void EditorWidget::undo()
     m_levelData->traps() = data->traps();
     m_levelData->clones() = data->clones();
     m_levelData->moveList() = data->moveList();
-    renderTileBuffer();
+    dirtyBuffer();
     update();
     updateUndoStatus();
 }
@@ -715,7 +715,7 @@ void EditorWidget::redo()
     m_levelData->traps() = data->traps();
     m_levelData->clones() = data->clones();
     m_levelData->moveList() = data->moveList();
-    renderTileBuffer();
+    dirtyBuffer();
     update();
     updateUndoStatus();
 }
@@ -723,7 +723,7 @@ void EditorWidget::redo()
 void EditorWidget::setZoom(double factor)
 {
     m_zoomFactor = factor;
-    m_cacheDirty = true;
+    dirtyBuffer();
     resize(sizeHint());
     update();
 }

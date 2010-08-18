@@ -465,7 +465,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     viewMenu->addSeparator();
     m_tilesetMenu = viewMenu->addMenu(tr("Tile&set"));
     m_tilesetGroup = new QActionGroup(this);
-    QMenu* zoomMenu = menuBar()->addMenu(tr("&Zoom"));
+    QMenu* zoomMenu = viewMenu->addMenu(tr("&Zoom"));
     zoomMenu->addAction(m_actions[ActionZoom100]);
     zoomMenu->addAction(m_actions[ActionZoom50]);
     zoomMenu->addAction(m_actions[ActionZoom25]);
@@ -1716,7 +1716,6 @@ void CCEditMain::onSelectLevel(int idx)
         } else {
             editor->setLevelData(level);
             m_editorTabs->setTabText(m_editorTabs->currentIndex(), level->name().c_str());
-            editor->update();
         }
 
         m_actions[ActionMoveUp]->setEnabled(idx > 0);
@@ -1841,6 +1840,7 @@ void CCEditMain::onTabChanged(int tabIdx)
     EditorWidget* editor = getEditorAt(tabIdx);
 
     //m_levelList->setCurrentRow();
+    editor->dirtyBuffer();
     editor->update();
     editor->updateUndoStatus();
 
