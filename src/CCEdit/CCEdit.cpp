@@ -160,6 +160,13 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionAdvancedMech]->setStatusTip(tr("Manually manipulate gameplay mechanics for the current level"));
     m_actions[ActionAdvancedMech]->setShortcut(Qt::CTRL | Qt::Key_K);
     m_actions[ActionAdvancedMech]->setEnabled(false);
+    QActionGroup* drawModeGroup = new QActionGroup(this);
+    drawModeGroup->addAction(m_actions[ActionDrawPencil]);
+    drawModeGroup->addAction(m_actions[ActionDrawLine]);
+    drawModeGroup->addAction(m_actions[ActionDrawFill]);
+    drawModeGroup->addAction(m_actions[ActionPathMaker]);
+    drawModeGroup->addAction(m_actions[ActionConnect]);
+    m_actions[ActionDrawPencil]->setChecked(true);
 
     m_actions[ActionViewButtons] = new QAction(tr("Show &Button Connections"), this);
     m_actions[ActionViewButtons]->setStatusTip(tr("Draw lines between connected buttons/traps/cloning machines in editor"));
@@ -174,13 +181,27 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionViewActivePlayer]->setCheckable(true);
     m_actions[ActionViewActivePlayer]->setChecked(true);
 
-    QActionGroup* drawModeGroup = new QActionGroup(this);
-    drawModeGroup->addAction(m_actions[ActionDrawPencil]);
-    drawModeGroup->addAction(m_actions[ActionDrawLine]);
-    drawModeGroup->addAction(m_actions[ActionDrawFill]);
-    drawModeGroup->addAction(m_actions[ActionPathMaker]);
-    drawModeGroup->addAction(m_actions[ActionConnect]);
-    m_actions[ActionDrawPencil]->setChecked(true);
+    m_actions[ActionZoom100] = new QAction(tr("&100%"), this);
+    m_actions[ActionZoom100]->setStatusTip(tr("Zoom to 100%"));
+    m_actions[ActionZoom100]->setShortcut(Qt::CTRL | Qt::Key_1);
+    m_actions[ActionZoom100]->setCheckable(true);
+    m_actions[ActionZoom50] = new QAction(tr("&50%"), this);
+    m_actions[ActionZoom50]->setStatusTip(tr("Zoom to 50%"));
+    m_actions[ActionZoom50]->setShortcut(Qt::CTRL | Qt::Key_5);
+    m_actions[ActionZoom50]->setCheckable(true);
+    m_actions[ActionZoom25] = new QAction(tr("&25%"), this);
+    m_actions[ActionZoom25]->setStatusTip(tr("Zoom to 25%"));
+    m_actions[ActionZoom25]->setShortcut(Qt::CTRL | Qt::Key_2);
+    m_actions[ActionZoom25]->setCheckable(true);
+    m_actions[ActionZoom125] = new QAction(tr("12.5&%"), this);
+    m_actions[ActionZoom125]->setStatusTip(tr("Zoom to 12.5%"));
+    m_actions[ActionZoom125]->setShortcut(Qt::CTRL | Qt::Key_3);
+    m_actions[ActionZoom125]->setCheckable(true);
+    QActionGroup* zoomGroup = new QActionGroup(this);
+    zoomGroup->addAction(m_actions[ActionZoom100]);
+    zoomGroup->addAction(m_actions[ActionZoom50]);
+    zoomGroup->addAction(m_actions[ActionZoom25]);
+    zoomGroup->addAction(m_actions[ActionZoom125]);
 
     m_actions[ActionTestChips] = new QAction(tr("Test in &MSCC"), this);
     m_actions[ActionTestChips]->setStatusTip(tr("Test the current level in Chips.exe"));
@@ -444,6 +465,11 @@ CCEditMain::CCEditMain(QWidget* parent)
     viewMenu->addSeparator();
     m_tilesetMenu = viewMenu->addMenu(tr("Tile&set"));
     m_tilesetGroup = new QActionGroup(this);
+    QMenu* zoomMenu = menuBar()->addMenu(tr("&Zoom"));
+    zoomMenu->addAction(m_actions[ActionZoom100]);
+    zoomMenu->addAction(m_actions[ActionZoom50]);
+    zoomMenu->addAction(m_actions[ActionZoom25]);
+    zoomMenu->addAction(m_actions[ActionZoom125]);
 
     QMenu* testMenu = menuBar()->addMenu(tr("Te&st"));
     testMenu->addAction(m_actions[ActionTestChips]);
@@ -505,6 +531,10 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionViewMovers], SIGNAL(toggled(bool)), SLOT(onViewMoversToggled(bool)));
     connect(m_actions[ActionViewActivePlayer], SIGNAL(toggled(bool)), SLOT(onViewActivePlayerToggled(bool)));
     connect(m_tilesetGroup, SIGNAL(triggered(QAction*)), SLOT(onTilesetMenu(QAction*)));
+    connect(m_actions[ActionZoom100], SIGNAL(triggered()), SLOT(onZoom100()));
+    connect(m_actions[ActionZoom50], SIGNAL(triggered()), SLOT(onZoom50()));
+    connect(m_actions[ActionZoom25], SIGNAL(triggered()), SLOT(onZoom25()));
+    connect(m_actions[ActionZoom125], SIGNAL(triggered()), SLOT(onZoom125()));
     connect(m_actions[ActionTestChips], SIGNAL(triggered()), SLOT(onTestChips()));
     connect(m_actions[ActionTestTWorldCC], SIGNAL(triggered()), SLOT(onTestTWorldCC()));
     connect(m_actions[ActionTestTWorldLynx], SIGNAL(triggered()), SLOT(onTestTWorldLynx()));
@@ -548,6 +578,7 @@ CCEditMain::CCEditMain(QWidget* parent)
         showMaximized();
     if (settings.contains("WindowState"))
         restoreState(settings.value("WindowState").toByteArray());
+    m_zoomFactor = settings.value("ZoomFactor", 1.0).toDouble();
 
     findTilesets();
     if (m_tilesetGroup->actions().size() == 0) {
@@ -575,6 +606,17 @@ CCEditMain::CCEditMain(QWidget* parent)
         m_tilesetGroup->actions()[0]->setChecked(true);
         loadTileset((CCETileset*)m_tilesetGroup->actions()[0]->data().value<void*>());
     }
+
+    if (m_zoomFactor == 1.0)
+        m_actions[ActionZoom100]->setChecked(true);
+    else if (m_zoomFactor == 0.5)
+        m_actions[ActionZoom50]->setChecked(true);
+    else if (m_zoomFactor == 0.25)
+        m_actions[ActionZoom25]->setChecked(true);
+    else if (m_zoomFactor == 0.125)
+        m_actions[ActionZoom125]->setChecked(true);
+    //else
+    //    m_actions[ActionZoomCust]->setChecked(true);
 
     setForeground(ccl::TileWall);
     setBackground(ccl::TileFloor);
@@ -778,6 +820,7 @@ void CCEditMain::closeEvent(QCloseEvent* event)
     showNormal();
     settings.setValue("WindowSize", size());
     settings.setValue("WindowState", saveState());
+    settings.setValue("ZoomFactor", m_zoomFactor);
     settings.setValue("TilesetName", m_currentTileset->filename());
 }
 
@@ -918,6 +961,7 @@ EditorWidget* CCEditMain::addEditor(ccl::LevelData* level)
     if (m_actions[ActionViewActivePlayer]->isChecked())
         editor->setPaintFlag(EditorWidget::ShowPlayer);
     editor->setDrawMode(m_currentDrawMode);
+    editor->setZoom(m_zoomFactor);
     editor->setTileset(m_currentTileset);
     editor->setLevelData(level);
     editor->setLeftTile(m_layer[0]->upper());
@@ -1288,6 +1332,40 @@ void CCEditMain::onViewActivePlayerToggled(bool view)
         for (int i=0; i<m_editorTabs->count(); ++i)
             getEditorAt(i)->clearPaintFlag(EditorWidget::ShowPlayer);
     }
+}
+
+void CCEditMain::onZoom100()
+{
+    m_zoomFactor = 1.0;
+    for (int i=0; i<m_editorTabs->count(); ++i)
+        getEditorAt(i)->setZoom(1.0);
+}
+
+void CCEditMain::onZoom50()
+{
+    m_zoomFactor = 0.5;
+    for (int i=0; i<m_editorTabs->count(); ++i)
+        getEditorAt(i)->setZoom(0.5);
+}
+
+void CCEditMain::onZoom25()
+{
+    m_zoomFactor = 0.25;
+    for (int i=0; i<m_editorTabs->count(); ++i)
+        getEditorAt(i)->setZoom(0.25);
+}
+
+void CCEditMain::onZoom125()
+{
+    m_zoomFactor = 0.125;
+    for (int i=0; i<m_editorTabs->count(); ++i)
+        getEditorAt(i)->setZoom(0.125);
+
+}
+
+void CCEditMain::onZoomFit()
+{
+    //TODO
 }
 
 void CCEditMain::onTilesetMenu(QAction* which)

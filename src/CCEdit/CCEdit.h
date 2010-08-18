@@ -72,7 +72,8 @@ private:
         ActionSelect, ActionCut, ActionCopy, ActionPaste, ActionClear,
         ActionUndo, ActionRedo, ActionDrawPencil, ActionDrawLine, ActionDrawFill,
         ActionPathMaker, ActionConnect, ActionAdvancedMech, ActionViewButtons,
-        ActionViewMovers, ActionViewActivePlayer, ActionTestChips,
+        ActionViewMovers, ActionViewActivePlayer, ActionZoom100, ActionZoom50,
+        ActionZoom25, ActionZoom125, ActiobnZoomFit, ActionTestChips,
         ActionTestTWorldCC, ActionTestTWorldLynx, ActionTestSetup, ActionAbout,
         ActionAddLevel, ActionDelLevel, ActionMoveUp, ActionMoveDown, ActionProperties,
         NUM_ACTIONS
@@ -89,6 +90,7 @@ private:
     CCETileset* m_currentTileset;
     ActionType m_savedDrawMode;
     EditorWidget::DrawMode m_currentDrawMode;
+    double m_zoomFactor;
 
     QTabWidget* m_editorTabs;
     QTabWidget* m_toolTabs;
@@ -137,6 +139,11 @@ private slots:
     void onViewButtonsToggled(bool);
     void onViewMoversToggled(bool);
     void onViewActivePlayerToggled(bool);
+    void onZoom100();
+    void onZoom50();
+    void onZoom25();
+    void onZoom125();
+    void onZoomFit();
     void onTilesetMenu(QAction*);
     void onTestChips();
     void onTestTWorld(unsigned int levelsetType);

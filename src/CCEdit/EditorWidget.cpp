@@ -16,7 +16,6 @@
  ******************************************************************************/
 
 #include "EditorWidget.h"
-#include <QPainter>
 #include <QPaintEvent>
 #include <QMouseEvent>
 
@@ -178,7 +177,7 @@ EditorWidget::EditorWidget(QWidget* parent)
             : QWidget(parent), m_tileset(0), m_levelData(0), m_leftTile(0),
               m_rightTile(0), m_drawMode(DrawPencil), m_paintFlags(0),
               m_cachedButton(Qt::NoButton),  m_numbers(":/res/numbers.png"),
-              m_lastDir(ccl::DirInvalid)
+              m_lastDir(ccl::DirInvalid), m_zoomFactor(1.0)
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     setMouseTracking(true);
@@ -187,6 +186,7 @@ EditorWidget::EditorWidget(QWidget* parent)
 void EditorWidget::setTileset(CCETileset* tileset)
 {
     m_tileset = tileset;
+    m_tileBuffer = QPixmap(32 * m_tileset->size(), 32 * m_tileset->size());
     resize(sizeHint());
     update();
 }
@@ -196,6 +196,7 @@ void EditorWidget::setLevelData(ccl::LevelData* level)
     m_levelData = level;
     m_origin = QPoint(-1, -1);
     m_selectRect = QRect(-1, -1, -1, -1);
+    renderTileBuffer();
     update();
 
     m_history.clear();
@@ -204,114 +205,105 @@ void EditorWidget::setLevelData(ccl::LevelData* level)
     emit hasSelection(false);
 }
 
+void EditorWidget::renderTileBuffer()
+{
+    QPainter tilePainter(&m_tileBuffer);
+    for (int y = 0; y < 32; ++y)
+        for (int x = 0; x < 32; ++x)
+            m_tileset->draw(tilePainter, x, y, m_levelData->map().getFG(x, y),
+                            m_levelData->map().getBG(x, y));
+
+    // Draw current buffer
+    if (m_drawMode == DrawLine && (m_paintFlags & PaintOverlayMask) != 0)
+        plot_line(this, m_origin, m_current, PlotPreview, &tilePainter);
+    else if (m_drawMode == DrawFill && (m_paintFlags & PaintOverlayMask) != 0)
+        plot_box(this, m_origin, m_current, PlotPreview, &tilePainter);
+
+    m_cacheDirty = true;
+}
+
 void EditorWidget::paintEvent(QPaintEvent* event)
 {
-    if (m_tileset == 0)
+    if (m_tileset == 0 || m_levelData == 0)
         return;
 
     QPainter painter(this);
+    if (m_cacheDirty) {
+        m_tileCache = m_tileBuffer.scaled(sizeHint());
+        m_cacheDirty = false;
+    }
+    painter.drawPixmap(0, 0, m_tileCache);
 
-    if (m_levelData == 0) {
-        for (int y = 0; y < 32; ++y)
-            for (int x = 0; x < 32; ++x)
-                m_tileset->draw(painter, x, y, ccl::TileFloor);
-    } else {
-        for (int y = 0; y < 32; ++y)
-            for (int x = 0; x < 32; ++x)
-                m_tileset->draw(painter, x, y, m_levelData->map().getFG(x, y),
-                                m_levelData->map().getBG(x, y));
+    if (m_selectRect != QRect(-1, -1, -1, -1)) {
+        QRect selectionArea = calcTileRect(m_selectRect);
+        painter.fillRect(selectionArea, QBrush(QColor(95, 95, 191, 127)));
+        painter.setPen(QColor(63, 63, 191));
+        painter.drawRect(selectionArea);
+    }
 
-        // Draw current buffer
-        if (m_drawMode == DrawLine && (m_paintFlags & PaintOverlayMask) != 0) {
-            plot_line(this, m_origin, m_current, PlotPreview, &painter);
-        } else if (m_drawMode == DrawFill && (m_paintFlags & PaintOverlayMask) != 0) {
-            plot_box(this, m_origin, m_current, PlotPreview, &painter);
-        } else if (m_selectRect != QRect(-1, -1, -1, -1)) {
-            painter.fillRect(m_selectRect.left() * m_tileset->size(),
-                             m_selectRect.top() * m_tileset->size(),
-                             m_selectRect.width() * m_tileset->size(),
-                             m_selectRect.height() * m_tileset->size(),
-                             QBrush(QColor(95, 95, 191, 127)));
-            painter.setPen(QColor(63, 63, 191));
-            painter.drawRect(m_selectRect.left() * m_tileset->size(),
-                             m_selectRect.top() * m_tileset->size(),
-                             m_selectRect.width() * m_tileset->size() - 1,
-                             m_selectRect.height() * m_tileset->size() - 1);
-        }
-
-        if ((m_paintFlags & ShowMovement) != 0) {
-            std::list<ccl::Point>::const_iterator move_iter;
-            int num = 0;
-            for (move_iter = m_levelData->moveList().begin();
-                 move_iter != m_levelData->moveList().end(); ++move_iter) {
-                if (!isValidPoint(*move_iter))
-                    continue;
-                painter.drawPixmap((move_iter->X + 1) * m_tileset->size() - 16,
-                                   (move_iter->Y + 1) * m_tileset->size() - 10,
-                                   m_numbers, 0, num++ * 10, 16, 10);
-            }
-        }
-
-        if ((m_paintFlags & ShowPlayer) != 0) {
-            bool playerFound = false;
-            painter.setPen(QColor(0, 255, 0));
-            for (int y = 31; !playerFound && y >= 0; --y) {
-                for (int x = 31; !playerFound && x >= 0; --x) {
-                    if (m_levelData->map().getFG(x, y) >= ccl::TilePlayer_N
-                        && m_levelData->map().getFG(x, y) <= ccl::TilePlayer_E) {
-                        painter.drawRect(x * m_tileset->size(), y * m_tileset->size(),
-                                         m_tileset->size() - 1, m_tileset->size() - 1);
-                        playerFound = true;
-                    }
-                }
-            }
-            if (!playerFound) {
-                painter.setPen(QColor(255, 127, 0));
-                painter.drawRect(0, 0, m_tileset->size() - 1, m_tileset->size() - 1);
-            }
-        }
-
-        if ((m_paintFlags & ShowButtons) != 0) {
-            painter.setPen(QColor(255, 0, 0));
-            std::list<ccl::Trap>::const_iterator trap_iter;
-            for (trap_iter = m_levelData->traps().begin(); trap_iter != m_levelData->traps().end(); ++trap_iter) {
-                if (!isValidPoint(trap_iter->button) || !isValidPoint(trap_iter->trap))
-                    continue;
-                painter.drawLine((trap_iter->button.X * m_tileset->size()) + (m_tileset->size() / 2),
-                                 (trap_iter->button.Y * m_tileset->size()) + (m_tileset->size() / 2),
-                                 (trap_iter->trap.X * m_tileset->size()) + (m_tileset->size() / 2),
-                                 (trap_iter->trap.Y * m_tileset->size()) + (m_tileset->size() / 2));
-            }
-            std::list<ccl::Clone>::const_iterator clone_iter;
-            for (clone_iter = m_levelData->clones().begin(); clone_iter != m_levelData->clones().end(); ++clone_iter) {
-                if (!isValidPoint(clone_iter->button) || !isValidPoint(clone_iter->clone))
-                    continue;
-                painter.drawLine((clone_iter->button.X * m_tileset->size()) + (m_tileset->size() / 2),
-                                 (clone_iter->button.Y * m_tileset->size()) + (m_tileset->size() / 2),
-                                 (clone_iter->clone.X * m_tileset->size()) + (m_tileset->size() / 2),
-                                 (clone_iter->clone.Y * m_tileset->size()) + (m_tileset->size() / 2));
-            }
-        }
-
-        if (m_drawMode == DrawButtonConnect && m_origin != QPoint(-1, -1)
-            && m_selectRect == QRect(-1, -1, -1, -1)) {
-            if (test_connect(m_levelData, m_origin, m_current) != ConnNone)
-                painter.setPen(QColor(255, 0, 0));
-            else
-                painter.setPen(QColor(127, 127, 127));
-            painter.drawLine((m_origin.x() * m_tileset->size()) + (m_tileset->size() / 2),
-                             (m_origin.y() * m_tileset->size()) + (m_tileset->size() / 2),
-                             (m_current.x() * m_tileset->size()) + (m_tileset->size() / 2),
-                             (m_current.y() * m_tileset->size()) + (m_tileset->size() / 2));
-        }
-
-        // Hilight context-sensitive objects
-        painter.setPen(QColor(255, 0, 0));
-        foreach (QPoint hi, m_hilights) {
-            painter.drawRect(hi.x() * m_tileset->size(), hi.y() * m_tileset->size(),
-                             m_tileset->size() - 1, m_tileset->size() - 1);
+    if ((m_paintFlags & ShowMovement) != 0) {
+        std::list<ccl::Point>::const_iterator move_iter;
+        int num = 0;
+        for (move_iter = m_levelData->moveList().begin();
+             move_iter != m_levelData->moveList().end(); ++move_iter) {
+            if (!isValidPoint(*move_iter))
+                continue;
+            painter.drawPixmap((move_iter->X + 1) * m_tileset->size() * m_zoomFactor - 16,
+                               (move_iter->Y + 1) * m_tileset->size() * m_zoomFactor - 10,
+                               m_numbers, 0, num++ * 10, 16, 10);
         }
     }
+
+    if ((m_paintFlags & ShowPlayer) != 0) {
+        bool playerFound = false;
+        painter.setPen(QColor(0, 255, 0));
+        for (int y = 31; !playerFound && y >= 0; --y) {
+            for (int x = 31; !playerFound && x >= 0; --x) {
+                if (m_levelData->map().getFG(x, y) >= ccl::TilePlayer_N
+                    && m_levelData->map().getFG(x, y) <= ccl::TilePlayer_E) {
+                    painter.drawRect(calcTileRect(x, y));
+                    playerFound = true;
+                }
+            }
+        }
+        if (!playerFound) {
+            painter.setPen(QColor(255, 127, 0));
+            painter.drawRect(calcTileRect(0, 0));
+        }
+    }
+
+    if ((m_paintFlags & ShowButtons) != 0) {
+        painter.setPen(QColor(255, 0, 0));
+        std::list<ccl::Trap>::const_iterator trap_iter;
+        for (trap_iter = m_levelData->traps().begin(); trap_iter != m_levelData->traps().end(); ++trap_iter) {
+            if (!isValidPoint(trap_iter->button) || !isValidPoint(trap_iter->trap))
+                continue;
+            painter.drawLine(calcTileCenter(trap_iter->button.X, trap_iter->button.Y),
+                             calcTileCenter(trap_iter->trap.X, trap_iter->trap.Y));
+        }
+        std::list<ccl::Clone>::const_iterator clone_iter;
+        for (clone_iter = m_levelData->clones().begin(); clone_iter != m_levelData->clones().end(); ++clone_iter) {
+            if (!isValidPoint(clone_iter->button) || !isValidPoint(clone_iter->clone))
+                continue;
+            painter.drawLine(calcTileCenter(clone_iter->button.X, clone_iter->button.Y),
+                             calcTileCenter(clone_iter->clone.X, clone_iter->clone.Y));
+        }
+    }
+
+    if (m_drawMode == DrawButtonConnect && m_origin != QPoint(-1, -1)
+        && m_selectRect == QRect(-1, -1, -1, -1)) {
+        if (test_connect(m_levelData, m_origin, m_current) != ConnNone)
+            painter.setPen(QColor(255, 0, 0));
+        else
+            painter.setPen(QColor(127, 127, 127));
+        painter.drawLine(calcTileCenter(m_origin.x(), m_origin.y()),
+                         calcTileCenter(m_current.x(), m_current.y()));
+    }
+
+    // Hilight context-sensitive objects
+    painter.setPen(QColor(255, 0, 0));
+    foreach (QPoint hi, m_hilights)
+        painter.drawRect(calcTileRect(hi.x(), hi.y()));
 }
 
 void EditorWidget::mouseMoveEvent(QMouseEvent* event)
@@ -319,8 +311,10 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
     if (m_tileset == 0 || m_levelData == 0 || !rect().contains(event->pos()))
         return;
 
-    int posX = event->x() / m_tileset->size();
-    int posY = event->y() / m_tileset->size();
+    int posX = event->x() / (int)(m_tileset->size() * m_zoomFactor);
+    int posY = event->y() / (int)(m_tileset->size() * m_zoomFactor);
+    if (m_current == QPoint(posX, posY))
+        return;
     m_current = QPoint(posX, posY);
 
     m_paintFlags &= ~(PaintLeftTemp | PaintRightTemp | PaintTempBury);
@@ -343,6 +337,7 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
                 m_paintFlags |= PaintRightTemp;
             if ((event->modifiers() & Qt::ShiftModifier) != 0)
                 m_paintFlags |= PaintTempBury;
+            renderTileBuffer();
         } else if (m_drawMode == DrawPathMaker) {
             if (m_origin == QPoint(-1, -1)) {
                 putTile(curtile, posX, posY, (event->modifiers() & Qt::ShiftModifier) != 0);
@@ -459,8 +454,8 @@ void EditorWidget::mousePressEvent(QMouseEvent* event)
     if (m_tileset == 0 || m_levelData == 0)
         return;
 
-    int posX = event->x() / m_tileset->size();
-    int posY = event->y() / m_tileset->size();
+    int posX = event->x() / (int)(m_tileset->size() * m_zoomFactor);
+    int posY = event->y() / (int)(m_tileset->size() * m_zoomFactor);
     m_cachedButton = event->button();
 
     if ((m_cachedButton == Qt::LeftButton || m_cachedButton == Qt::RightButton)
@@ -618,6 +613,7 @@ void EditorWidget::viewTile(QPainter& painter, int x, int y)
             m_tileset->draw(painter, x, y, m_rightTile,
                             m_levelData->map().getBG(x, y));
     }
+    m_cacheDirty = true;
 }
 
 void EditorWidget::putTile(tile_t tile, int x, int y, bool bury)
@@ -693,6 +689,11 @@ void EditorWidget::putTile(tile_t tile, int x, int y, bool bury)
         else
             ++clone_iter;
     }
+
+    QPainter painter(&m_tileBuffer);
+    m_tileset->draw(painter, x, y, m_levelData->map().getFG(x, y),
+                    m_levelData->map().getBG(x, y));
+    m_cacheDirty = true;
 }
 
 void EditorWidget::undo()
@@ -702,6 +703,7 @@ void EditorWidget::undo()
     m_levelData->traps() = data->traps();
     m_levelData->clones() = data->clones();
     m_levelData->moveList() = data->moveList();
+    renderTileBuffer();
     update();
     updateUndoStatus();
 }
@@ -713,6 +715,15 @@ void EditorWidget::redo()
     m_levelData->traps() = data->traps();
     m_levelData->clones() = data->clones();
     m_levelData->moveList() = data->moveList();
+    renderTileBuffer();
     update();
     updateUndoStatus();
+}
+
+void EditorWidget::setZoom(double factor)
+{
+    m_zoomFactor = factor;
+    m_cacheDirty = true;
+    resize(sizeHint());
+    update();
 }

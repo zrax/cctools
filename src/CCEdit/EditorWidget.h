@@ -19,6 +19,7 @@
 #define _EDITORWIDGET_H
 
 #include <QWidget>
+#include <QPainter>
 #include "History.h"
 #include "../Tileset.h"
 #include "../Levelset.h"
@@ -59,7 +60,8 @@ public:
     {
         if (m_tileset == 0)
             return QSize();
-        return QSize(m_tileset->size() * 32, m_tileset->size() * 32);
+        return QSize(32 * m_tileset->size() * m_zoomFactor,
+                     32 * m_tileset->size() * m_zoomFactor);
     }
 
     void setLeftTile(tile_t tile) { m_leftTile = tile; }
@@ -100,11 +102,15 @@ public:
          emit canRedo(m_history.canRedo());
     }
 
+    void renderTileBuffer();
+    double zoom() const { return m_zoomFactor; }
+
 public slots:
     void viewTile(QPainter& painter, int x, int y);
     void putTile(tile_t tile, int x, int y, bool bury);
     void undo();
     void redo();
+    void setZoom(double factor);
 
 private:
     CCETileset* m_tileset;
@@ -119,6 +125,31 @@ private:
     ccl::Direction m_lastDir;
     CCEHistory m_history;
     QRect m_selectRect;
+
+    double m_zoomFactor;
+    QPixmap m_tileBuffer;
+    QPixmap m_tileCache;
+    bool m_cacheDirty;
+
+    QRect calcTileRect(int x, int y, int w = 1, int h = 1)
+    {
+        // Size is calculated inclusively, so -2 is needed to get past
+        // the border and adjust for the inclusive offset
+        QPoint topleft((int)(x * m_tileset->size() * m_zoomFactor),
+                       (int)(y * m_tileset->size() * m_zoomFactor));
+        QPoint botright((int)((x + w) * m_tileset->size() * m_zoomFactor) - 2,
+                        (int)((y + h) * m_tileset->size() * m_zoomFactor) - 2);
+        return QRect(topleft, botright);
+    }
+
+    QRect calcTileRect(QRect rect)
+    { return calcTileRect(rect.left(), rect.top(), rect.width(), rect.height()); }
+
+    QPoint calcTileCenter(int x, int y)
+    {
+        return QPoint((int)((x * m_tileset->size() + (m_tileset->size() / 2)) * m_zoomFactor),
+                      (int)((y * m_tileset->size() + (m_tileset->size() / 2)) * m_zoomFactor));
+    }
 
 signals:
     void mouseInfo(QString text);
