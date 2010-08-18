@@ -20,6 +20,7 @@
 
 #include <QDialog>
 #include <QLineEdit>
+#include <QCheckBox>
 
 class TestSetupDialog : public QDialog {
     Q_OBJECT
@@ -33,6 +34,9 @@ private:
 #endif
     QLineEdit* m_msccPath;
     QLineEdit* m_tworldPath;
+
+    QCheckBox* m_useCCPatch;
+    QCheckBox* m_usePGPatch;
 
 private slots:
     void onSaveSettings();

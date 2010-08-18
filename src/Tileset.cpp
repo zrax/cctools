@@ -149,7 +149,7 @@ QString CCETileset::TileName(tile_t tile)
         "Teleporter", "Bomb", "Trap", "Appearing Wall", "Gravel", "Pop-Up Wall",
         "Hint", "Barrier - South/East", "Cloning Machine",
         "Force Floor - Random", "Splash Death", "Fire Death", "Burned Player",
-        "UNUSED_36", "UNUSED_37", "UNUSED_38", "Player In Exit", "Exit Anim 2",
+        "UNUSED_36", "UNUSED_37", "Ice Block", "Player In Exit", "Exit Anim 2",
         "Exit Anim 3", DIRTILENAME("Player Swim"), DIRTILENAME("Beetle"),
         DIRTILENAME("Fireball"), DIRTILENAME("Bouncy Ball"),
         DIRTILENAME("Tank"), DIRTILENAME("Glider"), DIRTILENAME("Teeth"),

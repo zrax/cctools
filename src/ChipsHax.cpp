@@ -206,3 +206,112 @@ ccl::CCPatchState ccl::ChipsHax::get_CCPatch()
         return CCPatchPatched;
     return CCPatchOther;
 }
+
+
+#include "pgchips_data.cpp"
+
+void ccl::ChipsHax::set_PGChips(CCPatchState state)
+{
+    static const uint8_t* data;
+    switch (state) {
+    case CCPatchOriginal:
+        data = pg_original;
+        break;
+    case CCPatchPatched:
+        data = pg_patch;
+        break;
+    default:
+        throw ccl::Exception("Invalid patch state parameter");
+    }
+
+    m_stream->seek(0, SEEK_SET);
+    for ( ;; ) {
+        uint8_t b = *data++;
+        if (b == 0xFF) {
+            b = *data++;
+            if (b == 0) {
+                m_stream->write8(0xFF);
+            } else if (b == 0xFF) {
+                uint16_t s = (data[0] << 8) | data[1];
+                data += 2;
+                if (s == 0xFFFF) {
+                    uint32_t l = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
+                    if (l == 0xFFFFFFFF)
+                        break;
+                    m_stream->seek(l, SEEK_CUR);
+                } else {
+                    m_stream->seek(s, SEEK_CUR);
+                }
+            } else {
+                m_stream->seek(b, SEEK_CUR);
+            }
+        } else {
+            m_stream->write8(b);
+        }
+    }
+}
+
+ccl::CCPatchState ccl::ChipsHax::get_PGChips()
+{
+    static const uint8_t* data = pg_original;
+    m_stream->seek(0, SEEK_SET);
+    for ( ;; ) {
+        uint8_t b = *data++;
+        if (b == 0xFF) {
+            b = *data++;
+            if (b == 0) {
+                if (m_stream->read8() != 0xFF)
+                    break;
+            } else if (b == 0xFF) {
+                uint16_t s = (data[0] << 8) | data[1];
+                data += 2;
+                if (s == 0xFFFF) {
+                    uint32_t l = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
+                    if (l == 0xFFFFFFFF && m_stream->tell() == m_stream->size())
+                        return ccl::CCPatchOriginal;
+                    m_stream->seek(l, SEEK_CUR);
+                } else {
+                    m_stream->seek(s, SEEK_CUR);
+                }
+            } else {
+                m_stream->seek(b, SEEK_CUR);
+            }
+        } else {
+            if (m_stream->read8() != b)
+                break;
+        }
+    }
+    fprintf(stderr, "Found invalid bytes at %08X\n", m_stream->tell());
+
+    data = pg_patch;
+    m_stream->seek(0, SEEK_SET);
+    for ( ;; ) {
+        uint8_t b = *data++;
+        if (b == 0xFF) {
+            b = *data++;
+            if (b == 0) {
+                if (m_stream->read8() != 0xFF)
+                    break;
+            } else if (b == 0xFF) {
+                uint16_t s = (data[0] << 8) | data[1];
+                data += 2;
+                if (s == 0xFFFF) {
+                    uint32_t l = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
+                    if (l == 0xFFFFFFFF && m_stream->tell() == m_stream->size())
+                        return ccl::CCPatchPatched;
+                    m_stream->seek(l, SEEK_CUR);
+                } else {
+                    m_stream->seek(s, SEEK_CUR);
+                }
+            } else {
+                m_stream->seek(b, SEEK_CUR);
+            }
+        } else {
+            if (m_stream->read8() != b)
+                break;
+        }
+    }
+    fprintf(stderr, "Found invalid bytes at %08X\n", m_stream->tell());
+
+    return ccl::CCPatchOther;
+}

@@ -368,11 +368,11 @@ CCEditMain::CCEditMain(QWidget* parent)
     tileBox->addItem(m_tileLists[ListMisc], tr("Miscellaneous"));
     m_tileLists[ListSpecial] = new TileListWidget(tileBox);
     m_tileLists[ListSpecial]->addTiles(QList<tile_t>()
-        << ccl::TilePlayerSplash << ccl::TilePlayerFire << ccl::TilePlayerBurnt
-        << ccl::TilePlayerExit << ccl::TileExitAnim2 << ccl::TileExitAnim3
-        << ccl::TilePlayerSwim_N << ccl::TilePlayerSwim_W
+        << ccl::TileIceBlock << ccl::TilePlayerSplash << ccl::TilePlayerFire
+        << ccl::TilePlayerBurnt << ccl::TilePlayerExit << ccl::TileExitAnim2
+        << ccl::TileExitAnim3 << ccl::TilePlayerSwim_N << ccl::TilePlayerSwim_W
         << ccl::TilePlayerSwim_S << ccl::TilePlayerSwim_E << ccl::Tile_UNUSED_20
-        << ccl::Tile_UNUSED_36 << ccl::Tile_UNUSED_37 << ccl::Tile_UNUSED_38);
+        << ccl::Tile_UNUSED_36 << ccl::Tile_UNUSED_37);
     tileBox->addItem(m_tileLists[ListSpecial], tr("Special (Advanced)"));
 
     m_layer[0] = new LayerWidget(tileWidget);
@@ -1422,7 +1422,10 @@ void CCEditMain::onTestChips()
     // Make a CHIPS.EXE that we can use
     ccl::ChipsHax hax;
     hax.open(&stream);
-    hax.set_CCPatch(ccl::CCPatchPatched);
+    if (settings.value("TestPGPatch", false).toBool())
+        hax.set_PGChips(ccl::CCPatchPatched);
+    if (settings.value("TestCCPatch", true).toBool())
+        hax.set_CCPatch(ccl::CCPatchPatched);
     hax.set_LastLevel(m_levelset->levelCount());
     if (m_useDac && m_dacInfo.m_lastLevel < m_levelset->levelCount())
         hax.set_FakeLastLevel(m_dacInfo.m_lastLevel);
@@ -1443,7 +1446,10 @@ void CCEditMain::onTestChips()
         return;
     }
     unsigned int saveType = m_levelset->type();
-    m_levelset->setType(ccl::Levelset::TypeMS);
+    if (settings.value("TestPGPatch", false).toBool())
+        m_levelset->setType(ccl::Levelset::TypePG);
+    else
+        m_levelset->setType(ccl::Levelset::TypeMS);
     try {
         m_levelset->write(&stream);
     } catch (std::exception& e) {

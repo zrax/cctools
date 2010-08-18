@@ -26,6 +26,10 @@ static int mapLevelsetType(int type)
     switch (type) {
     case ccl::Levelset::TypeLynx:
         return 1;
+    case ccl::Levelset::TypePG:
+        return 2;
+    case ccl::Levelset::TypeLynxPG:
+        return 3;
     default:
         return 0;
     }
@@ -36,6 +40,10 @@ static int unmapLevelsetType(int idx)
     switch (idx) {
     case 1:
         return ccl::Levelset::TypeLynx;
+    case 2:
+        return ccl::Levelset::TypePG;
+    case 3:
+        return ccl::Levelset::TypeLynxPG;
     default:
         return ccl::Levelset::TypeMS;
     }
@@ -47,7 +55,8 @@ LevelsetProps::LevelsetProps(QWidget* parent)
     setWindowTitle(tr("Levelset Properties"));
 
     m_levelsetType = new QComboBox(this);
-    m_levelsetType->addItems(QStringList() << "MSCC (recommended)" << "TWorld Lynx");
+    m_levelsetType->addItems(QStringList() << "MSCC (recommended)" << "TWorld Lynx"
+                             << "PGChip (Ice Blocks)" << "PGChip Lynx");
     m_dacGroup = new QGroupBox(tr("Use DAC file"), this);
     m_dacGroup->setCheckable(true);
     m_dacGroup->setChecked(false);

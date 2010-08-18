@@ -138,8 +138,10 @@ private:
 class Levelset {
 public:
     enum LevelsetType {
-        TypeMS   = 0x0002AAAC,
-        TypeLynx = 0x0102AAAC,
+        TypeMS     = 0x0002AAAC,
+        TypeLynx   = 0x0102AAAC,
+        TypePG     = 0x0003AAAC,
+        TypeLynxPG = 0x0103AAAC,
     };
 
     static std::string RandomPassword();
@@ -187,7 +189,7 @@ enum TileType {
     TileTrapButton, TileTankButton, TileTeleport, TileBomb, TileTrap,
     TileAppearingWall, TileGravel, TilePopUpWall, TileHint, TileBarrier_SE,
     TileCloner, TileForce_Rand, TilePlayerSplash, TilePlayerFire,
-    TilePlayerBurnt, Tile_UNUSED_36, Tile_UNUSED_37, Tile_UNUSED_38,
+    TilePlayerBurnt, Tile_UNUSED_36, Tile_UNUSED_37, TileIceBlock,
     TilePlayerExit, TileExitAnim2, TileExitAnim3, MK_DIRTILE(PlayerSwim),
     MK_DIRTILE(Bug), MK_DIRTILE(Fireball), MK_DIRTILE(Ball), MK_DIRTILE(Tank),
     MK_DIRTILE(Glider), MK_DIRTILE(Teeth), MK_DIRTILE(Walker), MK_DIRTILE(Blob),

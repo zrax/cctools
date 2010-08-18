@@ -75,6 +75,11 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
             QDialogButtonBox::Save | QDialogButtonBox::Cancel,
             Qt::Horizontal, this);
 
+    m_useCCPatch = new QCheckBox(tr("MSCC: Use CCPatch"), this);
+    m_useCCPatch->setChecked(settings.value("TestCCPatch", true).toBool());
+    m_usePGPatch = new QCheckBox(tr("MSCC: Use PGChip (Ice Blocks)"), this);
+    m_usePGPatch->setChecked(settings.value("TestPGPatch", false).toBool());
+
     QGridLayout* layout = new QGridLayout(this);
     layout->setContentsMargins(8, 8, 8, 8);
     layout->setVerticalSpacing(4);
@@ -87,19 +92,21 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     layout->addWidget(lblMsccPath, POSIX_OFFSET + 0, 0);
     layout->addWidget(m_msccPath, POSIX_OFFSET + 0, 1);
     layout->addWidget(browseChips, POSIX_OFFSET + 0, 2);
-    layout->addWidget(lblTWorldPath, POSIX_OFFSET + 1, 0);
-    layout->addWidget(m_tworldPath, POSIX_OFFSET + 1, 1);
-    layout->addWidget(browseTWorld, POSIX_OFFSET + 1, 2);
+    layout->addWidget(m_useCCPatch, POSIX_OFFSET + 1, 1);
+    layout->addWidget(m_usePGPatch, POSIX_OFFSET + 2, 1);
+    layout->addWidget(lblTWorldPath, POSIX_OFFSET + 3, 0);
+    layout->addWidget(m_tworldPath, POSIX_OFFSET + 3, 1);
+    layout->addWidget(browseTWorld, POSIX_OFFSET + 3, 2);
 #ifndef Q_OS_WIN32
     layout->addWidget(new QLabel(
             tr("Note: Leave WINE or Tile World paths empty to use system-installed locations"),
-            this), POSIX_OFFSET + 2, 0, 1, 3);
+            this), POSIX_OFFSET + 4, 0, 1, 3);
 #else
     layout->addWidget(new QLabel(
             tr("Note: MSCC will not work on 64-bit Windows platforms"),
-            this), POSIX_OFFSET + 2, 0, 1, 3);
+            this), POSIX_OFFSET + 4, 0, 1, 3);
 #endif
-    layout->addWidget(buttons, POSIX_OFFSET + 3, 0, 1, 3);
+    layout->addWidget(buttons, POSIX_OFFSET + 5, 0, 1, 3);
     resize(400, sizeHint().height());
 
     connect(buttons, SIGNAL(rejected()), SLOT(reject()));
@@ -119,6 +126,8 @@ void TestSetupDialog::onSaveSettings()
 #endif
     settings.setValue("ChipsExe", m_msccPath->text());
     settings.setValue("TWorldExe", m_tworldPath->text());
+    settings.setValue("TestCCPatch", m_useCCPatch->isChecked());
+    settings.setValue("TestPGPatch", m_usePGPatch->isChecked());
     accept();
 }
 

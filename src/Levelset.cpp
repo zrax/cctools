@@ -388,7 +388,8 @@ void ccl::Levelset::read(ccl::Stream* stream)
     m_levels.resize(0);
 
     m_magic = stream->read32();
-    if (m_magic != TypeMS && m_magic != TypeLynx)
+    if (m_magic != TypeMS && m_magic != TypeLynx && m_magic != TypePG
+        && m_magic != TypeLynxPG)
         throw ccl::IOException("Invalid levelset header");
 
     size_t numLevels = (size_t)stream->read16();
@@ -425,7 +426,8 @@ ccl::LevelsetType ccl::DetermineLevelsetType(const char* filename)
     stream.close();
     if (count == 0)
         return LevelsetError;
-    if (magic == Levelset::TypeLynx || magic == Levelset::TypeMS)
+    if (magic == Levelset::TypeLynx || magic == Levelset::TypeMS
+        || magic == Levelset::TypePG || magic == Levelset::TypeLynxPG)
         return LevelsetCcl;
     return LevelsetDac;
 }
