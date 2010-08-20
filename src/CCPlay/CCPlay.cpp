@@ -20,7 +20,6 @@
 #include <QApplication>
 #include <QSettings>
 #include <QSplitter>
-#include <QToolButton>
 #include <QToolBar>
 #include <QLabel>
 #include <QGridLayout>
@@ -31,6 +30,7 @@
 #include <QFileDialog>
 #include <QSqlQuery>
 #include <QProcess>
+#include "PlaySettings.h"
 #include "../Levelset.h"
 #include "../DacFile.h"
 #include "../IniFile.h"
@@ -89,8 +89,7 @@ CCPlayMain::CCPlayMain(QWidget* parent)
     m_actions[ActionPlayTWorld] = new QAction(QIcon(":/res/play-tworld.png"), tr("Play (TWorld)"), this);
     m_actions[ActionPlayTWorld]->setStatusTip(tr("Play level in Tile World (F6)"));
     m_actions[ActionPlayTWorld]->setShortcut(Qt::Key_F6);
-    m_actions[ActionEdit] = new QAction(QIcon(":/res/edit-ccedit.png"), tr("Edit (CCEdit)"), this);
-    m_actions[ActionEdit]->setStatusTip(tr("Edit level in CCEdit (F9)"));
+    m_actions[ActionEdit] = new QAction(tr("Custom Tool"), this);
     m_actions[ActionEdit]->setShortcut(Qt::Key_F9);
     m_actions[ActionSetup] = new QAction(QIcon(":/res/document-properties.png"), tr("Settings"), this);
     m_actions[ActionSetup]->setStatusTip(tr("Configure CCPlay settings"));
@@ -103,20 +102,31 @@ CCPlayMain::CCPlayMain(QWidget* parent)
     toolbar->setIconSize(QSize(32, 32));
     toolbar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     toolbar->setOrientation(Qt::Vertical);
-    QToolButton* tbPlay = new QToolButton(toolbar);
-    tbPlay->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    tbPlay->setDefaultAction(m_actions[ActionPlayMSCC]);
-    tbPlay->setPopupMode(QToolButton::MenuButtonPopup);
-    tbPlay->setMenu(new QMenu(tbPlay));
-    tbPlay->menu()->addAction(m_actions[ActionPlayMSCC]);
-    tbPlay->menu()->addAction(m_actions[ActionPlayTWorld]);
-    toolbar->addWidget(tbPlay);
-    QToolButton* tbEdit = new QToolButton(toolbar);
-    tbEdit->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    tbEdit->setDefaultAction(m_actions[ActionEdit]);
-    tbEdit->setPopupMode(QToolButton::MenuButtonPopup);
-    tbEdit->setMenu(new QMenu(tbEdit));
-    toolbar->addWidget(tbEdit);
+    QWidget* alignPlayButton = new QWidget(toolbar);
+    m_playButton = new QToolButton(alignPlayButton);
+    m_playButton->setAutoRaise(true);
+    m_playButton->setIconSize(QSize(32, 32));
+    m_playButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    m_playButton->setPopupMode(QToolButton::MenuButtonPopup);
+    m_playButton->setMenu(new QMenu(m_playButton));
+    m_playButton->menu()->addAction(m_actions[ActionPlayMSCC]);
+    m_playButton->menu()->addAction(m_actions[ActionPlayTWorld]);
+    QLayout* layPlayButton = new QGridLayout(alignPlayButton);
+    layPlayButton->setContentsMargins(0, 0, 0, 0);
+    layPlayButton->addWidget(m_playButton);
+    toolbar->addWidget(alignPlayButton);
+    QWidget* alignEditButton = new QWidget(toolbar);
+    m_editButton = new QToolButton(alignEditButton);
+    m_editButton->setAutoRaise(true);
+    m_editButton->setIconSize(QSize(32, 32));
+    m_editButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    m_editButton->setDefaultAction(m_actions[ActionEdit]);
+    m_editButton->setPopupMode(QToolButton::MenuButtonPopup);
+    m_editButton->setMenu(new QMenu(m_editButton));
+    QLayout* layEditButton = new QGridLayout(alignEditButton);
+    layEditButton->setContentsMargins(0, 0, 0, 0);
+    layEditButton->addWidget(m_editButton);
+    toolbar->addWidget(alignEditButton);
     toolbar->addSeparator();
     toolbar->addAction(m_actions[ActionSetup]);
     toolbar->addAction(m_actions[ActionExit]);
@@ -137,6 +147,8 @@ CCPlayMain::CCPlayMain(QWidget* parent)
     connect(m_actions[ActionPlayMSCC], SIGNAL(triggered()), SLOT(onPlayMSCC()));
     connect(m_actions[ActionPlayTWorld], SIGNAL(triggered()), SLOT(onPlayTWorld()));
     connect(m_actions[ActionEdit], SIGNAL(triggered()), SLOT(onEditDefault()));
+    connect(m_editButton->menu(), SIGNAL(triggered(QAction*)), SLOT(onEditor(QAction*)));
+    connect(m_actions[ActionSetup], SIGNAL(triggered()), SLOT(onSetup()));
     connect(m_actions[ActionExit], SIGNAL(triggered()), SLOT(close()));
     connect(btnOpenPath, SIGNAL(clicked()), SLOT(onBrowseLevelsetPath()));
     connect(m_levelsetPath, SIGNAL(textChanged(QString)), SLOT(onPathChanged(QString)));
@@ -150,6 +162,9 @@ CCPlayMain::CCPlayMain(QWidget* parent)
     if (settings.contains("WindowState"))
         restoreState(settings.value("WindowState").toByteArray());
     m_levelsetPath->setText(settings.value("LevelsetPath", QDir::currentPath()).toString());
+
+    SettingsDialog::CheckEditors(settings);
+    refreshTools();
 }
 
 bool CCPlayMain::initDatabase()
@@ -220,6 +235,41 @@ void CCPlayMain::closeEvent(QCloseEvent*)
     settings.setValue("WindowSize", size());
     settings.setValue("WindowState", saveState());
     settings.setValue("LevelsetPath", m_levelsetPath->text());
+}
+
+void CCPlayMain::refreshTools()
+{
+    QSettings settings("CCTools", "CCPlay");
+
+    if (settings.value("DefaultGame").toString() == "TWorld")
+        m_playButton->setDefaultAction(m_actions[ActionPlayTWorld]);
+    else
+        m_playButton->setDefaultAction(m_actions[ActionPlayMSCC]);
+
+    QStringList editors = settings.value("EditorNames").toStringList();
+    QStringList editorIcons = settings.value("EditorIcons").toStringList();
+    QStringList editorPaths = settings.value("EditorPaths").toStringList();
+    m_editButton->menu()->clear();
+    for (int i=0; i<editors.size(); ++i) {
+        QAction* action = m_editButton->menu()->addAction(
+                    SettingsDialog::IconForEditor(editorIcons[i]),
+                    tr("Edit (%1)").arg(editors[i]));
+        action->setStatusTip(tr("Edit with %1").arg(editors[i]));
+        action->setData(editorPaths[i]);
+    }
+    if (editors.size() > 0) {
+        m_actions[ActionEdit]->setEnabled(true);
+        m_actions[ActionEdit]->setText(tr("Edit (%1)").arg(editors[0]));
+        m_actions[ActionEdit]->setIcon(SettingsDialog::IconForEditor(editorIcons[0]));
+        m_actions[ActionEdit]->setStatusTip(tr("Edit with %1 (F9)").arg(editors[0]));
+    } else {
+        m_actions[ActionEdit]->setEnabled(false);
+        m_actions[ActionEdit]->setText(tr("Edit (N/A)"));
+        QPixmap emptyIcon(32, 32);
+        emptyIcon.fill(Qt::darkGray);
+        m_actions[ActionEdit]->setIcon(QIcon(emptyIcon));
+        m_actions[ActionEdit]->setStatusTip(tr("No editors configured"));
+    }
 }
 
 void CCPlayMain::onPlayMSCC()
@@ -395,11 +445,35 @@ void CCPlayMain::onPlayTWorld()
 
 void CCPlayMain::onEditDefault()
 {
+    if (m_editButton->menu()->isEmpty())
+        return;
+    onEditor(m_editButton->menu()->actions()[0]);
+}
+
+void CCPlayMain::onEditor(QAction* action)
+{
     if (m_levelsetList->currentItem() == 0)
         return;
 
     QString filename = m_levelsetList->currentItem()->data(0, Qt::UserRole).toString();
-    QProcess::execute("CCEdit", QStringList() << filename);
+    int curLevel = 1;
+    if (m_levelList->currentItem() != 0)
+        curLevel = m_levelList->indexOfTopLevelItem(m_levelList->currentItem()) + 1;
+
+    QStringList launch = action->data().toString().split(':');
+    QStringList params = launch[1].split(' ', QString::SkipEmptyParts);
+    for (int i=0; i<params.size(); ++i) {
+        params[i].replace("%F", filename)
+                 .replace("%L", QString("%1").arg(curLevel));
+    }
+    QProcess::execute(launch[0], params);
+}
+
+void CCPlayMain::onSetup()
+{
+    SettingsDialog dlg;
+    if (dlg.exec() == QDialog::Accepted)
+        refreshTools();
 }
 
 void CCPlayMain::onBrowseLevelsetPath()

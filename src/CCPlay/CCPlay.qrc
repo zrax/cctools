@@ -3,8 +3,17 @@
     <file>res/document-open-folder.png</file>
     <file>res/document-properties.png</file>
     <file>res/application-exit.png</file>
+    <file>res/document-properties-sm.png</file>
+    <file>res/list-add.png</file>
+    <file>res/list-remove.png</file>
+    <file>res/arrow-up.png</file>
+    <file>res/arrow-down.png</file>
+
     <file>res/play-chips.png</file>
     <file>res/play-tworld.png</file>
     <file>res/edit-ccedit.png</file>
+    <file>res/edit-chipedit.png</file>
+    <file>res/edit-chipw.png</file>
+    <file>res/edit-ccdesign.png</file>
 </qresource>
 </RCC>

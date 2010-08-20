@@ -30,10 +30,12 @@
     #define POSIX_OFFSET 0
     #define EXE_FILTER "Executables (*.exe)"
     #define WINEXE_FILTER "Executables (*.exe)"
+    #define EXE_LIST QStringList() << "*.exe"
 #else
     #define POSIX_OFFSET 1
     #define EXE_FILTER "Executables (*)"
     #define WINEXE_FILTER "Windows Executables (*.exe *.EXE)"
+    #define EXE_LIST QStringList()
 #endif
 
 TestSetupDialog::TestSetupDialog(QWidget* parent)
@@ -42,14 +44,18 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     setWindowTitle(tr("Setup testing parameters"));
 
     QSettings settings("CCTools", "CCEdit");
-    QCompleter* dirCompleter = new QCompleter(this);
-    dirCompleter->setModel(new QDirModel(QStringList(),
-            QDir::Dirs | QDir::Drives | QDir::NoDotAndDotDot,
-            QDir::Name, dirCompleter));
+    QCompleter* exeCompleter = new QCompleter(this);
+    exeCompleter->setModel(new QDirModel(EXE_LIST,
+            QDir::AllDirs | QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Executable,
+            QDir::Name, exeCompleter));
+    QCompleter* winExeCompleter = new QCompleter(this);
+    winExeCompleter->setModel(new QDirModel(QStringList() << "*.exe",
+            QDir::AllDirs | QDir::AllEntries | QDir::NoDotAndDotDot,
+            QDir::Name, winExeCompleter));
 
 #ifndef Q_OS_WIN32
     m_winePath = new QLineEdit(settings.value("WineExe").toString(), this);
-    m_winePath->setCompleter(dirCompleter);
+    m_winePath->setCompleter(exeCompleter);
     QLabel* lblWinePath = new QLabel(tr("&WINE Path:"), this);
     lblWinePath->setBuddy(m_winePath);
     QToolButton* browseWine = new QToolButton(this);
@@ -58,14 +64,14 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
 #endif
 
     m_msccPath = new QLineEdit(settings.value("ChipsExe").toString(), this);
-    m_msccPath->setCompleter(dirCompleter);
+    m_msccPath->setCompleter(winExeCompleter);
     QLabel* lblMsccPath = new QLabel(tr("MS&CC Path:"), this);
     lblMsccPath->setBuddy(m_msccPath);
     QToolButton* browseChips = new QToolButton(this);
     browseChips->setIcon(QIcon(":/res/document-open-folder-sm.png"));
     browseChips->setAutoRaise(true);
     m_tworldPath = new QLineEdit(settings.value("TWorldExe").toString(), this);
-    m_tworldPath->setCompleter(dirCompleter);
+    m_tworldPath->setCompleter(exeCompleter);
     QLabel* lblTWorldPath = new QLabel(tr("&Tile World Path:"), this);
     lblTWorldPath->setBuddy(m_tworldPath);
     QToolButton* browseTWorld = new QToolButton(this);

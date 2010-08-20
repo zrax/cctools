@@ -22,6 +22,7 @@
 #include <QAction>
 #include <QLineEdit>
 #include <QTreeWidget>
+#include <QToolButton>
 #include <QSqlDatabase>
 
 class CCPlayMain : public QMainWindow {
@@ -44,15 +45,22 @@ private:
     };
 
     QAction* m_actions[NUM_ACTIONS];
+    QToolButton* m_playButton;
+    QToolButton* m_editButton;
+
     QLineEdit* m_levelsetPath;
     QTreeWidget* m_levelsetList;
     QTreeWidget* m_levelList;
     QSqlDatabase m_scoredb;
 
+    void refreshTools();
+
 private slots:
     void onPlayMSCC();
     void onPlayTWorld();
     void onEditDefault();
+    void onEditor(QAction* action);
+    void onSetup();
 
     void onBrowseLevelsetPath();
     void onPathChanged(QString);

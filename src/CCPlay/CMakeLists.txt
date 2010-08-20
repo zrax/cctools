@@ -9,6 +9,7 @@ set(CCPlay_SOURCES
     ../DacFile.cpp
     ../IniFile.cpp
     CCPlay.cpp
+    PlaySettings.cpp
 )
 
 if(WIN32)
@@ -17,6 +18,7 @@ endif()
 
 set(CCPlay_MOCS
     CCPlay.h
+    PlaySettings.h
 )
 
 set(CCPlay_RCCS
