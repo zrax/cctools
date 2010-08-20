@@ -15,5 +15,10 @@
     <file>res/edit-chipedit.png</file>
     <file>res/edit-chipw.png</file>
     <file>res/edit-ccdesign.png</file>
+
+    <file>icons/chip-16.png</file>
+    <file>icons/chip-24.png</file>
+    <file>icons/chip-32.png</file>
+    <file>icons/chip-48.png</file>
 </qresource>
 </RCC>

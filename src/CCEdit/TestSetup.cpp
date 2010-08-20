@@ -112,7 +112,8 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
             tr("Note: MSCC will not work on 64-bit Windows platforms"),
             this), POSIX_OFFSET + 4, 0, 1, 3);
 #endif
-    layout->addWidget(buttons, POSIX_OFFSET + 5, 0, 1, 3);
+    layout->addItem(new QSpacerItem(0, 0, QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding), POSIX_OFFSET + 5, 0, 1, 3);
+    layout->addWidget(buttons, POSIX_OFFSET + 6, 0, 1, 3);
     resize(400, sizeHint().height());
 
     connect(buttons, SIGNAL(rejected()), SLOT(reject()));

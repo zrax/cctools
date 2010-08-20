@@ -59,7 +59,7 @@ void SettingsDialog::CheckEditors(QSettings& settings)
     QString cceditPath = QDir(qApp->applicationDirPath()).absoluteFilePath("CCEdit");
 #endif
     settings.setValue("EditorNames", QStringList() << "CCEdit");
-    settings.setValue("EditorPaths", QStringList() << cceditPath + ":%F %L");
+    settings.setValue("EditorPaths", QStringList() << cceditPath + "|%F %L");
     settings.setValue("EditorIcons", QStringList() << "CCEdit");
 }
 
@@ -167,6 +167,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     layPlay->addWidget(new QLabel(tr("Cheats:"), tabPlay), POSIX_OFFSET + 4, 0);
     layPlay->addWidget(m_cheatIgnorePasswords, POSIX_OFFSET + 4, 1);
     layPlay->addWidget(m_cheatAlwaysFirstTry, POSIX_OFFSET + 5, 1);
+    layPlay->addItem(new QSpacerItem(0, 0, QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding), POSIX_OFFSET + 6, 0, 1, 3);
     dlgTabs->addTab(tabPlay, tr("&Game Settings"));
 
     QWidget* tabEdit = new QWidget(dlgTabs);
@@ -200,6 +201,37 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     layEdit->addWidget(tbEditors, 0, 2);
     dlgTabs->addTab(tabEdit, tr("&Editor Settings"));
 
+    QWidget* tabAbout = new QWidget(dlgTabs);
+    QLabel* lblAIcon = new QLabel(tabAbout);
+    lblAIcon->setPixmap(QPixmap(":/icons/chip-48.png"));
+    lblAIcon->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
+
+    QLabel* lblLicense = new QLabel(tabAbout);
+    lblLicense->setText(tr("\
+CCTools is free software: you can redistribute it and/or modify\n\
+it under the terms of the GNU General Public License as published by\n\
+the Free Software Foundation, either version 3 of the License, or\n\
+(at your option) any later version.\n\
+\n\
+This program is distributed in the hope that it will be useful,\n\
+but WITHOUT ANY WARRANTY; without even the implied warranty of\n\
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n\
+GNU General Public License for more details.\n\
+\n\
+You should have received a copy of the GNU General Public License\n\
+along with this program.  If not, see <http://www.gnu.org/licenses/>."));
+
+    QGridLayout* layAbout = new QGridLayout(tabAbout);
+    layAbout->setContentsMargins(8, 8, 8, 8);
+    layAbout->setVerticalSpacing(8);
+    layAbout->setHorizontalSpacing(8);
+    layAbout->addWidget(lblAIcon, 0, 0, 3, 1);
+    layAbout->addWidget(new QLabel("CCPlay 1.91.0.61", tabAbout), 0, 1);
+    layAbout->addWidget(new QLabel("Part of CCTools 2.0 ALPHA", tabAbout), 1, 1);
+    layAbout->addWidget(new QLabel(tr("Copyright (C) 2010  Michael Hansen"), tabAbout), 2, 1);
+    layAbout->addWidget(lblLicense, 4, 0, 1, 2);
+    dlgTabs->addTab(tabAbout, tr("&About CCPlay"));
+
     QDialogButtonBox* buttons = new QDialogButtonBox(
             QDialogButtonBox::Save | QDialogButtonBox::Cancel,
             Qt::Horizontal, this);
@@ -218,7 +250,6 @@ SettingsDialog::SettingsDialog(QWidget* parent)
             this), 1, 0);
 #endif
     layout->addWidget(buttons, 2, 0);
-    resize(400, sizeHint().height());
 
     connect(buttons, SIGNAL(rejected()), SLOT(reject()));
     connect(buttons, SIGNAL(accepted()), SLOT(onSaveSettings()));
@@ -310,7 +341,7 @@ void SettingsDialog::onEditEditor()
         return;
 
     int editorId = m_editorList->currentRow();
-    QStringList params = m_editorPaths[editorId].split(':');
+    QStringList params = m_editorPaths[editorId].split('|');
 
     ConfigEditorDialog dlg;
     dlg.setName(m_editors[editorId]);
@@ -320,7 +351,7 @@ void SettingsDialog::onEditEditor()
     if (dlg.exec() == QDialog::Accepted) {
         m_editors[editorId] = dlg.name();
         m_editorIcons[editorId] = dlg.icon();
-        m_editorPaths[editorId] = dlg.path() + ":" + dlg.args();
+        m_editorPaths[editorId] = dlg.path() + "|" + dlg.args();
         refreshEditors();
     }
 }
@@ -331,7 +362,7 @@ void SettingsDialog::onAddEditor()
     if (dlg.exec() == QDialog::Accepted) {
         m_editors << dlg.name();
         m_editorIcons << dlg.icon();
-        m_editorPaths << dlg.path() + ":" + dlg.args();
+        m_editorPaths << dlg.path() + "|" + dlg.args();
         refreshEditors();
     }
 }

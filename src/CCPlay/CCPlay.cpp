@@ -39,11 +39,11 @@ CCPlayMain::CCPlayMain(QWidget* parent)
           : QMainWindow(parent)
 {
     setWindowTitle("CCPlay 2.0 ALPHA");
-    //QIcon appicon(":/icons/chip-48.png");
-    //appicon.addFile(":/icons/chip-32.png");
-    //appicon.addFile(":/icons/chip-24.png");
-    //appicon.addFile(":/icons/chip-16.png");
-    //setWindowIcon(appicon);
+    QIcon appicon(":/icons/chip-48.png");
+    appicon.addFile(":/icons/chip-32.png");
+    appicon.addFile(":/icons/chip-24.png");
+    appicon.addFile(":/icons/chip-16.png");
+    setWindowIcon(appicon);
 
     QWidget* contents = new QWidget(this);
     m_levelsetPath = new QLineEdit(contents);
@@ -460,7 +460,7 @@ void CCPlayMain::onEditor(QAction* action)
     if (m_levelList->currentItem() != 0)
         curLevel = m_levelList->indexOfTopLevelItem(m_levelList->currentItem()) + 1;
 
-    QStringList launch = action->data().toString().split(':');
+    QStringList launch = action->data().toString().split('|');
     QStringList params = launch[1].split(' ', QString::SkipEmptyParts);
     for (int i=0; i<params.size(); ++i) {
         params[i].replace("%F", filename)
