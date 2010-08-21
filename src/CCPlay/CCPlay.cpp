@@ -434,12 +434,19 @@ void CCPlayMain::onPlayTWorld()
 #endif
     }
 
+    QString twsName = QDir(filename).absolutePath().section(QChar('/'), -1) + ".tws";
     QString cwd = QDir::currentPath();
     QDir exePath = tworldExe;
     exePath.cdUp();
     QString levelsetPath = QDir::toNativeSeparators(m_levelsetPath->text());
     QDir::setCurrent(exePath.absolutePath());
-    QProcess::execute(tworldExe, QStringList() << "-D" << levelsetPath << filename);
+    QStringList twargs;
+    twargs << "-D" << QDir::toNativeSeparators(levelsetPath)
+           << "-S" << QDir::toNativeSeparators(QDir::homePath() + "/.cctools");
+    if (settings.value("UseIgnorePasswords", false).toBool())
+        twargs << "-p";
+    twargs << QDir::toNativeSeparators(filename) << twsName;
+    QProcess::execute(tworldExe, twargs);
     QDir::setCurrent(cwd);
 }
 
@@ -463,7 +470,7 @@ void CCPlayMain::onEditor(QAction* action)
     QStringList launch = action->data().toString().split('|');
     QStringList params = launch[1].split(' ', QString::SkipEmptyParts);
     for (int i=0; i<params.size(); ++i) {
-        params[i].replace("%F", filename)
+        params[i].replace("%F", QDir::toNativeSeparators(filename))
                  .replace("%L", QString("%1").arg(curLevel));
     }
     QProcess::execute(launch[0], params);
