@@ -54,6 +54,7 @@ private:
     QSqlDatabase m_scoredb;
 
     void refreshTools();
+    void refreshScores();
 
 private slots:
     void onPlayMSCC();

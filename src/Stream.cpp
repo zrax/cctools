@@ -197,6 +197,15 @@ long ccl::FileStream::size()
     return size;
 }
 
+bool ccl::FileStream::eof()
+{
+    int ch = fgetc(m_file);
+    if (ch == EOF)
+        return true;
+    ungetc(ch, m_file);
+    return false;
+}
+
 
 void ccl::BufferStream::setFrom(const void* buffer, size_t size)
 {

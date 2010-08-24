@@ -44,6 +44,7 @@ public:
     virtual long tell() = 0;
     virtual long size() = 0;
     virtual void seek(long offset, int whence) = 0;
+    virtual bool eof() = 0;
 
     uint8_t read8();
     uint16_t read16();
@@ -76,6 +77,7 @@ public:
     virtual long tell() { return ftell(m_file); }
     virtual long size();
     virtual void seek(long offset, int whence) { fseek(m_file, offset, whence); }
+    virtual bool eof();
 
 private:
     FILE* m_file;
@@ -94,6 +96,7 @@ public:
     virtual long tell() { return (long)m_offs; }
     virtual long size() { return (long)m_size; }
     virtual void seek(long offset, int whence);
+    virtual bool eof() { return (m_offs >= m_size); }
 
 private:
     size_t m_size, m_offs, m_alloc;

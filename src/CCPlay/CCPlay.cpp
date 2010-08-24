@@ -35,6 +35,76 @@
 #include "../DacFile.h"
 #include "../IniFile.h"
 
+static ccl::Levelset* load_levelset(QString filename, QWidget* self)
+{
+    ccl::LevelsetType type = ccl::DetermineLevelsetType(filename.toUtf8().data());
+    ccl::FileStream stream;
+    ccl::Levelset* levelset;
+    if (type == ccl::LevelsetCcl) {
+        try {
+            if (!stream.open(filename.toUtf8().data(), "rb")) {
+                QMessageBox::critical(self, self->tr("Error Reading Levelset"),
+                        self->tr("Error Opening levelset file %1").arg(filename));
+                return 0;
+            }
+            levelset = new ccl::Levelset();
+            levelset->read(&stream);
+            stream.close();
+        } catch (std::exception& e) {
+            QMessageBox::critical(self, self->tr("Error Reading Levelset"),
+                    self->tr("Error Reading levelset file: %1").arg(e.what()));
+            delete levelset;
+            return 0;
+        }
+        return levelset;
+    } else if (type == ccl::LevelsetDac) {
+        FILE* dac = fopen(filename.toUtf8().data(), "rt");
+        if (dac == 0) {
+            QMessageBox::critical(self, self->tr("Error reading levelset"),
+                                  self->tr("Could not open file: %1")
+                                  .arg(filename));
+            return 0;
+        }
+        ccl::DacFile dacInfo;
+        try {
+            dacInfo.read(dac);
+            fclose(dac);
+        } catch (ccl::Exception& e) {
+            QMessageBox::critical(self, self->tr("Error reading levelset"),
+                                  self->tr("Error loading levelset descriptor: %1")
+                                  .arg(e.what()));
+            fclose(dac);
+            return 0;
+        }
+
+        QDir searchPath(filename);
+        searchPath.cdUp();
+        if (stream.open(searchPath.absoluteFilePath(dacInfo.m_filename.c_str()).toUtf8().data(), "rb")) {
+            try {
+                levelset = new ccl::Levelset();
+                levelset->read(&stream);
+                stream.close();
+            } catch (std::exception& e) {
+                QMessageBox::critical(self, self->tr("Error reading levelset"),
+                                      self->tr("Error loading levelset: %1").arg(e.what()));
+                stream.close();
+                delete levelset;
+                return 0;
+            }
+            return levelset;
+        } else {
+            QMessageBox::critical(self, self->tr("Error opening levelset"),
+                                  self->tr("Error: could not open file %1")
+                                  .arg(dacInfo.m_filename.c_str()));
+            return 0;
+        }
+    } else {
+        QMessageBox::critical(self, self->tr("Error reading levelset"),
+                              self->tr("Cannot determine file type for %1").arg(filename));
+        return 0;
+    }
+}
+
 CCPlayMain::CCPlayMain(QWidget* parent)
           : QMainWindow(parent)
 {
@@ -272,6 +342,18 @@ void CCPlayMain::refreshTools()
     }
 }
 
+void CCPlayMain::refreshScores()
+{
+    QString curFile = m_levelsetList->currentItem()->data(0, Qt::UserRole).toString();
+    onPathChanged(m_levelsetPath->text());
+    for (int i=0; i<m_levelsetList->topLevelItemCount(); ++i) {
+        if (m_levelsetList->topLevelItem(i)->data(0, Qt::UserRole).toString() == curFile) {
+            m_levelsetList->setCurrentItem(m_levelsetList->topLevelItem(i));
+            break;
+        }
+    }
+}
+
 void CCPlayMain::onPlayMSCC()
 {/*
     if (m_levelsetList->currentItem() == 0 || m_levelList->topLevelItemCount() == 0)
@@ -434,7 +516,7 @@ void CCPlayMain::onPlayTWorld()
 #endif
     }
 
-    QString twsName = QDir(filename).absolutePath().section(QChar('/'), -1) + ".tws";
+    QString setName = filename.section(QChar('/'), -1);
     QString cwd = QDir::currentPath();
     QDir exePath = tworldExe;
     exePath.cdUp();
@@ -445,9 +527,110 @@ void CCPlayMain::onPlayTWorld()
            << "-S" << QDir::toNativeSeparators(QDir::homePath() + "/.cctools");
     if (settings.value("UseIgnorePasswords", false).toBool())
         twargs << "-p";
-    twargs << QDir::toNativeSeparators(filename) << twsName;
+    twargs << QDir::toNativeSeparators(filename) << setName + ".tws";
     QProcess::execute(tworldExe, twargs);
     QDir::setCurrent(cwd);
+
+    // Parse the TWS file and extract score data
+    ccl::FileStream tws;
+    QString twsName = QDir::toNativeSeparators(QDir::homePath() + "/.cctools/" + setName + ".tws");
+    if (!tws.open(twsName.toUtf8().data(), "rb")) {
+        QMessageBox::critical(this, tr("Error parsing score data"),
+                tr("Error: Could not open %1 for reading").arg(twsName));
+        tws.close();
+        return;
+    }
+
+    if (tws.read32() != 0x999B3335) {
+        QMessageBox::critical(this, tr("Error parsing score data"),
+                tr("Error: TWS file is in an invalid or unrecognized format"));
+        tws.close();
+        return;
+    }
+    tws.read8();    // Ruleset
+    tws.read8();    // Reserved
+    tws.read8();    // Reserved
+    size_t extraBytes = tws.read8();
+    tws.seek(extraBytes, SEEK_CUR);
+
+    ccl::Levelset* levelset = load_levelset(filename, this);
+    if (levelset == 0) {
+        tws.close();
+        return;
+    }
+
+    QSqlQuery query;
+    query.exec(QString("SELECT idx, high_level FROM levelsets"
+                       "  WHERE name='%1").arg(setName));
+    int setid = 0;
+    int highLevel = 0;
+    if (query.first()) {
+        setid = query.value(0).toInt();
+        highLevel = query.value(1).toInt();
+    } else {
+        query.exec(QString("INSERT INTO levelsets(name, cur_level, high_level)"
+                           "  VALUES('%1', 1, 1)").arg(setName));
+        setid = query.lastInsertId().toInt();
+    }
+
+    while (!tws.eof()) {
+        size_t size = tws.read32();
+        if (size == 0xFFFFFFFF)
+            return;
+        if (size == 0)
+            continue;
+
+        uint16_t levelNum = tws.read16();
+        uint32_t levelPass = tws.read32();
+        if (levelNum > highLevel)
+            highLevel = levelNum;
+
+        if (size == 6) {
+            // No score info
+            continue;
+        }
+        if (levelNum == 0 && levelPass == 0) {
+            // Special levelset name field
+            tws.seek(size - 6, SEEK_CUR);
+            continue;
+        }
+
+        // Normal record
+        tws.read8();    // Reserved
+        tws.read8();    // Initial slide/step dir
+        tws.read32();   // RNG seed
+        unsigned int ticks = tws.read32();
+        tws.seek(size - 16, SEEK_CUR);
+
+        // Add score info
+        int levelTimer = levelset->level(levelNum - 1)->timer();
+        int timeScore = (levelTimer == 0) ? 0 : levelTimer - (ticks / 20);
+        int bestScore = levelNum * 500 + timeScore * 10;
+        query.exec(QString("SELECT my_time, my_score FROM scores"
+                           "  WHERE levelset=%1 AND level_num=%2")
+                   .arg(setid).arg(levelNum));
+        if (query.first()) {
+            int storedTime = query.value(0).toInt();
+            int storedScore = query.value(1).toInt();
+            if (storedTime < timeScore || storedScore < bestScore) {
+                query.exec(QString("UPDATE scores"
+                                   "  SET my_time=%1, my_score=%2"
+                                   "  WHERE levelset=%3 AND level_num=%4")
+                           .arg(timeScore).arg(bestScore)
+                           .arg(setid).arg(levelNum));
+            }
+        } else {
+            query.exec(QString("INSERT INTO scores(levelset, level_num, my_time, my_score)"
+                               "  VALUES(%1, %2, %3, %4)")
+                       .arg(setid).arg(levelNum)
+                       .arg(timeScore).arg(bestScore));
+        }
+    }
+
+    query.exec(QString("UPDATE levelsets SET cur_level=%1, high_level=%2"
+                       "  WHERE idx=%3").arg(highLevel).arg(highLevel).arg(setid));
+    delete levelset;
+    refreshScores();
 }
 
 void CCPlayMain::onEditDefault()
@@ -498,47 +681,13 @@ void CCPlayMain::onPathChanged(QString path)
         return;
 
     m_levelsetList->clear();
-    QStringList setList = levelsetDir.entryList(QStringList() << "*.dat" << "*.ccl" << "*.dac",
+    QStringList setList = levelsetDir.entryList(QStringList() << "*.dat" << "*.DAT" << "*.ccl" << "*.dac",
                                                 QDir::Files, QDir::Name);
     foreach (QString set, setList) {
-        ccl::Levelset levelset;
-        ccl::FileStream stream;
         QString filename = levelsetDir.absoluteFilePath(set);
-        ccl::LevelsetType type = ccl::DetermineLevelsetType(filename.toUtf8().data());
-        if (type == ccl::LevelsetCcl) {
-            try {
-                if (!stream.open(filename.toUtf8().data(), "rb"))
-                    continue;
-                levelset.read(&stream);
-                stream.close();
-            } catch (...) {
-                continue;
-            }
-        } else if (type == ccl::LevelsetDac) {
-            FILE* dac = fopen(filename.toUtf8().data(), "rt");
-            if (dac == 0)
-                continue;
-
-            ccl::DacFile dacInfo;
-            try {
-                dacInfo.read(dac);
-                fclose(dac);
-            } catch (...) {
-                fclose(dac);
-                continue;
-            }
-
-            QDir searchPath(filename);
-            searchPath.cdUp();
-            try {
-                if (!stream.open(searchPath.absoluteFilePath(dacInfo.m_filename.c_str()).toUtf8().data(), "rb"))
-                    continue;
-                levelset.read(&stream);
-                stream.close();
-            } catch (...) {
-                continue;
-            }
-        }
+        ccl::Levelset* levelset = load_levelset(filename, this);
+        if (levelset == 0)
+            continue;
 
         QString fileid = QDir(filename).absolutePath().section(QChar('/'), -1);
         QSqlQuery query(m_scoredb);
@@ -558,11 +707,12 @@ void CCPlayMain::onPathChanged(QString path)
 
         QTreeWidgetItem* item = new QTreeWidgetItem(m_levelsetList);
         item->setText(0, set);
-        item->setText(1, QString("%1").arg(levelset.levelCount()));
+        item->setText(1, QString("%1").arg(levelset->levelCount()));
         item->setText(2, highLevel == 0 ? "---" : QString("%1").arg(highLevel));
         item->setText(3, curLevel == 0 ? "---" : QString("%1").arg(curLevel));
         item->setText(4, totScore == 0 ? "---" : QString("%1").arg(totScore));
         item->setData(0, Qt::UserRole, levelsetDir.absoluteFilePath(set));
+        delete levelset;
     }
 }
 
@@ -572,70 +722,12 @@ void CCPlayMain::onLevelsetChanged(QTreeWidgetItem* item, QTreeWidgetItem*)
     if (item == 0)
         return;
 
-    ccl::Levelset levelset;
-    ccl::FileStream stream;
     QString filename = item->data(0, Qt::UserRole).toString();
-
-    ccl::LevelsetType type = ccl::DetermineLevelsetType(filename.toUtf8().data());
-    if (type == ccl::LevelsetCcl) {
-        try {
-            if (!stream.open(filename.toUtf8().data(), "rb")) {
-                QMessageBox::critical(this, tr("Error Reading Levelset"),
-                        tr("Error Opening levelset file %1").arg(filename));
-                return;
-            }
-            levelset.read(&stream);
-            stream.close();
-        } catch (std::exception& e) {
-            QMessageBox::critical(this, tr("Error Reading Levelset"),
-                    tr("Error Reading levelset file: %1").arg(e.what()));
-            return;
-        }
-    } else if (type == ccl::LevelsetDac) {
-        FILE* dac = fopen(filename.toUtf8().data(), "rt");
-        if (dac == 0) {
-            QMessageBox::critical(this, tr("Error reading levelset"),
-                                  tr("Could not open file: %1")
-                                  .arg(filename));
-            return;
-        }
-        ccl::DacFile dacInfo;
-        try {
-            dacInfo.read(dac);
-            fclose(dac);
-        } catch (ccl::Exception& e) {
-            QMessageBox::critical(this, tr("Error reading levelset"),
-                                    tr("Error loading levelset descriptor: %1")
-                                    .arg(e.what()));
-            fclose(dac);
-            return;
-        }
-
-        QDir searchPath(filename);
-        searchPath.cdUp();
-        if (stream.open(searchPath.absoluteFilePath(dacInfo.m_filename.c_str()).toUtf8().data(), "rb")) {
-            try {
-                levelset.read(&stream);
-                stream.close();
-            } catch (std::exception& e) {
-                QMessageBox::critical(this, tr("Error reading levelset"),
-                                      tr("Error loading levelset: %1").arg(e.what()));
-                stream.close();
-                return;
-            }
-        } else {
-            QMessageBox::critical(this, tr("Error opening levelset"),
-                                tr("Error: could not open file %1")
-                                .arg(dacInfo.m_filename.c_str()));
-            return;
-        }
-    } else {
-        QMessageBox::critical(this, tr("Error reading levelset"),
-                              tr("Cannot determine file type for %1").arg(filename));
+    ccl::Levelset* levelset = load_levelset(filename, this);
+    if (levelset == 0)
         return;
-    }
 
-    QString fileid = QDir(filename).absolutePath().section(QChar('/'), -1);
+    QString fileid = filename.section(QChar('/'), -1);
     QSqlQuery query;
     query.exec(QString("SELECT idx, cur_level FROM levelsets WHERE name='%1'")
                .arg(fileid.replace("'", "''")));
@@ -645,7 +737,7 @@ void CCPlayMain::onLevelsetChanged(QTreeWidgetItem* item, QTreeWidgetItem*)
         curLevel = query.value(1).toInt() - 1;
     }
 
-    for (int i=0; i<levelset.levelCount(); ++i) {
+    for (int i=0; i<levelset->levelCount(); ++i) {
         int myTime = 0, myScore = 0;
         if (setid > 0) {
             query.exec(QString("SELECT my_time, my_score FROM scores WHERE"
@@ -657,7 +749,7 @@ void CCPlayMain::onLevelsetChanged(QTreeWidgetItem* item, QTreeWidgetItem*)
             }
         }
 
-        ccl::LevelData* level = levelset.level(i);
+        ccl::LevelData* level = levelset->level(i);
         QTreeWidgetItem* item = new QTreeWidgetItem(m_levelList);
         item->setText(0, QString("%1").arg(level->levelNum()));
         item->setText(1, level->name().c_str());
@@ -666,6 +758,7 @@ void CCPlayMain::onLevelsetChanged(QTreeWidgetItem* item, QTreeWidgetItem*)
         item->setText(4, myTime == 0 ? "---" : QString("%1").arg(myTime));
         item->setText(5, myScore == 0 ? "---" : QString("%1").arg(myScore));
     }
+    delete levelset;
 
     if (curLevel < m_levelList->topLevelItemCount())
         m_levelList->setCurrentItem(m_levelList->topLevelItem(curLevel));
