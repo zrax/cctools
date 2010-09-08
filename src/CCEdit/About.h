@@ -59,7 +59,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>."));
         layout->setVerticalSpacing(8);
         layout->setHorizontalSpacing(8);
         layout->addWidget(lblIcon, 0, 0, 3, 1);
-        layout->addWidget(new QLabel("CCEdit 1.91.0.61", this), 0, 1);
+        layout->addWidget(new QLabel("CCEdit 1.92.0.74", this), 0, 1);
         layout->addWidget(new QLabel("Part of CCTools 2.0 ALPHA", this), 1, 1);
         layout->addWidget(new QLabel(tr("Copyright (C) 2010  Michael Hansen"), this), 2, 1);
         layout->addWidget(lblLicense, 4, 0, 1, 2);

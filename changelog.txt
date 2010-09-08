@@ -1,3 +1,18 @@
+2010-09-08 - 2.0 ALPHA (1.92.0)
+~~~~~~~~~~
+CCPlay ALPHA released
+  * New GUI (vs CCLM) -- shows list integrated with score info
+  * Allows (unlimited) custom editors
+  * Can extract TWorld scores as well as MSCC scores
+  * Configurable MSCC hacks, including ignoring passwords and always granting
+    First Try score bonuses.
+  * Support for CCPatch and PGChips
+
+New CCEdit Features
+  * Zoom support in editor
+  * Support for PGChip patching and the Ice Block tile
+
+
 2010-08-13 - 2.0 ALPHA (1.91.0)
 ~~~~~~~~~~
 New Features
