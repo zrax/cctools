@@ -8,6 +8,7 @@ set(CCPlay_SOURCES
     ../Levelset.cpp
     ../DacFile.cpp
     ../IniFile.cpp
+    ../ChipsHax.cpp
     CCPlay.cpp
     PlaySettings.cpp
 )

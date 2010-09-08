@@ -281,7 +281,7 @@ ccl::CCPatchState ccl::ChipsHax::get_PGChips()
                 break;
         }
     }
-    fprintf(stderr, "Found invalid bytes at %08X\n", m_stream->tell());
+    fprintf(stderr, "Found invalid bytes at %08X\n", (unsigned)m_stream->tell());
 
     data = pg_patch;
     m_stream->seek(0, SEEK_SET);
@@ -311,7 +311,7 @@ ccl::CCPatchState ccl::ChipsHax::get_PGChips()
                 break;
         }
     }
-    fprintf(stderr, "Found invalid bytes at %08X\n", m_stream->tell());
+    fprintf(stderr, "Found invalid bytes at %08X\n", (unsigned)m_stream->tell());
 
     return ccl::CCPatchOther;
 }

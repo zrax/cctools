@@ -34,8 +34,10 @@
 #include "../Levelset.h"
 #include "../DacFile.h"
 #include "../IniFile.h"
+#include "../ChipsHax.h"
 
-static ccl::Levelset* load_levelset(QString filename, QWidget* self)
+static ccl::Levelset* load_levelset(QString filename, QWidget* self,
+                                    int* dacLastLevel = 0)
 {
     ccl::LevelsetType type = ccl::DetermineLevelsetType(filename.toUtf8().data());
     ccl::FileStream stream;
@@ -56,6 +58,8 @@ static ccl::Levelset* load_levelset(QString filename, QWidget* self)
             delete levelset;
             return 0;
         }
+        if (dacLastLevel != 0)
+            *dacLastLevel = (levelset->levelCount() == 149) ? 144 : levelset->levelCount();
         return levelset;
     } else if (type == ccl::LevelsetDac) {
         FILE* dac = fopen(filename.toUtf8().data(), "rt");
@@ -91,6 +95,8 @@ static ccl::Levelset* load_levelset(QString filename, QWidget* self)
                 delete levelset;
                 return 0;
             }
+            if (dacLastLevel != 0)
+                *dacLastLevel = (dacInfo.m_lastLevel == 0) ? levelset->levelCount() : dacInfo.m_lastLevel;
             return levelset;
         } else {
             QMessageBox::critical(self, self->tr("Error opening levelset"),
@@ -355,9 +361,11 @@ void CCPlayMain::refreshScores()
 }
 
 void CCPlayMain::onPlayMSCC()
-{/*
+{
     if (m_levelsetList->currentItem() == 0 || m_levelList->topLevelItemCount() == 0)
         return;
+
+    QString filename = m_levelsetList->currentItem()->data(0, Qt::UserRole).toString();
 
     QSettings settings("CCTools", "CCPlay");
     QString chipsExe = settings.value("ChipsExe").toString();
@@ -386,59 +394,83 @@ void CCPlayMain::onPlayMSCC()
 
     QString tempExe = QDir::tempPath() + "/CCRun.exe";
     QString tempDat = QDir::tempPath() + "/CCRun.dat";
+
+    // Save the levelset to temp file, and extract useful information
+    ccl::FileStream stream;
+    int dacLastLevel;
+    ccl::Levelset* levelset = load_levelset(filename, this, &dacLastLevel);
+    if (levelset == 0)
+        return;
+    if (!stream.open(tempDat.toUtf8().data(), "wb")) {
+        QMessageBox::critical(this, tr("Error writing data file"),
+                tr("Error opening CCRun.dat for writing"));
+        stream.close();
+        delete levelset;
+        return;
+    }
+    try {
+        levelset->write(&stream);
+    } catch (std::exception& e) {
+        QMessageBox::critical(this, tr("Error Creating Test Data File"),
+                tr("Error writing data file: %1").arg(e.what()));
+        stream.close();
+        QFile::remove(tempDat);
+        delete levelset;
+        return;
+    }
+    stream.close();
+
+    // Make a CHIPS.EXE that we can use
     QFile::remove(tempExe);
     if (!QFile::copy(chipsExe, tempExe)) {
         QMessageBox::critical(this, tr("Error creating temp EXE"),
                 tr("Error copying %1 to temp path").arg(chipsExe));
+        QFile::remove(tempDat);
+        delete levelset;
         return;
     }
-    ccl::FileStream stream;
     if (!stream.open(tempExe.toUtf8().data(), "r+b")) {
         QMessageBox::critical(this, tr("Error creating temp EXE"),
                 tr("Error opening %1 for writing").arg(tempExe));
+        QFile::remove(tempExe);
+        QFile::remove(tempDat);
+        delete levelset;
         return;
     }
 
-    // Make a CHIPS.EXE that we can use
     ccl::ChipsHax hax;
     hax.open(&stream);
-    if (settings.value("ChipsPGPatch", false).toBool())
-        hax.set_PGChips(ccl::CCPatchPatched);
-    if (settings.value("ChipsCCPatch", true).toBool())
+    if (settings.value("UseCCPatch", true).toBool())
         hax.set_CCPatch(ccl::CCPatchPatched);
-    hax.set_LastLevel(m_levelset->levelCount());
-    if (m_useDac && m_dacInfo.m_lastLevel < m_levelset->levelCount())
-        hax.set_FakeLastLevel(m_dacInfo.m_lastLevel);
-    else
-        hax.set_FakeLastLevel(m_levelset->levelCount());
-    hax.set_IgnorePasswords(true);
+    if (settings.value("UseIgnorePasswords", false).toBool())
+        hax.set_IgnorePasswords(true);
+    if (settings.value("UseAlwaysFirstTry", false).toBool())
+        hax.set_AlwaysFirstTry(true);
+    if (levelset->type() == ccl::Levelset::TypePG || levelset->type() == ccl::Levelset::TypeLynxPG)
+        hax.set_PGChips(ccl::CCPatchPatched);
+    hax.set_LastLevel(levelset->levelCount());
+    hax.set_FakeLastLevel(dacLastLevel);
     hax.set_DataFilename("CCRun.dat");
     hax.set_IniFilename("./CCRun.ini");
-    hax.set_IniEntryName("CCPlay");
-    stream.close();
-
-    // Copy the levelset to the temp file
-    unsigned int saveType = m_levelset->type();
-    if (settings.value("ChipsPGPatch", false).toBool())
-        m_levelset->setType(ccl::Levelset::TypePG);
-    else
-        m_levelset->setType(ccl::Levelset::TypeMS);
-    try {
-        m_levelset->write(&stream);
-    } catch (std::exception& e) {
-        QMessageBox::critical(this, tr("Error Creating Test Data File"),
-                tr("Error writing data file: %1").arg(e.what()));
-        m_levelset->setType(saveType);
-        stream.close();
-        return;
-    }
-    m_levelset->setType(saveType);
+    hax.set_IniEntryName("CCPlay Runtime");
     stream.close();
 
     // Configure the INI file
     QString cwd = QDir::currentPath();
     QDir exePath = chipsExe;
     exePath.cdUp();
+
+    QSqlQuery query;
+    QString setName = filename.section(QChar('/'), -1);
+    query.exec(QString("SELECT idx, high_level, cur_level FROM levelsets"
+                       "  WHERE name='%1'").arg(setName));
+    int setid = 0;
+    int highLevel = 1, curLevel = 1;
+    if (query.first()) {
+        setid = query.value(0).toInt();
+        highLevel = query.value(1).toInt();
+        curLevel = query.value(2).toInt();
+    }
 
     QString tempIni = exePath.absoluteFilePath("CCRun.ini");
     FILE* iniStream = fopen(tempIni.toUtf8().data(), "r+t");
@@ -449,15 +481,36 @@ void CCPlayMain::onPlayMSCC()
                 tr("Error: Could not open or create CCRun.ini file"));
         QFile::remove(tempExe);
         QFile::remove(tempDat);
+        delete levelset;
         return;
     }
     try {
         ccl::IniFile ini;
         ini.read(iniStream);
-        ini.setSection("CCEdit Playtest");
-        ini.setInt("Current Level", m_levelList->currentRow() + 1);
-        ini.setString(QString("Level%1").arg(m_levelList->currentRow() + 1).toUtf8().data(),
-                      m_levelset->level(m_levelList->currentRow())->password());
+        ini.setSection("CCPlay Runtime");
+        ini.setInt("Current Level", curLevel);
+        ini.setInt("Highest Level", highLevel);
+        bool haveCurLevel = false;
+        if (setid > 0) {
+            for (int i=0; i<levelset->levelCount(); ++i) {
+                query.exec(QString("SELECT my_time, my_score FROM scores"
+                                   "  WHERE levelset=%1 AND level_num=%2")
+                                   .arg(setid).arg(i + 1));
+                if (!query.first())
+                    continue;
+                ini.setString(QString("Level%1").arg(i + 1).toUtf8().data(),
+                              QString("%1,%2,%3").arg(levelset->level(i)->password().c_str())
+                                                 .arg(query.value(0).toInt())
+                                                 .arg(query.value(1).toInt())
+                                                 .toUtf8().data());
+                if (i + 1 == curLevel)
+                    haveCurLevel = true;
+            }
+        }
+        if (!haveCurLevel) {
+            ini.setString(QString("Level%1").arg(curLevel).toUtf8().data(),
+                          levelset->level(curLevel - 1)->password());
+        }
         ini.write(iniStream);
         fclose(iniStream);
     } catch (std::exception& e) {
@@ -467,6 +520,7 @@ void CCPlayMain::onPlayMSCC()
         QFile::remove(tempExe);
         QFile::remove(tempDat);
         QFile::remove(tempIni);
+        delete levelset;
         return;
     }
 
@@ -480,11 +534,82 @@ void CCPlayMain::onPlayMSCC()
 #endif
     QDir::setCurrent(cwd);
 
-    // Remove temp files
+
+    iniStream = fopen(tempIni.toUtf8().data(), "rt");
+    if (iniStream == 0) {
+        QMessageBox::critical(this, tr("Error Reading CCRun.ini"),
+                tr("Error: Could not open CCRun.ini file for reading"));
+        QFile::remove(tempExe);
+        QFile::remove(tempDat);
+        QFile::remove(tempIni);
+        delete levelset;
+        return;
+    }
+    try {
+        ccl::IniFile ini;
+        ini.read(iniStream);
+        ini.setSection("CCPlay Runtime");
+        curLevel = ini.getInt("Current Level");
+        highLevel = ini.getInt("Highest Level");
+
+        if (setid == 0) {
+            query.exec(QString("INSERT INTO levelsets(name, cur_level, high_level)"
+                               "  VALUES('%1', %2, %3)")
+                       .arg(setName).arg(curLevel).arg(highLevel));
+            setid = query.lastInsertId().toInt();
+        }
+
+        for (int i=0; i<levelset->levelCount(); ++i) {
+            QString levelData = ini.getString(QString("Level%1").arg(i + 1).toUtf8().data()).c_str();
+            if (levelData.isEmpty())
+                continue;
+
+            QStringList parts = levelData.split(QChar(','));
+            if (parts.size() == 1) {
+                // Just a password...  Ignore it and move along
+                continue;
+            } else if (parts.size() == 3) {
+                query.exec(QString("SELECT my_time, my_score FROM scores"
+                                   "  WHERE levelset=%1 AND level_num=%2")
+                                   .arg(setid).arg(i + 1));
+                if (!query.first()) {
+                    query.exec(QString("INSERT INTO scores(levelset, level_num, my_time, my_score)"
+                                       "  VALUES(%1, %2, %3, %4)")
+                               .arg(setid).arg(i + 1).arg(parts[1].toInt()).arg(parts[2].toInt()));
+                } else {
+                    bool betterTime = parts[1].toInt() > query.value(0).toInt();
+                    bool betterScore = parts[2].toInt() > query.value(1).toInt();
+                    if (betterTime || betterScore) {
+                        query.exec(QString("UPDATE scores SET my_time=%1, my_score=%2"
+                                           "  WHERE levelset=%3 AND level_num=%4")
+                                   .arg(parts[1].toInt()).arg(parts[2].toInt())
+                                   .arg(setid).arg(i + 1));
+                    }
+                }
+            } else {
+                qDebug("Error parsing score: %s", levelData.toUtf8().data());
+                continue;
+            }
+        }
+    } catch (std::exception& e) {
+        QMessageBox::critical(this, tr("Error reading CCRun.ini"),
+                tr("Error reading INI file: %1").arg(e.what()));
+        fclose(iniStream);
+        QFile::remove(tempExe);
+        QFile::remove(tempDat);
+        QFile::remove(tempIni);
+        delete levelset;
+        return;
+    }
+
+    // Clean up our mess
     QFile::remove(tempExe);
     QFile::remove(tempDat);
     QFile::remove(tempIni);
-*/}
+    delete levelset;
+
+    refreshScores();
+}
 
 void CCPlayMain::onPlayTWorld()
 {
@@ -626,10 +751,12 @@ void CCPlayMain::onPlayTWorld()
                        .arg(timeScore).arg(bestScore));
         }
     }
+    delete levelset;
 
+    // TWorld does not store highest and last level separately, so store
+    // the highest level into both fields
     query.exec(QString("UPDATE levelsets SET cur_level=%1, high_level=%2"
                        "  WHERE idx=%3").arg(highLevel).arg(highLevel).arg(setid));
-    delete levelset;
     refreshScores();
 }
 
