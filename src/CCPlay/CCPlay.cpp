@@ -557,6 +557,10 @@ void CCPlayMain::onPlayMSCC()
                                "  VALUES('%1', %2, %3)")
                        .arg(setName).arg(curLevel).arg(highLevel));
             setid = query.lastInsertId().toInt();
+        } else {
+            query.exec(QString("UPDATE levelsets SET cur_level=%1, high_level=%2"
+                               "  WHERE name='%3'")
+                       .arg(curLevel).arg(highLevel).arg(setName));
         }
 
         for (int i=0; i<levelset->levelCount(); ++i) {
