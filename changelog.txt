@@ -1,3 +1,12 @@
+2010-09-11 - 2.0 ALPHA (1.92.1)
+~~~~~~~~~~
+Bugfix release
+  * Actually save hint text in CCEdit
+  * Update current and highest level from MSCC in CCPlay
+  * Switch to Cocoa build of Qt4 on OSX, so 64-bit Snow Leopard works.
+    Note that this means Tiger is no longer supported though (except in source)
+
+
 2010-09-08 - 2.0 ALPHA (1.92.0)
 ~~~~~~~~~~
 CCPlay ALPHA released
