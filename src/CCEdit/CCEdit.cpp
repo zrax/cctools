@@ -562,6 +562,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_chipEdit, SIGNAL(valueChanged(int)), SLOT(onChipsChanged(int)));
     connect(chipsButton, SIGNAL(clicked()), SLOT(onChipCountAction()));
     connect(m_timeEdit, SIGNAL(valueChanged(int)), SLOT(onTimerChanged(int)));
+    connect(m_hintEdit, SIGNAL(textChanged(QString)), SLOT(onHintChanged(QString)));
     connect(toolDock, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)), SLOT(onDockChanged(Qt::DockWidgetArea)));
     connect(qApp->clipboard(), SIGNAL(dataChanged()), SLOT(onClipboardDataChanged()));
 
@@ -1814,6 +1815,13 @@ void CCEditMain::onTimerChanged(int value)
     if (m_levelList->currentRow() < 0)
         return;
     m_levelset->level(m_levelList->currentRow())->setTimer(m_timeEdit->value());
+}
+
+void CCEditMain::onHintChanged(QString value)
+{
+    if (m_levelList->currentRow() < 0)
+        return;
+    m_levelset->level(m_levelList->currentRow())->setHint(m_hintEdit->text().toAscii().data());
 }
 
 void CCEditMain::setForeground(tile_t tile)

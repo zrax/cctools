@@ -165,6 +165,7 @@ private slots:
     void onPasswordChanged(QString);
     void onChipsChanged(int);
     void onTimerChanged(int);
+    void onHintChanged(QString);
     void onClipboardDataChanged();
 
     void onNewTab();
