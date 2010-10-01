@@ -10,6 +10,7 @@ set(CCEdit_SOURCES
     ../DacFile.cpp
     ../IniFile.cpp
     ../ChipsHax.cpp
+    ../GameLogic.cpp
     CCEdit.cpp
     EditorWidget.cpp
     LayerWidget.cpp

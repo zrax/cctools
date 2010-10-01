@@ -181,11 +181,19 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionViewActivePlayer]->setStatusTip(tr("Highlight Player start position"));
     m_actions[ActionViewActivePlayer]->setCheckable(true);
     m_actions[ActionViewActivePlayer]->setChecked(true);
+    m_actions[ActionViewMonsterPaths] = new QAction(tr("Show Monster Paths"), this);
+    m_actions[ActionViewMonsterPaths]->setStatusTip(tr("Trace Projected Monster Paths (May be inaccurate)"));
+    m_actions[ActionViewMonsterPaths]->setCheckable(true);
+    m_actions[ActionViewMonsterPaths]->setChecked(true);
 
     m_actions[ActionZoom100] = new QAction(tr("&100%"), this);
     m_actions[ActionZoom100]->setStatusTip(tr("Zoom to 100%"));
     m_actions[ActionZoom100]->setShortcut(Qt::CTRL | Qt::Key_1);
     m_actions[ActionZoom100]->setCheckable(true);
+    m_actions[ActionZoom75] = new QAction(tr("&75%"), this);
+    m_actions[ActionZoom75]->setStatusTip(tr("Zoom to 75%"));
+    m_actions[ActionZoom75]->setShortcut(Qt::CTRL | Qt::Key_7);
+    m_actions[ActionZoom75]->setCheckable(true);
     m_actions[ActionZoom50] = new QAction(tr("&50%"), this);
     m_actions[ActionZoom50]->setStatusTip(tr("Zoom to 50%"));
     m_actions[ActionZoom50]->setShortcut(Qt::CTRL | Qt::Key_5);
@@ -204,6 +212,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionZoomCust]->setCheckable(true);
     QActionGroup* zoomGroup = new QActionGroup(this);
     zoomGroup->addAction(m_actions[ActionZoom100]);
+    zoomGroup->addAction(m_actions[ActionZoom75]);
     zoomGroup->addAction(m_actions[ActionZoom50]);
     zoomGroup->addAction(m_actions[ActionZoom25]);
     zoomGroup->addAction(m_actions[ActionZoom125]);
@@ -468,11 +477,13 @@ CCEditMain::CCEditMain(QWidget* parent)
     viewMenu->addAction(m_actions[ActionViewButtons]);
     viewMenu->addAction(m_actions[ActionViewMovers]);
     viewMenu->addAction(m_actions[ActionViewActivePlayer]);
+    viewMenu->addAction(m_actions[ActionViewMonsterPaths]);
     viewMenu->addSeparator();
     m_tilesetMenu = viewMenu->addMenu(tr("Tile&set"));
     m_tilesetGroup = new QActionGroup(this);
     QMenu* zoomMenu = viewMenu->addMenu(tr("&Zoom"));
     zoomMenu->addAction(m_actions[ActionZoom100]);
+    zoomMenu->addAction(m_actions[ActionZoom75]);
     zoomMenu->addAction(m_actions[ActionZoom50]);
     zoomMenu->addAction(m_actions[ActionZoom25]);
     zoomMenu->addAction(m_actions[ActionZoom125]);
@@ -537,8 +548,10 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionViewButtons], SIGNAL(toggled(bool)), SLOT(onViewButtonsToggled(bool)));
     connect(m_actions[ActionViewMovers], SIGNAL(toggled(bool)), SLOT(onViewMoversToggled(bool)));
     connect(m_actions[ActionViewActivePlayer], SIGNAL(toggled(bool)), SLOT(onViewActivePlayerToggled(bool)));
+    connect(m_actions[ActionViewMonsterPaths], SIGNAL(toggled(bool)), SLOT(onViewMonsterPathsToggled(bool)));
     connect(m_tilesetGroup, SIGNAL(triggered(QAction*)), SLOT(onTilesetMenu(QAction*)));
     connect(m_actions[ActionZoom100], SIGNAL(triggered()), SLOT(onZoom100()));
+    connect(m_actions[ActionZoom75], SIGNAL(triggered()), SLOT(onZoom75()));
     connect(m_actions[ActionZoom50], SIGNAL(triggered()), SLOT(onZoom50()));
     connect(m_actions[ActionZoom25], SIGNAL(triggered()), SLOT(onZoom25()));
     connect(m_actions[ActionZoom125], SIGNAL(triggered()), SLOT(onZoom125()));
@@ -617,6 +630,8 @@ CCEditMain::CCEditMain(QWidget* parent)
 
     if (m_zoomFactor == 1.0)
         m_actions[ActionZoom100]->setChecked(true);
+    else if (m_zoomFactor == 0.75)
+        m_actions[ActionZoom75]->setChecked(true);
     else if (m_zoomFactor == 0.5)
         m_actions[ActionZoom50]->setChecked(true);
     else if (m_zoomFactor == 0.25)
@@ -968,6 +983,8 @@ EditorWidget* CCEditMain::addEditor(ccl::LevelData* level)
         editor->setPaintFlag(EditorWidget::ShowMovement);
     if (m_actions[ActionViewActivePlayer]->isChecked())
         editor->setPaintFlag(EditorWidget::ShowPlayer);
+    if (m_actions[ActionViewMonsterPaths]->isChecked())
+        editor->setPaintFlag(EditorWidget::ShowMovePaths);
     editor->setDrawMode(m_currentDrawMode);
     editor->setZoom(m_zoomFactor);
     editor->setTileset(m_currentTileset);
@@ -1342,9 +1359,27 @@ void CCEditMain::onViewActivePlayerToggled(bool view)
     }
 }
 
+void CCEditMain::onViewMonsterPathsToggled(bool view)
+{
+    if (view) {
+        for (int i=0; i<m_editorTabs->count(); ++i)
+            getEditorAt(i)->setPaintFlag(EditorWidget::ShowMovePaths);
+    } else {
+        for (int i=0; i<m_editorTabs->count(); ++i)
+            getEditorAt(i)->clearPaintFlag(EditorWidget::ShowMovePaths);
+    }
+}
+
 void CCEditMain::onZoom100()
 {
     m_zoomFactor = 1.0;
+    for (int i=0; i<m_editorTabs->count(); ++i)
+        getEditorAt(i)->setZoom(m_zoomFactor);
+}
+
+void CCEditMain::onZoom75()
+{
+    m_zoomFactor = 0.75;
     for (int i=0; i<m_editorTabs->count(); ++i)
         getEditorAt(i)->setZoom(m_zoomFactor);
 }

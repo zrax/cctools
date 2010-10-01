@@ -16,8 +16,10 @@
  ******************************************************************************/
 
 #include "EditorWidget.h"
+
 #include <QPaintEvent>
 #include <QMouseEvent>
+#include "../GameLogic.h"
 
 enum PlotMethod { PlotPreview, PlotDraw };
 
@@ -253,6 +255,49 @@ void EditorWidget::paintEvent(QPaintEvent* event)
             painter.drawPixmap((move_iter->X + 1) * m_tileset->size() * m_zoomFactor - 16,
                                (move_iter->Y + 1) * m_tileset->size() * m_zoomFactor - 10,
                                m_numbers, 0, num++ * 10, 16, 10);
+        }
+    }
+
+    if ((m_paintFlags & ShowMovePaths) != 0) {
+        painter.setPen(QColor(0, 0, 255));
+        std::list<ccl::Point>::const_iterator move_iter;
+        for (move_iter = m_levelData->moveList().begin();
+             move_iter != m_levelData->moveList().end(); ++move_iter) {
+            ccl::Point from = *move_iter;
+            if (!isValidPoint(from))
+                continue;
+
+            uint8_t looked[32*32];
+            memset(looked, 0, sizeof(looked));
+            tile_t tile = m_levelData->map().getFG(from.X, from.Y);
+            tile_t tileN = tile & 0xFC;
+            ccl::MoveState move = ccl::CheckMove(m_levelData, tile, from.X, from.Y, false);
+
+            if (tileN == ccl::TileTeeth_N || tileN == ccl::TileWalker_N
+                || tileN == ccl::TileBlob_N)
+                continue;
+
+            do {
+                looked[(from.Y*32)+from.X] |= 1 << (tile & 0x03);
+                if ((move & ccl::MoveDirMask) < ccl::MoveBlocked) {
+                    if ((move & ccl::MoveTrapped) != 0)
+                        break;
+                    ccl::Point to = ccl::AdvanceCreature(tile, from, move);
+                    painter.drawLine(calcTileCenter(from.X, from.Y),
+                                     calcTileCenter(to.X, to.Y));
+                    if ((move & ccl::MoveDeath) != 0)
+                        break;
+                    if ((move & ccl::MoveTeleport) != 0) {
+                        //TODO
+                        break;
+                    }
+                    from = to;
+                    tile = ccl::TurnCreature(tile, move);
+                } else {
+                    break;
+                }
+                move = ccl::CheckMove(m_levelData, tile, from.X, from.Y, true);
+            } while ((looked[(from.Y*32)+from.X] & (1 << (tile & 0x03))) == 0);
         }
     }
 
