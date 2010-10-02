@@ -317,6 +317,20 @@ void EditorWidget::paintEvent(QPaintEvent* event)
             painter.drawRect(calcTileRect(0, 0));
     }
 
+    if ((m_paintFlags & ShowViewBox) != 0) {
+        painter.setPen(QColor(0, 255, 127));
+        QPoint topRight(m_current.x() - 4, m_current.y() - 4);
+        if (topRight.x() < 0)
+            topRight.setX(0);
+        if (topRight.y() < 0)
+            topRight.setY(0);
+        if (topRight.x() > 23)
+            topRight.setX(23);
+        if (topRight.y() > 23)
+            topRight.setY(23);
+        painter.drawRect(calcTileRect(topRight.x(), topRight.y(), 9, 9));
+    }
+
     if ((m_paintFlags & ShowButtons) != 0) {
         painter.setPen(QColor(255, 0, 0));
         std::list<ccl::Trap>::const_iterator trap_iter;

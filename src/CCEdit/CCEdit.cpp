@@ -186,6 +186,10 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionViewActivePlayer]->setStatusTip(tr("Highlight Player start position"));
     m_actions[ActionViewActivePlayer]->setCheckable(true);
     m_actions[ActionViewActivePlayer]->setChecked(true);
+    m_actions[ActionViewViewport] = new QAction(tr("Show Game &Viewport"), this);
+    m_actions[ActionViewViewport]->setStatusTip(tr("Show a viewport bounding box around the cursor"));
+    m_actions[ActionViewViewport]->setCheckable(true);
+    m_actions[ActionViewViewport]->setChecked(true);
     m_actions[ActionViewMonsterPaths] = new QAction(tr("Show Monster Paths"), this);
     m_actions[ActionViewMonsterPaths]->setStatusTip(tr("Trace Projected Monster Paths (May be inaccurate)"));
     m_actions[ActionViewMonsterPaths]->setCheckable(true);
@@ -484,6 +488,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     viewMenu->addAction(m_actions[ActionViewButtons]);
     viewMenu->addAction(m_actions[ActionViewMovers]);
     viewMenu->addAction(m_actions[ActionViewActivePlayer]);
+    viewMenu->addAction(m_actions[ActionViewViewport]);
     viewMenu->addAction(m_actions[ActionViewMonsterPaths]);
     viewMenu->addSeparator();
     m_tilesetMenu = viewMenu->addMenu(tr("Tile&set"));
@@ -558,6 +563,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionViewButtons], SIGNAL(toggled(bool)), SLOT(onViewButtonsToggled(bool)));
     connect(m_actions[ActionViewMovers], SIGNAL(toggled(bool)), SLOT(onViewMoversToggled(bool)));
     connect(m_actions[ActionViewActivePlayer], SIGNAL(toggled(bool)), SLOT(onViewActivePlayerToggled(bool)));
+    connect(m_actions[ActionViewViewport], SIGNAL(toggled(bool)), SLOT(onViewViewportToggled(bool)));
     connect(m_actions[ActionViewMonsterPaths], SIGNAL(toggled(bool)), SLOT(onViewMonsterPathsToggled(bool)));
     connect(m_tilesetGroup, SIGNAL(triggered(QAction*)), SLOT(onTilesetMenu(QAction*)));
     connect(m_actions[ActionZoom100], SIGNAL(triggered()), SLOT(onZoom100()));
@@ -993,6 +999,8 @@ EditorWidget* CCEditMain::addEditor(ccl::LevelData* level)
         editor->setPaintFlag(EditorWidget::ShowMovement);
     if (m_actions[ActionViewActivePlayer]->isChecked())
         editor->setPaintFlag(EditorWidget::ShowPlayer);
+    if (m_actions[ActionViewViewport]->isChecked())
+        editor->setPaintFlag(EditorWidget::ShowViewBox);
     if (m_actions[ActionViewMonsterPaths]->isChecked())
         editor->setPaintFlag(EditorWidget::ShowMovePaths);
     editor->setDrawMode(m_currentDrawMode);
@@ -1379,6 +1387,17 @@ void CCEditMain::onViewActivePlayerToggled(bool view)
     } else {
         for (int i=0; i<m_editorTabs->count(); ++i)
             getEditorAt(i)->clearPaintFlag(EditorWidget::ShowPlayer);
+    }
+}
+
+void CCEditMain::onViewViewportToggled(bool view)
+{
+    if (view) {
+        for (int i=0; i<m_editorTabs->count(); ++i)
+            getEditorAt(i)->setPaintFlag(EditorWidget::ShowViewBox);
+    } else {
+        for (int i=0; i<m_editorTabs->count(); ++i)
+            getEditorAt(i)->clearPaintFlag(EditorWidget::ShowViewBox);
     }
 }
 

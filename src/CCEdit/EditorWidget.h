@@ -38,9 +38,10 @@ public:
         ShowMovement = (1<<1),
         ShowButtons = (1<<2),
         ShowMovePaths = (1<<3),
-        PaintLeftTemp = (1<<4),
-        PaintRightTemp = (1<<5),
-        PaintTempBury = (1<<6),
+        ShowViewBox = (1<<4),
+        PaintLeftTemp = (1<<5),
+        PaintRightTemp = (1<<6),
+        PaintTempBury = (1<<7),
         PaintOverlayMask = PaintLeftTemp | PaintRightTemp,
     };
 
