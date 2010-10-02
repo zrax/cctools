@@ -133,7 +133,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionPaste]->setStatusTip(tr("Paste the clipboard contents into the levelset at the selection position"));
     m_actions[ActionPaste]->setShortcut(Qt::CTRL | Qt::Key_V);
     m_actions[ActionPaste]->setEnabled(false);
-    m_actions[ActionClear] = new QAction(QIcon(":/res/edit-delete.png"), tr("Clea&r"), this);
+    m_actions[ActionClear] = new QAction(QIcon(":/res/edit-delete.png"), tr("C&lear"), this);
     m_actions[ActionClear]->setStatusTip(tr("Clear all tiles and mechanics from the selected region"));
     m_actions[ActionClear]->setShortcut(Qt::Key_Delete);
     m_actions[ActionClear]->setEnabled(false);
@@ -154,7 +154,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionPathMaker]->setStatusTip(tr("Draw a directional path of tiles"));
     m_actions[ActionPathMaker]->setShortcut(Qt::CTRL | Qt::Key_M);
     m_actions[ActionPathMaker]->setCheckable(true);
-    m_actions[ActionConnect] = new QAction(QIcon(":/res/cctools-rbutton.png"), tr("&Button Connector"), this);
+    m_actions[ActionConnect] = new QAction(QIcon(":/res/cctools-rbutton.png"), tr("Button &Connector"), this);
     m_actions[ActionConnect]->setStatusTip(tr("Connect buttons to traps and cloning machines"));
     m_actions[ActionConnect]->setShortcut(Qt::CTRL | Qt::Key_T);
     m_actions[ActionConnect]->setCheckable(true);
@@ -177,23 +177,18 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionViewButtons] = new QAction(tr("Show &Button Connections"), this);
     m_actions[ActionViewButtons]->setStatusTip(tr("Draw lines between connected buttons/traps/cloning machines in editor"));
     m_actions[ActionViewButtons]->setCheckable(true);
-    m_actions[ActionViewButtons]->setChecked(true);
     m_actions[ActionViewMovers] = new QAction(tr("Show &Monster Order"), this);
     m_actions[ActionViewMovers]->setStatusTip(tr("Display Monster Order in editor"));
     m_actions[ActionViewMovers]->setCheckable(true);
-    m_actions[ActionViewMovers]->setChecked(true);
-    m_actions[ActionViewActivePlayer] = new QAction(tr("Highlight &Player Start"), this);
-    m_actions[ActionViewActivePlayer]->setStatusTip(tr("Highlight Player start position"));
+    m_actions[ActionViewActivePlayer] = new QAction(tr("Show &Player Starting Position"), this);
+    m_actions[ActionViewActivePlayer]->setStatusTip(tr("Highlight the Player's start position"));
     m_actions[ActionViewActivePlayer]->setCheckable(true);
-    m_actions[ActionViewActivePlayer]->setChecked(true);
     m_actions[ActionViewViewport] = new QAction(tr("Show Game &Viewport"), this);
     m_actions[ActionViewViewport]->setStatusTip(tr("Show a viewport bounding box around the cursor"));
     m_actions[ActionViewViewport]->setCheckable(true);
-    m_actions[ActionViewViewport]->setChecked(true);
-    m_actions[ActionViewMonsterPaths] = new QAction(tr("Show Monster Paths"), this);
+    m_actions[ActionViewMonsterPaths] = new QAction(tr("Show Mo&nster Paths"), this);
     m_actions[ActionViewMonsterPaths]->setStatusTip(tr("Trace Projected Monster Paths (May be inaccurate)"));
     m_actions[ActionViewMonsterPaths]->setCheckable(true);
-    m_actions[ActionViewMonsterPaths]->setChecked(true);
 
     m_actions[ActionZoom100] = new QAction(tr("&100%"), this);
     m_actions[ActionZoom100]->setStatusTip(tr("Zoom to 100%"));
@@ -235,7 +230,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionTestTWorldCC]->setStatusTip(tr("Test the current level in Tile World with the MSCC Ruleset"));
     m_actions[ActionTestTWorldCC]->setShortcut(Qt::Key_F6);
     m_actions[ActionTestTWorldCC]->setEnabled(false);
-    m_actions[ActionTestTWorldLynx] = new QAction(tr("Test in &Tile World (Lynx)"), this);
+    m_actions[ActionTestTWorldLynx] = new QAction(tr("Test in Tile World (&Lynx)"), this);
     m_actions[ActionTestTWorldLynx]->setStatusTip(tr("Test the current level in Tile World with the Lynx Ruleset"));
     m_actions[ActionTestTWorldLynx]->setShortcut(Qt::Key_F7);
     m_actions[ActionTestTWorldLynx]->setEnabled(false);
@@ -616,6 +611,11 @@ CCEditMain::CCEditMain(QWidget* parent)
     if (settings.contains("WindowState"))
         restoreState(settings.value("WindowState").toByteArray());
     m_zoomFactor = settings.value("ZoomFactor", 1.0).toDouble();
+    m_actions[ActionViewButtons]->setChecked(settings.value("ViewButtons", true).toBool());
+    m_actions[ActionViewMovers]->setChecked(settings.value("ViewMovers", true).toBool());
+    m_actions[ActionViewActivePlayer]->setChecked(settings.value("ViewActivePlayer", false).toBool());
+    m_actions[ActionViewViewport]->setChecked(settings.value("ViewViewport", true).toBool());
+    m_actions[ActionViewMonsterPaths]->setChecked(settings.value("ViewMonsterPaths", false).toBool());
 
     findTilesets();
     if (m_tilesetGroup->actions().size() == 0) {
@@ -860,6 +860,11 @@ void CCEditMain::closeEvent(QCloseEvent* event)
     settings.setValue("WindowSize", size());
     settings.setValue("WindowState", saveState());
     settings.setValue("ZoomFactor", m_zoomFactor);
+    settings.setValue("ViewButtons", m_actions[ActionViewButtons]->isChecked());
+    settings.setValue("ViewMovers", m_actions[ActionViewMovers]->isChecked());
+    settings.setValue("ViewActivePlayer", m_actions[ActionViewActivePlayer]->isChecked());
+    settings.setValue("ViewViewport", m_actions[ActionViewViewport]->isChecked());
+    settings.setValue("ViewMonsterPaths", m_actions[ActionViewMonsterPaths]->isChecked());
     settings.setValue("TilesetName", m_currentTileset->filename());
 }
 
