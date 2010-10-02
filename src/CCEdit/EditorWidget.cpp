@@ -271,7 +271,7 @@ void EditorWidget::paintEvent(QPaintEvent* event)
             memset(looked, 0, sizeof(looked));
             tile_t tile = m_levelData->map().getFG(from.X, from.Y);
             tile_t tileN = tile & 0xFC;
-            ccl::MoveState move = ccl::CheckMove(m_levelData, tile, from.X, from.Y, false);
+            ccl::MoveState move = ccl::CheckMove(m_levelData, tile, from.X, from.Y);
 
             if (tileN == ccl::TileTeeth_N || tileN == ccl::TileWalker_N
                 || tileN == ccl::TileBlob_N)
@@ -296,14 +296,14 @@ void EditorWidget::paintEvent(QPaintEvent* event)
                 } else {
                     break;
                 }
-                move = ccl::CheckMove(m_levelData, tile, from.X, from.Y, true);
+                move = ccl::CheckMove(m_levelData, tile, from.X, from.Y);
             } while ((looked[(from.Y*32)+from.X] & (1 << (tile & 0x03))) == 0);
         }
     }
 
     if ((m_paintFlags & ShowPlayer) != 0) {
         bool playerFound = false;
-        painter.setPen(QColor(0, 255, 0));
+        painter.setPen(QColor(255, 127, 0));
         for (int y = 31; !playerFound && y >= 0; --y) {
             for (int x = 31; !playerFound && x >= 0; --x) {
                 if (m_levelData->map().getFG(x, y) >= ccl::TilePlayer_N
@@ -313,10 +313,8 @@ void EditorWidget::paintEvent(QPaintEvent* event)
                 }
             }
         }
-        if (!playerFound) {
-            painter.setPen(QColor(255, 127, 0));
+        if (!playerFound)
             painter.drawRect(calcTileRect(0, 0));
-        }
     }
 
     if ((m_paintFlags & ShowButtons) != 0) {

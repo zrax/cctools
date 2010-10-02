@@ -69,14 +69,14 @@ void ccl::GetPreferredDirections(tile_t tile, ccl::Direction dirs[])
     }
 }
 
-ccl::MoveState ccl::CheckMove(ccl::LevelData* level, tile_t tile, int x, int y,
-                              bool lookahead)
+ccl::MoveState ccl::CheckMove(ccl::LevelData* level, tile_t tile, int x, int y)
 {
     ccl::Direction dirs[4];
     ccl::GetPreferredDirections(tile, dirs);
     tile_t north = tile & 0xFC;
-    tile_t base = lookahead ? level->map().getFG(x, y)
-                            : level->map().getBG(x, y);
+    tile_t base = level->map().getFG(x, y);
+    if (MASKED_TILE(base))
+        base = level->map().getBG(x, y);
     int state = 0;
 
     if (base == TileTrap) {
@@ -122,7 +122,7 @@ ccl::MoveState ccl::CheckMove(ccl::LevelData* level, tile_t tile, int x, int y,
                  :                     GET_E2(x, y, level);
         }
         if (peek == TileWall || peek == TileChip || peek == TileToggleWall
-            || (peek >= TileInvisWall && peek <= TileDirt)
+            || peek == TileInvisWall || peek == TileBlock || peek == TileDirt
             || (peek >= TileBlock_N && peek <= TileBlock_E)
             || (peek >= TileExit && peek <= TileDoor_Yellow)
             || (peek >= TileBlueFloor && peek <= TileSocket)
@@ -206,4 +206,20 @@ ccl::Point ccl::AdvanceCreature(tile_t tile, const ccl::Point& pos, MoveState st
     }
 
     return result;
+}
+
+void ccl::ToggleDoors(ccl::LevelData* level)
+{
+    for (int y=0; y<32; ++y) {
+        for (int x=0; x<32; ++x) {
+            if (level->map().getBG(x, y) == ccl::TileToggleFloor)
+                level->map().setBG(x, y, ccl::TileToggleWall);
+            else if (level->map().getBG(x, y) == ccl::TileToggleWall)
+                level->map().setBG(x, y, ccl::TileToggleFloor);
+            if (level->map().getFG(x, y) == ccl::TileToggleFloor)
+                level->map().setFG(x, y, ccl::TileToggleWall);
+            else if (level->map().getFG(x, y) == ccl::TileToggleWall)
+                level->map().setFG(x, y, ccl::TileToggleFloor);
+        }
+    }
 }

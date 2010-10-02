@@ -23,7 +23,7 @@
 struct CCEHistoryNode {
     enum Type {
         HistInit, HistDraw, HistClear, HistPaste, HistConnect, HistDisconnect,
-        HistEditMech,
+        HistEditMech, HistToggleWalls,
     };
 
     CCEHistoryNode(Type type)

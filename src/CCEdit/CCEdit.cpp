@@ -45,6 +45,7 @@
 #include "About.h"
 #include "../IniFile.h"
 #include "../ChipsHax.h"
+#include "../GameLogic.h"
 
 #define CCEDIT_TITLE "CCEdit 2.0 ALPHA"
 
@@ -153,7 +154,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionPathMaker]->setStatusTip(tr("Draw a directional path of tiles"));
     m_actions[ActionPathMaker]->setShortcut(Qt::CTRL | Qt::Key_M);
     m_actions[ActionPathMaker]->setCheckable(true);
-    m_actions[ActionConnect] = new QAction(QIcon(":/res/cctools-button.png"), tr("&Button Connector"), this);
+    m_actions[ActionConnect] = new QAction(QIcon(":/res/cctools-rbutton.png"), tr("&Button Connector"), this);
     m_actions[ActionConnect]->setStatusTip(tr("Connect buttons to traps and cloning machines"));
     m_actions[ActionConnect]->setShortcut(Qt::CTRL | Qt::Key_T);
     m_actions[ActionConnect]->setCheckable(true);
@@ -161,6 +162,10 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionAdvancedMech]->setStatusTip(tr("Manually manipulate gameplay mechanics for the current level"));
     m_actions[ActionAdvancedMech]->setShortcut(Qt::CTRL | Qt::Key_K);
     m_actions[ActionAdvancedMech]->setEnabled(false);
+    m_actions[ActionToggleWalls] = new QAction(QIcon(":/res/cctools-gbutton.png"), tr("&Toggle Walls"), this);
+    m_actions[ActionToggleWalls]->setStatusTip(tr("Toggle all toggle floors/walls in the current level"));
+    m_actions[ActionToggleWalls]->setShortcut(Qt::CTRL | Qt::Key_G);
+    m_actions[ActionToggleWalls]->setEnabled(false);
     QActionGroup* drawModeGroup = new QActionGroup(this);
     drawModeGroup->addAction(m_actions[ActionDrawPencil]);
     drawModeGroup->addAction(m_actions[ActionDrawLine]);
@@ -472,6 +477,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     toolsMenu->addSeparator();
     toolsMenu->addAction(m_actions[ActionConnect]);
     toolsMenu->addAction(m_actions[ActionAdvancedMech]);
+    toolsMenu->addSeparator();
+    toolsMenu->addAction(m_actions[ActionToggleWalls]);
 
     QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(m_actions[ActionViewButtons]);
@@ -522,6 +529,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     tbarTools->addSeparator();
     tbarTools->addAction(m_actions[ActionConnect]);
     tbarTools->addAction(m_actions[ActionAdvancedMech]);
+    tbarTools->addSeparator();
+    tbarTools->addAction(m_actions[ActionToggleWalls]);
 
     // Show status bar
     statusBar();
@@ -545,6 +554,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionPathMaker], SIGNAL(toggled(bool)), SLOT(onPathMakerAction(bool)));
     connect(m_actions[ActionConnect], SIGNAL(toggled(bool)), SLOT(onConnectAction(bool)));
     connect(m_actions[ActionAdvancedMech], SIGNAL(triggered()), SLOT(onAdvancedMechAction()));
+    connect(m_actions[ActionToggleWalls], SIGNAL(triggered()), SLOT(onToggleWallsAction()));
     connect(m_actions[ActionViewButtons], SIGNAL(toggled(bool)), SLOT(onViewButtonsToggled(bool)));
     connect(m_actions[ActionViewMovers], SIGNAL(toggled(bool)), SLOT(onViewMoversToggled(bool)));
     connect(m_actions[ActionViewActivePlayer], SIGNAL(toggled(bool)), SLOT(onViewActivePlayerToggled(bool)));
@@ -1324,6 +1334,19 @@ void CCEditMain::onAdvancedMechAction()
         editor->endEdit();
     else
         editor->cancelEdit();
+    editor->update();
+}
+
+void CCEditMain::onToggleWallsAction()
+{
+    EditorWidget* editor = getEditorAt(m_editorTabs->currentIndex());
+    if (editor == 0)
+        return;
+
+    editor->beginEdit(CCEHistoryNode::HistToggleWalls);
+    ccl::ToggleDoors(editor->levelData());
+    editor->endEdit();
+    editor->update();
 }
 
 void CCEditMain::onViewButtonsToggled(bool view)
@@ -1762,6 +1785,7 @@ void CCEditMain::onSelectLevel(int idx)
         m_actions[ActionMoveDown]->setEnabled(false);
         m_actions[ActionDelLevel]->setEnabled(false);
         m_actions[ActionAdvancedMech]->setEnabled(false);
+        m_actions[ActionToggleWalls]->setEnabled(false);
     } else {
         ccl::LevelData* level = m_levelset->level(idx);
         m_nameEdit->setEnabled(true);
@@ -1787,6 +1811,7 @@ void CCEditMain::onSelectLevel(int idx)
         m_actions[ActionMoveDown]->setEnabled(idx < m_levelList->count() - 1);
         m_actions[ActionDelLevel]->setEnabled(true);
         m_actions[ActionAdvancedMech]->setEnabled(true);
+        m_actions[ActionToggleWalls]->setEnabled(true);
     }
 }
 

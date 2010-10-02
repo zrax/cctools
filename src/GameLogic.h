@@ -42,11 +42,12 @@ enum MoveState {
 };
 
 void GetPreferredDirections(tile_t tile, ccl::Direction dirs[]);
-MoveState CheckMove(LevelData* level, tile_t tile, int x, int y,
-                    bool lookahead = false);
+MoveState CheckMove(LevelData* level, tile_t tile, int x, int y);
 
 tile_t TurnCreature(tile_t tile, MoveState state);
 ccl::Point AdvanceCreature(tile_t tile, const ccl::Point& pos, MoveState state);
+
+void ToggleDoors(LevelData* level);
 
 }
 
