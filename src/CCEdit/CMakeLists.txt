@@ -18,6 +18,7 @@ set(CCEdit_SOURCES
     History.cpp
     AdvancedMechanics.cpp
     TestSetup.cpp
+    ErrorCheck.cpp
 )
 
 if(WIN32)
@@ -32,6 +33,7 @@ set(CCEdit_MOCS
     LevelsetProps.h
     AdvancedMechanics.h
     TestSetup.h
+    ErrorCheck.h
 )
 
 set(CCEdit_RCCS

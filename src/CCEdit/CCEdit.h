@@ -72,7 +72,7 @@ private:
         ActionSelect, ActionCut, ActionCopy, ActionPaste, ActionClear,
         ActionUndo, ActionRedo, ActionDrawPencil, ActionDrawLine, ActionDrawFill,
         ActionPathMaker, ActionConnect, ActionAdvancedMech, ActionToggleWalls,
-        ActionViewButtons, ActionViewMovers, ActionViewActivePlayer,
+        ActionCheckErrors, ActionViewButtons, ActionViewMovers, ActionViewActivePlayer,
         ActionViewViewport, ActionViewMonsterPaths, ActionZoom100, ActionZoom75,
         ActionZoom50, ActionZoom25, ActionZoom125, ActionZoomCust,
         ActionTestChips, ActionTestTWorldCC, ActionTestTWorldLynx,
@@ -139,6 +139,7 @@ private slots:
     void onConnectAction(bool);
     void onAdvancedMechAction();
     void onToggleWallsAction();
+    void onCheckErrorsAction();
     void onViewButtonsToggled(bool);
     void onViewMoversToggled(bool);
     void onViewActivePlayerToggled(bool);

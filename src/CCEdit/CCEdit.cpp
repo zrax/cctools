@@ -42,6 +42,7 @@
 #include "LevelsetProps.h"
 #include "AdvancedMechanics.h"
 #include "TestSetup.h"
+#include "ErrorCheck.h"
 #include "About.h"
 #include "../IniFile.h"
 #include "../ChipsHax.h"
@@ -166,6 +167,10 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionToggleWalls]->setStatusTip(tr("Toggle all toggle floors/walls in the current level"));
     m_actions[ActionToggleWalls]->setShortcut(Qt::CTRL | Qt::Key_G);
     m_actions[ActionToggleWalls]->setEnabled(false);
+    m_actions[ActionCheckErrors] = new QAction(tr("Check for &Errors..."), this);
+    m_actions[ActionCheckErrors]->setStatusTip(tr("Check for errors in the current levelset or a specific level"));
+    m_actions[ActionCheckErrors]->setShortcut(Qt::CTRL | Qt::Key_E);
+    m_actions[ActionCheckErrors]->setEnabled(false);
     QActionGroup* drawModeGroup = new QActionGroup(this);
     drawModeGroup->addAction(m_actions[ActionDrawPencil]);
     drawModeGroup->addAction(m_actions[ActionDrawLine]);
@@ -478,6 +483,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     toolsMenu->addAction(m_actions[ActionAdvancedMech]);
     toolsMenu->addSeparator();
     toolsMenu->addAction(m_actions[ActionToggleWalls]);
+    toolsMenu->addSeparator();
+    toolsMenu->addAction(m_actions[ActionCheckErrors]);
 
     QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(m_actions[ActionViewButtons]);
@@ -555,6 +562,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionConnect], SIGNAL(toggled(bool)), SLOT(onConnectAction(bool)));
     connect(m_actions[ActionAdvancedMech], SIGNAL(triggered()), SLOT(onAdvancedMechAction()));
     connect(m_actions[ActionToggleWalls], SIGNAL(triggered()), SLOT(onToggleWallsAction()));
+    connect(m_actions[ActionCheckErrors], SIGNAL(triggered()), SLOT(onCheckErrorsAction()));
     connect(m_actions[ActionViewButtons], SIGNAL(toggled(bool)), SLOT(onViewButtonsToggled(bool)));
     connect(m_actions[ActionViewMovers], SIGNAL(toggled(bool)), SLOT(onViewMoversToggled(bool)));
     connect(m_actions[ActionViewActivePlayer], SIGNAL(toggled(bool)), SLOT(onViewActivePlayerToggled(bool)));
@@ -748,6 +756,7 @@ void CCEditMain::loadLevelset(QString filename)
     m_actions[ActionAddLevel]->setEnabled(true);
     m_actions[ActionDelLevel]->setEnabled(m_levelset->levelCount() > 0);
     m_actions[ActionProperties]->setEnabled(true);
+    m_actions[ActionCheckErrors]->setEnabled(true);
 }
 
 void CCEditMain::doLevelsetLoad()
@@ -902,6 +911,7 @@ bool CCEditMain::closeLevelset()
     m_actions[ActionAddLevel]->setEnabled(false);
     m_actions[ActionDelLevel]->setEnabled(false);
     m_actions[ActionProperties]->setEnabled(false);
+    m_actions[ActionCheckErrors]->setEnabled(false);
 
     return true;
 }
@@ -1052,6 +1062,7 @@ void CCEditMain::onNewAction()
     m_actions[ActionAddLevel]->setEnabled(true);
     m_actions[ActionDelLevel]->setEnabled(true);
     m_actions[ActionProperties]->setEnabled(true);
+    m_actions[ActionCheckErrors]->setEnabled(true);
 }
 
 void CCEditMain::onOpenAction()
@@ -1360,6 +1371,13 @@ void CCEditMain::onToggleWallsAction()
     ccl::ToggleDoors(editor->levelData());
     editor->endEdit();
     editor->update();
+}
+
+void CCEditMain::onCheckErrorsAction()
+{
+    ErrorCheckDialog dlg;
+    dlg.setLevelsetInfo(m_levelset, &m_dacInfo);
+    dlg.exec();
 }
 
 void CCEditMain::onViewButtonsToggled(bool view)
