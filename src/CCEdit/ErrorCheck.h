@@ -43,7 +43,7 @@ private:
     QComboBox* m_checkTarget;
     QTreeWidget* m_errors;
 
-    void reportError(QString section, QString text);
+    void reportError(int level, QString text);
     void checkLevel(int level);
 };
 
