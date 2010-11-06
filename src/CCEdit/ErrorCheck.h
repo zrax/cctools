@@ -29,6 +29,7 @@ class ErrorCheckDialog : public QDialog {
 
 public:
     ErrorCheckDialog(QWidget* parent = 0);
+    virtual ~ErrorCheckDialog();
 
     void setLevelsetInfo(ccl::Levelset* levelset, ccl::DacFile* dac);
 

@@ -20,6 +20,7 @@
 #include <QPushButton>
 #include <QGridLayout>
 #include <QLabel>
+#include <QSettings>
 
 enum CheckMode {
     CheckMsccStrict, CheckMscc, CheckTWorldMS, CheckTWorldLynx,
@@ -29,13 +30,15 @@ enum CheckMode {
 ErrorCheckDialog::ErrorCheckDialog(QWidget* parent)
                 : QDialog(parent), m_levelset(0), m_dacFile(0)
 {
+    QSettings settings("CCTools", "CCEdit");
+
     m_checkMode = new QComboBox(this);
     m_checkMode->addItems(QStringList() << tr("MSCC (Unmodified)")
                                         << tr("MSCC (CCPlay)")
                                         << tr("Tile World (MSCC rules)")
                                         << tr("Tile World (Lynx rules)")
                                         << tr("Tile World (Lynx pedantic)"));
-    m_checkMode->setCurrentIndex(CheckMscc);
+    m_checkMode->setCurrentIndex(settings.value("LevelsetCheckMode", (int)CheckMscc).toInt());
     m_checkTarget = new QComboBox(this);
 
     m_errors = new QTreeWidget(this);
@@ -70,6 +73,12 @@ ErrorCheckDialog::ErrorCheckDialog(QWidget* parent)
 
     connect(btnClose, SIGNAL(clicked()), SLOT(accept()));
     connect(btnCheck, SIGNAL(clicked()), SLOT(onCheck()));
+}
+
+ErrorCheckDialog::~ErrorCheckDialog()
+{
+    QSettings settings("CCTools", "CCEdit");
+    settings.setValue("LevelsetCheckMode", m_checkMode->currentIndex());
 }
 
 void ErrorCheckDialog::setLevelsetInfo(ccl::Levelset* levelset, ccl::DacFile* dac)
