@@ -141,8 +141,8 @@ private slots:
     void onDrawPencilAction(bool);
     void onDrawLineAction(bool);
     void onDrawFillAction(bool);
-    void onPathMakerAction(bool);
-    void onConnectAction(bool);
+    void onPathMakerToggled(bool);
+    void onConnectToggled(bool);
     void onAdvancedMechAction();
     void onToggleWallsAction();
     void onCheckErrorsAction();
