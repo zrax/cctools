@@ -264,7 +264,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     // Control Toolbox
     QDockWidget* toolDock = new QDockWidget(this);
     toolDock->setObjectName("ToolDock");
-    toolDock->setWindowTitle("Toolbox");
+    toolDock->setWindowTitle(tr("Toolbox"));
     toolDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
     toolDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     m_toolTabs = new QTabWidget(toolDock);
@@ -516,6 +516,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     // Tool bars
     QToolBar* tbarMain = addToolBar(QString());
     tbarMain->setObjectName("ToolbarMain");
+    tbarMain->setWindowTitle(tr("Main"));
     tbarMain->addAction(m_actions[ActionNew]);
     tbarMain->addAction(m_actions[ActionOpen]);
     tbarMain->addAction(m_actions[ActionSave]);
@@ -529,6 +530,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     tbarMain->addAction(m_actions[ActionPaste]);
     QToolBar* tbarTools = addToolBar(QString());
     tbarTools->setObjectName("ToolbarTools");
+    tbarTools->setWindowTitle(tr("Tools"));
     tbarTools->addAction(m_actions[ActionDrawPencil]);
     tbarTools->addAction(m_actions[ActionDrawLine]);
     tbarTools->addAction(m_actions[ActionDrawFill]);
