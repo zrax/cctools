@@ -370,8 +370,8 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
     if (m_tileset == 0 || m_levelData == 0 || !rect().contains(event->pos()))
         return;
 
-    int posX = event->x() / (int)(m_tileset->size() * m_zoomFactor);
-    int posY = event->y() / (int)(m_tileset->size() * m_zoomFactor);
+    int posX = event->x() / (m_tileset->size() * m_zoomFactor);
+    int posY = event->y() / (m_tileset->size() * m_zoomFactor);
     if (m_current == QPoint(posX, posY) && !m_cacheDirty)
         return;
     m_current = QPoint(posX, posY);
@@ -513,8 +513,8 @@ void EditorWidget::mousePressEvent(QMouseEvent* event)
     if (m_tileset == 0 || m_levelData == 0)
         return;
 
-    int posX = event->x() / (int)(m_tileset->size() * m_zoomFactor);
-    int posY = event->y() / (int)(m_tileset->size() * m_zoomFactor);
+    int posX = event->x() / (m_tileset->size() * m_zoomFactor);
+    int posY = event->y() / (m_tileset->size() * m_zoomFactor);
     m_current = QPoint(-1, -1);
     m_cachedButton = event->button();
 
