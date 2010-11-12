@@ -26,6 +26,7 @@
 #include <QSpinBox>
 #include <QTabWidget>
 #include <QLabel>
+#include <QProcess>
 #include "EditorWidget.h"
 #include "LayerWidget.h"
 #include "../Levelset.h"
@@ -113,6 +114,11 @@ private:
     bool m_useDac;
     bool m_checkSave;
 
+    enum SubprocType { SubprocMSCC, SubprocTWorld };
+    QProcess* m_subProc;
+    SubprocType m_subProcType;
+    QString m_tempExe, m_tempDat, m_tempIni;
+
 protected:
     void registerTileset(QString filename);
     void doLevelsetLoad();
@@ -183,6 +189,9 @@ private slots:
 
     void setForeground(tile_t);
     void setBackground(tile_t);
+
+    void onProcessFinished(int);
+    void onProcessError(QProcess::ProcessError);
 };
 
 #endif

@@ -35,7 +35,6 @@
 #include <QClipboard>
 #include <QSettings>
 #include <QTextCodec>
-#include <QProcess>
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
@@ -78,7 +77,8 @@ void TileListWidget::mousePressEvent(QMouseEvent* event)
 
 CCEditMain::CCEditMain(QWidget* parent)
     : QMainWindow(parent), m_currentTileset(0), m_savedDrawMode(ActionDrawPencil),
-      m_currentDrawMode(EditorWidget::DrawPencil),  m_levelset(0), m_useDac(false)
+      m_currentDrawMode(EditorWidget::DrawPencil),  m_levelset(0), m_useDac(false),
+      m_subProc(0)
 {
     setWindowTitle(CCEDIT_TITLE);
     QIcon appicon(":/icons/boot-48.png");
@@ -865,6 +865,12 @@ void CCEditMain::closeEvent(QCloseEvent* event)
         return;
     }
 
+    if (m_subProc != 0) {
+        // Don't handle events after we're exiting.
+        // Note that MSCC temp file cleanup will not take place here!
+        m_subProc->disconnect();
+    }
+
     QSettings settings("CCTools", "CCEdit");
     settings.setValue("WindowMaximized", (windowState() & Qt::WindowMaximized) != 0);
     showNormal();
@@ -1505,6 +1511,14 @@ void CCEditMain::onTestChips()
     if (m_levelset == 0 || m_levelList->currentRow() < 0)
         return;
 
+    if (m_subProc != 0) {
+        QMessageBox::critical(this, tr("Process already running"),
+                tr("A CCEdit test process is already running.  Please close the "
+                   "running process before trying to start a new one"),
+                QMessageBox::Ok);
+        return;
+    }
+
     QSettings settings("CCTools", "CCEdit");
     QString chipsExe = settings.value("ChipsExe").toString();
     if (chipsExe.isEmpty() || !QFile::exists(chipsExe)) {
@@ -1530,18 +1544,18 @@ void CCEditMain::onTestChips()
     }
 #endif
 
-    QString tempExe = QDir::tempPath() + "/CCRun.exe";
-    QString tempDat = QDir::tempPath() + "/CCRun.dat";
-    QFile::remove(tempExe);
-    if (!QFile::copy(chipsExe, tempExe)) {
+    m_tempExe = QDir::tempPath() + "/CCRun.exe";
+    m_tempDat = QDir::tempPath() + "/CCRun.dat";
+    QFile::remove(m_tempExe);
+    if (!QFile::copy(chipsExe, m_tempExe)) {
         QMessageBox::critical(this, tr("Error Creating Test EXE"),
                 tr("Error copying %1 to temp path").arg(chipsExe));
         return;
     }
     ccl::FileStream stream;
-    if (!stream.open(tempExe.toUtf8().data(), "r+b")) {
+    if (!stream.open(m_tempExe.toUtf8().data(), "r+b")) {
         QMessageBox::critical(this, tr("Error Creating Test EXE"),
-                tr("Error opening %1 for writing").arg(tempExe));
+                tr("Error opening %1 for writing").arg(m_tempExe));
         return;
     }
 
@@ -1566,9 +1580,9 @@ void CCEditMain::onTestChips()
     stream.close();
 
     // Save the levelset to the temp file
-    if (!stream.open(tempDat.toUtf8().data(), "wb")) {
+    if (!stream.open(m_tempDat.toUtf8().data(), "wb")) {
         QMessageBox::critical(this, tr("Error Creating Test Data File"),
-                tr("Error opening %1 for writing").arg(tempDat));
+                tr("Error opening %1 for writing").arg(m_tempDat));
         return;
     }
     unsigned int saveType = m_levelset->type();
@@ -1593,15 +1607,15 @@ void CCEditMain::onTestChips()
     QDir exePath = chipsExe;
     exePath.cdUp();
 
-    QString tempIni = exePath.absoluteFilePath("CCRun.ini");
-    FILE* iniStream = fopen(tempIni.toUtf8().data(), "r+t");
+    m_tempIni = exePath.absoluteFilePath("CCRun.ini");
+    FILE* iniStream = fopen(m_tempIni.toUtf8().data(), "r+t");
     if (iniStream == 0)
-        iniStream = fopen(tempIni.toUtf8().data(), "w+t");
+        iniStream = fopen(m_tempIni.toUtf8().data(), "w+t");
     if (iniStream == 0) {
         QMessageBox::critical(this, tr("Error Creating CCRun.ini"),
                 tr("Error: Could not open or create CCRun.ini file"));
-        QFile::remove(tempExe);
-        QFile::remove(tempDat);
+        QFile::remove(m_tempExe);
+        QFile::remove(m_tempDat);
         return;
     }
     try {
@@ -1617,32 +1631,39 @@ void CCEditMain::onTestChips()
         QMessageBox::critical(this, tr("Error writing CCRun.ini"),
                 tr("Error writing INI file: %1").arg(e.what()));
         fclose(iniStream);
-        QFile::remove(tempExe);
-        QFile::remove(tempDat);
-        QFile::remove(tempIni);
+        QFile::remove(m_tempExe);
+        QFile::remove(m_tempDat);
+        QFile::remove(m_tempIni);
         return;
     }
 
     QDir::setCurrent(exePath.absolutePath());
+    m_subProc = new QProcess(this);
+    m_subProcType = SubprocMSCC;
+    connect(m_subProc, SIGNAL(finished(int)), SLOT(onProcessFinished(int)));
+    connect(m_subProc, SIGNAL(error(QProcess::ProcessError)), SLOT(onProcessError(QProcess::ProcessError)));
 #ifdef Q_OS_WIN32
     // Native execution
-    QProcess::execute(tempExe);
+    m_subProc->start(m_tempExe);
 #else
     // Try to use WINE
-    QProcess::execute(winePath, QStringList() << tempExe);
+    m_subProc->start(winePath, QStringList() << m_tempExe);
 #endif
     QDir::setCurrent(cwd);
-
-    // Remove temp files
-    QFile::remove(tempExe);
-    QFile::remove(tempDat);
-    QFile::remove(tempIni);
 }
 
 void CCEditMain::onTestTWorld(unsigned int levelsetType)
 {
     if (m_levelset == 0 || m_levelList->currentRow() < 0)
         return;
+
+    if (m_subProc != 0) {
+        QMessageBox::critical(this, tr("Process already running"),
+                tr("A CCEdit test process is already running.  Please close the "
+                   "running process before trying to start a new one"),
+                QMessageBox::Ok);
+        return;
+    }
 
     QSettings settings("CCTools", "CCEdit");
     QString tworldExe = settings.value("TWorldExe").toString();
@@ -1668,11 +1689,11 @@ void CCEditMain::onTestTWorld(unsigned int levelsetType)
     }
 
     // Save the levelset to the temp file
-    QString tempDat = QDir::toNativeSeparators(QDir::tempPath() + "/CCRun.dat");
+    m_tempDat = QDir::toNativeSeparators(QDir::tempPath() + "/CCRun.dat");
     ccl::FileStream stream;
-    if (!stream.open(tempDat.toUtf8().data(), "wb")) {
+    if (!stream.open(m_tempDat.toUtf8().data(), "wb")) {
         QMessageBox::critical(this, tr("Error Creating Test Data File"),
-                tr("Error opening %1 for writing").arg(tempDat));
+                tr("Error opening %1 for writing").arg(m_tempDat));
         return;
     }
     unsigned int saveType = m_levelset->type();
@@ -1693,8 +1714,12 @@ void CCEditMain::onTestTWorld(unsigned int levelsetType)
     QDir exePath = tworldExe;
     exePath.cdUp();
     QDir::setCurrent(exePath.absolutePath());
-    QProcess::execute(tworldExe, QStringList() << "-pr" << tempDat
-                      << QString("%1").arg(m_levelList->currentRow() + 1));
+    m_subProc = new QProcess(this);
+    m_subProcType = SubprocTWorld;
+    connect(m_subProc, SIGNAL(finished(int)), SLOT(onProcessFinished(int)));
+    connect(m_subProc, SIGNAL(error(QProcess::ProcessError)), SLOT(onProcessError(QProcess::ProcessError)));
+    m_subProc->start(tworldExe, QStringList() << "-pr" << m_tempDat
+                                << QString("%1").arg(m_levelList->currentRow() + 1));
     QDir::setCurrent(cwd);
 }
 
@@ -1997,6 +2022,31 @@ void CCEditMain::onDockChanged(Qt::DockWidgetArea area)
         m_toolTabs->setTabPosition(QTabWidget::East);
     else
         m_toolTabs->setTabPosition(QTabWidget::West);
+}
+
+void CCEditMain::onProcessFinished(int)
+{
+    // Remove temp files
+    if (m_subProcType == SubprocMSCC) {
+        QFile::remove(m_tempExe);
+        QFile::remove(m_tempIni);
+    }
+    QFile::remove(m_tempDat);
+
+    // Clean up subproc
+    m_subProc->disconnect();
+    m_subProc->deleteLater();
+    m_subProc = 0;
+}
+
+void CCEditMain::onProcessError(QProcess::ProcessError err)
+{
+    if (err == QProcess::FailedToStart) {
+        QMessageBox::critical(this, tr("Error starting process"),
+                tr("Error starting test process.  Please check your settings "
+                   "and try again"), QMessageBox::Ok);
+    }
+    onProcessFinished(-1);
 }
 
 
