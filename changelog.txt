@@ -1,3 +1,21 @@
+2010-11-12 - 2.0 ALPHA (1.93.0)
+~~~~~~~~~~
+New Features
+  * Added monster path tracing
+  * Added tool to toggle all green toggle floors/walls
+  * Added a game-sized (9x9) box around the cursor
+  * Error checking dialog for checking levels and levelsets for common
+    design errors and compatibility (incomplete)
+  * The button connector and path maker tools can now be toggled on/off like
+    the selection tool
+
+Bugfixes
+  * Add names to toolbars in the toolbar context menu
+  * Launch MSCC and TWorld asynchronously so they don't block the CCEdit
+    GUI while playtesting
+  * Fix rounding errors with mouse positioning when using zoom
+
+
 2010-09-11 - 2.0 ALPHA (1.92.1)
 ~~~~~~~~~~
 Bugfix release
@@ -45,7 +63,8 @@ Bugfix release
 
 2010-08-07 - 2.0 ALPHA (1.90.1)
 ~~~~~~~~~~
-Fixed Mac OSX build to work with Leopard (and possibly Tiger)
+Bugfix release
+  * Fixed Mac OSX build to work with Leopard (and possibly Tiger)
 
 
 2010-08-06 - 2.0 ALPHA (1.90.0)
