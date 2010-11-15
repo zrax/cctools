@@ -14,6 +14,7 @@ set(CCEdit_SOURCES
     CCEdit.cpp
     EditorWidget.cpp
     LayerWidget.cpp
+    TileWidgets.cpp
     LevelsetProps.cpp
     History.cpp
     AdvancedMechanics.cpp
@@ -30,6 +31,7 @@ set(CCEdit_MOCS
     CCEdit.h
     EditorWidget.h
     LayerWidget.h
+    TileWidgets.h
     LevelsetProps.h
     AdvancedMechanics.h
     TestSetup.h

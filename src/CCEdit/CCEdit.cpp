@@ -49,32 +49,6 @@
 
 #define CCEDIT_TITLE "CCEdit 2.0 ALPHA"
 
-TileListWidget::TileListWidget(QWidget* parent)
-              : QListWidget(parent)
-{ }
-
-void TileListWidget::addTiles(const QList<tile_t>& tiles)
-{
-    foreach (tile_t tile, tiles) {
-        QListWidgetItem* item = new QListWidgetItem(CCETileset::TileName(tile), this);
-        item->setData(Qt::UserRole, (int)tile);
-    }
-}
-
-void TileListWidget::mousePressEvent(QMouseEvent* event)
-{
-    QAbstractItemView::mousePressEvent(event);
-    if (currentItem() == 0)
-        return;
-
-    if (event->button() == Qt::LeftButton)
-        emit itemSelectedLeft((tile_t)currentItem()->data(Qt::UserRole).toUInt());
-    else if (event->button() == Qt::RightButton)
-        emit itemSelectedRight((tile_t)currentItem()->data(Qt::UserRole).toUInt());
-    setCurrentItem(0);
-}
-
-
 CCEditMain::CCEditMain(QWidget* parent)
     : QMainWindow(parent), m_currentTileset(0), m_savedDrawMode(ActionDrawPencil),
       m_currentDrawMode(EditorWidget::DrawPencil),  m_levelset(0), m_useDac(false),
@@ -411,12 +385,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_toolTabs->addTab(tileWidget, tr("&Tiles - Sorted"));
 
     QWidget* allTileWidget = new QWidget(toolDock);
-    m_tileLists[ListAllTiles] = new TileListWidget(allTileWidget);
-    QList<tile_t> allRange;
-    for (tile_t i=0; i<ccl::NUM_TILE_TYPES; ++i)
-        allRange << i;
-    m_tileLists[ListAllTiles]->addTiles(allRange);
-
+    m_allTiles = new BigTileWiget(allTileWidget);
     m_layer[1] = new LayerWidget(allTileWidget);
     m_foreLabel[1] = new QLabel(allTileWidget);
     m_backLabel[1] = new QLabel(allTileWidget);
@@ -424,10 +393,11 @@ CCEditMain::CCEditMain(QWidget* parent)
     QGridLayout* allTileLayout = new QGridLayout(allTileWidget);
     allTileLayout->setContentsMargins(4, 4, 4, 4);
     allTileLayout->setVerticalSpacing(4);
-    allTileLayout->addWidget(m_tileLists[ListAllTiles], 0, 0, 1, 2);
-    allTileLayout->addWidget(m_foreLabel[1], 1, 0);
-    allTileLayout->addWidget(m_backLabel[1], 2, 0);
-    allTileLayout->addWidget(m_layer[1], 1, 1, 2, 1);
+    allTileLayout->addWidget(m_allTiles, 0, 0, 1, 2);
+    allTileLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::MinimumExpanding), 1, 0, 1, 2);
+    allTileLayout->addWidget(m_foreLabel[1], 2, 0);
+    allTileLayout->addWidget(m_backLabel[1], 3, 0);
+    allTileLayout->addWidget(m_layer[1], 2, 1, 2, 1);
     m_toolTabs->addTab(allTileWidget, tr("&All Tiles"));
 
     // Editor area
@@ -610,10 +580,12 @@ CCEditMain::CCEditMain(QWidget* parent)
         connect(m_tileLists[i], SIGNAL(itemSelectedLeft(tile_t)), SLOT(setForeground(tile_t)));
         connect(m_tileLists[i], SIGNAL(itemSelectedRight(tile_t)), SLOT(setBackground(tile_t)));
     }
+    connect(m_allTiles, SIGNAL(itemSelectedLeft(tile_t)), SLOT(setForeground(tile_t)));
+    connect(m_allTiles, SIGNAL(itemSelectedRight(tile_t)), SLOT(setBackground(tile_t)));
 
     // Load window settings and defaults
     QSettings settings("CCTools", "CCEdit");
-    resize(settings.value("WindowSize", QSize(800, 600)).toSize());
+    resize(settings.value("WindowSize", QSize(1024, 768)).toSize());
     if (settings.value("WindowMaximized", false).toBool())
         showMaximized();
     if (settings.contains("WindowState"))
@@ -929,6 +901,7 @@ void CCEditMain::loadTileset(CCETileset* tileset)
     m_layer[1]->setTileset(tileset);
     for (int i=0; i<NUM_TILE_LISTS; ++i)
         tileset->imageTiles(m_tileLists[i]);
+    m_allTiles->setTileset(tileset);
     for (int i=0; i<m_editorTabs->count(); ++i)
         getEditorAt(i)->setTileset(tileset);
 }

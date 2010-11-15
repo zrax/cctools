@@ -21,7 +21,6 @@
 #include <QMainWindow>
 #include <QAction>
 #include <QMenu>
-#include <QListWidget>
 #include <QLineEdit>
 #include <QSpinBox>
 #include <QTabWidget>
@@ -29,26 +28,9 @@
 #include <QProcess>
 #include "EditorWidget.h"
 #include "LayerWidget.h"
+#include "TileWidgets.h"
 #include "../Levelset.h"
-#include "../Tileset.h"
 #include "../DacFile.h"
-
-class TileListWidget : public QListWidget {
-    Q_OBJECT
-
-public:
-    TileListWidget(QWidget* parent = 0);
-    void addTiles(const QList<tile_t>& tiles);
-
-protected:
-    virtual void mousePressEvent(QMouseEvent*);
-    Qt::MouseButton m_button;
-
-signals:
-    void itemSelectedLeft(tile_t);
-    void itemSelectedRight(tile_t);
-};
-
 
 class CCEditMain : public QMainWindow {
     Q_OBJECT
@@ -84,7 +66,7 @@ private:
 
     enum TileListId {
         ListStandard, ListObstacles, ListDoors, ListItems, ListMonsters,
-        ListMisc, ListSpecial, ListAllTiles, NUM_TILE_LISTS
+        ListMisc, ListSpecial, NUM_TILE_LISTS
     };
 
     QAction* m_actions[NUM_ACTIONS];
@@ -104,6 +86,7 @@ private:
     QSpinBox* m_timeEdit;
     QLineEdit* m_hintEdit;
     TileListWidget* m_tileLists[NUM_TILE_LISTS];
+    BigTileWiget* m_allTiles;
     LayerWidget* m_layer[2];
     QLabel* m_foreLabel[2];
     QLabel* m_backLabel[2];

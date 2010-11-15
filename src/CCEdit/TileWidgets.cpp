@@ -1,0 +1,86 @@
+/******************************************************************************
+ * This file is part of CCTools.                                              *
+ *                                                                            *
+ * CCTools is free software: you can redistribute it and/or modify            *
+ * it under the terms of the GNU General Public License as published by       *
+ * the Free Software Foundation, either version 3 of the License, or          *
+ * (at your option) any later version.                                        *
+ *                                                                            *
+ * CCTools is distributed in the hope that it will be useful,                 *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+ * GNU General Public License for more details.                               *
+ *                                                                            *
+ * You should have received a copy of the GNU General Public License          *
+ * along with CCTools.  If not, see <http://www.gnu.org/licenses/>.           *
+ ******************************************************************************/
+
+#include "TileWidgets.h"
+
+#include <QPaintEvent>
+#include <QMouseEvent>
+#include <QPainter>
+
+void TileListWidget::addTiles(const QList<tile_t>& tiles)
+{
+    foreach (tile_t tile, tiles) {
+        QListWidgetItem* item = new QListWidgetItem(CCETileset::TileName(tile), this);
+        item->setData(Qt::UserRole, (int)tile);
+    }
+}
+
+void TileListWidget::mousePressEvent(QMouseEvent* event)
+{
+    QAbstractItemView::mousePressEvent(event);
+    if (currentItem() == 0)
+        return;
+
+    if (event->button() == Qt::LeftButton)
+        emit itemSelectedLeft((tile_t)currentItem()->data(Qt::UserRole).toUInt());
+    else if (event->button() == Qt::RightButton)
+        emit itemSelectedRight((tile_t)currentItem()->data(Qt::UserRole).toUInt());
+    setCurrentItem(0);
+}
+
+
+BigTileWiget::BigTileWiget(QWidget* parent)
+            : QWidget(parent), m_tileset(0)
+{
+    setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+}
+
+void BigTileWiget::setTileset(CCETileset* tileset)
+{
+    m_tileset = tileset;
+    resize(sizeHint());
+    update();
+}
+
+void BigTileWiget::paintEvent(QPaintEvent* event)
+{
+    if (m_tileset == 0)
+        return;
+
+    QPainter painter(this);
+    for (int y=0; y<16; ++y) {
+        for (int x=0; x<7; ++x) {
+            m_tileset->drawAt(painter, x * m_tileset->size(), y * m_tileset->size(),
+                              (tile_t)((x * 16) + y));
+        }
+    }
+}
+
+void BigTileWiget::mousePressEvent(QMouseEvent* event)
+{
+    if (m_tileset == 0)
+        return;
+    if (event->x() >= (m_tileset->size() * 7) || event->y() >= (m_tileset->size() * 16))
+        return;
+
+    tile_t tileid = ((event->x() / m_tileset->size()) * 16)
+                  + (event->y() / m_tileset->size());
+    if (event->button() == Qt::LeftButton)
+        emit itemSelectedLeft(tileid);
+    else if (event->button() == Qt::RightButton)
+        emit itemSelectedRight(tileid);
+}
