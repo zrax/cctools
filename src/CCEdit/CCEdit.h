@@ -57,7 +57,7 @@ private:
         ActionPathMaker, ActionConnect, ActionAdvancedMech, ActionToggleWalls,
         ActionCheckErrors, ActionViewButtons, ActionViewMovers, ActionViewActivePlayer,
         ActionViewViewport, ActionViewMonsterPaths, ActionZoom100, ActionZoom75,
-        ActionZoom50, ActionZoom25, ActionZoom125, ActionZoomCust,
+        ActionZoom50, ActionZoom25, ActionZoom125, ActionZoomCust, ActionZoomFit,
         ActionTestChips, ActionTestTWorldCC, ActionTestTWorldLynx,
         ActionTestSetup, ActionAbout, ActionAddLevel, ActionDelLevel, ActionMoveUp,
         ActionMoveDown, ActionProperties,
@@ -107,6 +107,7 @@ protected:
     void doLevelsetLoad();
     void setLevelsetFilename(QString filename);
     virtual void closeEvent(QCloseEvent*);
+    virtual void resizeEvent(QResizeEvent*);
 
 private slots:
     void onNewAction();
@@ -140,6 +141,7 @@ private slots:
     void onZoom25();
     void onZoom125();
     void onZoomCust();
+    void onZoomFit();
     void onTilesetMenu(QAction*);
     void onTestChips();
     void onTestTWorld(unsigned int levelsetType);

@@ -191,6 +191,10 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionZoomCust]->setStatusTip(tr("Zoom to custom percentage"));
     m_actions[ActionZoomCust]->setShortcut(Qt::CTRL | Qt::Key_9);
     m_actions[ActionZoomCust]->setCheckable(true);
+    m_actions[ActionZoomFit] = new QAction(tr("&Fit window"), this);
+    m_actions[ActionZoomFit]->setStatusTip(tr("Zoom to fit view area"));
+    m_actions[ActionZoomFit]->setShortcut(Qt::CTRL | Qt::Key_0);
+    m_actions[ActionZoomFit]->setCheckable(true);
     QActionGroup* zoomGroup = new QActionGroup(this);
     zoomGroup->addAction(m_actions[ActionZoom100]);
     zoomGroup->addAction(m_actions[ActionZoom75]);
@@ -198,6 +202,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     zoomGroup->addAction(m_actions[ActionZoom25]);
     zoomGroup->addAction(m_actions[ActionZoom125]);
     zoomGroup->addAction(m_actions[ActionZoomCust]);
+    zoomGroup->addAction(m_actions[ActionZoomFit]);
 
     m_actions[ActionTestChips] = new QAction(tr("Test in &MSCC"), this);
     m_actions[ActionTestChips]->setStatusTip(tr("Test the current level in Chips.exe"));
@@ -470,6 +475,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     zoomMenu->addAction(m_actions[ActionZoom25]);
     zoomMenu->addAction(m_actions[ActionZoom125]);
     zoomMenu->addAction(m_actions[ActionZoomCust]);
+    zoomMenu->addAction(m_actions[ActionZoomFit]);
 
     QMenu* testMenu = menuBar()->addMenu(tr("Te&st"));
     testMenu->addAction(m_actions[ActionTestChips]);
@@ -545,6 +551,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionZoom25], SIGNAL(triggered()), SLOT(onZoom25()));
     connect(m_actions[ActionZoom125], SIGNAL(triggered()), SLOT(onZoom125()));
     connect(m_actions[ActionZoomCust], SIGNAL(triggered()), SLOT(onZoomCust()));
+    connect(m_actions[ActionZoomFit], SIGNAL(triggered()), SLOT(onZoomFit()));
     connect(m_actions[ActionTestChips], SIGNAL(triggered()), SLOT(onTestChips()));
     connect(m_actions[ActionTestTWorldCC], SIGNAL(triggered()), SLOT(onTestTWorldCC()));
     connect(m_actions[ActionTestTWorldLynx], SIGNAL(triggered()), SLOT(onTestTWorldLynx()));
@@ -634,6 +641,8 @@ CCEditMain::CCEditMain(QWidget* parent)
         m_actions[ActionZoom25]->setChecked(true);
     else if (m_zoomFactor == 0.125)
         m_actions[ActionZoom125]->setChecked(true);
+    else if (m_zoomFactor == 0.0)
+        m_actions[ActionZoomFit]->setChecked(true);
     else
         m_actions[ActionZoomCust]->setChecked(true);
 
@@ -837,7 +846,7 @@ void CCEditMain::closeEvent(QCloseEvent* event)
 
     if (m_subProc != 0) {
         // Don't handle events after we're exiting.
-        // Note that MSCC temp file cleanup will not take place here!
+        // Note that MSCC temp file cleanup will not take place if this happens!
         m_subProc->disconnect();
     }
 
@@ -853,6 +862,20 @@ void CCEditMain::closeEvent(QCloseEvent* event)
     settings.setValue("ViewViewport", m_actions[ActionViewViewport]->isChecked());
     settings.setValue("ViewMonsterPaths", m_actions[ActionViewMonsterPaths]->isChecked());
     settings.setValue("TilesetName", m_currentTileset->filename());
+}
+
+void CCEditMain::resizeEvent(QResizeEvent* event)
+{
+    if (event != 0)
+        QWidget::resizeEvent(event);
+
+    if (m_zoomFactor == 0.0 && m_editorTabs->count() != 0) {
+        QSize zmax = ((QScrollArea*)m_editorTabs->widget(0))->maximumViewportSize();
+        double zx = (double)zmax.width() / (32 * m_currentTileset->size());
+        double zy = (double)zmax.height() / (32 * m_currentTileset->size());
+        for (int i=0; i<m_editorTabs->count(); ++i)
+            getEditorAt(i)->setZoom(std::min(zx, zy));
+    }
 }
 
 bool CCEditMain::closeLevelset()
@@ -998,12 +1021,19 @@ EditorWidget* CCEditMain::addEditor(ccl::LevelData* level)
     if (m_actions[ActionViewMonsterPaths]->isChecked())
         editor->setPaintFlag(EditorWidget::ShowMovePaths);
     editor->setDrawMode(m_currentDrawMode);
-    editor->setZoom(m_zoomFactor);
     editor->setTileset(m_currentTileset);
     editor->setLevelData(level);
     editor->setLeftTile(m_layer[0]->upper());
     editor->setRightTile(m_layer[0]->lower());
     m_editorTabs->addTab(scroll, level->name().c_str());
+    if (m_zoomFactor == 0.0) {
+        QSize zmax = scroll->maximumViewportSize();
+        double zx = (double)zmax.width() / (32 * m_currentTileset->size());
+        double zy = (double)zmax.height() / (32 * m_currentTileset->size());
+        editor->setZoom(std::min(zx, zy));
+    } else {
+        editor->setZoom(m_zoomFactor);
+    }
 
     connect(editor, SIGNAL(mouseInfo(QString)), statusBar(), SLOT(showMessage(QString)));
     connect(editor, SIGNAL(canUndo(bool)), m_actions[ActionUndo], SLOT(setEnabled(bool)));
@@ -1464,7 +1494,6 @@ void CCEditMain::onZoom125()
     m_zoomFactor = 0.125;
     for (int i=0; i<m_editorTabs->count(); ++i)
         getEditorAt(i)->setZoom(m_zoomFactor);
-
 }
 
 void CCEditMain::onZoomCust()
@@ -1486,6 +1515,12 @@ void CCEditMain::onZoomCust()
         m_actions[ActionZoom25]->setChecked(true);
     else if (m_zoomFactor == 0.125)
         m_actions[ActionZoom125]->setChecked(true);
+}
+
+void CCEditMain::onZoomFit()
+{
+    m_zoomFactor = 0.0;
+    resizeEvent(0);
 }
 
 void CCEditMain::onTilesetMenu(QAction* which)

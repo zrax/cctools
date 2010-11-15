@@ -1,3 +1,14 @@
+2010-??-?? - 2.0 ALPHA (1.9?.?)
+~~~~~~~~~~
+New Features
+  * Use specialized tile widget for "all tiles" view, so all tiles are shown
+    at the same time, instead of a linear list.
+  * Fit-to-view zoom support
+
+Bugfixes
+  * Find more levelsets on case-sensitive filesystems
+
+
 2010-11-12 - 2.0 ALPHA (1.93.0)
 ~~~~~~~~~~
 New Features
