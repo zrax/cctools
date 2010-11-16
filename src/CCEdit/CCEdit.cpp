@@ -390,19 +390,22 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_toolTabs->addTab(tileWidget, tr("&Tiles - Sorted"));
 
     QWidget* allTileWidget = new QWidget(toolDock);
-    m_allTiles = new BigTileWiget(allTileWidget);
+    QScrollArea* allTileScroll = new QScrollArea(allTileWidget);
+    m_allTiles = new BigTileWiget(allTileScroll);
     m_layer[1] = new LayerWidget(allTileWidget);
     m_foreLabel[1] = new QLabel(allTileWidget);
     m_backLabel[1] = new QLabel(allTileWidget);
+    allTileScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    allTileScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    allTileScroll->setWidget(m_allTiles);
 
     QGridLayout* allTileLayout = new QGridLayout(allTileWidget);
     allTileLayout->setContentsMargins(4, 4, 4, 4);
     allTileLayout->setVerticalSpacing(4);
-    allTileLayout->addWidget(m_allTiles, 0, 0, 1, 2);
-    allTileLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::MinimumExpanding), 1, 0, 1, 2);
-    allTileLayout->addWidget(m_foreLabel[1], 2, 0);
-    allTileLayout->addWidget(m_backLabel[1], 3, 0);
-    allTileLayout->addWidget(m_layer[1], 2, 1, 2, 1);
+    allTileLayout->addWidget(allTileScroll, 0, 0, 1, 2);
+    allTileLayout->addWidget(m_foreLabel[1], 1, 0);
+    allTileLayout->addWidget(m_backLabel[1], 2, 0);
+    allTileLayout->addWidget(m_layer[1], 1, 1, 2, 1);
     m_toolTabs->addTab(allTileWidget, tr("&All Tiles"));
 
     // Editor area
