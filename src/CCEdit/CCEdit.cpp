@@ -872,8 +872,8 @@ void CCEditMain::resizeEvent(QResizeEvent* event)
     if (event != 0)
         QWidget::resizeEvent(event);
 
-    if (m_zoomFactor == 0.0 && m_editorTabs->count() != 0) {
-        QSize zmax = ((QScrollArea*)m_editorTabs->widget(0))->maximumViewportSize();
+    if (m_zoomFactor == 0.0 && m_editorTabs->currentWidget() != 0) {
+        QSize zmax = ((QScrollArea*)m_editorTabs->currentWidget())->maximumViewportSize();
         double zx = (double)zmax.width() / (32 * m_currentTileset->size());
         double zy = (double)zmax.height() / (32 * m_currentTileset->size());
         for (int i=0; i<m_editorTabs->count(); ++i)
@@ -1029,14 +1029,7 @@ EditorWidget* CCEditMain::addEditor(ccl::LevelData* level)
     editor->setLeftTile(m_layer[0]->upper());
     editor->setRightTile(m_layer[0]->lower());
     m_editorTabs->addTab(scroll, level->name().c_str());
-    if (m_zoomFactor == 0.0) {
-        QSize zmax = scroll->maximumViewportSize();
-        double zx = (double)zmax.width() / (32 * m_currentTileset->size());
-        double zy = (double)zmax.height() / (32 * m_currentTileset->size());
-        editor->setZoom(std::min(zx, zy));
-    } else {
-        editor->setZoom(m_zoomFactor);
-    }
+    resizeEvent(0);
 
     connect(editor, SIGNAL(mouseInfo(QString)), statusBar(), SLOT(showMessage(QString)));
     connect(editor, SIGNAL(canUndo(bool)), m_actions[ActionUndo], SLOT(setEnabled(bool)));
