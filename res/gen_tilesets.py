@@ -2,7 +2,7 @@
 
 import struct
 
-def write_tileset(filename, name, desc, base_gfx_file, overlay_gfx_file):
+def write_tileset(filename, tile_size, name, desc, base_gfx_file, overlay_gfx_file):
     src = open(base_gfx_file, 'rb')
     base_data = src.read()
     src.close()
@@ -16,7 +16,7 @@ def write_tileset(filename, name, desc, base_gfx_file, overlay_gfx_file):
     tis.write(name)
     tis.write(struct.pack('I', len(desc)))
     tis.write(desc)
-    tis.write(struct.pack('B', 32))
+    tis.write(struct.pack('B', tile_size))
     tis.write(struct.pack('I', len(base_data)))
     tis.write(base_data)
     tis.write(struct.pack('I', len(overlay_data)))
@@ -25,10 +25,10 @@ def write_tileset(filename, name, desc, base_gfx_file, overlay_gfx_file):
 
 # Generate default tilesets if called from the command line
 if __name__ == '__main__':
-    write_tileset('TW32.tis', 'TileWorld/Editor 32x32',
-                'Default 32x32 TileWorld Editor Graphics',
-                'TW32_base.png', 'TW32_overlay.png')
+    write_tileset('TW32.tis', 32, 'TileWorld/Editor 32x32',
+                  'Default 32x32 TileWorld Editor Graphics',
+                  'TW32_base.png', 'TW32_overlay.png')
 
-    write_tileset('WEP.tis', 'MSCC/Editor Color',
-                'Microsoft WEP Default 32x32 Editor Graphics',
-                'MSCC_base.png', 'MSCC_overlay.png')
+    write_tileset('WEP.tis', 32, 'MSCC/Editor Color',
+                  'Microsoft WEP Default 32x32 Editor Graphics',
+                  'MSCC_base.png', 'MSCC_overlay.png')
