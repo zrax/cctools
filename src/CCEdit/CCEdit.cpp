@@ -930,6 +930,7 @@ void CCEditMain::loadTileset(CCETileset* tileset)
     m_allTiles->setTileset(tileset);
     for (int i=0; i<m_editorTabs->count(); ++i)
         getEditorAt(i)->setTileset(tileset);
+    resizeEvent(0);
 }
 
 void CCEditMain::registerTileset(QString filename)
