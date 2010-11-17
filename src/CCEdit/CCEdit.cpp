@@ -35,6 +35,7 @@
 #include <QClipboard>
 #include <QSettings>
 #include <QTextCodec>
+#include <QDesktopWidget>
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
@@ -606,6 +607,21 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionViewActivePlayer]->setChecked(settings.value("ViewActivePlayer", false).toBool());
     m_actions[ActionViewViewport]->setChecked(settings.value("ViewViewport", true).toBool());
     m_actions[ActionViewMonsterPaths]->setChecked(settings.value("ViewMonsterPaths", false).toBool());
+
+    // Make sure the toolbox is visible
+    if (toolDock->isFloating()) {
+        QPoint dockPos = toolDock->pos();
+        if ((dockPos.x() + toolDock->width() - 10) < qApp->desktop()->contentsRect().left())
+            dockPos.setX(qApp->desktop()->contentsRect().left());
+        if (dockPos.x() + 10 > qApp->desktop()->contentsRect().right())
+            dockPos.setX(qApp->desktop()->contentsRect().right() - toolDock->width());
+        if (dockPos.y() < qApp->desktop()->contentsRect().top())
+            dockPos.setY(qApp->desktop()->contentsRect().top());
+        if (dockPos.y() + 10 > qApp->desktop()->contentsRect().bottom())
+            dockPos.setY(qApp->desktop()->contentsRect().bottom() - toolDock->height());
+        toolDock->move(dockPos);
+        toolDock->show();
+    }
 
     findTilesets();
     if (m_tilesetGroup->actions().size() == 0) {
