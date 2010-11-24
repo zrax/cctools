@@ -225,7 +225,7 @@ void EditorWidget::renderTileBuffer()
     dirtyBuffer();
 }
 
-void EditorWidget::paintEvent(QPaintEvent* event)
+void EditorWidget::paintEvent(QPaintEvent*)
 {
     if (m_tileset == 0 || m_levelData == 0)
         return;

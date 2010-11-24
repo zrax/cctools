@@ -1949,28 +1949,28 @@ void CCEditMain::onPasswordChanged(QString value)
 {
     if (m_levelList->currentRow() < 0)
         return;
-    m_levelset->level(m_levelList->currentRow())->setPassword(m_passwordEdit->text().toAscii().data());
+    m_levelset->level(m_levelList->currentRow())->setPassword(value.toAscii().data());
 }
 
 void CCEditMain::onChipsChanged(int value)
 {
     if (m_levelList->currentRow() < 0)
         return;
-    m_levelset->level(m_levelList->currentRow())->setChips(m_chipEdit->value());
+    m_levelset->level(m_levelList->currentRow())->setChips(value);
 }
 
 void CCEditMain::onTimerChanged(int value)
 {
     if (m_levelList->currentRow() < 0)
         return;
-    m_levelset->level(m_levelList->currentRow())->setTimer(m_timeEdit->value());
+    m_levelset->level(m_levelList->currentRow())->setTimer(value);
 }
 
 void CCEditMain::onHintChanged(QString value)
 {
     if (m_levelList->currentRow() < 0)
         return;
-    m_levelset->level(m_levelList->currentRow())->setHint(m_hintEdit->text().toAscii().data());
+    m_levelset->level(m_levelList->currentRow())->setHint(value.toAscii().data());
 }
 
 void CCEditMain::setForeground(tile_t tile)

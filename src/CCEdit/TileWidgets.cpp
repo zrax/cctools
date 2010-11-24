@@ -56,7 +56,7 @@ void BigTileWiget::setTileset(CCETileset* tileset)
     update();
 }
 
-void BigTileWiget::paintEvent(QPaintEvent* event)
+void BigTileWiget::paintEvent(QPaintEvent*)
 {
     if (m_tileset == 0)
         return;
