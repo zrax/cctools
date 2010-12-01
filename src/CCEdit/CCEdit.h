@@ -60,7 +60,7 @@ private:
         ActionZoom50, ActionZoom25, ActionZoom125, ActionZoomCust, ActionZoomFit,
         ActionTestChips, ActionTestTWorldCC, ActionTestTWorldLynx,
         ActionTestSetup, ActionAbout, ActionAddLevel, ActionDelLevel, ActionMoveUp,
-        ActionMoveDown, ActionProperties,
+        ActionMoveDown, ActionProperties, ActionOrganize,
         NUM_ACTIONS
     };
 
@@ -155,6 +155,7 @@ private slots:
     void onMoveUpAction();
     void onMoveDownAction();
     void onPropertiesAction();
+    void onOrganizeAction();
 
     void onSelectLevel(int);
     void onPasswordGenAction();

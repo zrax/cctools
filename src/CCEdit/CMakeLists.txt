@@ -20,6 +20,7 @@ set(CCEdit_SOURCES
     AdvancedMechanics.cpp
     TestSetup.cpp
     ErrorCheck.cpp
+    Organizer.cpp
 )
 
 if(WIN32)
@@ -36,6 +37,7 @@ set(CCEdit_MOCS
     AdvancedMechanics.h
     TestSetup.h
     ErrorCheck.h
+    Organizer.h
 )
 
 set(CCEdit_RCCS

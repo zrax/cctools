@@ -40,6 +40,7 @@
 #include <cstdlib>
 #include <ctime>
 #include "LevelsetProps.h"
+#include "Organizer.h"
 #include "AdvancedMechanics.h"
 #include "TestSetup.h"
 #include "ErrorCheck.h"
@@ -238,6 +239,9 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionProperties] = new QAction(QIcon(":/res/document-properties.png"), tr("Levelset &Properties"), this);
     m_actions[ActionProperties]->setStatusTip(tr("Change levelset and .DAC file properties"));
     m_actions[ActionProperties]->setEnabled(false);
+    m_actions[ActionOrganize] = new QAction(QIcon(":/res/level-organize.png"), tr("&Organize Levels"), this);
+    m_actions[ActionOrganize]->setStatusTip(tr("Organize or import levels"));
+    m_actions[ActionOrganize]->setEnabled(false);
 
     // Control Toolbox
     QDockWidget* toolDock = new QDockWidget(this);
@@ -290,6 +294,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     tbarLevelset->addAction(m_actions[ActionMoveDown]);
     tbarLevelset->addSeparator();
     tbarLevelset->addAction(m_actions[ActionProperties]);
+    tbarLevelset->addAction(m_actions[ActionOrganize]);
 
     QGridLayout* levelManLayout = new QGridLayout(levelManWidget);
     levelManLayout->setContentsMargins(4, 4, 4, 4);
@@ -567,6 +572,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionMoveUp], SIGNAL(triggered()), SLOT(onMoveUpAction()));
     connect(m_actions[ActionMoveDown], SIGNAL(triggered()), SLOT(onMoveDownAction()));
     connect(m_actions[ActionProperties], SIGNAL(triggered()), SLOT(onPropertiesAction()));
+    connect(m_actions[ActionOrganize], SIGNAL(triggered()), SLOT(onOrganizeAction()));
 
     connect(m_levelList, SIGNAL(currentRowChanged(int)), SLOT(onSelectLevel(int)));
     connect(m_nameEdit, SIGNAL(textChanged(QString)), SLOT(onNameChanged(QString)));
@@ -756,6 +762,7 @@ void CCEditMain::loadLevelset(QString filename)
     m_actions[ActionAddLevel]->setEnabled(true);
     m_actions[ActionDelLevel]->setEnabled(m_levelset->levelCount() > 0);
     m_actions[ActionProperties]->setEnabled(true);
+    m_actions[ActionOrganize]->setEnabled(true);
     m_actions[ActionCheckErrors]->setEnabled(true);
 }
 
@@ -931,6 +938,7 @@ bool CCEditMain::closeLevelset()
     m_actions[ActionAddLevel]->setEnabled(false);
     m_actions[ActionDelLevel]->setEnabled(false);
     m_actions[ActionProperties]->setEnabled(false);
+    m_actions[ActionOrganize]->setEnabled(false);
     m_actions[ActionCheckErrors]->setEnabled(false);
 
     return true;
@@ -1084,6 +1092,7 @@ void CCEditMain::onNewAction()
     m_actions[ActionAddLevel]->setEnabled(true);
     m_actions[ActionDelLevel]->setEnabled(true);
     m_actions[ActionProperties]->setEnabled(true);
+    m_actions[ActionOrganize]->setEnabled(true);
     m_actions[ActionCheckErrors]->setEnabled(true);
 }
 
@@ -1869,6 +1878,17 @@ void CCEditMain::onPropertiesAction()
         m_useDac = props.useDac();
         break;
     }
+}
+
+void CCEditMain::onOrganizeAction()
+{
+    if (m_levelset == 0)
+        return;
+
+    OrganizerDialog dlg;
+    dlg.setTileset(m_currentTileset);
+    dlg.loadLevelset(m_levelset);
+    dlg.exec();
 }
 
 void CCEditMain::onSelectLevel(int idx)
