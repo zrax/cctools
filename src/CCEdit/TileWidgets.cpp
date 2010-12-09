@@ -47,6 +47,7 @@ BigTileWiget::BigTileWiget(QWidget* parent)
             : QWidget(parent), m_tileset(0)
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    setMouseTracking(true);
 }
 
 void BigTileWiget::setTileset(CCETileset* tileset)
@@ -83,4 +84,18 @@ void BigTileWiget::mousePressEvent(QMouseEvent* event)
         emit itemSelectedLeft(tileid);
     else if (event->button() == Qt::RightButton)
         emit itemSelectedRight(tileid);
+}
+
+void BigTileWiget::mouseMoveEvent(QMouseEvent* event)
+{
+    QWidget::mouseMoveEvent(event);
+    if (m_tileset == 0 || event->x() >= (m_tileset->size() * 7) ||
+        event->y() >= (m_tileset->size() * 16)) {
+        setToolTip(QString());
+        return;
+    }
+
+    tile_t tileid = ((event->x() / m_tileset->size()) * 16)
+                  + (event->y() / m_tileset->size());
+    setToolTip(CCETileset::TileName(tileid));
 }

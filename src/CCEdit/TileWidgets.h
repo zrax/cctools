@@ -56,6 +56,7 @@ private:
 protected:
     virtual void paintEvent(QPaintEvent*);
     virtual void mousePressEvent(QMouseEvent*);
+    virtual void mouseMoveEvent(QMouseEvent*);
 
 signals:
     void itemSelectedLeft(tile_t);
