@@ -1423,7 +1423,7 @@ void CCEditMain::onToggleWallsAction()
 
 void CCEditMain::onCheckErrorsAction()
 {
-    ErrorCheckDialog dlg;
+    ErrorCheckDialog dlg(this);
     dlg.setLevelsetInfo(m_levelset, &m_dacInfo);
     dlg.exec();
 }
@@ -1885,7 +1885,7 @@ void CCEditMain::onOrganizeAction()
     if (m_levelset == 0)
         return;
 
-    OrganizerDialog dlg;
+    OrganizerDialog dlg(this);
     dlg.setTileset(m_currentTileset);
     dlg.loadLevelset(m_levelset);
     dlg.exec();

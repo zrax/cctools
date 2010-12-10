@@ -34,9 +34,12 @@ void LevelListWidget::paintEvent(QPaintEvent* event)
     int pos = 0;
     while (pos < height()) {
         QListWidgetItem* item = itemAt(4, pos + 4);
-        if (item != 0 && item->icon().isNull())
+        if (item != 0 && item->icon().isNull()) {
             emit loadLevelImage(row(item));
-        pos += 132;
+            pos += 128;
+        } else {
+            pos += 4;
+        }
     }
 
     QListView::paintEvent(event);
@@ -44,8 +47,10 @@ void LevelListWidget::paintEvent(QPaintEvent* event)
 
 
 OrganizerDialog::OrganizerDialog(QWidget* parent)
-    : QDialog(parent)
+               : QDialog(parent)
 {
+    setWindowTitle(tr("Level Organizer"));
+
     m_levels = new LevelListWidget(this);
     QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Close,
                                                      Qt::Horizontal, this);

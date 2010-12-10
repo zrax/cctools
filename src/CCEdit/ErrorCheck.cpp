@@ -30,6 +30,7 @@ enum CheckMode {
 ErrorCheckDialog::ErrorCheckDialog(QWidget* parent)
                 : QDialog(parent), m_levelset(0), m_dacFile(0)
 {
+    setWindowTitle(tr("Check for Errors"));
     QSettings settings("CCTools", "CCEdit");
 
     m_checkMode = new QComboBox(this);
