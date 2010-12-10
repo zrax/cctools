@@ -20,20 +20,34 @@
 
 #include <QDialog>
 #include <QListWidget>
+#include <QAction>
 #include "../Levelset.h"
 #include "../Tileset.h"
+
+Q_DECLARE_METATYPE(ccl::LevelData*);
 
 class LevelListWidget : public QListWidget {
     Q_OBJECT
 
 public:
     LevelListWidget(QWidget* parent = 0);
+    virtual ~LevelListWidget();
+
+    void setTileset(CCETileset* tileset) { m_tileset = tileset; }
+    void addLevel(ccl::LevelData* level);
+    void delLevel(int row);
+
+    ccl::LevelData* level(int row)
+    {
+        return item(row)->data(Qt::UserRole).value<ccl::LevelData*>();
+    }
 
 protected:
     virtual void paintEvent(QPaintEvent*);
 
-signals:
-    void loadLevelImage(int level);
+private:
+    CCETileset* m_tileset;
+    void loadLevelImage(int row);
 };
 
 
@@ -44,15 +58,21 @@ public:
     OrganizerDialog(QWidget* parent = 0);
 
     void loadLevelset(ccl::Levelset* levelset);
-    void setTileset(CCETileset* tileset) { m_tileset = tileset; }
+    void setTileset(CCETileset* tileset) { m_levels->setTileset(tileset); }
 
 private slots:
-    void loadLevelImage(int level);
+    void saveChanges();
+    void updateActions();
+    void onDeleteLevels();
 
 private:
     ccl::Levelset* m_levelset;
-    CCETileset* m_tileset;
     LevelListWidget* m_levels;
+
+    enum ActionType {
+        ActionCut, ActionCopy, ActionPaste, ActionDelete, ActionCount
+    };
+    QAction* m_actions[ActionCount];
 };
 
 #endif

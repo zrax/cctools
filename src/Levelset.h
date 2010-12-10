@@ -39,18 +39,7 @@ struct Clone    { Point button, clone; };
 class LevelMap {
 public:
     LevelMap();
-
-    LevelMap(const LevelMap& init)
-        : m_fgTiles(0), m_bgTiles(0)
-    {
-        operator=(init);
-    }
-
-    ~LevelMap()
-    {
-        delete[] m_fgTiles;
-        delete[] m_bgTiles;
-    }
+    LevelMap(const LevelMap& init) { operator=(init); }
 
     LevelMap& operator=(const LevelMap& source);
     void copyFrom(const LevelMap& source, int srcX = 0, int srcY = 0,
@@ -76,8 +65,8 @@ public:
     long write(Stream* stream);
 
 private:
-    tile_t* m_fgTiles;
-    tile_t* m_bgTiles;
+    tile_t m_fgTiles[CCL_WIDTH * CCL_HEIGHT];
+    tile_t m_bgTiles[CCL_WIDTH * CCL_HEIGHT];
 };
 
 
@@ -122,7 +111,24 @@ public:
     long read(Stream* stream, bool forClipboard = false);
     long write(Stream* stream, bool forClipboard = false);
 
+    void ref()
+    {
+        if (this != 0)
+            ++m_refs;
+    }
+
+    void unref()
+    {
+        if (this != 0 && --m_refs == 0)
+            delete this;
+    }
+
+    int refs() const { return m_refs; }
+
 private:
+    ~LevelData() { }
+
+    int m_refs;
     ccl::LevelMap m_map;
     std::string m_name;
     std::string m_hint;
@@ -157,6 +163,7 @@ public:
     ccl::LevelData* level(int num) const { return m_levels[(size_t)num]; }
     int levelCount() const { return (int)m_levels.size(); }
     ccl::LevelData* addLevel();
+    void addLevel(ccl::LevelData* level);
     void insertLevel(int where, ccl::LevelData* level);
     ccl::LevelData* takeLevel(int num);
 

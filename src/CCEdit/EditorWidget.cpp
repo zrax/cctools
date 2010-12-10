@@ -196,7 +196,10 @@ void EditorWidget::setTileset(CCETileset* tileset)
 
 void EditorWidget::setLevelData(ccl::LevelData* level)
 {
+    level->ref();
+    m_levelData->unref();
     m_levelData = level;
+
     m_origin = QPoint(-1, -1);
     m_selectRect = QRect(-1, -1, -1, -1);
     dirtyBuffer();

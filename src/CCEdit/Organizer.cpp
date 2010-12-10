@@ -19,14 +19,40 @@
 
 #include <QGridLayout>
 #include <QDialogButtonBox>
+#include <QToolBar>
 #include <QPainter>
 
 LevelListWidget::LevelListWidget(QWidget* parent)
-               : QListWidget(parent)
+               : QListWidget(parent), m_tileset(0)
 {
     setIconSize(QSize(128, 128));
     setSpacing(2);
     setDragDropMode(InternalMove);
+    setSelectionMode(ExtendedSelection);
+}
+
+LevelListWidget::~LevelListWidget()
+{
+    for (int i=0; i<count(); ++i)
+        level(i)->unref();
+}
+
+void LevelListWidget::addLevel(ccl::LevelData* level)
+{
+    level->ref();
+
+    QListWidgetItem* item = new QListWidgetItem(this);
+    item->setData(Qt::UserRole, qVariantFromValue<ccl::LevelData*>(level));
+    QString infoText = tr("%1\nPassword: %2\nChips: %3\nTime: %4\n%5")
+                       .arg(level->name().c_str()).arg(level->password().c_str())
+                       .arg(level->chips()).arg(level->timer()).arg(level->hint().c_str());
+    item->setText(infoText);
+}
+
+void LevelListWidget::delLevel(int row)
+{
+    level(row)->unref();
+    delete takeItem(row);
 }
 
 void LevelListWidget::paintEvent(QPaintEvent* event)
@@ -35,7 +61,7 @@ void LevelListWidget::paintEvent(QPaintEvent* event)
     while (pos < height()) {
         QListWidgetItem* item = itemAt(4, pos + 4);
         if (item != 0 && item->icon().isNull()) {
-            emit loadLevelImage(row(item));
+            loadLevelImage(row(item));
             pos += 128;
         } else {
             pos += 4;
@@ -45,25 +71,61 @@ void LevelListWidget::paintEvent(QPaintEvent* event)
     QListView::paintEvent(event);
 }
 
+void LevelListWidget::loadLevelImage(int row)
+{
+    QPixmap levelBuffer(32 * m_tileset->size(), 32 * m_tileset->size());
+    QPainter tilePainter(&levelBuffer);
+
+    ccl::LevelData* levelData = level(row);
+    for (int y = 0; y < 32; ++y)
+        for (int x = 0; x < 32; ++x)
+            m_tileset->draw(tilePainter, x, y, levelData->map().getFG(x, y),
+                            levelData->map().getBG(x, y));
+    item(row)->setIcon(QIcon(levelBuffer.scaled(128, 128)));
+}
+
 
 OrganizerDialog::OrganizerDialog(QWidget* parent)
                : QDialog(parent)
 {
     setWindowTitle(tr("Level Organizer"));
 
+    m_actions[ActionCut] = new QAction(QIcon(":/res/edit-cut.png"), tr("Cu&t"), this);
+    m_actions[ActionCut]->setShortcut(Qt::CTRL | Qt::Key_X);
+    m_actions[ActionCut]->setEnabled(false);
+    m_actions[ActionCopy] = new QAction(QIcon(":/res/edit-copy.png"), tr("&Copy"), this);
+    m_actions[ActionCopy]->setShortcut(Qt::CTRL | Qt::Key_C);
+    m_actions[ActionCopy]->setEnabled(false);
+    m_actions[ActionPaste] = new QAction(QIcon(":/res/edit-paste.png"), tr("&Paste"), this);
+    m_actions[ActionPaste]->setShortcut(Qt::CTRL | Qt::Key_V);
+    m_actions[ActionPaste]->setEnabled(false);
+    m_actions[ActionDelete] = new QAction(QIcon(":/res/edit-delete.png"), tr("&Delete"), this);
+    m_actions[ActionDelete]->setShortcut(Qt::Key_Delete);
+    m_actions[ActionDelete]->setEnabled(false);
+
     m_levels = new LevelListWidget(this);
-    QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Close,
+    QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel,
                                                      Qt::Horizontal, this);
+
+    QToolBar* tbar = new QToolBar(this);
+    tbar->addAction(m_actions[ActionCut]);
+    tbar->addAction(m_actions[ActionCopy]);
+    tbar->addAction(m_actions[ActionPaste]);
+    tbar->addSeparator();
+    tbar->addAction(m_actions[ActionDelete]);
+
     QGridLayout* layout = new QGridLayout(this);
     layout->setContentsMargins(4, 4, 4, 4);
     layout->setVerticalSpacing(4);
     layout->setHorizontalSpacing(4);
-    layout->addWidget(m_levels, 0, 0);
-    layout->addWidget(buttons, 1, 0);
+    layout->addWidget(tbar, 0, 0);
+    layout->addWidget(m_levels, 1, 0);
+    layout->addWidget(buttons, 2, 0);
 
-    // The "Close" button is linked to the reject action
-    connect(buttons, SIGNAL(rejected()), SLOT(close()));
-    connect(m_levels, SIGNAL(loadLevelImage(int)), SLOT(loadLevelImage(int)));
+    connect(m_actions[ActionDelete], SIGNAL(triggered()), SLOT(onDeleteLevels()));
+    connect(buttons, SIGNAL(accepted()), SLOT(saveChanges()));
+    connect(buttons, SIGNAL(rejected()), SLOT(reject()));
+    connect(m_levels, SIGNAL(itemSelectionChanged()), SLOT(updateActions()));
 
     resize(500, 400);
 }
@@ -73,24 +135,39 @@ void OrganizerDialog::loadLevelset(ccl::Levelset* levelset)
     m_levelset = levelset;
     m_levels->clear();
 
-    for (int i=0; i<levelset->levelCount(); ++i) {
-        ccl::LevelData* level = levelset->level(i);
-        QString infoText = tr("%1 - %2\nPassword: %3\nChips: %4\nTime: %5\n%6")
-                           .arg(i + 1).arg(level->name().c_str()).arg(level->password().c_str())
-                           .arg(level->chips()).arg(level->timer()).arg(level->hint().c_str());
-        new QListWidgetItem(infoText, m_levels);
+    for (int i=0; i<levelset->levelCount(); ++i)
+        m_levels->addLevel(levelset->level(i));
+}
+
+void OrganizerDialog::saveChanges()
+{
+    while (m_levelset->levelCount() > 0)
+        m_levelset->takeLevel(0)->unref();
+
+    for (int i=0; i<m_levels->count(); ++i) {
+        ccl::LevelData* level = m_levels->level(i);
+        m_levelset->addLevel(level);
+        level->ref();
+    }
+
+    accept();
+}
+
+void OrganizerDialog::updateActions()
+{
+    if (m_levels->selectedItems().size() > 0) {
+        m_actions[ActionCut]->setEnabled(true);
+        m_actions[ActionCopy]->setEnabled(true);
+        m_actions[ActionDelete]->setEnabled(true);
+    } else {
+        m_actions[ActionCut]->setEnabled(false);
+        m_actions[ActionCopy]->setEnabled(false);
+        m_actions[ActionDelete]->setEnabled(false);
     }
 }
 
-void OrganizerDialog::loadLevelImage(int level)
+void OrganizerDialog::onDeleteLevels()
 {
-    QPixmap levelBuffer(32 * m_tileset->size(), 32 * m_tileset->size());
-    QPainter tilePainter(&levelBuffer);
-
-    for (int y = 0; y < 32; ++y)
-        for (int x = 0; x < 32; ++x)
-            m_tileset->draw(tilePainter, x, y, m_levelset->level(level)->map().getFG(x, y),
-                            m_levelset->level(level)->map().getBG(x, y));
-
-    m_levels->item(level)->setIcon(QIcon(levelBuffer.scaled(128, 128)));
+    foreach (QListWidgetItem* item, m_levels->selectedItems())
+        m_levels->delLevel(m_levels->row(item));
 }

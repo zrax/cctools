@@ -46,12 +46,17 @@ public:
     };
 
     EditorWidget(QWidget* parent = 0);
+    virtual ~EditorWidget()
+    {
+        m_levelData->unref();
+    }
 
     void setTileset(CCETileset* tileset);
     CCETileset* tileset() const { return m_tileset; }
 
     void setLevelData(ccl::LevelData* level);
     ccl::LevelData* levelData() const { return m_levelData; }
+    bool isOrphaned() const { return m_levelData->refs() == 1; }
 
     virtual void paintEvent(QPaintEvent*);
     virtual void mouseMoveEvent(QMouseEvent*);

@@ -1205,7 +1205,7 @@ void CCEditMain::onCopyAction()
                 tr("Error saving clipboard data: %1").arg(e.what()),
                 QMessageBox::Ok);
     }
-    delete copyRegion;
+    copyRegion->unref();
 }
 
 void CCEditMain::onPasteAction()
@@ -1232,7 +1232,7 @@ void CCEditMain::onPasteAction()
             QMessageBox::critical(this, tr("Error"),
                     tr("Error parsing clipboard data: %1").arg(e.what()),
                     QMessageBox::Ok);
-            delete copyRegion;
+            copyRegion->unref();
             return;
         }
 
@@ -1282,7 +1282,7 @@ void CCEditMain::onPasteAction()
         }
 
         editor->endEdit();
-        delete copyRegion;
+        copyRegion->unref();
     }
 }
 
@@ -1888,7 +1888,13 @@ void CCEditMain::onOrganizeAction()
     OrganizerDialog dlg(this);
     dlg.setTileset(m_currentTileset);
     dlg.loadLevelset(m_levelset);
-    dlg.exec();
+    if (dlg.exec() == QDialog::Accepted) {
+        doLevelsetLoad();
+        for (int i=0; i<m_editorTabs->count(); ++i) {
+            if (getEditorAt(i)->isOrphaned())
+                delete m_editorTabs->widget(i);
+        }
+    }
 }
 
 void CCEditMain::onSelectLevel(int idx)

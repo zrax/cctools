@@ -26,19 +26,12 @@
 
 ccl::LevelMap::LevelMap()
 {
-    m_fgTiles = new tile_t[CCL_WIDTH*CCL_HEIGHT];
-    m_bgTiles = new tile_t[CCL_WIDTH*CCL_HEIGHT];
     memset(m_fgTiles, 0, CCL_WIDTH * CCL_HEIGHT * sizeof(tile_t));
     memset(m_bgTiles, 0, CCL_WIDTH * CCL_HEIGHT * sizeof(tile_t));
 }
 
 ccl::LevelMap& ccl::LevelMap::operator=(const ccl::LevelMap& source)
 {
-    delete[] m_fgTiles;
-    delete[] m_bgTiles;
-
-    m_fgTiles = new tile_t[CCL_WIDTH*CCL_HEIGHT];
-    m_bgTiles = new tile_t[CCL_WIDTH*CCL_HEIGHT];
     memcpy(m_fgTiles, source.m_fgTiles, CCL_WIDTH * CCL_HEIGHT * sizeof(tile_t));
     memcpy(m_bgTiles, source.m_bgTiles, CCL_WIDTH * CCL_HEIGHT * sizeof(tile_t));
     return *this;
@@ -94,11 +87,11 @@ long ccl::LevelMap::write(ccl::Stream* stream)
 
 
 ccl::LevelData::LevelData()
-    : m_levelNum(0), m_chips(0), m_timer(0)
+    : m_refs(1), m_levelNum(0), m_chips(0), m_timer(0)
 { }
 
 ccl::LevelData::LevelData(const ccl::LevelData& init)
-    : m_map(init.m_map), m_name(init.m_name), m_hint(init.m_hint),
+    : m_refs(1), m_map(init.m_map), m_name(init.m_name), m_hint(init.m_hint),
       m_password(init.m_password), m_levelNum(init.m_levelNum),
       m_chips(init.m_chips), m_timer(init.m_timer), m_traps(init.m_traps),
       m_clones(init.m_clones), m_moveList(init.m_moveList)
@@ -344,7 +337,7 @@ ccl::Levelset::Levelset(const ccl::Levelset& init)
 ccl::Levelset::~Levelset()
 {
     for (size_t i=0; i<m_levels.size(); ++i)
-        delete m_levels[i];
+        m_levels[i]->unref();
 }
 
 std::string ccl::Levelset::RandomPassword()
@@ -369,6 +362,11 @@ ccl::LevelData* ccl::Levelset::addLevel()
     return level;
 }
 
+void ccl::Levelset::addLevel(ccl::LevelData* level)
+{
+    m_levels.push_back(level);
+}
+
 void ccl::Levelset::insertLevel(int where, ccl::LevelData* level)
 {
     m_levels.insert(m_levels.begin() + where, level);
@@ -384,7 +382,7 @@ ccl::LevelData* ccl::Levelset::takeLevel(int num)
 void ccl::Levelset::read(ccl::Stream* stream)
 {
     for (size_t i=0; i<m_levels.size(); ++i)
-        delete m_levels[i];
+        m_levels[i]->unref();
     m_levels.resize(0);
 
     m_magic = stream->read32();
