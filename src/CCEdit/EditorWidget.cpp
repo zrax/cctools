@@ -471,25 +471,57 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
                        .arg(CCETileset::TileName(m_levelData->map().getBG(posX, posY))));
     }
 
+    QString tipText;
+
     m_hilights.clear();
     std::list<ccl::Trap>::const_iterator trap_iter;
     for (trap_iter = m_levelData->traps().begin(); trap_iter != m_levelData->traps().end(); ++trap_iter) {
-        if (trap_iter->button.X == posX && trap_iter->button.Y == posY
-            && isValidPoint(trap_iter->trap))
-            m_hilights << QPoint(trap_iter->trap.X, trap_iter->trap.Y);
-        if (trap_iter->trap.X == posX && trap_iter->trap.Y == posY
-            && isValidPoint(trap_iter->button))
-            m_hilights << QPoint(trap_iter->button.X, trap_iter->button.Y);
+        if (trap_iter->button.X == posX && trap_iter->button.Y == posY) {
+            if (isValidPoint(trap_iter->trap))
+                m_hilights << QPoint(trap_iter->trap.X, trap_iter->trap.Y);
+            if (!tipText.isEmpty())
+                tipText += "\n";
+            tipText += tr("Trap: (%1, %2)")
+                       .arg(trap_iter->trap.X).arg(trap_iter->trap.Y);
+        }
+        if (trap_iter->trap.X == posX && trap_iter->trap.Y == posY) {
+            if (isValidPoint(trap_iter->button))
+                m_hilights << QPoint(trap_iter->button.X, trap_iter->button.Y);
+            if (!tipText.isEmpty())
+                tipText += "\n";
+            tipText += tr("Button: (%1, %2)")
+                       .arg(trap_iter->button.X).arg(trap_iter->button.Y);
+        }
     }
     std::list<ccl::Clone>::const_iterator clone_iter;
     for (clone_iter = m_levelData->clones().begin(); clone_iter != m_levelData->clones().end(); ++clone_iter) {
-        if (clone_iter->button.X == posX && clone_iter->button.Y == posY
-            && isValidPoint(clone_iter->clone))
-            m_hilights << QPoint(clone_iter->clone.X, clone_iter->clone.Y);
-        if (clone_iter->clone.X == posX && clone_iter->clone.Y == posY
-            && isValidPoint(clone_iter->button))
-            m_hilights << QPoint(clone_iter->button.X, clone_iter->button.Y);
+        if (clone_iter->button.X == posX && clone_iter->button.Y == posY) {
+            if (isValidPoint(clone_iter->clone))
+                m_hilights << QPoint(clone_iter->clone.X, clone_iter->clone.Y);
+            if (!tipText.isEmpty())
+                tipText += "\n";
+            tipText += tr("Cloner: (%1, %2)")
+                       .arg(clone_iter->clone.X).arg(clone_iter->clone.Y);
+        }
+        if (clone_iter->clone.X == posX && clone_iter->clone.Y == posY) {
+            if (isValidPoint(clone_iter->button))
+                m_hilights << QPoint(clone_iter->button.X, clone_iter->button.Y);
+            if (!tipText.isEmpty())
+                tipText += "\n";
+            tipText += tr("Button: (%1, %2)")
+                       .arg(clone_iter->button.X).arg(clone_iter->button.Y);
+        }
     }
+
+    if (tipText.isEmpty() && (m_levelData->map().getFG(posX, posY) == ccl::TileTrap
+        || m_levelData->map().getFG(posX, posY) == ccl::TileTrapButton
+        || m_levelData->map().getFG(posX, posY) == ccl::TileCloner
+        || m_levelData->map().getFG(posX, posY) == ccl::TileCloneButton
+        || m_levelData->map().getBG(posX, posY) == ccl::TileTrap
+        || m_levelData->map().getBG(posX, posY) == ccl::TileTrapButton
+        || m_levelData->map().getBG(posX, posY) == ccl::TileCloner
+        || m_levelData->map().getBG(posX, posY) == ccl::TileCloneButton))
+        tipText = tr("No connections");
 
     if (m_levelData->map().getFG(posX, posY) == ccl::TileTeleport
         || m_levelData->map().getBG(posX, posY) == ccl::TileTeleport) {
@@ -503,8 +535,33 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
         } while (m_levelData->map().getFG(posX, posY) != ccl::TileTeleport
                  && m_levelData->map().getBG(posX, posY) != ccl::TileTeleport);
         m_hilights << QPoint(posX, posY);
+
+        if (!tipText.isEmpty())
+            tipText += "\n";
+        tipText += tr("Teleport to: (%1, %2)").arg(posX).arg(posY);
     }
 
+    if (MONSTER_TILE(m_levelData->map().getFG(posX, posY))) {
+        std::list<ccl::Point>::const_iterator move_iter;
+        bool canMove = false;
+        int moveIdx = 0;
+        for (move_iter = m_levelData->moveList().begin(); move_iter != m_levelData->moveList().end(); ++move_iter) {
+            ++moveIdx;
+            if (move_iter->X == posX && move_iter->Y == posY) {
+                if (!tipText.isEmpty())
+                    tipText += "\n";
+                tipText += tr("Move order: %1").arg(moveIdx);
+                canMove = true;
+            }
+        }
+        if (!canMove) {
+            if (!tipText.isEmpty())
+                tipText += "\n";
+            tipText += tr("Monster DOES NOT MOVE");
+        }
+    }
+
+    setToolTip(tipText);
     update();
 }
 
