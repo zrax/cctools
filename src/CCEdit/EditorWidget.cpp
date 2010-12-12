@@ -392,6 +392,7 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
                        ? m_leftTile : m_rightTile;
         if (m_drawMode == DrawPencil) {
             putTile(curtile, posX, posY, (event->modifiers() & Qt::ShiftModifier) != 0);
+            emit makeDirty();
         } else if (m_drawMode == DrawLine || m_drawMode == DrawFill) {
             if (m_cachedButton == Qt::LeftButton)
                 m_paintFlags |= PaintLeftTemp;
@@ -400,6 +401,7 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
             if ((event->modifiers() & Qt::ShiftModifier) != 0)
                 m_paintFlags |= PaintTempBury;
             dirtyBuffer();
+            emit makeDirty();
         } else if (m_drawMode == DrawPathMaker) {
             if (m_origin != m_current) {
                 ccl::Direction dir = calc_dir(m_origin, m_current);
@@ -450,6 +452,7 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
                 m_origin = m_current;
                 m_lastDir = ccl::DirInvalid;
             }
+            emit makeDirty();
         } else if (m_drawMode == DrawSelect && m_origin != QPoint(-1, -1)) {
             int lowX = std::min(m_origin.x(), m_current.x());
             int lowY = std::min(m_origin.y(), m_current.y());
@@ -620,6 +623,7 @@ void EditorWidget::mousePressEvent(QMouseEvent* event)
             else
                 cancelEdit();
             m_origin = QPoint(-1, -1);
+            emit makeDirty();
         } else  if (m_origin == QPoint(-1, -1) && test_start_connect(m_levelData, QPoint(posX, posY))) {
             m_origin = QPoint(posX, posY);
         } else if (m_origin == m_current) {
@@ -657,6 +661,7 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
         else if (m_cachedButton == Qt::RightButton)
             plot_line(this, m_origin, m_current, PlotDraw, 0, m_rightTile,
                       (event->modifiers() & Qt::ShiftModifier) != 0);
+        emit makeDirty();
     } else if (m_drawMode == DrawFill) {
         if (m_cachedButton == Qt::LeftButton)
             plot_box(this, m_origin, m_current, PlotDraw, 0, m_leftTile,
@@ -664,6 +669,7 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
         else if (m_cachedButton == Qt::RightButton)
             plot_box(this, m_origin, m_current, PlotDraw, 0, m_rightTile,
                      (event->modifiers() & Qt::ShiftModifier) != 0);
+        emit makeDirty();
     } else if (m_drawMode == DrawButtonConnect) {
         if (m_origin != m_current) {
             switch (test_connect(m_levelData, m_origin, m_current)) {
@@ -671,21 +677,25 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
                 beginEdit(CCEHistoryNode::HistConnect);
                 m_levelData->trapConnect(m_origin.x(), m_origin.y(), m_current.x(), m_current.y());
                 endEdit();
+                emit makeDirty();
                 break;
             case ConnTrapRev:
                 beginEdit(CCEHistoryNode::HistConnect);
                 m_levelData->trapConnect(m_current.x(), m_current.y(), m_origin.x(), m_origin.y());
                 endEdit();
+                emit makeDirty();
                 break;
             case ConnClone:
                 beginEdit(CCEHistoryNode::HistConnect);
                 m_levelData->cloneConnect(m_origin.x(), m_origin.y(), m_current.x(), m_current.y());
                 endEdit();
+                emit makeDirty();
                 break;
             case ConnCloneRev:
                 beginEdit(CCEHistoryNode::HistConnect);
                 m_levelData->cloneConnect(m_current.x(), m_current.y(), m_origin.x(), m_origin.y());
                 endEdit();
+                emit makeDirty();
                 break;
             default:
                 // Do nothing

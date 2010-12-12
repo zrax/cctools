@@ -313,7 +313,7 @@ long ccl::LevelData::write(ccl::Stream* stream, bool forClipboard)
 
 
 ccl::Levelset::Levelset(int levelCount)
-   : m_magic(TypeMS)
+   : m_magic(TypeMS), m_dirty(false)
 {
     m_levels.resize(levelCount);
     char nameBuf[32];
@@ -327,7 +327,7 @@ ccl::Levelset::Levelset(int levelCount)
 }
 
 ccl::Levelset::Levelset(const ccl::Levelset& init)
-   : m_magic(init.m_magic)
+   : m_magic(init.m_magic), m_dirty(false)
 {
     m_levels.resize(init.m_levels.size());
     for (size_t i=0; i<m_levels.size(); ++i)

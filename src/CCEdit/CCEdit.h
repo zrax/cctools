@@ -172,6 +172,7 @@ private slots:
     void onCloseCurrentTab();
     void onTabChanged(int);
     void onDockChanged(Qt::DockWidgetArea);
+    void onMakeDirty() { m_levelset->makeDirty(); }
 
     void setForeground(tile_t);
     void setBackground(tile_t);

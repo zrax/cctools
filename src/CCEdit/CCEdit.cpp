@@ -752,6 +752,7 @@ void CCEditMain::loadLevelset(QString filename)
                               tr("Cannot determine file type for %1").arg(filename));
         return;
     }
+    m_levelset->makeClean();
 
     m_actions[ActionSave]->setEnabled(true);
     m_actions[ActionSaveAs]->setEnabled(true);
@@ -861,6 +862,7 @@ void CCEditMain::saveLevelset(QString filename)
     }
     setLevelsetFilename(filename);
     m_checkSave = true;
+    m_levelset->makeClean();
 }
 
 void CCEditMain::closeEvent(QCloseEvent* event)
@@ -909,10 +911,12 @@ bool CCEditMain::closeLevelset()
     if (m_levelset == 0)
         return true;
 
-    int reply =  QMessageBox::question(this, tr("Close levelset"),
+    int reply = m_levelset->isDirty()
+              ? QMessageBox::question(this, tr("Close levelset"),
                         tr("Save changes to %1 before closing?")
                         .arg(m_levelsetFilename.isEmpty() ? "new levelset" : m_levelsetFilename),
-                        QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+                        QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel)
+              : QMessageBox::No;
     if (reply == QMessageBox::Cancel) {
         return false;
     } else if (reply == QMessageBox::Yes) {
@@ -1062,6 +1066,7 @@ EditorWidget* CCEditMain::addEditor(ccl::LevelData* level)
     connect(editor, SIGNAL(hasSelection(bool)), m_actions[ActionCut], SLOT(setEnabled(bool)));
     connect(editor, SIGNAL(hasSelection(bool)), m_actions[ActionCopy], SLOT(setEnabled(bool)));
     connect(editor, SIGNAL(hasSelection(bool)), m_actions[ActionClear], SLOT(setEnabled(bool)));
+    connect(editor, SIGNAL(makeDirty()), SLOT(onMakeDirty()));
     return editor;
 }
 
@@ -1283,6 +1288,7 @@ void CCEditMain::onPasteAction()
 
         editor->endEdit();
         copyRegion->unref();
+        m_levelset->makeDirty();
     }
 }
 
@@ -1301,20 +1307,25 @@ void CCEditMain::onClearAction()
     }
     editor->endEdit();
     editor->update();
+    m_levelset->makeDirty();
 }
 
 void CCEditMain::onUndoAction()
 {
     EditorWidget* editor = getEditorAt(m_editorTabs->currentIndex());
-    if (editor != 0)
+    if (editor != 0) {
         editor->undo();
+        m_levelset->makeDirty();
+    }
 }
 
 void CCEditMain::onRedoAction()
 {
     EditorWidget* editor = getEditorAt(m_editorTabs->currentIndex());
-    if (editor != 0)
+    if (editor != 0) {
         editor->redo();
+        m_levelset->makeDirty();
+    }
 }
 
 void CCEditMain::onDrawPencilAction(bool checked)
@@ -1402,10 +1413,12 @@ void CCEditMain::onAdvancedMechAction()
     AdvancedMechanicsDialog mechDlg(this);
     mechDlg.setFrom(editor->levelData());
     editor->beginEdit(CCEHistoryNode::HistEditMech);
-    if (mechDlg.exec() == QDialog::Accepted)
+    if (mechDlg.exec() == QDialog::Accepted) {
         editor->endEdit();
-    else
+        m_levelset->makeDirty();
+    } else {
         editor->cancelEdit();
+    }
     editor->update();
 }
 
@@ -1419,6 +1432,7 @@ void CCEditMain::onToggleWallsAction()
     ccl::ToggleDoors(editor->levelData());
     editor->endEdit();
     editor->update();
+    m_levelset->makeDirty();
 }
 
 void CCEditMain::onCheckErrorsAction()
@@ -1788,6 +1802,7 @@ void CCEditMain::onAddLevelAction()
     m_levelset->addLevel();
     doLevelsetLoad();
     m_levelList->setCurrentRow(m_levelList->count() - 1);
+    m_levelset->makeDirty();
 }
 
 void CCEditMain::onDelLevelAction()
@@ -1810,6 +1825,7 @@ void CCEditMain::onDelLevelAction()
             onCloseTab(i);
     }
     doLevelsetLoad();
+    m_levelset->makeDirty();
 
     // Checked here for the case where the last level is deleted.
     // The selection changes before the item is removed, so we can have
@@ -1829,6 +1845,7 @@ void CCEditMain::onMoveUpAction()
         m_levelset->insertLevel(idx - 1, level);
         doLevelsetLoad();
         m_levelList->setCurrentRow(idx - 1);
+        m_levelset->makeDirty();
     }
 }
 
@@ -1843,6 +1860,7 @@ void CCEditMain::onMoveDownAction()
         m_levelset->insertLevel(idx + 1, level);
         doLevelsetLoad();
         m_levelList->setCurrentRow(idx + 1);
+        m_levelset->makeDirty();
     }
 }
 
@@ -1876,6 +1894,7 @@ void CCEditMain::onPropertiesAction()
             setLevelsetFilename(m_levelsetFilename);
         }
         m_useDac = props.useDac();
+        m_levelset->makeDirty();
         break;
     }
 }
@@ -1894,6 +1913,7 @@ void CCEditMain::onOrganizeAction()
             if (getEditorAt(i)->isOrphaned())
                 delete m_editorTabs->widget(i);
         }
+        m_levelset->makeDirty();
     }
 }
 
@@ -1977,7 +1997,10 @@ void CCEditMain::onNameChanged(QString value)
         return;
 
     ccl::LevelData* level = m_levelset->level(m_levelList->currentRow());
-    level->setName(m_nameEdit->text().toAscii().data());
+    if (level->name() != value.toAscii().data()) {
+        level->setName(value.toAscii().data());
+        m_levelset->makeDirty();
+    }
     m_levelList->currentItem()->setText(QString("%1 - %2")
                     .arg(m_levelList->currentRow() + 1).arg(value));
 
@@ -1991,28 +2014,44 @@ void CCEditMain::onPasswordChanged(QString value)
 {
     if (m_levelList->currentRow() < 0)
         return;
-    m_levelset->level(m_levelList->currentRow())->setPassword(value.toAscii().data());
+    ccl::LevelData* level = m_levelset->level(m_levelList->currentRow());
+    if (level->password() != value.toAscii().data()) {
+        level->setPassword(value.toAscii().data());
+        m_levelset->makeDirty();
+    }
 }
 
 void CCEditMain::onChipsChanged(int value)
 {
     if (m_levelList->currentRow() < 0)
         return;
-    m_levelset->level(m_levelList->currentRow())->setChips(value);
+    ccl::LevelData* level = m_levelset->level(m_levelList->currentRow());
+    if (level->chips() != value) {
+        level->setChips(value);
+        m_levelset->makeDirty();
+    }
 }
 
 void CCEditMain::onTimerChanged(int value)
 {
     if (m_levelList->currentRow() < 0)
         return;
-    m_levelset->level(m_levelList->currentRow())->setTimer(value);
+    ccl::LevelData* level = m_levelset->level(m_levelList->currentRow());
+    if (level->timer() != value) {
+        level->setTimer(value);
+        m_levelset->makeDirty();
+    }
 }
 
 void CCEditMain::onHintChanged(QString value)
 {
     if (m_levelList->currentRow() < 0)
         return;
-    m_levelset->level(m_levelList->currentRow())->setHint(value.toAscii().data());
+    ccl::LevelData* level = m_levelset->level(m_levelList->currentRow());
+    if (level->hint() != value.toAscii().data()) {
+        level->setHint(value.toAscii().data());
+        m_levelset->makeDirty();
+    }
 }
 
 void CCEditMain::setForeground(tile_t tile)

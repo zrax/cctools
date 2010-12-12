@@ -9,6 +9,7 @@ New Features
 
 Bugfixes
   * Find more levelsets on case-sensitive filesystems
+  * Don't prompt to save if a levelset hasn't been modified
 
 
 2010-11-12 - 2.0 ALPHA (1.93.0)

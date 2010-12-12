@@ -165,6 +165,7 @@ signals:
     void canUndo(bool);
     void canRedo(bool);
     void hasSelection(bool);
+    void makeDirty();
 };
 
 #endif
