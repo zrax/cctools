@@ -36,6 +36,7 @@
 #include <QSettings>
 #include <QTextCodec>
 #include <QDesktopWidget>
+#include <QDir>
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
@@ -613,6 +614,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionViewActivePlayer]->setChecked(settings.value("ViewActivePlayer", false).toBool());
     m_actions[ActionViewViewport]->setChecked(settings.value("ViewViewport", true).toBool());
     m_actions[ActionViewMonsterPaths]->setChecked(settings.value("ViewMonsterPaths", false).toBool());
+    m_dialogDir = settings.value("DialogDir").toString();
 
     // Make sure the toolbox is visible
     if (toolDock->isFloating()) {
@@ -890,6 +892,7 @@ void CCEditMain::closeEvent(QCloseEvent* event)
     settings.setValue("ViewViewport", m_actions[ActionViewViewport]->isChecked());
     settings.setValue("ViewMonsterPaths", m_actions[ActionViewMonsterPaths]->isChecked());
     settings.setValue("TilesetName", m_currentTileset->filename());
+    settings.setValue("DialogDir", m_dialogDir);
 }
 
 void CCEditMain::resizeEvent(QResizeEvent* event)
@@ -1104,9 +1107,13 @@ void CCEditMain::onNewAction()
 void CCEditMain::onOpenAction()
 {
     QString filename = QFileDialog::getOpenFileName(this, tr("Open Levelset..."),
-                            QString(), "All Levelsets (*.dat *.dac *.ccl)");
-    if (!filename.isEmpty())
+                            m_dialogDir, "All Levelsets (*.dat *.dac *.ccl)");
+    if (!filename.isEmpty()) {
         loadLevelset(filename);
+        QDir dir(filename);
+        dir.cdUp();
+        m_dialogDir = dir.absolutePath();
+    }
 }
 
 void CCEditMain::onSaveAction()
@@ -1122,10 +1129,16 @@ void CCEditMain::onSaveAsAction()
     QString filter = m_useDac ? "TWorld Levelsets (*.dac)"
                               : "CC Levelsets (*.dat *.ccl)";
 
+    if (m_levelsetFilename.isEmpty())
+        m_levelsetFilename = m_dialogDir;
     QString filename = QFileDialog::getSaveFileName(this, tr("Save Levelset..."),
                                                     m_levelsetFilename, filter);
-    if (!filename.isEmpty())
+    if (!filename.isEmpty()) {
         saveLevelset(filename);
+        QDir dir(filename);
+        dir.cdUp();
+        m_dialogDir = dir.absolutePath();
+    }
 }
 
 void CCEditMain::onSelectToggled(bool mode)

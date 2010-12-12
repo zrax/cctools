@@ -94,6 +94,7 @@ private:
     ccl::Levelset* m_levelset;
     ccl::DacFile m_dacInfo;
     QString m_levelsetFilename;
+    QString m_dialogDir;
     bool m_useDac;
     bool m_checkSave;
 
