@@ -4,7 +4,8 @@ New Features
   * Use specialized tile widget for "all tiles" view, so all tiles are shown
     at the same time, instead of in a list widget.
   * Fit-to-view zoom support
-  * Drag-and-drop level organizer with level previews
+  * Drag-and-drop level organizer with level previews and level copy/paste
+  * Show button / monster movement status in a tooltip on the editor
 
 Bugfixes
   * Find more levelsets on case-sensitive filesystems

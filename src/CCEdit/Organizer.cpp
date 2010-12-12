@@ -21,6 +21,10 @@
 #include <QDialogButtonBox>
 #include <QToolBar>
 #include <QPainter>
+#include <QApplication>
+#include <QClipboard>
+#include <QMimeData>
+#include <QMessageBox>
 
 LevelListWidget::LevelListWidget(QWidget* parent)
                : QListWidget(parent), m_tileset(0)
@@ -47,6 +51,19 @@ void LevelListWidget::addLevel(ccl::LevelData* level)
                        .arg(level->name().c_str()).arg(level->password().c_str())
                        .arg(level->chips()).arg(level->timer()).arg(level->hint().c_str());
     item->setText(infoText);
+}
+
+void LevelListWidget::insertLevel(int row, ccl::LevelData* level)
+{
+    level->ref();
+
+    QListWidgetItem* item = new QListWidgetItem();
+    item->setData(Qt::UserRole, qVariantFromValue<ccl::LevelData*>(level));
+    QString infoText = tr("%1\nPassword: %2\nChips: %3\nTime: %4\n%5")
+                       .arg(level->name().c_str()).arg(level->password().c_str())
+                       .arg(level->chips()).arg(level->timer()).arg(level->hint().c_str());
+    item->setText(infoText);
+    insertItem(row, item);
 }
 
 void LevelListWidget::delLevel(int row)
@@ -122,12 +139,17 @@ OrganizerDialog::OrganizerDialog(QWidget* parent)
     layout->addWidget(m_levels, 1, 0);
     layout->addWidget(buttons, 2, 0);
 
+    connect(m_actions[ActionCut], SIGNAL(triggered()), SLOT(onCutLevels()));
+    connect(m_actions[ActionCopy], SIGNAL(triggered()), SLOT(onCopyLevels()));
+    connect(m_actions[ActionPaste], SIGNAL(triggered()), SLOT(onPasteLevels()));
     connect(m_actions[ActionDelete], SIGNAL(triggered()), SLOT(onDeleteLevels()));
     connect(buttons, SIGNAL(accepted()), SLOT(saveChanges()));
     connect(buttons, SIGNAL(rejected()), SLOT(reject()));
     connect(m_levels, SIGNAL(itemSelectionChanged()), SLOT(updateActions()));
+    connect(qApp->clipboard(), SIGNAL(dataChanged()), SLOT(onClipboardDataChanged()));
 
     resize(500, 400);
+    onClipboardDataChanged();
 }
 
 void OrganizerDialog::loadLevelset(ccl::Levelset* levelset)
@@ -166,8 +188,93 @@ void OrganizerDialog::updateActions()
     }
 }
 
+void OrganizerDialog::onCutLevels()
+{
+    onCopyLevels();
+    onDeleteLevels();
+}
+
+void OrganizerDialog::onCopyLevels()
+{
+    try {
+        ccl::BufferStream cbStream;
+        cbStream.write32(m_levels->selectedItems().count());
+        QList<QListWidgetItem*> items = m_levels->selectedItems();
+        QList<QListWidgetItem*> itemsReversed;
+        while (!items.isEmpty()) {
+            cbStream.write16(0);    // Revisit after writing data
+            cbStream.write32(0);
+            itemsReversed.append(items.takeLast());
+        }
+
+        long sizeOffs = 4;
+        foreach (QListWidgetItem* item, itemsReversed) {
+            long start = cbStream.tell();
+            m_levels->level(m_levels->row(item))->write(&cbStream, true);
+            long end = cbStream.tell();
+            cbStream.seek(sizeOffs, SEEK_SET);
+            cbStream.write16(end - start); // Size of data buffer
+            cbStream.seek(end, SEEK_SET);
+            sizeOffs += 6;
+        }
+        QByteArray buffer((const char*)cbStream.buffer(), cbStream.size());
+
+        QMimeData* copyData = new QMimeData();
+        copyData->setData("CHIPEDIT LEVELS", buffer);
+        qApp->clipboard()->setMimeData(copyData);
+    } catch (std::exception& e) {
+        QMessageBox::critical(this, tr("Error"),
+                tr("Error saving clipboard data: %1").arg(e.what()),
+                QMessageBox::Ok);
+    }
+}
+
+void OrganizerDialog::onPasteLevels()
+{
+    const QMimeData* cbData = qApp->clipboard()->mimeData();
+    if (cbData->hasFormat("CHIPEDIT LEVELS")) {
+        QByteArray buffer = cbData->data("CHIPEDIT LEVELS");
+        ccl::BufferStream cbStream;
+        cbStream.setFrom(buffer.data(), buffer.size());
+
+        unsigned int levelCount = cbStream.read32();
+        QList<unsigned short> levelSizes;
+        for (unsigned int i=0; i<levelCount; ++i) {
+            levelSizes << cbStream.read16();
+            cbStream.read32();  // Ignored
+        }
+
+        for (unsigned int i=0; i<levelCount; ++i) {
+            long start = cbStream.tell();
+            ccl::LevelData* level = new ccl::LevelData();
+            try {
+                level->read(&cbStream, true);
+                if (cbStream.tell() - start != levelSizes[i])
+                    throw ccl::IOException("Corrupt Level Data");
+            } catch (std::exception& ex) {
+                QMessageBox::critical(this, tr("Error"),
+                        tr("Error reading clipboard data: %1").arg(ex.what()),
+                        QMessageBox::Ok);
+                level->unref();
+            }
+
+            if (m_levels->currentItem() != 0)
+                m_levels->insertLevel(m_levels->currentRow() + 1, level);
+            else
+                m_levels->addLevel(level);
+            level->unref();
+        }
+    }
+}
+
 void OrganizerDialog::onDeleteLevels()
 {
     foreach (QListWidgetItem* item, m_levels->selectedItems())
         m_levels->delLevel(m_levels->row(item));
+}
+
+void OrganizerDialog::onClipboardDataChanged()
+{
+    const QMimeData* cbData = qApp->clipboard()->mimeData();
+    m_actions[ActionPaste]->setEnabled(cbData->hasFormat("CHIPEDIT LEVELS"));
 }

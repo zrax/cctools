@@ -35,6 +35,7 @@ public:
 
     void setTileset(CCETileset* tileset) { m_tileset = tileset; }
     void addLevel(ccl::LevelData* level);
+    void insertLevel(int row, ccl::LevelData* level);
     void delLevel(int row);
 
     ccl::LevelData* level(int row)
@@ -63,7 +64,11 @@ public:
 private slots:
     void saveChanges();
     void updateActions();
+    void onCutLevels();
+    void onCopyLevels();
+    void onPasteLevels();
     void onDeleteLevels();
+    void onClipboardDataChanged();
 
 private:
     ccl::Levelset* m_levelset;
