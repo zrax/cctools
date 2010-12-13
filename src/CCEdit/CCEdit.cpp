@@ -1314,8 +1314,8 @@ void CCEditMain::onClearAction()
     editor->beginEdit(CCEHistoryNode::HistClear);
     for (int y = editor->selection().top(); y <= editor->selection().bottom(); ++y) {
         for (int x = editor->selection().left(); x <= editor->selection().right(); ++x) {
-            editor->putTile(ccl::TileFloor, x, y, true);
-            editor->putTile(ccl::TileFloor, x, y, false);
+            editor->putTile(ccl::TileFloor, x, y, EditorWidget::LayTop);
+            editor->putTile(ccl::TileFloor, x, y, EditorWidget::LayBottom);
         }
     }
     editor->endEdit();

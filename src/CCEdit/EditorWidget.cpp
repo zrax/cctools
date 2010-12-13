@@ -21,10 +21,20 @@
 #include <QMouseEvent>
 #include "../GameLogic.h"
 
+static EditorWidget::DrawLayer select_layer(Qt::KeyboardModifiers keys)
+{
+    if ((keys & Qt::ShiftModifier) != 0)
+        return EditorWidget::LayBottom;
+    else if ((keys & Qt::ControlModifier) != 0)
+        return EditorWidget::LayTop;
+    return EditorWidget::LayAuto;
+}
+
 enum PlotMethod { PlotPreview, PlotDraw };
 
 static void plot_box(EditorWidget* self, QPoint from, QPoint to, PlotMethod method,
-                     QPainter* previewPainter, tile_t drawTile = 0, bool drawBury = false)
+                     QPainter* previewPainter, tile_t drawTile = 0,
+                     EditorWidget::DrawLayer layer = EditorWidget::LayAuto)
 {
     if (from == QPoint(-1, -1))
         return;
@@ -41,12 +51,13 @@ static void plot_box(EditorWidget* self, QPoint from, QPoint to, PlotMethod meth
     } else if (method == PlotDraw) {
         for (int y = lowY; y <= highY; ++y)
             for (int x = lowX; x <= highX; ++x)
-                self->putTile(drawTile, x, y, drawBury);
+                self->putTile(drawTile, x, y, layer);
     }
 }
 
 static void plot_line(EditorWidget* self, QPoint from, QPoint to, PlotMethod method,
-                      QPainter* previewPainter, tile_t drawTile = 0, bool drawBury = false)
+                      QPainter* previewPainter, tile_t drawTile = 0,
+                      EditorWidget::DrawLayer layer = EditorWidget::LayAuto)
 {
     if (from == QPoint(-1, -1))
         return;
@@ -74,7 +85,7 @@ static void plot_line(EditorWidget* self, QPoint from, QPoint to, PlotMethod met
         if (method == PlotPreview)
             self->viewTile(*previewPainter, steep ? y : x, steep ? x : y);
         else if (method == PlotDraw)
-            self->putTile(drawTile, steep ? y : x, steep ? x : y, drawBury);
+            self->putTile(drawTile, steep ? y : x, steep ? x : y, layer);
         err -= dY;
         if (err < 0) {
             y += ystep;
@@ -391,7 +402,7 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
         tile_t curtile = (m_cachedButton == Qt::LeftButton)
                        ? m_leftTile : m_rightTile;
         if (m_drawMode == DrawPencil) {
-            putTile(curtile, posX, posY, (event->modifiers() & Qt::ShiftModifier) != 0);
+            putTile(curtile, posX, posY, select_layer(event->modifiers()));
             emit makeDirty();
         } else if (m_drawMode == DrawLine || m_drawMode == DrawFill) {
             if (m_cachedButton == Qt::LeftButton)
@@ -415,40 +426,40 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
                             && (oldTile == ccl::TileForce_N || oldTile == ccl::TileForce_S))
                         || ((dirtile == ccl::TileForce_N || dirtile == ccl::TileForce_S)
                             && (oldTile == ccl::TileForce_E || oldTile == ccl::TileForce_W)))
-                        putTile(ccl::TileIce, posX, posY, (event->modifiers() & Qt::ShiftModifier) != 0);
+                        putTile(ccl::TileIce, posX, posY, select_layer(event->modifiers()));
                     else
-                        putTile(dirtile, posX, posY, (event->modifiers() & Qt::ShiftModifier) != 0);
+                        putTile(dirtile, posX, posY, select_layer(event->modifiers()));
                     oldTile = (event->modifiers() & Qt::ShiftModifier) == 0
                             ? m_levelData->map().getFG(m_origin.x(), m_origin.y())
                             : m_levelData->map().getBG(m_origin.x(), m_origin.y());
                     if (oldTile != ccl::TileIce)
-                        putTile(dirtile, m_origin.x(), m_origin.y(), (event->modifiers() & Qt::ShiftModifier) != 0);
+                        putTile(dirtile, m_origin.x(), m_origin.y(), select_layer(event->modifiers()));
                 } else if (curtile == ccl::TileIce && m_lastDir != ccl::DirInvalid) {
                     // Add curves to ice
-                    putTile(dirtile, posX, posY, (event->modifiers() & Qt::ShiftModifier) != 0);
+                    putTile(dirtile, posX, posY, select_layer(event->modifiers()));
                     if ((m_lastDir == ccl::DirNorth && dir == ccl::DirEast)
                         || (m_lastDir == ccl::DirWest && dir == ccl::DirSouth))
-                        putTile(ccl::TileIce_SE, m_origin.x(), m_origin.y(), (event->modifiers() & Qt::ShiftModifier) != 0);
+                        putTile(ccl::TileIce_SE, m_origin.x(), m_origin.y(), select_layer(event->modifiers()));
                     else if ((m_lastDir == ccl::DirNorth && dir == ccl::DirWest)
                              || (m_lastDir == ccl::DirEast && dir == ccl::DirSouth))
-                        putTile(ccl::TileIce_SW, m_origin.x(), m_origin.y(), (event->modifiers() & Qt::ShiftModifier) != 0);
+                        putTile(ccl::TileIce_SW, m_origin.x(), m_origin.y(), select_layer(event->modifiers()));
                     else if ((m_lastDir == ccl::DirSouth && dir == ccl::DirEast)
                              || (m_lastDir == ccl::DirWest && dir == ccl::DirNorth))
-                        putTile(ccl::TileIce_NE, m_origin.x(), m_origin.y(), (event->modifiers() & Qt::ShiftModifier) != 0);
+                        putTile(ccl::TileIce_NE, m_origin.x(), m_origin.y(), select_layer(event->modifiers()));
                     else if ((m_lastDir == ccl::DirSouth && dir == ccl::DirWest)
                              || (m_lastDir == ccl::DirEast && dir == ccl::DirNorth))
-                        putTile(ccl::TileIce_NW, m_origin.x(), m_origin.y(), (event->modifiers() & Qt::ShiftModifier) != 0);
+                        putTile(ccl::TileIce_NW, m_origin.x(), m_origin.y(), select_layer(event->modifiers()));
                     else
-                        putTile(ccl::TileIce, m_origin.x(), m_origin.y(), (event->modifiers() & Qt::ShiftModifier) != 0);
+                        putTile(ccl::TileIce, m_origin.x(), m_origin.y(), select_layer(event->modifiers()));
                 } else {
                     // Any other directional tile
-                    putTile(dirtile, posX, posY, (event->modifiers() & Qt::ShiftModifier) != 0);
-                    putTile(dirtile, m_origin.x(), m_origin.y(), (event->modifiers() & Qt::ShiftModifier) != 0);
+                    putTile(dirtile, posX, posY, select_layer(event->modifiers()));
+                    putTile(dirtile, m_origin.x(), m_origin.y(), select_layer(event->modifiers()));
                 }
                 m_origin = m_current;
                 m_lastDir = dir;
             } else {
-                putTile(curtile, posX, posY, (event->modifiers() & Qt::ShiftModifier) != 0);
+                putTile(curtile, posX, posY, select_layer(event->modifiers()));
                 m_origin = m_current;
                 m_lastDir = ccl::DirInvalid;
             }
@@ -657,18 +668,18 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
     } else if (m_drawMode == DrawLine) {
         if (m_cachedButton == Qt::LeftButton)
             plot_line(this, m_origin, m_current, PlotDraw, 0, m_leftTile,
-                      (event->modifiers() & Qt::ShiftModifier) != 0);
+                      select_layer(event->modifiers()));
         else if (m_cachedButton == Qt::RightButton)
             plot_line(this, m_origin, m_current, PlotDraw, 0, m_rightTile,
-                      (event->modifiers() & Qt::ShiftModifier) != 0);
+                      select_layer(event->modifiers()));
         emit makeDirty();
     } else if (m_drawMode == DrawFill) {
         if (m_cachedButton == Qt::LeftButton)
             plot_box(this, m_origin, m_current, PlotDraw, 0, m_leftTile,
-                     (event->modifiers() & Qt::ShiftModifier) != 0);
+                     select_layer(event->modifiers()));
         else if (m_cachedButton == Qt::RightButton)
             plot_box(this, m_origin, m_current, PlotDraw, 0, m_rightTile,
-                     (event->modifiers() & Qt::ShiftModifier) != 0);
+                     select_layer(event->modifiers()));
         emit makeDirty();
     } else if (m_drawMode == DrawButtonConnect) {
         if (m_origin != m_current) {
@@ -746,29 +757,58 @@ void EditorWidget::viewTile(QPainter& painter, int x, int y)
     dirtyBuffer();
 }
 
-void EditorWidget::putTile(tile_t tile, int x, int y, bool bury)
+void EditorWidget::putTile(tile_t tile, int x, int y, DrawLayer layer)
 {
     tile_t oldUpper = m_levelData->map().getFG(x, y);
     tile_t oldLower = m_levelData->map().getBG(x, y);
 
-    if ((bury && oldLower == tile) || (!bury && oldUpper == tile))
-        return;
-
-    if (bury) {
+    if (layer == LayTop) {
+        if (oldUpper == tile)
+            return;
+        m_levelData->map().setFG(x, y, tile);
+    } else if (layer == LayBottom) {
+        if (oldLower == tile)
+            return;
         m_levelData->map().setBG(x, y, tile);
     } else if (oldUpper == ccl::TileCloner && MOVING_TILE(tile)) {
         // Bury the cloner under a cloneable tile
         m_levelData->map().push(x, y, tile);
     } else if (tile == ccl::TileCloner && MOVING_TILE(oldUpper)) {
         m_levelData->map().setBG(x, y, tile);
-    } else if (oldLower == ccl::TileCloner && MOVING_TILE(oldUpper)
-               && !MOVING_TILE(tile)) {
-        // Clear both the cloner and the cloneable before replacing it
-        // with something non-cloneable
+    } else if (MOVING_TILE(oldUpper) && oldLower == ccl::TileCloner
+               && MOVING_TILE(tile)) {
+        // Only replace the top layer
         m_levelData->map().setFG(x, y, tile);
-        m_levelData->map().setBG(x, y, ccl::TileFloor);
+    } else if ((tile >= ccl::TileGlider_N && tile <= ccl::TileGlider_E)
+               && oldUpper == ccl::TileWater) {
+        m_levelData->map().push(x, y, tile);
+    } else if ((oldUpper >= ccl::TileGlider_N && oldUpper <= ccl::TileGlider_E)
+               && tile == ccl::TileWater) {
+        m_levelData->map().setBG(x, y, tile);
+    } else if ((tile >= ccl::TileFireball_N && tile <= ccl::TileFireball_E)
+               && oldUpper == ccl::TileFire) {
+        m_levelData->map().push(x, y, tile);
+    } else if ((oldUpper >= ccl::TileFireball_N && oldUpper <= ccl::TileFireball_E)
+               && tile == ccl::TileFire) {
+        m_levelData->map().setBG(x, y, tile);
+    } else if ((tile == ccl::TileBlock || tile == ccl::TileIceBlock)
+               && oldUpper != ccl::TileBlock && oldUpper != ccl::TileIceBlock) {
+        m_levelData->map().push(x, y, tile);
+    } else if ((MASKED_TILE(tile) || tile == ccl::TileBlock)
+               && ((oldUpper >= ccl::TileBarrier_N && oldUpper <= ccl::TileBarrier_E) ||
+                   oldUpper == ccl::TileBarrier_SE)) {
+        m_levelData->map().push(x, y, tile);
+    } else if ((MASKED_TILE(oldUpper) || oldUpper == ccl::TileBlock)
+               && ((tile >= ccl::TileBarrier_N && tile <= ccl::TileBarrier_E) ||
+                   tile == ccl::TileBarrier_SE)) {
+        m_levelData->map().setBG(x, y, tile);
+    } else if (MASKED_TILE(tile)) {
+        m_levelData->map().setFG(x, y, tile);
+    } else if (tile == ccl::TileFloor) {
+        m_levelData->map().pop(x, y);
     } else {
         m_levelData->map().setFG(x, y, tile);
+        m_levelData->map().setBG(x, y, ccl::TileFloor);
     }
 
     // Clear or add monsters from replaced tiles into move list

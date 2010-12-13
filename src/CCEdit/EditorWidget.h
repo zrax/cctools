@@ -33,6 +33,8 @@ public:
         DrawPathMaker,
     };
 
+    enum DrawLayer { LayTop, LayBottom, LayAuto };
+
     enum PaintFlags {
         ShowPlayer = (1<<0),
         ShowMovement = (1<<1),
@@ -116,7 +118,7 @@ public:
 
 public slots:
     void viewTile(QPainter& painter, int x, int y);
-    void putTile(tile_t tile, int x, int y, bool bury);
+    void putTile(tile_t tile, int x, int y, DrawLayer layer);
     void undo();
     void redo();
     void setZoom(double factor);
