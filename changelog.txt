@@ -1,4 +1,4 @@
-2010-??-?? - 2.0 ALPHA (1.9?.?)
+2010-12-12 - 2.0 ALPHA (1.94.0)
 ~~~~~~~~~~
 New Features
   * Use specialized tile widget for "all tiles" view, so all tiles are shown
@@ -6,6 +6,8 @@ New Features
   * Fit-to-view zoom support
   * Drag-and-drop level organizer with level previews and level copy/paste
   * Show button / monster movement status in a tooltip on the editor
+  * Extended auto-placement drawing mode (NOTE: For regular top/bottom layer
+    drawing, use Ctrl+draw or Shift+draw respectively)
 
 Bugfixes
   * Find more levelsets on case-sensitive filesystems
