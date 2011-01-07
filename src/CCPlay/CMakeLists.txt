@@ -1,4 +1,4 @@
-find_package(Qt4 COMPONENTS QtCore QtGui QtSql QtMain REQUIRED)
+find_package(Qt4 COMPONENTS QtCore QtGui QtSql QtXml QtMain REQUIRED)
 include(${QT_USE_FILE})
 
 include_directories(${QT_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR})
@@ -9,6 +9,7 @@ set(CCPlay_SOURCES
     ../DacFile.cpp
     ../IniFile.cpp
     ../ChipsHax.cpp
+    ../CCMetaData.cpp
     CCPlay.cpp
     PlaySettings.cpp
 )

@@ -35,6 +35,7 @@
 #include "../DacFile.h"
 #include "../IniFile.h"
 #include "../ChipsHax.h"
+#include "../CCMetaData.h"
 
 static ccl::Levelset* load_levelset(QString filename, QWidget* self,
                                     int* dacLastLevel = 0)
@@ -154,10 +155,10 @@ CCPlayMain::CCPlayMain(QWidget* parent)
     m_levelList = new QTreeWidget(splitLevelsetData);
     m_levelList->setRootIsDecorated(false);
     m_levelList->setHeaderLabels(QStringList() << "#" << tr("Name")
-            << tr("Chips") << tr("Time") << tr("My Time") << tr("My Score"));
+            << tr("Author") << tr("Time") << tr("My Time") << tr("My Score"));
     m_levelList->setColumnWidth(0, m_levelList->fontMetrics().width("000") + 10);
     m_levelList->setColumnWidth(1, 160);
-    m_levelList->setColumnWidth(2, m_levelList->fontMetrics().width(tr("Chips")) + 16);
+    m_levelList->setColumnWidth(2, 80);
     m_levelList->setColumnWidth(3, m_levelList->fontMetrics().width(tr("Time")) + 16);
     m_levelList->setColumnWidth(4, m_levelList->fontMetrics().width(tr("My Time")) + 16);
     m_levelList->setColumnWidth(5, m_levelList->fontMetrics().width(tr("My Score")) + 16);
@@ -876,6 +877,12 @@ void CCPlayMain::onLevelsetChanged(QTreeWidgetItem* item, QTreeWidgetItem*)
     if (levelset == 0)
         return;
 
+    CCX::Levelset ccx;
+    bool haveCCX = false;
+    QString ccxName = filename.left(filename.lastIndexOf('.')) + ".ccx";
+    if (ccx.ReadFile(ccxName, levelset->levelCount()))
+        haveCCX = true;
+
     QString fileid = filename.section(QChar('/'), -1);
     QSqlQuery query;
     query.exec(QString("SELECT idx, cur_level FROM levelsets WHERE name='%1'")
@@ -902,7 +909,7 @@ void CCPlayMain::onLevelsetChanged(QTreeWidgetItem* item, QTreeWidgetItem*)
         QTreeWidgetItem* item = new QTreeWidgetItem(m_levelList);
         item->setText(0, QString("%1").arg(level->levelNum()));
         item->setText(1, level->name().c_str());
-        item->setText(2, level->chips() == 0 ? "---" : QString("%1").arg(level->chips()));
+        item->setText(2, haveCCX ? ccx.vecLevels[level->levelNum()].sAuthor : "");
         item->setText(3, level->timer() == 0 ? "---" : QString("%1").arg(level->timer()));
         item->setText(4, myTime == 0 ? "---" : QString("%1").arg(myTime));
         item->setText(5, myScore == 0 ? "---" : QString("%1").arg(myScore));
