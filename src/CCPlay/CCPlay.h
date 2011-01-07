@@ -63,6 +63,7 @@ private slots:
     void onEditor(QAction* action);
     void onSetup();
 
+    void onRefreshLevelsets();
     void onBrowseLevelsetPath();
     void onPathChanged(QString);
     void onLevelsetChanged(QTreeWidgetItem*, QTreeWidgetItem*);

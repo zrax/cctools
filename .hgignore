@@ -3,6 +3,7 @@ syntax: glob
 *.dat
 *.dac
 *.ccl
+*.ccx
 .DS_Store
 bin/CCEdit*
 bin/CCPlay*

@@ -130,6 +130,10 @@ CCPlayMain::CCPlayMain(QWidget* parent)
     m_levelsetPath->setCompleter(dirCompleter);
     QLabel* lblLevelsetPath = new QLabel(tr("Levelset &Path:"), contents);
     lblLevelsetPath->setBuddy(m_levelsetPath);
+    QToolButton* btnRefresh = new QToolButton(this);
+    btnRefresh->setAutoRaise(true);
+    btnRefresh->setIcon(QIcon(":/res/view-refresh.png"));
+    btnRefresh->setStatusTip(tr("Refresh Levelsets"));
     QToolButton* btnOpenPath = new QToolButton(this);
     btnOpenPath->setAutoRaise(true);
     btnOpenPath->setIcon(QIcon(":/res/document-open-folder.png"));
@@ -214,9 +218,10 @@ CCPlayMain::CCPlayMain(QWidget* parent)
     layout->setHorizontalSpacing(4);
     layout->addWidget(lblLevelsetPath, 0, 0);
     layout->addWidget(m_levelsetPath, 0, 1);
-    layout->addWidget(btnOpenPath, 0, 2);
-    layout->addWidget(splitLevelsetData, 1, 0, 1, 3);
-    layout->addWidget(toolbar, 0, 3, 2, 1);
+    layout->addWidget(btnRefresh, 0, 2);
+    layout->addWidget(btnOpenPath, 0, 3);
+    layout->addWidget(splitLevelsetData, 1, 0, 1, 4);
+    layout->addWidget(toolbar, 0, 4, 2, 1);
     setCentralWidget(contents);
     statusBar();
 
@@ -226,6 +231,7 @@ CCPlayMain::CCPlayMain(QWidget* parent)
     connect(m_editButton->menu(), SIGNAL(triggered(QAction*)), SLOT(onEditor(QAction*)));
     connect(m_actions[ActionSetup], SIGNAL(triggered()), SLOT(onSetup()));
     connect(m_actions[ActionExit], SIGNAL(triggered()), SLOT(close()));
+    connect(btnRefresh, SIGNAL(clicked()), SLOT(onRefreshLevelsets()));
     connect(btnOpenPath, SIGNAL(clicked()), SLOT(onBrowseLevelsetPath()));
     connect(m_levelsetPath, SIGNAL(textChanged(QString)), SLOT(onPathChanged(QString)));
     connect(m_levelsetList, SIGNAL(currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)),
@@ -795,6 +801,11 @@ void CCPlayMain::onSetup()
     SettingsDialog dlg;
     if (dlg.exec() == QDialog::Accepted)
         refreshTools();
+}
+
+void CCPlayMain::onRefreshLevelsets()
+{
+    onPathChanged(m_levelsetPath->text());
 }
 
 void CCPlayMain::onBrowseLevelsetPath()
