@@ -792,17 +792,58 @@ void EditorWidget::putTile(tile_t tile, int x, int y, DrawLayer layer)
                && tile == ccl::TileFire) {
         m_levelData->map().setBG(x, y, tile);
     } else if ((tile == ccl::TileBlock || tile == ccl::TileIceBlock)
-               && oldUpper != ccl::TileBlock && oldUpper != ccl::TileIceBlock) {
+               && (oldUpper == ccl::TileChip || oldUpper == ccl::TileBarrier_SE ||
+                   (oldUpper >= ccl::TileBarrier_N && oldUpper <= ccl::TileBarrier_E) ||
+                   oldUpper == ccl::TileExit || oldUpper == ccl::TileThief ||
+                   (oldUpper >= ccl::TileKey_Blue && oldUpper <= ccl::TileForceBoots) ||
+                   (oldUpper == ccl::TileFire && tile == ccl::TileBlock))) {
         m_levelData->map().push(x, y, tile);
-    } else if ((MASKED_TILE(tile) || tile == ccl::TileBlock)
-               && ((oldUpper >= ccl::TileBarrier_N && oldUpper <= ccl::TileBarrier_E) ||
-                   oldUpper == ccl::TileBarrier_SE)) {
-        m_levelData->map().push(x, y, tile);
-    } else if ((MASKED_TILE(oldUpper) || oldUpper == ccl::TileBlock)
-               && ((tile >= ccl::TileBarrier_N && tile <= ccl::TileBarrier_E) ||
-                   tile == ccl::TileBarrier_SE)) {
+    } else if ((oldUpper == ccl::TileBlock || oldUpper == ccl::TileIceBlock)
+               && (tile == ccl::TileChip || tile == ccl::TileBarrier_SE ||
+                   (tile >= ccl::TileBarrier_N && tile <= ccl::TileBarrier_E) ||
+                   tile == ccl::TileExit || tile == ccl::TileThief ||
+                   (tile >= ccl::TileKey_Blue && tile <= ccl::TileForceBoots) ||
+                   (tile == ccl::TileFire && oldUpper == ccl::TileBlock))) {
         m_levelData->map().setBG(x, y, tile);
-    } else if (MASKED_TILE(tile)) {
+    } else if ((MASKED_TILE(tile) || tile == ccl::TileBlock || tile == ccl::TileIceBlock)
+               && ((oldUpper >= ccl::TileBarrier_N && oldUpper <= ccl::TileBarrier_E) ||
+                   oldUpper == ccl::TileBarrier_SE || oldUpper == ccl::TileCloneButton ||
+                   oldUpper == ccl::TileTankButton || oldUpper == ccl::TileTrapButton ||
+                   oldUpper == ccl::TileToggleButton || oldUpper == ccl::TileTrap ||
+                   oldUpper == ccl::TileHint)) {
+        m_levelData->map().push(x, y, tile);
+    } else if ((MASKED_TILE(oldUpper) || oldUpper == ccl::TileBlock || oldUpper == ccl::TileIceBlock)
+               && ((tile >= ccl::TileBarrier_N && tile <= ccl::TileBarrier_E) ||
+                   tile == ccl::TileBarrier_SE || tile == ccl::TileCloneButton ||
+                   tile == ccl::TileTankButton || tile == ccl::TileTrapButton ||
+                   tile == ccl::TileToggleButton || tile == ccl::TileTrap ||
+                   tile == ccl::TileHint)) {
+        m_levelData->map().setBG(x, y, tile);
+    } else if (MONSTER_TILE(tile)
+               && (oldUpper == ccl::TileChip || oldUpper == ccl::TileIce ||
+                  (oldUpper >= ccl::TileIce_SE && oldUpper <= ccl::TileIce_NE) ||
+                  oldUpper == ccl::TileExit || oldUpper == ccl::TileThief ||
+                  oldUpper == ccl::TileSocket || FORCE_TILE(oldUpper) ||
+                  (oldUpper >= ccl::TileKey_Blue && oldUpper <= ccl::TileForceBoots))) {
+        m_levelData->map().push(x, y, tile);
+    } else if (MONSTER_TILE(oldUpper)
+               && (tile == ccl::TileChip || tile == ccl::TileIce ||
+                  (tile >= ccl::TileIce_SE && tile <= ccl::TileIce_NE) ||
+                  tile == ccl::TileExit || tile == ccl::TileThief ||
+                  tile == ccl::TileSocket || FORCE_TILE(tile) ||
+                  (tile >= ccl::TileKey_Blue && tile <= ccl::TileForceBoots))) {
+        m_levelData->map().setBG(x, y, tile);
+    } else if ((tile >= ccl::TileKey_Blue && tile <= ccl::TileForceBoots)
+               && (oldUpper == ccl::TileIce || FORCE_TILE(oldUpper) ||
+                  (oldUpper >= ccl::TileIce_SE && oldUpper <= ccl::TileIce_NE) ||
+                  oldUpper == ccl::TileWater || oldUpper == ccl::TileFire)) {
+        m_levelData->map().push(x, y, tile);
+    } else if ((oldUpper >= ccl::TileKey_Blue && oldUpper <= ccl::TileForceBoots)
+               && (tile == ccl::TileIce || FORCE_TILE(tile) ||
+                  (tile >= ccl::TileIce_SE && tile <= ccl::TileIce_NE) ||
+                  tile == ccl::TileWater || tile == ccl::TileFire)) {
+        m_levelData->map().setBG(x, y, tile);
+    } else if (MASKED_TILE(tile) || tile == ccl::TileBlock || tile == ccl::TileIceBlock) {
         m_levelData->map().setFG(x, y, tile);
     } else if (tile == ccl::TileFloor) {
         m_levelData->map().pop(x, y);
