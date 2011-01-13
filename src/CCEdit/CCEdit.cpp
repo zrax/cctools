@@ -29,6 +29,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QInputDialog>
+#include <QProgressDialog>
 #include <QStatusBar>
 #include <QCloseEvent>
 #include <QActionGroup>
@@ -84,6 +85,9 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionClose]->setStatusTip(tr("Close the currently open levelset"));
     m_actions[ActionClose]->setShortcut(Qt::CTRL | Qt::Key_W);
     m_actions[ActionClose]->setEnabled(false);
+    m_actions[ActionGenReport] = new QAction(tr("Generate &Report"), this);
+    m_actions[ActionGenReport]->setStatusTip(tr("Generate an HTML report of the current levelset"));
+    m_actions[ActionGenReport]->setEnabled(false);
     m_actions[ActionExit] = new QAction(QIcon(":/res/application-exit.png"), tr("E&xit"), this);
     m_actions[ActionExit]->setStatusTip(tr("Close CCEdit"));
 
@@ -443,6 +447,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     fileMenu->addAction(m_actions[ActionSaveAs]);
     fileMenu->addAction(m_actions[ActionClose]);
     fileMenu->addSeparator();
+    fileMenu->addAction(m_actions[ActionGenReport]);
+    fileMenu->addSeparator();
     fileMenu->addAction(m_actions[ActionExit]);
 
     QMenu* editMenu = menuBar()->addMenu(tr("&Edit"));
@@ -533,6 +539,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionSave], SIGNAL(triggered()), SLOT(onSaveAction()));
     connect(m_actions[ActionSaveAs], SIGNAL(triggered()), SLOT(onSaveAsAction()));
     connect(m_actions[ActionClose], SIGNAL(triggered()), SLOT(onCloseAction()));
+    connect(m_actions[ActionGenReport], SIGNAL(triggered()), SLOT(onReportAction()));
     connect(m_actions[ActionExit], SIGNAL(triggered()), SLOT(close()));
     connect(m_actions[ActionSelect], SIGNAL(toggled(bool)), SLOT(onSelectToggled(bool)));
     connect(m_actions[ActionCut], SIGNAL(triggered()), SLOT(onCutAction()));
@@ -759,6 +766,7 @@ void CCEditMain::loadLevelset(QString filename)
     m_actions[ActionSave]->setEnabled(true);
     m_actions[ActionSaveAs]->setEnabled(true);
     m_actions[ActionClose]->setEnabled(true);
+    m_actions[ActionGenReport]->setEnabled(true);
     m_actions[ActionTestChips]->setEnabled(true);
     m_actions[ActionTestTWorldCC]->setEnabled(true);
     m_actions[ActionTestTWorldLynx]->setEnabled(true);
@@ -939,6 +947,7 @@ bool CCEditMain::closeLevelset()
     m_actions[ActionSave]->setEnabled(false);
     m_actions[ActionSaveAs]->setEnabled(false);
     m_actions[ActionClose]->setEnabled(false);
+    m_actions[ActionGenReport]->setEnabled(false);
     m_actions[ActionTestChips]->setEnabled(false);
     m_actions[ActionTestTWorldCC]->setEnabled(false);
     m_actions[ActionTestTWorldLynx]->setEnabled(false);
@@ -1094,6 +1103,7 @@ void CCEditMain::onNewAction()
     m_actions[ActionSave]->setEnabled(true);
     m_actions[ActionSaveAs]->setEnabled(true);
     m_actions[ActionClose]->setEnabled(true);
+    m_actions[ActionGenReport]->setEnabled(true);
     m_actions[ActionTestChips]->setEnabled(true);
     m_actions[ActionTestTWorldCC]->setEnabled(true);
     m_actions[ActionTestTWorldLynx]->setEnabled(true);
@@ -1138,6 +1148,83 @@ void CCEditMain::onSaveAsAction()
         QDir dir(filename);
         dir.cdUp();
         m_dialogDir = dir.absolutePath();
+    }
+}
+
+void CCEditMain::onReportAction()
+{
+    QString reportPath = m_levelsetFilename.isEmpty() ? m_dialogDir
+                       : m_levelsetFilename.left(m_levelsetFilename.lastIndexOf('.')) + ".html";
+    QString filename = QFileDialog::getSaveFileName(this, tr("Save Report..."),
+                                                    reportPath, "HTML Source (*.html)");
+    if (filename.isEmpty())
+        return;
+
+    QProgressDialog proDlg(this);
+    proDlg.setMaximum(m_levelset->levelCount() + 1);
+    proDlg.setMinimumDuration(2000);
+    proDlg.setLabelText(tr("Generating HTML report.  Please be patient..."));
+
+    // Generate HTML output
+    QFile report(filename);
+    if (!report.open(QIODevice::Truncate | QIODevice::WriteOnly)) {
+        QMessageBox::critical(this, tr("Error creating report"),
+                tr("Error creating report: Could not write HTML report"));
+        return;
+    }
+    QString filebase = QDir(filename).dirName();
+    filebase = filebase.left(filebase.lastIndexOf('.')) + ".ccl";
+    report.write("<html>\n<head><title>Levelset Report: ");
+    report.write(filebase.toUtf8().data());
+    report.write("</title></head>\n\n");
+
+    report.write("<body>\n<h1 align=\"center\">Levelset Report:");
+    report.write(filebase.toUtf8().data());
+    report.write("</h1>\n");
+
+    QString dirbase = filebase.left(filebase.lastIndexOf('.')) + "_levimg";
+    for (int i=0; i<m_levelset->levelCount(); ++i) {
+        ccl::LevelData* level = m_levelset->level(i);
+        report.write("<hr />\n<h2>Level ");
+        report.write(QString("%1").arg(i + 1).toUtf8().data());
+        report.write("</h2>\n<pre>\n");
+        report.write("<b>Title:</b>    ");
+        report.write(level->name().c_str());
+        report.write("\n<b>Chips:</b>    ");
+        report.write(QString("%1").arg(level->chips()).toUtf8().data());
+        report.write("\n<b>Time:</b>     ");
+        report.write(QString("%1").arg(level->timer()).toUtf8().data());
+        report.write("\n<b>Password:</b> ");
+        report.write(level->password().c_str());
+        report.write("\n<b>Hint:</b>     ");
+        report.write(level->hint().c_str());
+        report.write("\n</pre>\n<img src=\"");
+        report.write(QString("%1/level%2.png").arg(dirbase).arg(i + 1).toUtf8().data());
+        report.write("\" />\n");
+    }
+    report.write("</html>\n");
+    proDlg.setValue(1);
+    if (proDlg.wasCanceled())
+        return;
+
+    // Generate level images
+    dirbase = filename.left(filename.lastIndexOf('.')) + "_levimg";
+    QDir dir;
+    dir.mkdir(dirbase);
+    if (!dir.cd(dirbase)) {
+        QMessageBox::critical(this, tr("Error creating report"),
+                tr("Error creating report: Could not create level image folder"));
+        return;
+    }
+    {
+        EditorWidget reportDummy;
+        reportDummy.setVisible(false);
+        reportDummy.setTileset(m_currentTileset);
+        for (int i=0; !proDlg.wasCanceled() && i<m_levelset->levelCount(); ++i) {
+            reportDummy.setLevelData(m_levelset->level(i));
+            reportDummy.renderReport().save(dirbase + QString("/level%1.png").arg(i+1));
+            proDlg.setValue(i+2);
+        }
     }
 }
 

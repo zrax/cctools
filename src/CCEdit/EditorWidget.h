@@ -41,6 +41,8 @@ public:
         ShowButtons = (1<<2),
         ShowMovePaths = (1<<3),
         ShowViewBox = (1<<4),
+        ShowAll = ShowPlayer | ShowMovement | ShowButtons | ShowMovePaths |
+                  ShowViewBox,
         PaintLeftTemp = (1<<5),
         PaintRightTemp = (1<<6),
         PaintTempBury = (1<<7),
@@ -115,6 +117,9 @@ public:
     void renderTileBuffer();
     void dirtyBuffer() { m_cacheDirty = true; }
     double zoom() const { return m_zoomFactor; }
+
+    void renderTo(QPainter& painter);
+    QPixmap renderReport();
 
 public slots:
     void viewTile(QPainter& painter, int x, int y);

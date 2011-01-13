@@ -51,11 +51,12 @@ public:
 
 private:
     enum ActionType {
-        ActionNew, ActionOpen, ActionSave, ActionSaveAs, ActionClose, ActionExit,
-        ActionSelect, ActionCut, ActionCopy, ActionPaste, ActionClear,
-        ActionUndo, ActionRedo, ActionDrawPencil, ActionDrawLine, ActionDrawFill,
-        ActionPathMaker, ActionConnect, ActionAdvancedMech, ActionToggleWalls,
-        ActionCheckErrors, ActionViewButtons, ActionViewMovers, ActionViewActivePlayer,
+        ActionNew, ActionOpen, ActionSave, ActionSaveAs, ActionClose,
+        ActionGenReport, ActionExit, ActionSelect, ActionCut, ActionCopy,
+        ActionPaste, ActionClear, ActionUndo, ActionRedo, ActionDrawPencil,
+        ActionDrawLine, ActionDrawFill, ActionPathMaker, ActionConnect,
+        ActionAdvancedMech, ActionToggleWalls, ActionCheckErrors,
+        ActionViewButtons, ActionViewMovers, ActionViewActivePlayer,
         ActionViewViewport, ActionViewMonsterPaths, ActionZoom100, ActionZoom75,
         ActionZoom50, ActionZoom25, ActionZoom125, ActionZoomCust, ActionZoomFit,
         ActionTestChips, ActionTestTWorldCC, ActionTestTWorldLynx,
@@ -116,6 +117,7 @@ private slots:
     void onSaveAction();
     void onSaveAsAction();
     void onCloseAction() { closeLevelset(); }
+    void onReportAction();
     void onSelectToggled(bool);
     void onCutAction();
     void onCopyAction();

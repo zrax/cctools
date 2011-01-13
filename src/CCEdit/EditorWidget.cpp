@@ -185,6 +185,18 @@ static bool isValidPoint(const ccl::Point& point)
     return (point.X >= 0 && point.X < 32 && point.Y >= 0 && point.Y < 32);
 }
 
+static QPoint find_player(ccl::LevelData* levelData)
+{
+    for (int y = 31; y >= 0; --y) {
+        for (int x = 31; x >= 0; --x) {
+            if (levelData->map().getFG(x, y) >= ccl::TilePlayer_N
+                && levelData->map().getFG(x, y) <= ccl::TilePlayer_E)
+                return QPoint(x, y);
+        }
+    }
+    return QPoint(0, 0);
+}
+
 
 EditorWidget::EditorWidget(QWidget* parent)
             : QWidget(parent), m_tileset(0), m_levelData(0), m_leftTile(0),
@@ -245,6 +257,11 @@ void EditorWidget::paintEvent(QPaintEvent*)
         return;
 
     QPainter painter(this);
+    renderTo(painter);
+}
+
+void EditorWidget::renderTo(QPainter& painter)
+{
     if (m_cacheDirty) {
         renderTileBuffer();
         m_tileCache = m_tileBuffer.scaled(sizeHint());
@@ -316,19 +333,9 @@ void EditorWidget::paintEvent(QPaintEvent*)
     }
 
     if ((m_paintFlags & ShowPlayer) != 0) {
-        bool playerFound = false;
         painter.setPen(QColor(255, 127, 0));
-        for (int y = 31; !playerFound && y >= 0; --y) {
-            for (int x = 31; !playerFound && x >= 0; --x) {
-                if (m_levelData->map().getFG(x, y) >= ccl::TilePlayer_N
-                    && m_levelData->map().getFG(x, y) <= ccl::TilePlayer_E) {
-                    painter.drawRect(calcTileRect(x, y));
-                    playerFound = true;
-                }
-            }
-        }
-        if (!playerFound)
-            painter.drawRect(calcTileRect(0, 0));
+        QPoint playerPos = find_player(m_levelData);
+        painter.drawRect(calcTileRect(playerPos.x(), playerPos.y()));
     }
 
     if ((m_paintFlags & ShowViewBox) != 0) {
@@ -377,6 +384,22 @@ void EditorWidget::paintEvent(QPaintEvent*)
     painter.setPen(QColor(255, 0, 0));
     foreach (QPoint hi, m_hilights)
         painter.drawRect(calcTileRect(hi.x(), hi.y()));
+}
+
+/* This is only used to generate special reports, so no old draw/render state
+ * data needs to be saved.
+ */
+QPixmap EditorWidget::renderReport()
+{
+    m_paintFlags = ShowAll;
+    m_zoomFactor = 1.0;
+    m_cacheDirty = true;
+    m_current = find_player(m_levelData);
+
+    QPixmap output(m_tileset->size() * 32, m_tileset->size() * 32);
+    QPainter painter(&output);
+    renderTo(painter);
+    return output;
 }
 
 void EditorWidget::mouseMoveEvent(QMouseEvent* event)
