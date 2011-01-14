@@ -1069,6 +1069,8 @@ EditorWidget* CCEditMain::addEditor(ccl::LevelData* level)
     editor->setLevelData(level);
     editor->setLeftTile(m_layer[0]->upper());
     editor->setRightTile(m_layer[0]->lower());
+    if (m_zoomFactor != 0.0)
+        editor->setZoom(m_zoomFactor);
     m_editorTabs->addTab(scroll, level->name().c_str());
     resizeEvent(0);
 
