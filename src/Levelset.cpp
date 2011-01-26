@@ -85,6 +85,27 @@ long ccl::LevelMap::write(ccl::Stream* stream)
     return outsize;
 }
 
+ccl::Point ccl::LevelMap::findNext(int x, int y, tile_t tile) const
+{
+    ccl::Point result;
+    result.X = x;
+    result.Y = y;
+    for ( ;; ) {
+        if (++result.X >= 32) {
+            if (++result.Y >= 32)
+                result.Y = 0;
+            result.X = 0;
+        }
+        if (getFG(result.X, result.Y) == tile || getBG(result.X, result.Y) == tile)
+            return result;
+        if (result.X == x && result.Y == y) {
+            result.X = -1;
+            result.Y = -1;
+            return result;
+        }
+    }
+}
+
 
 ccl::LevelData::LevelData()
     : m_refs(1), m_levelNum(0), m_chips(0), m_timer(0)
@@ -96,6 +117,54 @@ ccl::LevelData::LevelData(const ccl::LevelData& init)
       m_chips(init.m_chips), m_timer(init.m_timer), m_traps(init.m_traps),
       m_clones(init.m_clones), m_moveList(init.m_moveList)
 { }
+
+std::list<ccl::Point> ccl::LevelData::linkedTraps(int x, int y) const
+{
+    std::list<ccl::Point> result;
+    std::list<ccl::Trap>::const_iterator iter = m_traps.begin();
+    while (iter != m_traps.end()) {
+        if (iter->button.X == x && iter->button.Y == y)
+            result.push_back(iter->trap);
+        ++iter;
+    }
+    return result;
+}
+
+std::list<ccl::Point> ccl::LevelData::linkedTrapButtons(int x, int y) const
+{
+    std::list<ccl::Point> result;
+    std::list<ccl::Trap>::const_iterator iter = m_traps.begin();
+    while (iter != m_traps.end()) {
+        if (iter->trap.X == x && iter->trap.Y == y)
+            result.push_back(iter->button);
+        ++iter;
+    }
+    return result;
+}
+
+std::list<ccl::Point> ccl::LevelData::linkedCloners(int x, int y) const
+{
+    std::list<ccl::Point> result;
+    std::list<ccl::Clone>::const_iterator iter = m_clones.begin();
+    while (iter != m_clones.end()) {
+        if (iter->button.X == x && iter->button.Y == y)
+            result.push_back(iter->clone);
+        ++iter;
+    }
+    return result;
+}
+
+std::list<ccl::Point> ccl::LevelData::linkedCloneButtons(int x, int y) const
+{
+    std::list<ccl::Point> result;
+    std::list<ccl::Clone>::const_iterator iter = m_clones.begin();
+    while (iter != m_clones.end()) {
+        if (iter->clone.X == x && iter->clone.Y == y)
+            result.push_back(iter->button);
+        ++iter;
+    }
+    return result;
+}
 
 void ccl::LevelData::trapConnect(int buttonX, int buttonY, int trapX, int trapY)
 {

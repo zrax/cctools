@@ -23,8 +23,7 @@
 #include <QSettings>
 
 enum CheckMode {
-    CheckMsccStrict, CheckMscc, CheckTWorldMS, CheckTWorldLynx,
-    CheckLynxPedantic,
+    CheckMsccStrict, CheckMscc, CheckTWorldLynx, CheckLynxPedantic,
 };
 
 ErrorCheckDialog::ErrorCheckDialog(QWidget* parent)
@@ -35,10 +34,9 @@ ErrorCheckDialog::ErrorCheckDialog(QWidget* parent)
 
     m_checkMode = new QComboBox(this);
     m_checkMode->addItems(QStringList() << tr("MSCC (Unmodified)")
-                                        << tr("MSCC (CCPlay)")
-                                        << tr("Tile World (MSCC rules)")
-                                        << tr("Tile World (Lynx rules)")
-                                        << tr("Tile World (Lynx pedantic)"));
+                                        << tr("MSCC (CCPlay / Tile World)")
+                                        << tr("Lynx (Tile World)")
+                                        << tr("Lynx (Pedantic)"));
     m_checkMode->setCurrentIndex(settings.value("LevelsetCheckMode", (int)CheckMscc).toInt());
     m_checkTarget = new QComboBox(this);
 
@@ -195,10 +193,10 @@ void ErrorCheckDialog::checkLevel(int level)
                                    "Not enough chips to meet goal (need %1 more)")
                            .arg(levelData->chips() - chips));
     if (players == 0)
-        reportError(level, "[Design Error]\n"
+        reportError(level, "[Design Warning]\n"
                            "No player start tile is present in the level");
     if (players > 1)
-        reportError(level, "[Design Error]\n"
+        reportError(level, "[Design Warning]\n"
                            "Multiple player start tiles are present in the level");
 
     std::list<ccl::Trap>::iterator trap_iter;
@@ -263,5 +261,54 @@ void ErrorCheckDialog::checkLevel(int level)
             reportError(level, QString("[Invalid Mover]\n"
                                        "Invalid monster tile at mover position (%1, %2)")
                                .arg(move_iter->X).arg(move_iter->Y));
+    }
+
+    if (m_checkMode->currentIndex() == CheckLynxPedantic) {
+        bool reportNoTraps = false, reportNoClones = false;
+        bool reportMultiTraps = false, reportMultiClones = false;
+        bool reportBadTraps = false, reportBadClones = false;
+
+        for (int y = 0; y < 32; ++y) {
+            for (int x = 0; x < 32; ++x) {
+                if (levelData->map().getFG(x, y) == ccl::TileTrapButton
+                    || levelData->map().getBG(x, y) == ccl::TileTrapButton) {
+                    std::list<ccl::Point> targets = levelData->linkedTraps(x, y);
+                    if (!reportNoTraps && targets.size() == 0) {
+                        reportError(level, QString("[Invalid Trap]\n"
+                                    "One or more trap buttons has no connections"));
+                        reportNoTraps = true;
+                    }
+                    if (!reportMultiTraps && targets.size() > 1) {
+                        reportError(level, QString("[Invalid Trap]\n"
+                                    "One or more trap buttons has multiple connections"));
+                        reportMultiTraps = true;
+                    }
+                    if (!reportBadTraps && targets.front() != levelData->map().findNext(x, y, ccl::TileTrap)) {
+                        reportError(level, QString("[Invalid Trap]\n"
+                                    "One or more trap connections violates the reading-order rule"));
+                        reportBadTraps = true;
+                    }
+                }
+                if (levelData->map().getFG(x, y) == ccl::TileCloneButton
+                    || levelData->map().getBG(x, y) == ccl::TileCloneButton) {
+                    std::list<ccl::Point> targets = levelData->linkedCloners(x, y);
+                    if (!reportNoClones && targets.size() == 0) {
+                        reportError(level, QString("[Invalid Cloner]\n"
+                                    "One or more clone buttons has no connections"));
+                        reportNoClones = true;
+                    }
+                    if (!reportMultiClones && targets.size() > 1) {
+                        reportError(level, QString("[Invalid Cloner]\n"
+                                    "One or more clone buttons has multiple connections"));
+                        reportMultiClones = true;
+                    }
+                    if (!reportBadClones && targets.front() != levelData->map().findNext(x, y, ccl::TileCloner)) {
+                        reportError(level, QString("[Invalid Cloner]\n"
+                                    "One or more cloner connections violates the reading-order rule"));
+                        reportBadClones = true;
+                    }
+                }
+            }
+        }
     }
 }

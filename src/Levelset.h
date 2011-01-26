@@ -32,7 +32,13 @@
 
 namespace ccl {
 
-struct Point    { int X, Y; };
+struct Point {
+    int X, Y;
+
+    bool operator==(const Point& other) { return X == other.X && Y == other.Y; }
+    bool operator!=(const Point& other) { return X != other.X || Y != other.Y; }
+};
+
 struct Trap     { Point button, trap; };
 struct Clone    { Point button, clone; };
 
@@ -63,6 +69,8 @@ public:
 
     long read(Stream* stream);
     long write(Stream* stream);
+
+    ccl::Point findNext(int x, int y, tile_t tile) const;
 
 private:
     tile_t m_fgTiles[CCL_WIDTH * CCL_HEIGHT];
@@ -96,6 +104,11 @@ public:
     std::list<ccl::Trap>& traps() { return m_traps; }
     std::list<ccl::Clone>& clones() { return m_clones; }
     std::list<ccl::Point>& moveList() { return m_moveList; }
+
+    std::list<ccl::Point> linkedTraps(int x, int y) const;
+    std::list<ccl::Point> linkedTrapButtons(int x, int y) const;
+    std::list<ccl::Point> linkedCloners(int x, int y) const;
+    std::list<ccl::Point> linkedCloneButtons(int x, int y) const;
 
     void setName(const std::string& name) { m_name = name; }
     void setHint(const std::string& hint) { m_hint = hint; }
