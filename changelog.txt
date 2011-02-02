@@ -1,3 +1,16 @@
+2011-02-02 - 2.0 BETA 1 (1.99.0)
+~~~~~~~~~~
+New Features
+  * Added Author info (from .ccx file) to CCPlay's GUI
+  * Generate HTML reports in CCEdit
+  * Add more error checking in the Check for Errors dialog
+  * Show a visual marker for invalid tile combinations
+
+Bugfixes
+  * Updated auto layer placement logic to correctly handle most cases
+  * Zoom factor wasn't getting set correctly after re-starting CCEdit
+
+
 2010-12-12 - 2.0 ALPHA (1.94.0)
 ~~~~~~~~~~
 New Features

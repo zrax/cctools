@@ -51,7 +51,7 @@
 #include "../ChipsHax.h"
 #include "../GameLogic.h"
 
-#define CCEDIT_TITLE "CCEdit 2.0 ALPHA"
+#define CCEDIT_TITLE "CCEdit 2.0 BETA"
 
 CCEditMain::CCEditMain(QWidget* parent)
     : QMainWindow(parent), m_currentTileset(0), m_savedDrawMode(ActionDrawPencil),

@@ -115,7 +115,7 @@ static ccl::Levelset* load_levelset(QString filename, QWidget* self,
 CCPlayMain::CCPlayMain(QWidget* parent)
           : QMainWindow(parent)
 {
-    setWindowTitle("CCPlay 2.0 ALPHA");
+    setWindowTitle("CCPlay 2.0 BETA");
     QIcon appicon(":/icons/chip-48.png");
     appicon.addFile(":/icons/chip-32.png");
     appicon.addFile(":/icons/chip-24.png");
