@@ -202,7 +202,8 @@ EditorWidget::EditorWidget(QWidget* parent)
             : QWidget(parent), m_tileset(0), m_levelData(0), m_leftTile(0),
               m_rightTile(0), m_drawMode(DrawPencil), m_paintFlags(0),
               m_cachedButton(Qt::NoButton),  m_numbers(":/res/numbers.png"),
-              m_lastDir(ccl::DirInvalid), m_zoomFactor(1.0)
+              m_errmk(":/res/err-mark.png"), m_lastDir(ccl::DirInvalid),
+              m_zoomFactor(1.0)
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     setMouseTracking(true);
@@ -241,6 +242,20 @@ void EditorWidget::renderTileBuffer()
         for (int x = 0; x < 32; ++x)
             m_tileset->draw(tilePainter, x, y, m_levelData->map().getFG(x, y),
                             m_levelData->map().getBG(x, y));
+
+    if ((m_paintFlags & ShowErrors) != 0) {
+        for (int y = 0; y < 32; ++y) {
+            for (int x = 0; x < 32; ++x) {
+                if (m_levelData->map().getBG(x, y) != ccl::TileFloor
+                    && !(m_levelData->map().getFG(x, y) >= ccl::TileBlock_N
+                         && m_levelData->map().getFG(x, y) <= ccl::TileBlock_E)
+                    && m_levelData->map().getFG(x, y) != ccl::TileBlock
+                    && m_levelData->map().getFG(x, y) != ccl::TileIceBlock
+                    && !MASKED_TILE(m_levelData->map().getFG(x, y)))
+                    tilePainter.drawPixmap(x * m_tileset->size(), y * m_tileset->size(), m_errmk);
+            }
+        }
+    }
 
     // Draw current buffer
     if (m_drawMode == DrawLine && (m_paintFlags & PaintOverlayMask) != 0)

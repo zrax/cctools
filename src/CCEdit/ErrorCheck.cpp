@@ -312,9 +312,7 @@ void ErrorCheckDialog::checkLevel(int level)
                     reportError(level, QString("[Non-Moving Monster]\n"
                                 "Monster at (%1, %2) does not move").arg(x).arg(y));
                 }
-            }
-
-            //TODO: Check tile combos
-        }
-    }
+            } /* CheckLynxPedantic */
+        } /* y */
+    } /* x */
 }

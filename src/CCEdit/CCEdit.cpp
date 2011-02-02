@@ -173,6 +173,9 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionViewMonsterPaths] = new QAction(tr("Show Mo&nster Paths"), this);
     m_actions[ActionViewMonsterPaths]->setStatusTip(tr("Trace Projected Monster Paths (May be inaccurate)"));
     m_actions[ActionViewMonsterPaths]->setCheckable(true);
+    m_actions[ActionViewErrors] = new QAction(tr("Show Tile Combo &Errors"), this);
+    m_actions[ActionViewErrors]->setStatusTip(tr("Visually mark invalid tile combinations in the editor"));
+    m_actions[ActionViewErrors]->setCheckable(true);
 
     m_actions[ActionZoom100] = new QAction(tr("&100%"), this);
     m_actions[ActionZoom100]->setStatusTip(tr("Zoom to 100%"));
@@ -481,6 +484,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     viewMenu->addAction(m_actions[ActionViewActivePlayer]);
     viewMenu->addAction(m_actions[ActionViewViewport]);
     viewMenu->addAction(m_actions[ActionViewMonsterPaths]);
+    viewMenu->addAction(m_actions[ActionViewErrors]);
     viewMenu->addSeparator();
     m_tilesetMenu = viewMenu->addMenu(tr("Tile&set"));
     m_tilesetGroup = new QActionGroup(this);
@@ -561,6 +565,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionViewActivePlayer], SIGNAL(toggled(bool)), SLOT(onViewActivePlayerToggled(bool)));
     connect(m_actions[ActionViewViewport], SIGNAL(toggled(bool)), SLOT(onViewViewportToggled(bool)));
     connect(m_actions[ActionViewMonsterPaths], SIGNAL(toggled(bool)), SLOT(onViewMonsterPathsToggled(bool)));
+    connect(m_actions[ActionViewErrors], SIGNAL(toggled(bool)), SLOT(onViewErrorsToggled(bool)));
     connect(m_tilesetGroup, SIGNAL(triggered(QAction*)), SLOT(onTilesetMenu(QAction*)));
     connect(m_actions[ActionZoom100], SIGNAL(triggered()), SLOT(onZoom100()));
     connect(m_actions[ActionZoom75], SIGNAL(triggered()), SLOT(onZoom75()));
@@ -621,6 +626,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionViewActivePlayer]->setChecked(settings.value("ViewActivePlayer", false).toBool());
     m_actions[ActionViewViewport]->setChecked(settings.value("ViewViewport", true).toBool());
     m_actions[ActionViewMonsterPaths]->setChecked(settings.value("ViewMonsterPaths", false).toBool());
+    m_actions[ActionViewErrors]->setChecked(settings.value("ViewErrors", true).toBool());
     m_dialogDir = settings.value("DialogDir").toString();
 
     // Make sure the toolbox is visible
@@ -899,6 +905,7 @@ void CCEditMain::closeEvent(QCloseEvent* event)
     settings.setValue("ViewActivePlayer", m_actions[ActionViewActivePlayer]->isChecked());
     settings.setValue("ViewViewport", m_actions[ActionViewViewport]->isChecked());
     settings.setValue("ViewMonsterPaths", m_actions[ActionViewMonsterPaths]->isChecked());
+    settings.setValue("ViewErrors", m_actions[ActionViewErrors]->isChecked());
     settings.setValue("TilesetName", m_currentTileset->filename());
     settings.setValue("DialogDir", m_dialogDir);
 }
@@ -1064,6 +1071,8 @@ EditorWidget* CCEditMain::addEditor(ccl::LevelData* level)
         editor->setPaintFlag(EditorWidget::ShowViewBox);
     if (m_actions[ActionViewMonsterPaths]->isChecked())
         editor->setPaintFlag(EditorWidget::ShowMovePaths);
+    if (m_actions[ActionViewErrors]->isChecked())
+        editor->setPaintFlag(EditorWidget::ShowErrors);
     editor->setDrawMode(m_currentDrawMode);
     editor->setTileset(m_currentTileset);
     editor->setLevelData(level);
@@ -1596,6 +1605,17 @@ void CCEditMain::onViewMonsterPathsToggled(bool view)
     } else {
         for (int i=0; i<m_editorTabs->count(); ++i)
             getEditorAt(i)->clearPaintFlag(EditorWidget::ShowMovePaths);
+    }
+}
+
+void CCEditMain::onViewErrorsToggled(bool view)
+{
+    if (view) {
+        for (int i=0; i<m_editorTabs->count(); ++i)
+            getEditorAt(i)->setPaintFlag(EditorWidget::ShowErrors);
+    } else {
+        for (int i=0; i<m_editorTabs->count(); ++i)
+            getEditorAt(i)->clearPaintFlag(EditorWidget::ShowErrors);
     }
 }
 

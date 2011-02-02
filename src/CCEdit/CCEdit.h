@@ -57,11 +57,12 @@ private:
         ActionDrawLine, ActionDrawFill, ActionPathMaker, ActionConnect,
         ActionAdvancedMech, ActionToggleWalls, ActionCheckErrors,
         ActionViewButtons, ActionViewMovers, ActionViewActivePlayer,
-        ActionViewViewport, ActionViewMonsterPaths, ActionZoom100, ActionZoom75,
-        ActionZoom50, ActionZoom25, ActionZoom125, ActionZoomCust, ActionZoomFit,
-        ActionTestChips, ActionTestTWorldCC, ActionTestTWorldLynx,
-        ActionTestSetup, ActionAbout, ActionAddLevel, ActionDelLevel, ActionMoveUp,
-        ActionMoveDown, ActionProperties, ActionOrganize,
+        ActionViewViewport, ActionViewMonsterPaths, ActionViewErrors,
+        ActionZoom100, ActionZoom75, ActionZoom50, ActionZoom25, ActionZoom125,
+        ActionZoomCust, ActionZoomFit, ActionTestChips, ActionTestTWorldCC,
+        ActionTestTWorldLynx, ActionTestSetup, ActionAbout,
+        ActionAddLevel, ActionDelLevel, ActionMoveUp, ActionMoveDown,
+        ActionProperties, ActionOrganize,
         NUM_ACTIONS
     };
 
@@ -138,6 +139,7 @@ private slots:
     void onViewActivePlayerToggled(bool);
     void onViewViewportToggled(bool);
     void onViewMonsterPathsToggled(bool);
+    void onViewErrorsToggled(bool);
     void onZoom100();
     void onZoom75();
     void onZoom50();

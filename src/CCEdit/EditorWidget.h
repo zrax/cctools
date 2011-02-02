@@ -41,11 +41,12 @@ public:
         ShowButtons = (1<<2),
         ShowMovePaths = (1<<3),
         ShowViewBox = (1<<4),
+        ShowErrors = (1<<5),
         ShowAll = ShowPlayer | ShowMovement | ShowButtons | ShowMovePaths |
-                  ShowViewBox,
-        PaintLeftTemp = (1<<5),
-        PaintRightTemp = (1<<6),
-        PaintTempBury = (1<<7),
+                  ShowViewBox | ShowErrors,
+        PaintLeftTemp = (1<<6),
+        PaintRightTemp = (1<<7),
+        PaintTempBury = (1<<8),
         PaintOverlayMask = PaintLeftTemp | PaintRightTemp,
     };
 
@@ -136,7 +137,7 @@ private:
     DrawMode m_drawMode;
     int m_paintFlags;
     Qt::MouseButton m_cachedButton;
-    QPixmap m_numbers;
+    QPixmap m_numbers, m_errmk;
     QPoint m_origin, m_current;
     ccl::Direction m_lastDir;
     CCEHistory m_history;
