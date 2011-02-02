@@ -109,6 +109,7 @@ public:
     std::list<ccl::Point> linkedTrapButtons(int x, int y) const;
     std::list<ccl::Point> linkedCloners(int x, int y) const;
     std::list<ccl::Point> linkedCloneButtons(int x, int y) const;
+    bool checkMove(int x, int y) const;
 
     void setName(const std::string& name) { m_name = name; }
     void setHint(const std::string& hint) { m_hint = hint; }

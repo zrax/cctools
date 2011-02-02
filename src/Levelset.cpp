@@ -166,6 +166,17 @@ std::list<ccl::Point> ccl::LevelData::linkedCloneButtons(int x, int y) const
     return result;
 }
 
+bool ccl::LevelData::checkMove(int x, int y) const
+{
+    std::list<ccl::Point>::const_iterator iter = m_moveList.begin();
+    while (iter != m_moveList.end()) {
+        if (iter->X == x && iter->Y == y)
+            return true;
+        ++iter;
+    }
+    return false;
+}
+
 void ccl::LevelData::trapConnect(int buttonX, int buttonY, int trapX, int trapY)
 {
     std::list<ccl::Trap>::iterator iter = m_traps.begin();
