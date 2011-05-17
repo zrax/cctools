@@ -1,3 +1,10 @@
+2011-05-17 - 2.0 RELEASE (2.0.0)
+~~~~~~~~~~
+New Features
+  * Mac version is now distributed as a .pkg file which puts the tilesets
+    in a more standard/usable location.
+
+
 2011-02-02 - 2.0 BETA 1 (1.99.0)
 ~~~~~~~~~~
 New Features
