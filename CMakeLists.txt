@@ -26,7 +26,7 @@ if(WIN32)
     install(FILES ${CCTools_Tilesets}
             DESTINATION .
     )
-elseif(NOT APPLE)
+else()
     install(FILES ${CCTools_Tilesets}
             DESTINATION share/cctools
     )

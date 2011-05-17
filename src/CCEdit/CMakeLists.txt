@@ -64,9 +64,6 @@ if(APPLE)
     install(TARGETS CCEdit
             BUNDLE DESTINATION .
     )
-    install(FILES ${CCTools_Tilesets}
-            DESTINATION CCEdit.app/Contents/share/cctools
-    )
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/icons/boot.icns
             DESTINATION CCEdit.app/Contents/Resources
     )
