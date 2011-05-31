@@ -1,4 +1,4 @@
-find_package(Qt4 COMPONENTS QtCore QtGui QtMain REQUIRED)
+find_package(Qt4 COMPONENTS QtCore QtGui QtXml QtMain REQUIRED)
 include(${QT_USE_FILE})
 
 include_directories(${QT_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR})
@@ -11,6 +11,7 @@ set(CCEdit_SOURCES
     ../IniFile.cpp
     ../ChipsHax.cpp
     ../GameLogic.cpp
+    ../CCMetaData.cpp
     CCEdit.cpp
     EditorWidget.cpp
     LayerWidget.cpp

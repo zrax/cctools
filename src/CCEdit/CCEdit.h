@@ -31,6 +31,7 @@
 #include "TileWidgets.h"
 #include "../Levelset.h"
 #include "../DacFile.h"
+#include "../CCMetaData.h"
 
 class CCEditMain : public QMainWindow {
     Q_OBJECT
@@ -95,9 +96,10 @@ private:
 
     ccl::Levelset* m_levelset;
     ccl::DacFile m_dacInfo;
+    CCX::Levelset m_ccxFile;
     QString m_levelsetFilename;
     QString m_dialogDir;
-    bool m_useDac;
+    bool m_useDac, m_haveCcx;
     bool m_checkSave;
 
     enum SubprocType { SubprocMSCC, SubprocTWorld };
