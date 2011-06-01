@@ -32,7 +32,7 @@ BEGIN
             VALUE "LegalCopyright", "Copyright (C) 2011 Michael Hansen"
             VALUE "OriginalFilename", "CCHack.exe"
             VALUE "ProductName", "CCTools"
-            VALUE "ProductVersion", "2.0"
+            VALUE "ProductVersion", "2.1"
         END
     END
     BLOCK "VarFileInfo"

@@ -227,7 +227,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>."));
     layAbout->setHorizontalSpacing(8);
     layAbout->addWidget(lblAIcon, 0, 0, 3, 1);
     layAbout->addWidget(new QLabel("CCPlay 2.0.0", tabAbout), 0, 1);
-    layAbout->addWidget(new QLabel("Part of CCTools 2.0", tabAbout), 1, 1);
+    layAbout->addWidget(new QLabel("Part of CCTools 2.1", tabAbout), 1, 1);
     layAbout->addWidget(new QLabel(tr("Copyright (C) 2010  Michael Hansen"), tabAbout), 2, 1);
     layAbout->addWidget(lblLicense, 4, 0, 1, 2);
     dlgTabs->addTab(tabAbout, tr("&About CCPlay"));
