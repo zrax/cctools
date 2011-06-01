@@ -1,8 +1,13 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
     <file>res/document-save.png</file>
+    <file>res/document-save-as.png</file>
     <file>res/document-open.png</file>
-    <file>res/document-properties.png</file>
     <file>res/help-about.png</file>
+
+    <file>icons/sock-16.png</file>
+    <file>icons/sock-24.png</file>
+    <file>icons/sock-32.png</file>
+    <file>icons/sock-48.png</file>
 </qresource>
 </RCC>

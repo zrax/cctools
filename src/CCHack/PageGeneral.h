@@ -30,10 +30,17 @@ public:
     PageGeneral(QWidget* parent);
 
 private:
-    QLineEdit *m_title, *m_defTitle;
-    QLineEdit *m_iniFile, *m_defIniFile;
-    QLineEdit *m_iniEntry, *m_defIniEntry;
-    QLineEdit *m_datFile, *m_defDatFile;
+    QLineEdit* m_title,    * m_defTitle;
+    QLineEdit* m_iniFile,  * m_defIniFile;
+    QLineEdit* m_iniEntry, * m_defIniEntry;
+    QLineEdit* m_datFile,  * m_defDatFile;
+
+    QCheckBox* m_alwaysFirstTry;
+    QCheckBox* m_ccPatch;
+    QCheckBox* m_pgChips;
+
+    QLineEdit* m_fakeLastLevel, * m_defFakeLastLevel;
+    QLineEdit* m_realLastLevel, * m_defRealLastLevel;
 };
 
 }

@@ -39,14 +39,14 @@ if(APPLE)
     set(MACOSX_BUNDLE_LONG_VERSION_STRING "2.0.95")
     set(MACOSX_BUNDLE_SHORT_VERSION_STRING "2.0.95")
     set(MACOSX_BUNDLE_COPYRIGHT "Copyright (C) 2011 Michael Hansen")
-    #set(MACOSX_BUNDLE_ICON_FILE "???.icns")
+    set(MACOSX_BUNDLE_ICON_FILE "sock.icns")
 
     install(TARGETS CCHack
             BUNDLE DESTINATION .
     )
-    #install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/icons/???.icns
-    #        DESTINATION CCHack.app/Contents/Resources
-    #)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/icons/sock.icns
+            DESTINATION CCHack.app/Contents/Resources
+    )
 elseif(NOT WIN32)
     install(TARGETS CCHack
             RUNTIME DESTINATION bin

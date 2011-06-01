@@ -50,6 +50,22 @@ CCHack::PageGeneral::PageGeneral(QWidget* parent)
     m_defDatFile = new QLineEdit("CHIPS.DAT", parent);
     m_defDatFile->setEnabled(false);
 
+    m_alwaysFirstTry = new QCheckBox(tr("Always grant \"First Try\" bonus"), parent);
+    m_ccPatch = new QCheckBox(tr("CCPatch (fixes crash while walking over squares with two masked tiles)"), parent);
+    m_pgChips = new QCheckBox(tr("PGChips (adds Ice Tile support to the game)"), parent);
+
+    QCheckBox* cbFakeLastLevel = new QCheckBox(tr("\"Fake\" Last Level:"), parent);
+    m_fakeLastLevel = new QLineEdit(parent);
+    m_fakeLastLevel->setEnabled(false);
+    m_defFakeLastLevel = new QLineEdit("144", parent);
+    m_defFakeLastLevel->setEnabled(false);
+
+    QCheckBox* cbRealLastLevel = new QCheckBox(tr("Actual Last Level:"), parent);
+    m_realLastLevel = new QLineEdit(parent);
+    m_realLastLevel->setEnabled(false);
+    m_defRealLastLevel = new QLineEdit("149", parent);
+    m_defRealLastLevel->setEnabled(false);
+
     layout->addWidget(new QLabel(tr("Override"), parent), 0, 1);
     layout->addWidget(new QLabel(tr("Default"), parent), 0, 2);
     layout->addWidget(cbTitle, 1, 0);
@@ -64,10 +80,24 @@ CCHack::PageGeneral::PageGeneral(QWidget* parent)
     layout->addWidget(cbDatFile, 4, 0);
     layout->addWidget(m_datFile, 4, 1);
     layout->addWidget(m_defDatFile, 4, 2);
-    layout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding), 5, 0, 1, 3);
+    layout->addItem(new QSpacerItem(0, 20, QSizePolicy::Maximum, QSizePolicy::Fixed), 5, 0, 1, 3);
+    layout->addWidget(new QLabel(tr("Code Patches:"), parent), 6, 0, 1, 3);
+    layout->addWidget(m_alwaysFirstTry, 7, 0, 1, 3);
+    layout->addWidget(m_ccPatch, 8, 0, 1, 3);
+    layout->addWidget(m_pgChips, 9, 0, 1, 3);
+    layout->addItem(new QSpacerItem(0, 20, QSizePolicy::Maximum, QSizePolicy::Fixed), 10, 0, 1, 3);
+    layout->addWidget(cbFakeLastLevel, 11, 0);
+    layout->addWidget(m_fakeLastLevel, 11, 1);
+    layout->addWidget(m_defFakeLastLevel, 11, 2);
+    layout->addWidget(cbRealLastLevel, 12, 0);
+    layout->addWidget(m_realLastLevel, 12, 1);
+    layout->addWidget(m_defRealLastLevel, 12, 2);
+    layout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding), 13, 0, 1, 3);
 
     connect(cbTitle, SIGNAL(toggled(bool)), m_title, SLOT(setEnabled(bool)));
     connect(cbIniFile, SIGNAL(toggled(bool)), m_iniFile, SLOT(setEnabled(bool)));
     connect(cbIniEntry, SIGNAL(toggled(bool)), m_iniEntry, SLOT(setEnabled(bool)));
     connect(cbDatFile, SIGNAL(toggled(bool)), m_datFile, SLOT(setEnabled(bool)));
+    connect(cbFakeLastLevel, SIGNAL(toggled(bool)), m_fakeLastLevel, SLOT(setEnabled(bool)));
+    connect(cbRealLastLevel, SIGNAL(toggled(bool)), m_realLastLevel, SLOT(setEnabled(bool)));
 }

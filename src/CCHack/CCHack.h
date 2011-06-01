@@ -31,6 +31,7 @@ public:
 
 private slots:
     void onChangePage(QTreeWidgetItem* page, QTreeWidgetItem*);
+    void onAbout();
 
 private:
     QWidget* m_container;

@@ -23,6 +23,7 @@
 #include <QAction>
 #include <QGridLayout>
 #include "PageGeneral.h"
+#include "About.h"
 
 enum PageType {
     PageNothing = 0,
@@ -35,6 +36,12 @@ CCHackMain::CCHackMain(QWidget* parent)
     : QMainWindow(parent), m_page(0)
 {
     setWindowTitle("CCHack 2.1");
+    QIcon appicon(":/icons/sock-48.png");
+    appicon.addFile(":/icons/sock-32.png");
+    appicon.addFile(":/icons/sock-24.png");
+    appicon.addFile(":/icons/sock-16.png");
+    setWindowIcon(appicon);
+
     QSplitter* split = new QSplitter(this);
     QTreeWidget* pager = new QTreeWidget(split);
     pager->setHeaderHidden(true);
@@ -77,7 +84,7 @@ CCHackMain::CCHackMain(QWidget* parent)
 
     QAction* acSave = new QAction(QIcon(":/res/document-save.png"), tr("&Save Patch"), this);
     QAction* acLoad = new QAction(QIcon(":/res/document-open.png"), tr("&Load Patch"), this);
-    QAction* acWriteExe = new QAction(QIcon(":/res/document-properties.png"), tr("&Write EXE"), this);
+    QAction* acWriteExe = new QAction(QIcon(":/res/document-save-as.png"), tr("&Write EXE"), this);
     QAction* acReadExe = new QAction(QIcon(":/res/document-open.png"), tr("&Read EXE"), this);
     QAction* acAbout = new QAction(QIcon(":/res/help-about.png"), tr("&About"), this);
 
@@ -94,7 +101,6 @@ CCHackMain::CCHackMain(QWidget* parent)
     QWidget* tbSpacer = new QWidget(right);
     tbSpacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     tools->addWidget(tbSpacer);
-    //tools->addSeparator();
     tools->addAction(acAbout);
 
     QGridLayout* rightLayout = new QGridLayout(right);
@@ -111,6 +117,7 @@ CCHackMain::CCHackMain(QWidget* parent)
 
     connect(pager, SIGNAL(currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)),
             SLOT(onChangePage(QTreeWidgetItem*,QTreeWidgetItem*)));
+    connect(acAbout, SIGNAL(triggered()), SLOT(onAbout()));
 }
 
 void CCHackMain::loadFile(const QString& filename)
@@ -140,6 +147,12 @@ void CCHackMain::onChangePage(QTreeWidgetItem* page, QTreeWidgetItem*)
     default:
         m_page = 0;
     }
+}
+
+void CCHackMain::onAbout()
+{
+    AboutDialog about;
+    about.exec();
 }
 
 

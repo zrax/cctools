@@ -5,7 +5,7 @@
 # endif
 
 /* Icons */
-//APPICON                 ICON    DISCARDABLE         "icons\\???.ico"
+APPICON                 ICON    DISCARDABLE         "icons\\sock.ico"
 /* End of Icons */
 
 /* Version Info */
