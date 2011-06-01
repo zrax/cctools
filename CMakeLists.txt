@@ -21,6 +21,7 @@ set(CCTools_Tilesets
 
 add_subdirectory(src/CCEdit)
 add_subdirectory(src/CCPlay)
+add_subdirectory(src/CCHack)
 
 if(WIN32)
     install(FILES ${CCTools_Tilesets}

@@ -117,6 +117,7 @@ bool Win16::ResourceDirectory::read(ccl::Stream* stream)
             }
         }
     }
+    return true;
 }
 
 void Win16::ResourceDirectory::update(ccl::Stream* stream)
@@ -133,7 +134,7 @@ Win16::RcBlob* Win16::ResourceDirectory::loadResource(Resource* res, ccl::Stream
     RcBlob* blob = new RcBlob();
     blob->m_size = res->size() << m_resAlign;
     blob->m_data = new uint8_t[blob->m_size];
-    stream->seek(res->offset() << m_resAlign);
+    stream->seek(res->offset() << m_resAlign, SEEK_SET);
     stream->read(blob->m_data, 1, blob->m_size);
     return blob;
 }
@@ -152,7 +153,7 @@ bool Win16::ResourceDirectory::updateResource(Resource* res, ccl::Stream* stream
     if (alignSize != res->size()) {
         for (giter = m_groups.begin(); giter != m_groups.end(); ++giter) {
             for (rciter = giter->resources().begin(); rciter != giter->resources().end(); ++rciter) {
-                RcBlob* blob = loadResource(&(*giter), stream);
+                RcBlob* blob = loadResource(&(*rciter), stream);
                 savedBlobs.push_back(blob);
 
                 // Update the offsets of blobs after the updated one
@@ -171,7 +172,7 @@ bool Win16::ResourceDirectory::updateResource(Resource* res, ccl::Stream* stream
             RcBlob* nextBlob = savedBlobs.front();
             savedBlobs.pop_front();
             if (&(*rciter) == res) {
-                stream->seek(rciter->offset() << m_resAlign);
+                stream->seek(rciter->offset() << m_resAlign, SEEK_SET);
                 stream->write(blob->m_data, 1, blob->m_size);
                 if (blob->m_size % (1 << m_resAlign)) {
                     // Pad with zeroes
@@ -182,7 +183,7 @@ bool Win16::ResourceDirectory::updateResource(Resource* res, ccl::Stream* stream
                     delete[] zero;
                 }
             } else {
-                stream->seek(rciter->offset() << m_resAlign);
+                stream->seek(rciter->offset() << m_resAlign, SEEK_SET);
                 stream->write(nextBlob->m_data, 1, nextBlob->m_size);
             }
             delete nextBlob;
@@ -191,4 +192,5 @@ bool Win16::ResourceDirectory::updateResource(Resource* res, ccl::Stream* stream
 
     // And finally update the resource table
     update(stream);
+    return true;
 }
