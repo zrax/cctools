@@ -118,6 +118,9 @@ CCHackMain::CCHackMain(QWidget* parent)
     connect(pager, SIGNAL(currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)),
             SLOT(onChangePage(QTreeWidgetItem*,QTreeWidgetItem*)));
     connect(acAbout, SIGNAL(triggered()), SLOT(onAbout()));
+
+    m_defaults.setKnownDefaults();
+    m_settings.clearAll();
 }
 
 void CCHackMain::loadFile(const QString& filename)
@@ -146,6 +149,11 @@ void CCHackMain::onChangePage(QTreeWidgetItem* page, QTreeWidgetItem*)
         break;
     default:
         m_page = 0;
+    }
+
+    if (m_page) {
+        m_page->setDefaults(&m_defaults);
+        m_page->setValues(&m_settings);
     }
 }
 

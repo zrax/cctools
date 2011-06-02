@@ -20,6 +20,7 @@
 
 #include <QMainWindow>
 #include <QTreeWidget>
+#include "HackSettings.h"
 
 class CCHackMain : public QMainWindow {
     Q_OBJECT
@@ -35,7 +36,9 @@ private slots:
 
 private:
     QWidget* m_container;
-    QObject* m_page;
+    HackPage* m_page;
+
+    HackSettings m_defaults, m_settings;
 };
 
 #endif

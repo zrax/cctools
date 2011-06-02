@@ -8,6 +8,7 @@ set(CCHack_SOURCES
     ../ChipsHax.cpp
     ../Win16Rsrc.cpp
     CCHack.cpp
+    HackSettings.cpp
     PageGeneral.cpp
 )
 

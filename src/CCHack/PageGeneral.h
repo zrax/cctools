@@ -20,27 +20,39 @@
 
 #include <QCheckBox>
 #include <QLineEdit>
+#include <QSpinBox>
+#include "HackSettings.h"
 
 namespace CCHack {
 
-class PageGeneral : public QObject {
+class PageGeneral : public HackPage {
     Q_OBJECT
 
 public:
     PageGeneral(QWidget* parent);
+    virtual void setValues(HackSettings* settings);
+    virtual void setDefaults(HackSettings* settings);
 
 private:
+    QCheckBox* m_cbTitle;
     QLineEdit* m_title,    * m_defTitle;
+    QCheckBox* m_cbIniFile;
     QLineEdit* m_iniFile,  * m_defIniFile;
+    QCheckBox* m_cbIniEntry;
     QLineEdit* m_iniEntry, * m_defIniEntry;
+    QCheckBox* m_cbDatFile;
     QLineEdit* m_datFile,  * m_defDatFile;
 
     QCheckBox* m_alwaysFirstTry;
     QCheckBox* m_ccPatch;
     QCheckBox* m_pgChips;
 
-    QLineEdit* m_fakeLastLevel, * m_defFakeLastLevel;
-    QLineEdit* m_realLastLevel, * m_defRealLastLevel;
+    QCheckBox* m_cbFakeLastLevel;
+    QSpinBox*  m_fakeLastLevel;
+    QLineEdit* m_defFakeLastLevel;
+    QCheckBox* m_cbRealLastLevel;
+    QSpinBox*  m_realLastLevel;
+    QLineEdit* m_defRealLastLevel;
 };
 
 }
