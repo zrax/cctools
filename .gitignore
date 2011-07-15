@@ -1,0 +1,12 @@
+*.kdev4
+*.dat
+*.dac
+*.ccl
+*.ccx
+.DS_Store
+/bin/CCEdit*
+/bin/CCPlay*
+/bin/CCHack*
+/bin/Release
+/bin/Debug
+/build
