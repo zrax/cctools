@@ -50,8 +50,6 @@ qt4_add_resources(CCEdit_RCCSRC ${CCEdit_RCCS})
 add_executable(CCEdit WIN32 MACOSX_BUNDLE
                ${CCEdit_SOURCES} ${CCEdit_MOCSRC} ${CCEdit_RCCSRC})
 target_link_libraries(CCEdit ${QT_LIBRARIES})
-set_target_properties(CCEdit PROPERTIES
-                      RUNTIME_OUTPUT_DIRECTORY "${CCTools_SOURCE_DIR}/bin")
 
 if(APPLE)
     set(MACOSX_BUNDLE true)

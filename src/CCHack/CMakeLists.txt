@@ -30,8 +30,6 @@ qt4_add_resources(CCHack_RCCSRC ${CCHack_RCCS})
 add_executable(CCHack WIN32 MACOSX_BUNDLE
                ${CCHack_SOURCES} ${CCHack_MOCSRC} ${CCHack_RCCSRC})
 target_link_libraries(CCHack ${QT_LIBRARIES})
-set_target_properties(CCHack PROPERTIES
-                      RUNTIME_OUTPUT_DIRECTORY "${CCTools_SOURCE_DIR}/bin")
 
 if(APPLE)
     set(MACOSX_BUNDLE true)

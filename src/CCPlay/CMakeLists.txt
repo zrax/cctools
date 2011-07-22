@@ -32,8 +32,6 @@ qt4_add_resources(CCPlay_RCCSRC ${CCPlay_RCCS})
 add_executable(CCPlay WIN32 MACOSX_BUNDLE
                ${CCPlay_SOURCES} ${CCPlay_MOCSRC} ${CCPlay_RCCSRC})
 target_link_libraries(CCPlay ${QT_LIBRARIES})
-set_target_properties(CCPlay PROPERTIES
-                      RUNTIME_OUTPUT_DIRECTORY "${CCTools_SOURCE_DIR}/bin")
 
 if(APPLE)
     set(MACOSX_BUNDLE true)
