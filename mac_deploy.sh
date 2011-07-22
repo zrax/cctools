@@ -8,6 +8,7 @@ DISTROOT=`cd $1; pwd`
 
 macdeployqt $DISTROOT/CCEdit.app
 macdeployqt $DISTROOT/CCPlay.app
+macdeployqt $DISTROOT/CCHack.app
 
 # Symlink the other packages to save space
 #cd $DISTROOT/CCPlay.app
@@ -21,4 +22,5 @@ mkdir -p $DISTROOT/Package_Root/Applications
 mkdir -p $DISTROOT/Package_Root/usr
 mv $DISTROOT/CCEdit.app $DISTROOT/Package_Root/Applications/
 mv $DISTROOT/CCPlay.app $DISTROOT/Package_Root/Applications/
+mv $DISTROOT/CCHack.app $DISTROOT/Package_Root/Applications/
 mv $DISTROOT/share $DISTROOT/Package_Root/usr/
