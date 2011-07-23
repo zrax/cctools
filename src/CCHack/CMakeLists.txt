@@ -46,7 +46,11 @@ if(APPLE)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/icons/sock.icns
             DESTINATION CCHack.app/Contents/Resources
     )
-elseif(NOT WIN32)
+elseif(WIN32)
+    install(TARGETS CCHack
+            RUNTIME DESTINATION .
+    )
+else()
     install(TARGETS CCHack
             RUNTIME DESTINATION bin
     )

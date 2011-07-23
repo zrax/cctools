@@ -71,6 +71,7 @@ bool HackSettings::loadFromExe(const char* filename)
 bool HackSettings::loadFromPatch(const char* filename)
 {
     //TODO
+    return false;
 }
 
 bool HackSettings::writeToExe(const char* filename)
@@ -119,4 +120,5 @@ bool HackSettings::writeToExe(const char* filename)
 bool HackSettings::writeToPatch(const char* filename)
 {
     //TODO
+    return false;
 }

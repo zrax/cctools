@@ -48,7 +48,11 @@ if(APPLE)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/icons/chip.icns
             DESTINATION CCPlay.app/Contents/Resources
     )
-elseif(NOT WIN32)
+elseif(WIN32)
+    install(TARGETS CCPlay
+            RUNTIME DESTINATION .
+    )
+else()
     install(TARGETS CCPlay
             RUNTIME DESTINATION bin
     )

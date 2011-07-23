@@ -18,6 +18,10 @@
 #include "Win16Rsrc.h"
 #include <cstring>
 
+#ifdef _MSC_VER
+#define snprintf sprintf_s
+#endif
+
 void Win16::Resource::read(ccl::Stream* stream)
 {
     m_offset = stream->read16();

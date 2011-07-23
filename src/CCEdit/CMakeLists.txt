@@ -66,7 +66,11 @@ if(APPLE)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/icons/boot.icns
             DESTINATION CCEdit.app/Contents/Resources
     )
-elseif(NOT WIN32)
+elseif(WIN32)
+    install(TARGETS CCEdit
+            RUNTIME DESTINATION .
+    )
+else()
     install(TARGETS CCEdit
             RUNTIME DESTINATION bin
     )
