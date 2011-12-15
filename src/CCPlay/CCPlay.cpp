@@ -54,6 +54,7 @@ static ccl::Levelset* load_levelset(QString filename, QWidget* self,
             levelset->read(&stream);
             stream.close();
         } catch (std::exception& e) {
+            qDebug("Error trying to load %s: %s", filename.toUtf8().data(), e.what());
             QMessageBox::critical(self, self->tr("Error Reading Levelset"),
                     self->tr("Error Reading levelset file: %1").arg(e.what()));
             delete levelset;
@@ -74,7 +75,14 @@ static ccl::Levelset* load_levelset(QString filename, QWidget* self,
         try {
             dacInfo.read(dac);
             fclose(dac);
+        } catch (ccl::FormatException&) {
+            // Tried to read an invalid levelset file (probably not really
+            // a levelset -- e.g. "unins000.dat")
+            qDebug("Format error trying to load %s", filename.toUtf8().data());
+            fclose(dac);
+            return 0;
         } catch (ccl::Exception& e) {
+            qDebug("Error trying to load %s: %s", filename.toUtf8().data(), e.what());
             QMessageBox::critical(self, self->tr("Error reading levelset"),
                                   self->tr("Error loading levelset descriptor: %1")
                                   .arg(e.what()));
@@ -90,6 +98,7 @@ static ccl::Levelset* load_levelset(QString filename, QWidget* self,
                 levelset->read(&stream);
                 stream.close();
             } catch (std::exception& e) {
+                qDebug("Error trying to load %s: %s", filename.toUtf8().data(), e.what());
                 QMessageBox::critical(self, self->tr("Error reading levelset"),
                                       self->tr("Error loading levelset: %1").arg(e.what()));
                 stream.close();

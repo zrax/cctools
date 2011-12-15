@@ -10,8 +10,8 @@ APPICON                 ICON    DISCARDABLE         "icons\chip.ico"
 
 /* Version Info */
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,0,0,0
- PRODUCTVERSION 2,0,0,0
+ FILEVERSION 2,0,1,0
+ PRODUCTVERSION 2,0,1,0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -27,7 +27,7 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "Michael Hansen"
-            VALUE "FileVersion", "2.0.0"
+            VALUE "FileVersion", "2.0.1"
             VALUE "InternalName", "CCPlay"
             VALUE "LegalCopyright", "Copyright (C) 2010 Michael Hansen"
             VALUE "OriginalFilename", "CCPlay.exe"
