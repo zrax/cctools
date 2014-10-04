@@ -38,6 +38,7 @@
 #include <QTextCodec>
 #include <QDesktopWidget>
 #include <QDir>
+#include <QMimeData>
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
@@ -808,7 +809,7 @@ void CCEditMain::doLevelsetLoad()
         // Use iterator for level number since stored level numbers may
         // be meaningless until saved...
         m_levelList->item(i)->setText(QString("%1 - %2").arg(i + 1)
-                .arg(QString::fromAscii(m_levelset->level(i)->name().c_str())));
+                .arg(QString::fromLatin1(m_levelset->level(i)->name().c_str())));
     }
     if (m_levelList->currentItem() == 0 && m_levelset->levelCount() > 0)
         m_levelList->setCurrentRow(0);
@@ -2071,11 +2072,11 @@ void CCEditMain::onSelectLevel(int idx)
         m_chipEdit->setEnabled(true);
         m_timeEdit->setEnabled(true);
         m_hintEdit->setEnabled(true);
-        m_nameEdit->setText(QString::fromAscii(level->name().c_str()));
-        m_passwordEdit->setText(QString::fromAscii(level->password().c_str()));
+        m_nameEdit->setText(QString::fromLatin1(level->name().c_str()));
+        m_passwordEdit->setText(QString::fromLatin1(level->password().c_str()));
         m_chipEdit->setValue(level->chips());
         m_timeEdit->setValue(level->timer());
-        m_hintEdit->setText(QString::fromAscii(level->hint().c_str()));
+        m_hintEdit->setText(QString::fromLatin1(level->hint().c_str()));
 
         EditorWidget* editor = getEditorAt(m_editorTabs->currentIndex());
         if (editor == 0) {
@@ -2097,7 +2098,7 @@ void CCEditMain::onPasswordGenAction()
 {
     if (m_levelList->currentRow() < 0)
         return;
-    m_passwordEdit->setText(QString::fromAscii(ccl::Levelset::RandomPassword().c_str()));
+    m_passwordEdit->setText(QString::fromLatin1(ccl::Levelset::RandomPassword().c_str()));
 }
 
 void CCEditMain::onChipCountAction()
@@ -2124,8 +2125,8 @@ void CCEditMain::onNameChanged(QString value)
         return;
 
     ccl::LevelData* level = m_levelset->level(m_levelList->currentRow());
-    if (level->name() != value.toAscii().data()) {
-        level->setName(value.toAscii().data());
+    if (level->name() != value.toLatin1().data()) {
+        level->setName(value.toLatin1().data());
         m_levelset->makeDirty();
     }
     m_levelList->currentItem()->setText(QString("%1 - %2")
@@ -2142,8 +2143,8 @@ void CCEditMain::onPasswordChanged(QString value)
     if (m_levelList->currentRow() < 0)
         return;
     ccl::LevelData* level = m_levelset->level(m_levelList->currentRow());
-    if (level->password() != value.toAscii().data()) {
-        level->setPassword(value.toAscii().data());
+    if (level->password() != value.toLatin1().data()) {
+        level->setPassword(value.toLatin1().data());
         m_levelset->makeDirty();
     }
 }
@@ -2175,8 +2176,8 @@ void CCEditMain::onHintChanged(QString value)
     if (m_levelList->currentRow() < 0)
         return;
     ccl::LevelData* level = m_levelset->level(m_levelList->currentRow());
-    if (level->hint() != value.toAscii().data()) {
-        level->setHint(value.toAscii().data());
+    if (level->hint() != value.toLatin1().data()) {
+        level->setHint(value.toLatin1().data());
         m_levelset->makeDirty();
     }
 }

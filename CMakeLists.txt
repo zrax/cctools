@@ -1,5 +1,5 @@
 project(CCTools)
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.11)
 
 include(TestBigEndian)
 test_big_endian(BYTES_BIG_ENDIAN)

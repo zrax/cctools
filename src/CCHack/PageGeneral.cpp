@@ -105,13 +105,13 @@ CCHack::PageGeneral::PageGeneral(QWidget* parent)
 void CCHack::PageGeneral::setValues(HackSettings* settings)
 {
     m_cbTitle->setChecked(settings->isset_title());
-    m_title->setText(QString::fromAscii(settings->get_title().c_str()));
+    m_title->setText(QString::fromLatin1(settings->get_title().c_str()));
     m_cbIniFile->setChecked(settings->isset_iniFile());
-    m_iniFile->setText(QString::fromAscii(settings->get_iniFile().c_str()));
+    m_iniFile->setText(QString::fromLatin1(settings->get_iniFile().c_str()));
     m_cbIniEntry->setChecked(settings->isset_iniEntry());
-    m_iniEntry->setText(QString::fromAscii(settings->get_iniEntry().c_str()));
+    m_iniEntry->setText(QString::fromLatin1(settings->get_iniEntry().c_str()));
     m_cbDatFile->setChecked(settings->isset_datFile());
-    m_datFile->setText(QString::fromAscii(settings->get_datFile().c_str()));
+    m_datFile->setText(QString::fromLatin1(settings->get_datFile().c_str()));
     m_alwaysFirstTry->setChecked(settings->get_alwaysFirstTry());
     m_ccPatch->setChecked(settings->get_ccPatch());
     m_pgChips->setChecked(settings->get_pgChips());
@@ -123,10 +123,10 @@ void CCHack::PageGeneral::setValues(HackSettings* settings)
 
 void CCHack::PageGeneral::setDefaults(HackSettings* settings)
 {
-    m_defTitle->setText(QString::fromAscii(settings->get_title().c_str()));
-    m_defIniFile->setText(QString::fromAscii(settings->get_iniFile().c_str()));
-    m_defIniEntry->setText(QString::fromAscii(settings->get_iniEntry().c_str()));
-    m_defDatFile->setText(QString::fromAscii(settings->get_datFile().c_str()));
+    m_defTitle->setText(QString::fromLatin1(settings->get_title().c_str()));
+    m_defIniFile->setText(QString::fromLatin1(settings->get_iniFile().c_str()));
+    m_defIniEntry->setText(QString::fromLatin1(settings->get_iniEntry().c_str()));
+    m_defDatFile->setText(QString::fromLatin1(settings->get_datFile().c_str()));
     m_alwaysFirstTry->setChecked(settings->get_alwaysFirstTry());
     m_ccPatch->setChecked(settings->get_ccPatch());
     m_pgChips->setChecked(settings->get_pgChips());

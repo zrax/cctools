@@ -89,7 +89,7 @@ void ErrorCheckDialog::setLevelsetInfo(ccl::Levelset* levelset, ccl::DacFile* da
     m_checkTarget->addItem(tr("(Entire levelset)"));
     for (int i=0; i<m_levelset->levelCount(); ++i) {
         m_checkTarget->addItem(QString("%1 - %2").arg(i + 1)
-                               .arg(QString::fromAscii(m_levelset->level(i)->name().c_str())));
+                               .arg(QString::fromLatin1(m_levelset->level(i)->name().c_str())));
     }
 }
 
@@ -97,7 +97,7 @@ void ErrorCheckDialog::reportError(int level, QString text)
 {
     QString section = (level < 0) ? "Levelset"
                     : QString("%1 - %2").arg(level + 1)
-                      .arg(QString::fromAscii(m_levelset->level(level)->name().c_str()));
+                      .arg(QString::fromLatin1(m_levelset->level(level)->name().c_str()));
 
     QTreeWidgetItem* sectionItem;
     if (m_errors->topLevelItemCount() > 0 &&

@@ -1,7 +1,9 @@
-find_package(Qt4 COMPONENTS QtCore QtGui QtSql QtXml QtMain REQUIRED)
-include(${QT_USE_FILE})
+find_package(Qt5Core REQUIRED)
+find_package(Qt5Widgets REQUIRED)
+find_package(Qt5Sql REQUIRED)
+find_package(Qt5Xml REQUIRED)
 
-include_directories(${QT_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 set(CCPlay_SOURCES
     ../Stream.cpp
@@ -27,11 +29,11 @@ set(CCPlay_RCCS
     CCPlay.qrc
 )
 
-qt4_wrap_cpp(CCPlay_MOCSRC ${CCPlay_MOCS})
-qt4_add_resources(CCPlay_RCCSRC ${CCPlay_RCCS})
+qt5_wrap_cpp(CCPlay_MOCSRC ${CCPlay_MOCS})
+qt5_add_resources(CCPlay_RCCSRC ${CCPlay_RCCS})
 add_executable(CCPlay WIN32 MACOSX_BUNDLE
                ${CCPlay_SOURCES} ${CCPlay_MOCSRC} ${CCPlay_RCCSRC})
-target_link_libraries(CCPlay ${QT_LIBRARIES})
+target_link_libraries(CCPlay Qt5::Core Qt5::Widgets Qt5::Sql Qt5::Xml)
 
 if(APPLE)
     set(MACOSX_BUNDLE true)

@@ -1,7 +1,8 @@
-find_package(Qt4 COMPONENTS QtCore QtGui QtXml QtMain REQUIRED)
-include(${QT_USE_FILE})
+find_package(Qt5Core REQUIRED)
+find_package(Qt5Widgets REQUIRED)
+find_package(Qt5Xml REQUIRED)
 
-include_directories(${QT_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 set(CCEdit_SOURCES
     ../Stream.cpp
@@ -45,11 +46,11 @@ set(CCEdit_RCCS
     CCEdit.qrc
 )
 
-qt4_wrap_cpp(CCEdit_MOCSRC ${CCEdit_MOCS})
-qt4_add_resources(CCEdit_RCCSRC ${CCEdit_RCCS})
+qt5_wrap_cpp(CCEdit_MOCSRC ${CCEdit_MOCS})
+qt5_add_resources(CCEdit_RCCSRC ${CCEdit_RCCS})
 add_executable(CCEdit WIN32 MACOSX_BUNDLE
                ${CCEdit_SOURCES} ${CCEdit_MOCSRC} ${CCEdit_RCCSRC})
-target_link_libraries(CCEdit ${QT_LIBRARIES})
+target_link_libraries(CCEdit Qt5::Core Qt5::Widgets Qt5::Xml)
 
 if(APPLE)
     set(MACOSX_BUNDLE true)

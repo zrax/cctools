@@ -1,7 +1,7 @@
-find_package(Qt4 COMPONENTS QtCore QtGui QtMain REQUIRED)
-include(${QT_USE_FILE})
+find_package(Qt5Core REQUIRED)
+find_package(Qt5Widgets REQUIRED)
 
-include_directories(${QT_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 set(CCHack_SOURCES
     ../Stream.cpp
@@ -25,11 +25,11 @@ set(CCHack_RCCS
     CCHack.qrc
 )
 
-qt4_wrap_cpp(CCHack_MOCSRC ${CCHack_MOCS})
-qt4_add_resources(CCHack_RCCSRC ${CCHack_RCCS})
+qt5_wrap_cpp(CCHack_MOCSRC ${CCHack_MOCS})
+qt5_add_resources(CCHack_RCCSRC ${CCHack_RCCS})
 add_executable(CCHack WIN32 MACOSX_BUNDLE
                ${CCHack_SOURCES} ${CCHack_MOCSRC} ${CCHack_RCCSRC})
-target_link_libraries(CCHack ${QT_LIBRARIES})
+target_link_libraries(CCHack Qt5::Core Qt5::Widgets)
 
 if(APPLE)
     set(MACOSX_BUNDLE true)
