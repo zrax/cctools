@@ -22,10 +22,6 @@
 #include <errno.h>
 #include "Errors.h"
 
-ccl::DacFile::DacFile()
-   : m_ruleset(0), m_lastLevel(0), m_usePasswords(true), m_fixLynx(false)
-{ }
-
 void ccl::DacFile::setFromLevelset(const ccl::Levelset& levelset)
 {
     m_ruleset = levelset.type();

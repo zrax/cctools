@@ -29,7 +29,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
     #define POSIX_OFFSET 0
     #define EXE_FILTER "Executables (*.exe)"
     #define WINEXE_FILTER "Executables (*.exe)"
@@ -47,7 +47,7 @@ void SettingsDialog::CheckEditors(QSettings& settings)
         return;
 
     // Add default CCEdit entry
-#if defined(Q_OS_WIN32)
+#if defined(Q_OS_WIN)
     QString cceditPath = QDir(qApp->applicationDirPath()).absoluteFilePath("CCEdit.exe");
 #elif defined(Q_OS_MAC)
     QDir appPath(qApp->applicationDirPath());
@@ -108,7 +108,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
 
     QTabWidget* dlgTabs = new QTabWidget(this);
     QWidget* tabPlay = new QWidget(dlgTabs);
-#ifndef Q_OS_WIN32
+#ifndef Q_OS_WIN
     m_winePath = new QLineEdit(settings.value("WineExe").toString(), tabPlay);
     m_winePath->setCompleter(exeCompleter);
     QLabel* lblWinePath = new QLabel(tr("&WINE Path:"), tabPlay);
@@ -150,7 +150,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     layPlay->setContentsMargins(8, 8, 8, 8);
     layPlay->setVerticalSpacing(4);
     layPlay->setHorizontalSpacing(4);
-#ifndef Q_OS_WIN32
+#ifndef Q_OS_WIN
     layPlay->addWidget(lblWinePath, 0, 0);
     layPlay->addWidget(m_winePath, 0, 1);
     layPlay->addWidget(browseWine, 0, 2);
@@ -240,7 +240,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>."));
     layout->setContentsMargins(8, 8, 8, 8);
     layout->setVerticalSpacing(8);
     layout->addWidget(dlgTabs, 0, 0);
-#ifndef Q_OS_WIN32
+#ifndef Q_OS_WIN
     layout->addWidget(new QLabel(
             tr("Note: Leave WINE or Tile World paths empty to use system-installed locations"),
             this), 1, 0);
@@ -253,7 +253,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>."));
 
     connect(buttons, SIGNAL(rejected()), SLOT(reject()));
     connect(buttons, SIGNAL(accepted()), SLOT(onSaveSettings()));
-#ifndef Q_OS_WIN32
+#ifndef Q_OS_WIN
     connect(browseWine, SIGNAL(clicked()), SLOT(onBrowseWine()));
 #endif
     connect(browseChips, SIGNAL(clicked()), SLOT(onBrowseChips()));
@@ -278,7 +278,7 @@ void SettingsDialog::refreshEditors()
 void SettingsDialog::onSaveSettings()
 {
     QSettings settings("CCTools", "CCPlay");
-#ifndef Q_OS_WIN32
+#ifndef Q_OS_WIN
     settings.setValue("WineExe", m_winePath->text());
 #endif
     settings.setValue("ChipsExe", m_msccPath->text());
@@ -294,15 +294,17 @@ void SettingsDialog::onSaveSettings()
     accept();
 }
 
-#ifndef Q_OS_WIN32
 void SettingsDialog::onBrowseWine()
 {
+#ifndef Q_OS_WIN
     QString path = QFileDialog::getOpenFileName(this, tr("Browse for Wine executable"),
                                 m_winePath->text(), EXE_FILTER);
     if (!path.isEmpty())
         m_winePath->setText(path);
-}
+#else
+    qCritical("onBrowseWine: Not supported on Windows platforms");
 #endif
+}
 
 void SettingsDialog::onBrowseChips()
 {

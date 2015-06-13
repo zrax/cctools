@@ -28,7 +28,10 @@
 namespace ccl {
 
 struct DacFile {
-    DacFile();
+    DacFile()
+        : m_ruleset(), m_lastLevel(), m_usePasswords(true), m_fixLynx(false)
+    { }
+
     void setFromLevelset(const Levelset& levelset);
 
     void read(FILE* stream);

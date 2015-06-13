@@ -1010,7 +1010,7 @@ void CCEditMain::findTilesets()
 
     QDir path;
     QStringList tilesets;
-#if defined(Q_OS_WIN32)
+#if defined(Q_OS_WIN)
     // Search app directory
     path.setPath(qApp->applicationDirPath());
     tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
@@ -1721,7 +1721,7 @@ void CCEditMain::onTestChips()
                    "Please configure MSCC in the Test Setup dialog."));
         return;
     }
-#ifndef Q_OS_WIN32
+#ifndef Q_OS_WIN
     QString winePath = settings.value("WineExe").toString();
     if (winePath.isEmpty() || !QFile::exists(winePath)) {
         // Try standard paths
@@ -1836,7 +1836,7 @@ void CCEditMain::onTestChips()
     m_subProcType = SubprocMSCC;
     connect(m_subProc, SIGNAL(finished(int)), SLOT(onProcessFinished(int)));
     connect(m_subProc, SIGNAL(error(QProcess::ProcessError)), SLOT(onProcessError(QProcess::ProcessError)));
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
     // Native execution
     m_subProc->start(m_tempExe);
 #else
@@ -1862,7 +1862,7 @@ void CCEditMain::onTestTWorld(unsigned int levelsetType)
     QSettings settings("CCTools", "CCEdit");
     QString tworldExe = settings.value("TWorldExe").toString();
     if (tworldExe.isEmpty() || !QFile::exists(tworldExe)) {
-#ifndef Q_OS_WIN32
+#ifndef Q_OS_WIN
         // Try standard paths
         if (QFile::exists("/usr/games/tworld")) {
             tworldExe = "/usr/games/tworld";

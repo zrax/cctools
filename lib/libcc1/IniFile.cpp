@@ -19,7 +19,6 @@
 
 #include <cstring>
 #include <cstdlib>
-#include <unistd.h>
 #include "Errors.h"
 
 #ifdef _MSC_VER
@@ -27,6 +26,8 @@
     #define ftruncate _chsize
     #define snprintf sprintf_s
     #define fileno _fileno
+#else
+    #include <unistd.h>
 #endif
 
 void ccl::IniFile::read(FILE* stream)

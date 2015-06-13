@@ -382,7 +382,7 @@ void CCPlayMain::onPlayMSCC()
                    "Please configure MSCC in the CCPlay settings."));
         return;
     }
-#ifndef Q_OS_WIN32
+#ifndef Q_OS_WIN
     QString winePath = settings.value("WineExe").toString();
     if (winePath.isEmpty() || !QFile::exists(winePath)) {
         // Try standard paths
@@ -532,7 +532,7 @@ void CCPlayMain::onPlayMSCC()
     }
 
     QDir::setCurrent(exePath.absolutePath());
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
     // Native execution
     QProcess::execute(tempExe);
 #else
@@ -632,7 +632,7 @@ void CCPlayMain::onPlayTWorld()
     QSettings settings("CCTools", "CCPlay");
     QString tworldExe = settings.value("TWorldExe").toString();
     if (tworldExe.isEmpty() || !QFile::exists(tworldExe)) {
-#ifndef Q_OS_WIN32
+#ifndef Q_OS_WIN
         // Try standard paths
         if (QFile::exists("/usr/games/tworld")) {
             tworldExe = "/usr/games/tworld";
@@ -824,7 +824,7 @@ void CCPlayMain::onPathChanged(QString path)
         return;
 
     m_levelsetList->clear();
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
     const QStringList setExts = QStringList()
         << "*.dat" << "*.ccl" << "*.dac";
 #else

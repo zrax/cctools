@@ -1,5 +1,6 @@
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Widgets REQUIRED)
+find_package(Qt5Xml REQUIRED)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CCTools_SOURCE_DIR}/lib)
@@ -27,7 +28,7 @@ qt5_wrap_cpp(CCHack_MOCSRC ${CCHack_MOCS})
 qt5_add_resources(CCHack_RCCSRC ${CCHack_RCCS})
 add_executable(CCHack WIN32 MACOSX_BUNDLE
                ${CCHack_SOURCES} ${CCHack_MOCSRC} ${CCHack_RCCSRC})
-target_link_libraries(CCHack Qt5::Core Qt5::Widgets libcc1)
+target_link_libraries(CCHack Qt5::Core Qt5::Widgets Qt5::Xml libcc1)
 
 if(APPLE)
     set(MACOSX_BUNDLE true)

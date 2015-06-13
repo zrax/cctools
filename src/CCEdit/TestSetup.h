@@ -29,7 +29,7 @@ public:
     TestSetupDialog(QWidget* parent = 0);
 
 private:
-#ifndef Q_OS_WIN32
+#ifndef Q_OS_WIN
     QLineEdit* m_winePath;
 #endif
     QLineEdit* m_msccPath;
@@ -40,9 +40,7 @@ private:
 
 private slots:
     void onSaveSettings();
-#ifndef Q_OS_WIN32
     void onBrowseWine();
-#endif
     void onBrowseChips();
     void onBrowseTWorld();
 };
