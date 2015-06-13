@@ -48,9 +48,9 @@
 #include "TestSetup.h"
 #include "ErrorCheck.h"
 #include "About.h"
-#include "../IniFile.h"
-#include "../ChipsHax.h"
-#include "../GameLogic.h"
+#include "libcc1/IniFile.h"
+#include "libcc1/ChipsHax.h"
+#include "libcc1/GameLogic.h"
 
 #define CCEDIT_TITLE "CCEdit 2.1"
 
@@ -973,13 +973,20 @@ bool CCEditMain::closeLevelset()
     return true;
 }
 
+static void loadImageTiles(CCETileset* tileset, QListWidget* list)
+{
+    list->setIconSize(tileset->qsize());
+    for (int i=0; i<list->count(); ++i)
+        list->item(i)->setIcon(tileset->getIcon(list->item(i)->data(Qt::UserRole).toInt()));
+}
+
 void CCEditMain::loadTileset(CCETileset* tileset)
 {
     m_currentTileset = tileset;
     m_layer[0]->setTileset(tileset);
     m_layer[1]->setTileset(tileset);
     for (int i=0; i<NUM_TILE_LISTS; ++i)
-        tileset->imageTiles(m_tileLists[i]);
+        loadImageTiles(tileset, m_tileLists[i]);
     m_allTiles->setTileset(tileset);
     for (int i=0; i<m_editorTabs->count(); ++i)
         getEditorAt(i)->setTileset(tileset);

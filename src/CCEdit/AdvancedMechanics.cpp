@@ -23,7 +23,7 @@
 #include <QDialogButtonBox>
 #include <QLabel>
 #include <QGridLayout>
-#include "../Tileset.h"
+#include "libcc1/Tileset.h"
 
 class OnePointDialog : public QDialog {
 public:

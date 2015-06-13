@@ -21,8 +21,8 @@
 #include <QDialog>
 #include <QListWidget>
 #include <QAction>
-#include "../Levelset.h"
-#include "../Tileset.h"
+#include "libcc1/Levelset.h"
+#include "libcc1/Tileset.h"
 
 Q_DECLARE_METATYPE(ccl::LevelData*);
 

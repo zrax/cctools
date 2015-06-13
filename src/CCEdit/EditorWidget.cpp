@@ -19,7 +19,7 @@
 
 #include <QPaintEvent>
 #include <QMouseEvent>
-#include "../GameLogic.h"
+#include "libcc1/GameLogic.h"
 
 static EditorWidget::DrawLayer select_layer(Qt::KeyboardModifiers keys)
 {

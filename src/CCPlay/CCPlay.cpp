@@ -31,11 +31,11 @@
 #include <QSqlQuery>
 #include <QProcess>
 #include "PlaySettings.h"
-#include "../Levelset.h"
-#include "../DacFile.h"
-#include "../IniFile.h"
-#include "../ChipsHax.h"
-#include "../CCMetaData.h"
+#include "libcc1/Levelset.h"
+#include "libcc1/DacFile.h"
+#include "libcc1/IniFile.h"
+#include "libcc1/ChipsHax.h"
+#include "libcc1/CCMetaData.h"
 
 static ccl::Levelset* load_levelset(QString filename, QWidget* self,
                                     int* dacLastLevel = 0)

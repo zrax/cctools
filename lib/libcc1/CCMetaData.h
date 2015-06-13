@@ -6,7 +6,6 @@
 #define CCMETADATA_H
 
 
-#include <Qt>
 #include <QString>
 #include <QColor>
 

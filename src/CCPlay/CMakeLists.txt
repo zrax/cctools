@@ -4,14 +4,9 @@ find_package(Qt5Sql REQUIRED)
 find_package(Qt5Xml REQUIRED)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CCTools_SOURCE_DIR}/lib)
 
 set(CCPlay_SOURCES
-    ../Stream.cpp
-    ../Levelset.cpp
-    ../DacFile.cpp
-    ../IniFile.cpp
-    ../ChipsHax.cpp
-    ../CCMetaData.cpp
     CCPlay.cpp
     PlaySettings.cpp
 )
@@ -33,7 +28,7 @@ qt5_wrap_cpp(CCPlay_MOCSRC ${CCPlay_MOCS})
 qt5_add_resources(CCPlay_RCCSRC ${CCPlay_RCCS})
 add_executable(CCPlay WIN32 MACOSX_BUNDLE
                ${CCPlay_SOURCES} ${CCPlay_MOCSRC} ${CCPlay_RCCSRC})
-target_link_libraries(CCPlay Qt5::Core Qt5::Widgets Qt5::Sql Qt5::Xml)
+target_link_libraries(CCPlay Qt5::Core Qt5::Widgets Qt5::Sql Qt5::Xml libcc1)
 
 if(APPLE)
     set(MACOSX_BUNDLE true)

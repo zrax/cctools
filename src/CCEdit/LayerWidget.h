@@ -19,7 +19,7 @@
 #define _LAYERWIDGET_H
 
 #include <QFrame>
-#include "../Tileset.h"
+#include "libcc1/Tileset.h"
 
 class LayerWidget : public QFrame {
     Q_OBJECT

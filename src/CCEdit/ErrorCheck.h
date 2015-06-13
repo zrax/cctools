@@ -21,8 +21,8 @@
 #include <QDialog>
 #include <QComboBox>
 #include <QTreeWidget>
-#include "../Levelset.h"
-#include "../DacFile.h"
+#include "libcc1/Levelset.h"
+#include "libcc1/DacFile.h"
 
 class ErrorCheckDialog : public QDialog {
     Q_OBJECT

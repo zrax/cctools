@@ -19,6 +19,7 @@
 
 #include <cstring>
 #include <cstdlib>
+#include <unistd.h>
 #include "Errors.h"
 
 #ifdef _MSC_VER

@@ -16,7 +16,7 @@
  ******************************************************************************/
 
 #include "HackSettings.h"
-#include "../ChipsHax.h"
+#include "libcc1/ChipsHax.h"
 
 void HackSettings::setKnownDefaults()
 {

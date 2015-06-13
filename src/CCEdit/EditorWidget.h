@@ -21,8 +21,8 @@
 #include <QWidget>
 #include <QPainter>
 #include "History.h"
-#include "../Tileset.h"
-#include "../Levelset.h"
+#include "libcc1/Tileset.h"
+#include "libcc1/Levelset.h"
 
 class EditorWidget : public QWidget {
     Q_OBJECT

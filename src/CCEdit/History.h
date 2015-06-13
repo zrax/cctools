@@ -18,7 +18,7 @@
 #ifndef _CCEHISTORY_H
 #define _CCEHISTORY_H
 
-#include "../Levelset.h"
+#include "libcc1/Levelset.h"
 
 struct CCEHistoryNode {
     enum Type {

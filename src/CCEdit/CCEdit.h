@@ -29,9 +29,9 @@
 #include "EditorWidget.h"
 #include "LayerWidget.h"
 #include "TileWidgets.h"
-#include "../Levelset.h"
-#include "../DacFile.h"
-#include "../CCMetaData.h"
+#include "libcc1/Levelset.h"
+#include "libcc1/DacFile.h"
+#include "libcc1/CCMetaData.h"
 
 class CCEditMain : public QMainWindow {
     Q_OBJECT

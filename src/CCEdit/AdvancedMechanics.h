@@ -21,7 +21,7 @@
 #include <QDialog>
 #include <QTreeWidget>
 #include <QAction>
-#include "../Levelset.h"
+#include "libcc1/Levelset.h"
 
 class AdvancedMechanicsDialog : public QDialog {
     Q_OBJECT

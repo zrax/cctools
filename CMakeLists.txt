@@ -19,6 +19,7 @@ set(CCTools_Tilesets
     ${CMAKE_CURRENT_SOURCE_DIR}/share/cctools/WEP.tis
 )
 
+add_subdirectory(lib/libcc1)
 add_subdirectory(src/CCEdit)
 add_subdirectory(src/CCPlay)
 add_subdirectory(src/CCHack)

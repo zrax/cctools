@@ -21,7 +21,6 @@
 #include <QObject>
 #include <QPixmap>
 #include <QIcon>
-#include <QListWidget>
 #include "Levelset.h"
 
 typedef unsigned char tile_t;
@@ -47,7 +46,6 @@ public:
     { drawAt(painter, x * m_size, y * m_size,  upper, lower); }
 
     QIcon getIcon(tile_t tile) const { return QIcon(m_base[tile]); }
-    void imageTiles(QListWidget* list) const;
     static QString TileName(tile_t tile);
 
 private:

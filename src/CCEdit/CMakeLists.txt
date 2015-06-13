@@ -3,16 +3,9 @@ find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Xml REQUIRED)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CCTools_SOURCE_DIR}/lib)
 
 set(CCEdit_SOURCES
-    ../Stream.cpp
-    ../Levelset.cpp
-    ../Tileset.cpp
-    ../DacFile.cpp
-    ../IniFile.cpp
-    ../ChipsHax.cpp
-    ../GameLogic.cpp
-    ../CCMetaData.cpp
     CCEdit.cpp
     EditorWidget.cpp
     LayerWidget.cpp
@@ -30,7 +23,6 @@ if(WIN32)
 endif()
 
 set(CCEdit_MOCS
-    ../Tileset.h
     CCEdit.h
     EditorWidget.h
     LayerWidget.h
@@ -50,7 +42,7 @@ qt5_wrap_cpp(CCEdit_MOCSRC ${CCEdit_MOCS})
 qt5_add_resources(CCEdit_RCCSRC ${CCEdit_RCCS})
 add_executable(CCEdit WIN32 MACOSX_BUNDLE
                ${CCEdit_SOURCES} ${CCEdit_MOCSRC} ${CCEdit_RCCSRC})
-target_link_libraries(CCEdit Qt5::Core Qt5::Widgets Qt5::Xml)
+target_link_libraries(CCEdit Qt5::Core Qt5::Widgets Qt5::Xml libcc1)
 
 if(APPLE)
     set(MACOSX_BUNDLE true)

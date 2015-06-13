@@ -19,7 +19,7 @@
 #define _TILEWIDGETS_H
 
 #include <QListWidget>
-#include "../Tileset.h"
+#include "libcc1/Tileset.h"
 
 class TileListWidget : public QListWidget {
     Q_OBJECT

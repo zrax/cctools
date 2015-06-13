@@ -20,7 +20,7 @@
 
 #include <string>
 #include <QObject>
-#include "../Stream.h"
+#include "libcc1/Stream.h"
 
 #define MAKE_SETTING(type, name) \
     private: \

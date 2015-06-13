@@ -24,8 +24,8 @@
 #include <QLineEdit>
 #include <QSpinBox>
 #include <QCheckBox>
-#include "../Levelset.h"
-#include "../DacFile.h"
+#include "libcc1/Levelset.h"
+#include "libcc1/DacFile.h"
 
 class LevelsetProps : public QDialog {
     Q_OBJECT

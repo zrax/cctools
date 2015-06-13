@@ -120,13 +120,6 @@ void CCETileset::drawAt(QPainter& painter, int x, int y, tile_t upper, tile_t lo
     }
 }
 
-void CCETileset::imageTiles(QListWidget* list) const
-{
-    list->setIconSize(QSize(m_size, m_size));
-    for (int i=0; i<list->count(); ++i)
-        list->item(i)->setIcon(getIcon(list->item(i)->data(Qt::UserRole).toInt()));
-}
-
 
 #define DIRTILENAME(prefix) \
     prefix " - North", prefix " - West", prefix " - South", prefix " - East"
