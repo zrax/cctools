@@ -20,8 +20,8 @@
 #include <cstring>
 #include <cstdlib>
 
-#ifdef WIN32
-#define snprintf _sprintf_p
+#ifdef _MSC_VER
+    #define snprintf _sprintf_p
 #endif
 
 ccl::LevelMap::LevelMap()

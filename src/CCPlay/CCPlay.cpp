@@ -115,7 +115,7 @@ static ccl::Levelset* load_levelset(QString filename, QWidget* self,
 CCPlayMain::CCPlayMain(QWidget* parent)
           : QMainWindow(parent)
 {
-    setWindowTitle("CCPlay 2.0");
+    setWindowTitle("CCPlay 2.1");
     QIcon appicon(":/icons/chip-48.png");
     appicon.addFile(":/icons/chip-32.png");
     appicon.addFile(":/icons/chip-24.png");
@@ -170,6 +170,9 @@ CCPlayMain::CCPlayMain(QWidget* parent)
     m_actions[ActionPlayTWorld] = new QAction(QIcon(":/res/play-tworld.png"), tr("Play (TWorld)"), this);
     m_actions[ActionPlayTWorld]->setStatusTip(tr("Play level in Tile World (F6)"));
     m_actions[ActionPlayTWorld]->setShortcut(Qt::Key_F6);
+    m_actions[ActionPlayTWorld2] = new QAction(QIcon(":/res/play-tworld.png"), tr("Play (TWorld 2)"), this);
+    m_actions[ActionPlayTWorld2]->setStatusTip(tr("Play level in Tile World 2 (F7)"));
+    m_actions[ActionPlayTWorld2]->setShortcut(Qt::Key_F7);
     m_actions[ActionEdit] = new QAction(tr("Custom Tool"), this);
     m_actions[ActionEdit]->setShortcut(Qt::Key_F9);
     m_actions[ActionSetup] = new QAction(QIcon(":/res/document-properties.png"), tr("Settings"), this);
@@ -192,6 +195,7 @@ CCPlayMain::CCPlayMain(QWidget* parent)
     m_playButton->setMenu(new QMenu(m_playButton));
     m_playButton->menu()->addAction(m_actions[ActionPlayMSCC]);
     m_playButton->menu()->addAction(m_actions[ActionPlayTWorld]);
+    m_playButton->menu()->addAction(m_actions[ActionPlayTWorld2]);
     QLayout* layPlayButton = new QGridLayout(alignPlayButton);
     layPlayButton->setContentsMargins(0, 0, 0, 0);
     layPlayButton->addWidget(m_playButton);
@@ -227,7 +231,10 @@ CCPlayMain::CCPlayMain(QWidget* parent)
     statusBar();
 
     connect(m_actions[ActionPlayMSCC], SIGNAL(triggered()), SLOT(onPlayMSCC()));
-    connect(m_actions[ActionPlayTWorld], SIGNAL(triggered()), SLOT(onPlayTWorld()));
+    connect(m_actions[ActionPlayTWorld], &QAction::triggered,
+            [this]() { this->onPlayTWorld(false); });
+    connect(m_actions[ActionPlayTWorld2], &QAction::triggered,
+            [this]() { this->onPlayTWorld(true); });
     connect(m_actions[ActionEdit], SIGNAL(triggered()), SLOT(onEditDefault()));
     connect(m_editButton->menu(), SIGNAL(triggered(QAction*)), SLOT(onEditor(QAction*)));
     connect(m_actions[ActionSetup], SIGNAL(triggered()), SLOT(onSetup()));
@@ -324,7 +331,9 @@ void CCPlayMain::refreshTools()
 {
     QSettings settings("CCTools", "CCPlay");
 
-    if (settings.value("DefaultGame").toString() == "TWorld")
+    if (settings.value("DefaultGame").toString() == "TWorld2")
+        m_playButton->setDefaultAction(m_actions[ActionPlayTWorld2]);
+    else if (settings.value("DefaultGame").toString() == "TWorld")
         m_playButton->setDefaultAction(m_actions[ActionPlayTWorld]);
     else
         m_playButton->setDefaultAction(m_actions[ActionPlayMSCC]);
@@ -622,7 +631,7 @@ void CCPlayMain::onPlayMSCC()
     refreshScores();
 }
 
-void CCPlayMain::onPlayTWorld()
+void CCPlayMain::onPlayTWorld(bool tworld2)
 {
     if (m_levelsetList->currentItem() == 0 || m_levelList->topLevelItemCount() == 0)
         return;
@@ -630,25 +639,40 @@ void CCPlayMain::onPlayTWorld()
     QString filename = m_levelsetList->currentItem()->data(0, Qt::UserRole).toString();
 
     QSettings settings("CCTools", "CCPlay");
-    QString tworldExe = settings.value("TWorldExe").toString();
+    QString tworldExe = settings.value(tworld2 ? "TWorld2Exe" : "TWorldExe").toString();
     if (tworldExe.isEmpty() || !QFile::exists(tworldExe)) {
 #ifndef Q_OS_WIN
         // Try standard paths
-        if (QFile::exists("/usr/games/tworld")) {
+        if (tworld2 && QFile::exists("/usr/games/tworld2")) {
+            tworldExe = "/usr/games/tworld2";
+        } else if (tworld2 && QFile::exists("/usr/local/games/tworld2")) {
+            tworldExe = "/usr/local/games/tworld2";
+        } else if (tworld2 && QFile::exists("/usr/bin/tworld2")) {
+            tworldExe = "/usr/bin/tworld2";
+        } else if (tworld2 && QFile::exists("/usr/local/bin/tworld2")) {
+            tworldExe = "/usr/local/bin/tworld2";
+        } else if (QFile::exists("/usr/games/tworld")) {
             tworldExe = "/usr/games/tworld";
         } else if (QFile::exists("/usr/local/games/tworld")) {
             tworldExe = "/usr/local/games/tworld";
-        } else {
-            QMessageBox::critical(this, tr("Could not find Tile World"),
-                    tr("Could not find Tile World executable.\n"
-                       "Please configure Tile World in the CCPlay settings."));
+        } else if (QFile::exists("/usr/bin/tworld")) {
+            tworldExe = "/usr/bin/tworld";
+        } else if (QFile::exists("/usr/local/bin/tworld")) {
+            tworldExe = "/usr/local/bin/tworld";
+        } else
+#else
+        {
+            if (tworld2) {
+                QMessageBox::critical(this, tr("Could not find Tile World 2"),
+                        tr("Could not find Tile World 2 executable.\n"
+                           "Please configure Tile World 2 in the CCPlay settings."));
+            } else {
+                QMessageBox::critical(this, tr("Could not find Tile World"),
+                        tr("Could not find Tile World executable.\n"
+                           "Please configure Tile World in the CCPlay settings."));
+            }
             return;
         }
-#else
-        QMessageBox::critical(this, tr("Could not find Tile World"),
-                tr("Could not find Tile World executable.\n"
-                   "Please configure Tile World in the CCPlay settings."));
-        return;
 #endif
     }
 
