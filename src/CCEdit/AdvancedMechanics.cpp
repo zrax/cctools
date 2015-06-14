@@ -336,7 +336,6 @@ void AdvancedMechanicsDialog::setFrom(ccl::LevelData* level)
     m_moveOrder.reserve(MAX_MOVERS);
 
     std::list<ccl::Trap>::const_iterator trap_iter;
-    int order = 0;
     for (trap_iter = level->traps().begin(); trap_iter != level->traps().end(); ++trap_iter) {
         m_traps.push_back(*trap_iter);
         addTrapItem(*trap_iter);
@@ -345,7 +344,6 @@ void AdvancedMechanicsDialog::setFrom(ccl::LevelData* level)
     onTrapSelect(0, 0);
 
     std::list<ccl::Clone>::const_iterator clone_iter;
-    order = 0;
     for (clone_iter = level->clones().begin(); clone_iter != level->clones().end(); ++clone_iter) {
         m_clones.push_back(*clone_iter);
         addCloneItem(*clone_iter);
@@ -354,7 +352,6 @@ void AdvancedMechanicsDialog::setFrom(ccl::LevelData* level)
     onCloneSelect(0, 0);
 
     std::list<ccl::Point>::const_iterator move_iter;
-    order = 0;
     for (move_iter = level->moveList().begin(); move_iter != level->moveList().end(); ++move_iter) {
         m_moveOrder.push_back(*move_iter);
         addMoverItem(*move_iter);

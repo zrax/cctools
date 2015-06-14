@@ -50,23 +50,22 @@ CCHackMain::CCHackMain(QWidget* parent)
     pager->setItemsExpandable(false);
 
     // TODO: page graphics
-    QTreeWidgetItem* ti;    // Temp item
     QTreeWidgetItem* tiGeneral = new QTreeWidgetItem(pager, QStringList(tr("General")), PageNothing);
-    ti = new QTreeWidgetItem(tiGeneral, QStringList(tr("General")), PageGeneral);
-    ti = new QTreeWidgetItem(tiGeneral, QStringList(tr("Sounds & Music")), PageSound);
+    new QTreeWidgetItem(tiGeneral, QStringList(tr("General")), PageGeneral);
+    new QTreeWidgetItem(tiGeneral, QStringList(tr("Sounds & Music")), PageSound);
     QTreeWidgetItem* tiStrings = new QTreeWidgetItem(pager, QStringList(tr("Strings")), PageNothing);
-    ti = new QTreeWidgetItem(tiStrings, QStringList(tr("Menus")), PageMenus);
-    ti = new QTreeWidgetItem(tiStrings, QStringList(tr("Storyline")), PageStory);
-    ti = new QTreeWidgetItem(tiStrings, QStringList(tr("After Level")), PageEndLevel);
-    ti = new QTreeWidgetItem(tiStrings, QStringList(tr("End Game")), PageEndGame);
-    ti = new QTreeWidgetItem(tiStrings, QStringList(tr("Miscellaneous")), PageMisc);
+    new QTreeWidgetItem(tiStrings, QStringList(tr("Menus")), PageMenus);
+    new QTreeWidgetItem(tiStrings, QStringList(tr("Storyline")), PageStory);
+    new QTreeWidgetItem(tiStrings, QStringList(tr("After Level")), PageEndLevel);
+    new QTreeWidgetItem(tiStrings, QStringList(tr("End Game")), PageEndGame);
+    new QTreeWidgetItem(tiStrings, QStringList(tr("Miscellaneous")), PageMisc);
     QTreeWidgetItem* tiGraphics = new QTreeWidgetItem(pager, QStringList(tr("Graphics")), PageNothing);
-    ti = new QTreeWidgetItem(tiGraphics, QStringList(tr("VGA Tileset")), PageVGATS);
-    ti = new QTreeWidgetItem(tiGraphics, QStringList(tr("EGA Tileset")), PageEGATS);
-    ti = new QTreeWidgetItem(tiGraphics, QStringList(tr("Mono Tileset")), PageMonoTS);
-    ti = new QTreeWidgetItem(tiGraphics, QStringList(tr("Background")), PageBackground);
-    ti = new QTreeWidgetItem(tiGraphics, QStringList(tr("Endgame")), PageEndGfx);
-    ti = new QTreeWidgetItem(tiGraphics, QStringList(tr("Digits")), PageDigits);
+    new QTreeWidgetItem(tiGraphics, QStringList(tr("VGA Tileset")), PageVGATS);
+    new QTreeWidgetItem(tiGraphics, QStringList(tr("EGA Tileset")), PageEGATS);
+    new QTreeWidgetItem(tiGraphics, QStringList(tr("Mono Tileset")), PageMonoTS);
+    new QTreeWidgetItem(tiGraphics, QStringList(tr("Background")), PageBackground);
+    new QTreeWidgetItem(tiGraphics, QStringList(tr("Endgame")), PageEndGfx);
+    new QTreeWidgetItem(tiGraphics, QStringList(tr("Digits")), PageDigits);
     pager->expandAll();
 
     QFont tiFont = tiGeneral->font(0);

@@ -17,14 +17,14 @@
 
 #include "GameLogic.h"
 
-#define GET_N1(x, y, level) ((y > 0) ? (level)->map().getFG(x, y - 1) : TileWall)
-#define GET_N2(x, y, level) ((y > 0) ? (level)->map().getBG(x, y - 1) : TileWall)
-#define GET_W1(x, y, level) ((x > 0) ? (level)->map().getFG(x - 1, y) : TileWall)
-#define GET_W2(x, y, level) ((x > 0) ? (level)->map().getBG(x - 1, y) : TileWall)
-#define GET_S1(x, y, level) ((y < 31) ? (level)->map().getFG(x, y + 1) : TileWall)
-#define GET_S2(x, y, level) ((y < 31) ? (level)->map().getBG(x, y + 1) : TileWall)
-#define GET_E1(x, y, level) ((x < 31) ? (level)->map().getFG(x + 1, y) : TileWall)
-#define GET_E2(x, y, level) ((x < 31) ? (level)->map().getBG(x + 1, y) : TileWall)
+#define GET_N1(x, y, level) ((y > 0) ? (level)->map().getFG(x, y - 1) : (tile_t)TileWall)
+#define GET_N2(x, y, level) ((y > 0) ? (level)->map().getBG(x, y - 1) : (tile_t)TileWall)
+#define GET_W1(x, y, level) ((x > 0) ? (level)->map().getFG(x - 1, y) : (tile_t)TileWall)
+#define GET_W2(x, y, level) ((x > 0) ? (level)->map().getBG(x - 1, y) : (tile_t)TileWall)
+#define GET_S1(x, y, level) ((y < 31) ? (level)->map().getFG(x, y + 1) : (tile_t)TileWall)
+#define GET_S2(x, y, level) ((y < 31) ? (level)->map().getBG(x, y + 1) : (tile_t)TileWall)
+#define GET_E1(x, y, level) ((x < 31) ? (level)->map().getFG(x + 1, y) : (tile_t)TileWall)
+#define GET_E2(x, y, level) ((x < 31) ? (level)->map().getBG(x + 1, y) : (tile_t)TileWall)
 
 void ccl::GetPreferredDirections(tile_t tile, ccl::Direction dirs[])
 {

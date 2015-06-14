@@ -660,7 +660,7 @@ void CCPlayMain::onPlayTWorld(bool tworld2)
         } else if (QFile::exists("/usr/local/bin/tworld")) {
             tworldExe = "/usr/local/bin/tworld";
         } else
-#else
+#endif
         {
             if (tworld2) {
                 QMessageBox::critical(this, tr("Could not find Tile World 2"),
@@ -673,7 +673,6 @@ void CCPlayMain::onPlayTWorld(bool tworld2)
             }
             return;
         }
-#endif
     }
 
     QString setName = filename.section(QChar('/'), -1);
