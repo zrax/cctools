@@ -221,7 +221,8 @@ void EditorWidget::setTileset(CCETileset* tileset)
 void EditorWidget::setLevelData(ccl::LevelData* level)
 {
     level->ref();
-    m_levelData->unref();
+    if (m_levelData)
+        m_levelData->unref();
     m_levelData = level;
 
     m_origin = QPoint(-1, -1);

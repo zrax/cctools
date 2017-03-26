@@ -53,7 +53,8 @@ public:
     EditorWidget(QWidget* parent = 0);
     virtual ~EditorWidget()
     {
-        m_levelData->unref();
+        if (m_levelData)
+            m_levelData->unref();
     }
 
     void setTileset(CCETileset* tileset);

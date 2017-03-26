@@ -127,13 +127,12 @@ public:
 
     void ref()
     {
-        if (this != 0)
-            ++m_refs;
+        ++m_refs;
     }
 
     void unref()
     {
-        if (this != 0 && --m_refs == 0)
+        if (--m_refs == 0)
             delete this;
     }
 
