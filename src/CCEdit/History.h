@@ -32,8 +32,10 @@ struct CCEHistoryNode {
 
     ~CCEHistoryNode()
     {
-        m_before->unref();
-        m_after->unref();
+        if (m_before)
+            m_before->unref();
+        if (m_after)
+            m_after->unref();
     }
 
     Type m_type;

@@ -42,7 +42,7 @@ static ccl::Levelset* load_levelset(QString filename, QWidget* self,
 {
     ccl::LevelsetType type = ccl::DetermineLevelsetType(filename.toUtf8().data());
     ccl::FileStream stream;
-    ccl::Levelset* levelset;
+    ccl::Levelset* levelset = 0;
     if (type == ccl::LevelsetCcl) {
         try {
             if (!stream.open(filename.toUtf8().data(), "rb")) {
