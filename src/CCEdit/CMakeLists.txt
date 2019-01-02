@@ -1,9 +1,34 @@
-find_package(Qt5Core REQUIRED)
-find_package(Qt5Widgets REQUIRED)
-find_package(Qt5Xml REQUIRED)
+# This file is part of CCTools.
+#
+# CCTools is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# CCTools is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with CCTools.  If not, see <http://www.gnu.org/licenses/>.
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CCTools_SOURCE_DIR}/lib)
+
+set(CCEdit_HEADERS
+    CCEdit.h
+    About.h
+    EditorWidget.h
+    LayerWidget.h
+    TileWidgets.h
+    LevelsetProps.h
+    History.h
+    AdvancedMechanics.h
+    TestSetup.h
+    ErrorCheck.h
+    Organizer.h
+)
 
 set(CCEdit_SOURCES
     CCEdit.cpp
@@ -22,26 +47,13 @@ if(WIN32)
     set(CCEdit_SOURCES ${CCEdit_SOURCES} CCEdit.rc)
 endif()
 
-set(CCEdit_MOCS
-    CCEdit.h
-    EditorWidget.h
-    LayerWidget.h
-    TileWidgets.h
-    LevelsetProps.h
-    AdvancedMechanics.h
-    TestSetup.h
-    ErrorCheck.h
-    Organizer.h
-)
-
 set(CCEdit_RCCS
     CCEdit.qrc
 )
 
-qt5_wrap_cpp(CCEdit_MOCSRC ${CCEdit_MOCS})
 qt5_add_resources(CCEdit_RCCSRC ${CCEdit_RCCS})
 add_executable(CCEdit WIN32 MACOSX_BUNDLE
-               ${CCEdit_SOURCES} ${CCEdit_MOCSRC} ${CCEdit_RCCSRC})
+               ${CCEdit_HEADERS} ${CCEdit_SOURCES} ${CCEdit_RCCSRC})
 target_link_libraries(CCEdit Qt5::Core Qt5::Widgets Qt5::Xml libcc1)
 
 if(APPLE)

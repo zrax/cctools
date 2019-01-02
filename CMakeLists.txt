@@ -1,3 +1,18 @@
+# This file is part of CCTools.
+#
+# CCTools is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# CCTools is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with CCTools.  If not, see <http://www.gnu.org/licenses/>.
+
 project(CCTools)
 cmake_minimum_required(VERSION 2.8.11)
 
@@ -22,6 +37,13 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
 elseif(MSVC)
     add_definitions("/D_CRT_SECURE_NO_WARNINGS")
 endif()
+
+set(CMAKE_AUTOMOC ON)
+find_package(Qt5Core REQUIRED)
+find_package(Qt5Gui REQUIRED)
+find_package(Qt5Xml REQUIRED)
+find_package(Qt5Widgets REQUIRED)
+find_package(Qt5Sql REQUIRED)
 
 set(CCTools_Tilesets
     ${CMAKE_CURRENT_SOURCE_DIR}/share/cctools/TW32.tis

@@ -1,10 +1,25 @@
-find_package(Qt5Core REQUIRED)
-find_package(Qt5Widgets REQUIRED)
-find_package(Qt5Sql REQUIRED)
-find_package(Qt5Xml REQUIRED)
+# This file is part of CCTools.
+#
+# CCTools is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# CCTools is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with CCTools.  If not, see <http://www.gnu.org/licenses/>.
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CCTools_SOURCE_DIR}/lib)
+
+set(CCPlay_HEADERS
+    CCPlay.h
+    PlaySettings.h
+)
 
 set(CCPlay_SOURCES
     CCPlay.cpp
@@ -15,19 +30,13 @@ if(WIN32)
     set(CCPlay_SOURCES ${CCPlay_SOURCES} CCPlay.rc)
 endif()
 
-set(CCPlay_MOCS
-    CCPlay.h
-    PlaySettings.h
-)
-
 set(CCPlay_RCCS
     CCPlay.qrc
 )
 
-qt5_wrap_cpp(CCPlay_MOCSRC ${CCPlay_MOCS})
 qt5_add_resources(CCPlay_RCCSRC ${CCPlay_RCCS})
 add_executable(CCPlay WIN32 MACOSX_BUNDLE
-               ${CCPlay_SOURCES} ${CCPlay_MOCSRC} ${CCPlay_RCCSRC})
+               ${CCPlay_HEADERS} ${CCPlay_SOURCES} ${CCPlay_RCCSRC})
 target_link_libraries(CCPlay Qt5::Core Qt5::Widgets Qt5::Sql Qt5::Xml libcc1)
 
 if(APPLE)
