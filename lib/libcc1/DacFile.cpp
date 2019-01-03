@@ -22,6 +22,10 @@
 #include <errno.h>
 #include "Errors.h"
 
+#ifdef _WIN32
+    #define strcasecmp  _stricmp
+#endif
+
 void ccl::DacFile::setFromLevelset(const ccl::Levelset& levelset)
 {
     m_ruleset = levelset.type();

@@ -21,10 +21,6 @@
 #include <string>
 #include "Levelset.h"
 
-#ifdef WIN32
-    #define strcasecmp  _stricmp
-#endif
-
 namespace ccl {
 
 struct DacFile {

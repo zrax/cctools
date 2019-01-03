@@ -68,7 +68,7 @@ public:
     tile_t pop(int x, int y);
 
     long read(Stream* stream);
-    long write(Stream* stream);
+    long write(Stream* stream) const;
 
     ccl::Point findNext(int x, int y, tile_t tile) const;
 
@@ -123,7 +123,7 @@ public:
     void addMover(int moverX, int moverY);
 
     long read(Stream* stream, bool forClipboard = false);
-    long write(Stream* stream, bool forClipboard = false);
+    long write(Stream* stream, bool forClipboard = false) const;
 
     void ref()
     {
@@ -181,7 +181,7 @@ public:
     ccl::LevelData* takeLevel(int num);
 
     void read(Stream* stream);
-    void write(Stream* stream);
+    void write(Stream* stream) const;
 
     bool isDirty() const { return m_dirty; }
     void makeDirty() { m_dirty = true; }

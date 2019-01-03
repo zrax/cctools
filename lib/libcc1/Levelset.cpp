@@ -77,7 +77,7 @@ long ccl::LevelMap::read(ccl::Stream* stream)
     return stream->tell() - begin;
 }
 
-long ccl::LevelMap::write(ccl::Stream* stream)
+long ccl::LevelMap::write(ccl::Stream* stream) const
 {
     long outsize = 0;
     outsize += stream->write_rle(m_fgTiles, CCL_WIDTH * CCL_HEIGHT);
@@ -314,7 +314,7 @@ long ccl::LevelData::read(ccl::Stream* stream, bool forClipboard)
     return stream->tell() - levelBegin;
 }
 
-long ccl::LevelData::write(ccl::Stream* stream, bool forClipboard)
+long ccl::LevelData::write(ccl::Stream* stream, bool forClipboard) const
 {
     long levelBegin = stream->tell();
     if (!forClipboard)
@@ -332,24 +332,24 @@ long ccl::LevelData::write(ccl::Stream* stream, bool forClipboard)
     stream->write16(0); // This will be updated at the end
 
     if (!m_name.empty()) {
-        stream->write8((unsigned char)FieldName);
-        stream->write8((unsigned char)(m_name.size() + 1));
+        stream->write8((uint8_t)FieldName);
+        stream->write8((uint8_t)(m_name.size() + 1));
         stream->write_string(m_name);
     }
     if (!m_hint.empty()) {
-        stream->write8((unsigned char)FieldHint);
-        stream->write8((unsigned char)(m_hint.size() + 1));
+        stream->write8((uint8_t)FieldHint);
+        stream->write8((uint8_t)(m_hint.size() + 1));
         stream->write_string(m_hint);
     }
     if (!m_password.empty()) {
-        stream->write8((unsigned char)FieldPassword);
-        stream->write8((unsigned char)(m_password.size() + 1));
+        stream->write8((uint8_t)FieldPassword);
+        stream->write8((uint8_t)(m_password.size() + 1));
         stream->write_string(m_password, true);
     }
     if (m_traps.size() > 0) {
-        stream->write8((unsigned char)FieldTraps);
-        stream->write8(m_traps.size() * 10);
-        std::list<ccl::Trap>::iterator it;
+        stream->write8((uint8_t)FieldTraps);
+        stream->write8((uint8_t)(m_traps.size() * 10));
+        std::list<ccl::Trap>::const_iterator it;
         for (it = m_traps.begin(); it != m_traps.end(); ++it) {
             stream->write16(it->button.X);
             stream->write16(it->button.Y);
@@ -359,9 +359,9 @@ long ccl::LevelData::write(ccl::Stream* stream, bool forClipboard)
         }
     }
     if (m_clones.size() > 0) {
-        stream->write8((unsigned char)FieldClones);
-        stream->write8(m_clones.size() * 8);
-        std::list<ccl::Clone>::iterator it;
+        stream->write8((uint8_t)FieldClones);
+        stream->write8((uint8_t)(m_clones.size() * 8));
+        std::list<ccl::Clone>::const_iterator it;
         for (it = m_clones.begin(); it != m_clones.end(); ++it) {
             stream->write16(it->button.X);
             stream->write16(it->button.Y);
@@ -370,9 +370,9 @@ long ccl::LevelData::write(ccl::Stream* stream, bool forClipboard)
         }
     }
     if (m_moveList.size() > 0) {
-        stream->write8((unsigned char)FieldMoveList);
-        stream->write8(m_moveList.size() * 2);
-        std::list<ccl::Point>::iterator it;
+        stream->write8((uint8_t)FieldMoveList);
+        stream->write8((uint8_t)(m_moveList.size() * 2));
+        std::list<ccl::Point>::const_iterator it;
         for (it = m_moveList.begin(); it != m_moveList.end(); ++it) {
             stream->write8(it->X);
             stream->write8(it->Y);
@@ -383,10 +383,10 @@ long ccl::LevelData::write(ccl::Stream* stream, bool forClipboard)
     long levelEnd = stream->tell();
     if (!forClipboard) {
         stream->seek(levelBegin, SEEK_SET);
-        stream->write16(levelEnd - levelBegin - sizeof(unsigned short));
+        stream->write16((uint16_t)(levelEnd - levelBegin - sizeof(unsigned short)));
     }
     stream->seek(fieldBegin, SEEK_SET);
-    stream->write16(levelEnd - fieldBegin - sizeof(unsigned short));
+    stream->write16((uint16_t)(levelEnd - fieldBegin - sizeof(unsigned short)));
     stream->seek(levelEnd, SEEK_SET);
     return levelEnd - levelBegin;
 }
@@ -478,12 +478,12 @@ void ccl::Levelset::read(ccl::Stream* stream)
     }
 }
 
-void ccl::Levelset::write(ccl::Stream* stream)
+void ccl::Levelset::write(ccl::Stream* stream) const
 {
     stream->write32(m_magic);
-    stream->write16(m_levels.size());
+    stream->write16((uint16_t)m_levels.size());
 
-    std::vector<ccl::LevelData*>::iterator it;
+    std::vector<ccl::LevelData*>::const_iterator it;
     int levelNum = 0;
     for (it = m_levels.begin(); it != m_levels.end(); ++it) {
         // Re-set level number in case levels were re-ordered
