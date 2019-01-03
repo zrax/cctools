@@ -75,23 +75,21 @@ private:
 
 class MapData {
 public:
-    MapData();
-    ~MapData();
+    MapData() { }
 
-    void read(ccl::Stream* stream, long size, bool packed);
-    long write(ccl::Stream* stream, bool pack) const;
+    void read(ccl::Stream* stream, long size);
+    long write(ccl::Stream* stream) const;
 
 private:
-    // TODO
+    uint8_t m_width, m_height;
 };
 
 class ReplayData {
 public:
-    ReplayData();
-    ~ReplayData();
+    ReplayData() { }
 
-    void read(ccl::Stream* stream, long size, bool packed);
-    long write(ccl::Stream* stream, bool pack) const;
+    void read(ccl::Stream* stream, long size);
+    long write(ccl::Stream* stream) const;
 
 private:
     // TODO
@@ -99,7 +97,7 @@ private:
 
 class Map {
 public:
-    Map() { }
+    Map();
 
     void read(ccl::Stream* stream);
     void write(ccl::Stream* stream) const;

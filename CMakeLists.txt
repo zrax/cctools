@@ -33,7 +33,7 @@ endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
     set(CMAKE_C_FLAGS "-Wall -Wextra ${CMAKE_C_FLAGS}")
-    set(CMAKE_CXX_FLAGS "-Wall -Wextra -std=c++0x ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra -std=c++11 ${CMAKE_CXX_FLAGS}")
 elseif(MSVC)
     add_definitions("/D_CRT_SECURE_NO_WARNINGS")
 endif()

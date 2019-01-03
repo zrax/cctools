@@ -66,6 +66,11 @@ public:
     void write32(uint32_t value);
     long write_rle(const tile_t* src, size_t size);
     void write_string(const std::string& value, bool password = false);
+
+    size_t copyBytes(Stream* out, size_t count);
+
+    Stream* unpack(long packedLength);
+    long pack(Stream* unpacked);
 };
 
 class FileStream : public Stream {
@@ -98,7 +103,7 @@ public:
     virtual ~BufferStream() { delete[] m_buffer; }
 
     void setFrom(const void* buffer, size_t size);
-    unsigned char* buffer() const { return m_buffer; }
+    const uint8_t* buffer() const { return m_buffer; }
 
     virtual size_t read(void* buffer, size_t size, size_t count);
     virtual size_t write(const void* buffer, size_t size, size_t count);
@@ -109,7 +114,7 @@ public:
 
 private:
     size_t m_size, m_offs, m_alloc;
-    unsigned char* m_buffer;
+    uint8_t* m_buffer;
 };
 
 }

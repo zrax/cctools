@@ -165,6 +165,56 @@ void ccl::Stream::write_string(const std::string& value, bool password)
     write8(0);
 }
 
+size_t ccl::Stream::copyBytes(ccl::Stream* out, size_t size)
+{
+    std::unique_ptr<uint8_t[]> bytes(new uint8_t[size]);
+    size_t nread = read(bytes.get(), 1, size);
+    return out->write(bytes.get(), 1, nread);
+}
+
+ccl::Stream* ccl::Stream::unpack(long packedLength)
+{
+    std::unique_ptr<ccl::BufferStream> ustream(new ccl::BufferStream);
+    uint16_t unpackedSize = read16();
+    packedLength -= sizeof(unpackedSize);
+
+    while (packedLength != 0) {
+        uint8_t control = read8();
+        packedLength -= 1;
+        if (control >= 0x80) {
+            // Copy block
+            uint8_t offset = read8();
+            packedLength -= 1;
+
+            if (offset == 0 || offset > ustream->tell())
+                throw ccl::IOException("Pack offset invalid");
+
+            // Need to copy only one byte at a time, to ensure that bytes
+            // written to the output can be looped correctly
+            control -= 0x80;
+            while (control--) {
+                uint8_t copy = ustream->buffer()[ustream->tell() - offset];
+                ustream->write8(copy);
+            }
+        } else {
+            if (copyBytes(ustream.get(), control) != control)
+                throw ccl::IOException("Read past end of stream");
+            packedLength -= control;
+        }
+    }
+
+    if (unpackedSize != ustream->size())
+        throw ccl::IOException("Packed data did not match expected length");
+
+    ustream->seek(0, SEEK_SET);
+    return ustream.release();
+}
+
+long ccl::Stream::pack(Stream* unpacked)
+{
+    throw std::runtime_error("Not yet implemented");
+}
+
 
 bool ccl::FileStream::open(const char* filename, const char* mode)
 {
@@ -213,15 +263,6 @@ void ccl::BufferStream::setFrom(const void* buffer, size_t size)
     }
     m_offs = 0;
 }
-
-/*
-size_t ccl::BufferStream::copyTo(void* buffer, size_t size)
-{
-    size_t copySize = std::min(size, m_size);
-    memcpy(buffer, m_buffer, copySize);
-    return copySize;
-}
-*/
 
 size_t ccl::BufferStream::read(void* buffer, size_t size, size_t count)
 {

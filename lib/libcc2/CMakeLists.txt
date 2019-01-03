@@ -19,7 +19,7 @@ set(libcc2_HEADERS
     Map.h
 )
 
-set(libcc1_SOURCES
+set(libcc2_SOURCES
     Map.cpp
 )
 

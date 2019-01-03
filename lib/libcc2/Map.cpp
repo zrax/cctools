@@ -73,6 +73,33 @@ long cc2::MapOption::write(ccl::Stream* stream) const
 }
 
 
+void cc2::MapData::read(ccl::Stream* stream, long size)
+{
+    m_width = stream->read8();
+    m_height = stream->read8();
+
+    // TODO
+    stream->seek(size - 2, SEEK_CUR);
+}
+
+long cc2::MapData::write(ccl::Stream* stream) const
+{
+    throw std::runtime_error("Not yet implemented");
+}
+
+
+void cc2::ReplayData::read(ccl::Stream* stream, long size)
+{
+    // TODO
+    stream->seek(size, SEEK_CUR);
+}
+
+long cc2::ReplayData::write(ccl::Stream* stream) const
+{
+    throw std::runtime_error("Not yet implemented");
+}
+
+
 cc2::Map::Map() : m_version("7"), m_readOnly()
 {
     memset(m_key, 0, sizeof(m_key));
@@ -118,18 +145,20 @@ void cc2::Map::read(ccl::Stream* stream)
         } else if (memcmp(tag, "OPTN", 4) == 0) {
             m_option.read(stream, (long)size);
         } else if (memcmp(tag, "MAP ", 4) == 0) {
-            m_mapData.read(stream, (long)size, false);
+            m_mapData.read(stream, (long)size);
         } else if (memcmp(tag, "PACK", 4) == 0) {
-            m_mapData.read(stream, (long)size, true);
+            std::unique_ptr<ccl::Stream> ustream(stream->unpack(size));
+            m_mapData.read(ustream.get(), ustream->size());
         } else if (memcmp(tag, "KEY ", 4) == 0) {
             if (size != sizeof(m_key))
                 throw ccl::FormatException("Invalid KEY field size");
             if (stream->read(&m_key, 1, sizeof(m_key)) != sizeof(m_key))
                 throw ccl::IOException("Read past end of file");
         } else if (memcmp(tag, "REPL", 4) == 0) {
-            m_replay.read(stream, (long)size, false);
+            m_replay.read(stream, (long)size);
         } else if (memcmp(tag, "PRPL", 4) == 0) {
-            m_replay.read(stream, (long)size, true);
+            std::unique_ptr<ccl::Stream> ustream(stream->unpack(size));
+            m_replay.read(ustream.get(), ustream->size());
         } else if (memcmp(tag, "RDNY", 4) == 0) {
             m_readOnly = true;
             stream->seek(size, SEEK_CUR);
