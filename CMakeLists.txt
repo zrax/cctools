@@ -51,6 +51,7 @@ set(CCTools_Tilesets
 )
 
 add_subdirectory(lib/libcc1)
+add_subdirectory(lib/libcc2)
 add_subdirectory(src/CCEdit)
 add_subdirectory(src/CCPlay)
 add_subdirectory(src/CCHack)

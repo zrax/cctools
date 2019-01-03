@@ -19,15 +19,6 @@
 
 #include <cstring>
 
-#ifdef BYTES_BIG_ENDIAN
-#define SWAP16(x)   (((x) << 8) & 0xFF00) | (((x) >> 8) & 0x00FF)
-#define SWAP32(x)   (((x) << 24) & 0xFF000000) | (((x) << 8) & 0x00FF0000) | \
-                    (((x) >> 24) & 0x000000FF) | (((x) >> 8) & 0x0000FF00)
-#else
-#define SWAP16(x)   (x)
-#define SWAP32(x)   (x)
-#endif
-
 uint8_t ccl::Stream::read8()
 {
     uint8_t val;
