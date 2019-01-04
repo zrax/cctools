@@ -200,7 +200,7 @@ void cc2::MapData::read(ccl::Stream* stream, long size)
     m_width = stream->read8();
     m_height = stream->read8();
     m_map = new Tile[m_width * m_height];
-    for (size_t i = 0; i < m_width * m_height; ++i)
+    for (size_t i = 0; i < (size_t)(m_width * m_height); ++i)
         m_map[i].read(stream);
 
     if (start + size != stream->tell())
@@ -230,17 +230,6 @@ cc2::Map::Map() : m_version("7"), m_readOnly()
     memset(m_key, 0, sizeof(m_key));
 }
 
-static std::string readZString(ccl::Stream* stream, long size)
-{
-    // Strings stored in the .c2m file include the nul-terminator, but we
-    // don't want to rely on that...
-    char* buffer = new char[size];
-    stream->read(buffer, 1, size);
-    std::string str(buffer, size - 1);
-    delete[] buffer;
-    return str;
-}
-
 void cc2::Map::read(ccl::Stream* stream)
 {
     char tag[4];
@@ -253,20 +242,20 @@ void cc2::Map::read(ccl::Stream* stream)
         size = stream->read32();
 
         if (memcmp(tag, "CC2M", 4) == 0) {
-            m_version = readZString(stream, (long)size);
+            m_version = stream->readString(size);
             have_magic = true;
         } else if (memcmp(tag, "LOCK", 4) == 0) {
-            m_lock = readZString(stream, (long)size);
+            m_lock = stream->readString(size);
         } else if (memcmp(tag, "TITL", 4) == 0) {
-            m_title = readZString(stream, (long)size);
+            m_title = stream->readString(size);
         } else if (memcmp(tag, "AUTH", 4) == 0) {
-            m_author = readZString(stream, (long)size);
+            m_author = stream->readString(size);
         } else if (memcmp(tag, "VERS", 4) == 0) {
-            m_editorVersion = readZString(stream, (long)size);
+            m_editorVersion = stream->readString(size);
         } else if (memcmp(tag, "CLUE", 4) == 0) {
-            m_clue = readZString(stream, (long)size);
+            m_clue = stream->readString(size);
         } else if (memcmp(tag, "NOTE", 4) == 0) {
-            m_note = readZString(stream, (long)size);
+            m_note = stream->readString(size);
         } else if (memcmp(tag, "OPTN", 4) == 0) {
             m_option.read(stream, (long)size);
         } else if (memcmp(tag, "MAP ", 4) == 0) {

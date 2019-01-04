@@ -58,14 +58,14 @@ public:
     uint8_t read8();
     uint16_t read16();
     uint32_t read32();
-    void read_rle(tile_t* dest, size_t size);
-    std::string read_string(size_t length, bool password = false);
+    void readRLE(tile_t* dest, size_t size);
+    std::string readString(size_t length, bool password = false);
 
     void write8(uint8_t value);
     void write16(uint16_t value);
     void write32(uint32_t value);
-    long write_rle(const tile_t* src, size_t size);
-    void write_string(const std::string& value, bool password = false);
+    long writeRLE(const tile_t* src, size_t size);
+    void writeString(const std::string& value, bool password = false);
 
     size_t copyBytes(Stream* out, size_t count);
 

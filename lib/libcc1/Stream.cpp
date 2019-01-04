@@ -43,7 +43,7 @@ uint32_t ccl::Stream::read32()
     return SWAP32(val);
 }
 
-void ccl::Stream::read_rle(tile_t* dest, size_t size)
+void ccl::Stream::readRLE(tile_t* dest, size_t size)
 {
     int dataLen = (int)read16();
     tile_t* cur = dest;
@@ -71,21 +71,20 @@ void ccl::Stream::read_rle(tile_t* dest, size_t size)
         throw ccl::IOException("RLE buffer underflow");
 }
 
-std::string ccl::Stream::read_string(size_t length, bool password)
+std::string ccl::Stream::readString(size_t length, bool password)
 {
-    char* buffer = new char[length];
-    if (read(buffer, 1, length) != length) {
-        delete[] buffer;
+    std::unique_ptr<char[]> buffer(new char[length]);
+    if (read(buffer.get(), 1, length) != length)
         throw ccl::IOException("Read past end of stream");
-    }
-    buffer[length - 1] = 0;
+
     if (password) {
         for (size_t i=0; i<(length-1); ++i)
             buffer[i] ^= 0x99;
     }
-    std::string str = buffer;
-    delete[] buffer;
-    return str;
+
+    // Strings stored in levelset files include the nul-terminator, but we
+    // don't want to rely on that...
+    return std::string(buffer.get(), length - 1);
 }
 
 void ccl::Stream::write8(uint8_t value)
@@ -108,10 +107,11 @@ void ccl::Stream::write32(uint32_t value)
         throw ccl::IOException("Error writing to stream");
 }
 
-long ccl::Stream::write_rle(const tile_t* src, size_t size)
+static uint16_t rleLength(const tile_t* src, size_t size)
 {
+    // Pre-compute the length of RLE-encoded data, so we don't have to
+    // perform extra allocations, seeks, etc. during the writing process
     const tile_t* cur = src;
-    tile_t* dest = new tile_t[size];  // Output will never be larger than input
     int dataLen = 0;
     while (cur < (src + size)) {
         int count = 1;
@@ -120,42 +120,46 @@ long ccl::Stream::write_rle(const tile_t* src, size_t size)
             ++cur;
             ++count;
         }
+        if (count > 3)
+            dataLen += 3;
+        else
+            dataLen += count;
+    }
+    return (uint16_t)dataLen;
+}
+
+long ccl::Stream::writeRLE(const tile_t* src, size_t size)
+{
+    long begin = tell();
+
+    write16(rleLength(src, size));
+    const tile_t* cur = src;
+    while (cur < (src + size)) {
+        int count = 1;
+        tile_t tile = *cur++;
+        while ((cur < (src + size)) && (count < 255) && (*cur == tile)) {
+            ++cur;
+            ++count;
+        }
         if (count > 3) {
-            dest[dataLen++] = (tile_t)0xFF;
-            dest[dataLen++] = (tile_t)count;
-            dest[dataLen++] = tile;
+            write8(0xFF);
+            write8((uint8_t)count);
+            write8((uint8_t)tile);
         } else {
             for (int i=0; i<count; ++i)
-                dest[dataLen++] = tile;
+                write8((uint8_t)tile);
         }
     }
 
-    try {
-        long begin = tell();
-        write16(dataLen);
-        if (write(dest, 1, dataLen) != (size_t)dataLen)
-            throw ccl::IOException("Error writing to stream");
-        delete[] dest;
-        return tell() - begin;
-    } catch (...) {
-        // Ensure dest is properly deleted
-        delete[] dest;
-        throw;
-    }
+    return tell() - begin;
 }
 
-void ccl::Stream::write_string(const std::string& value, bool password)
+void ccl::Stream::writeString(const std::string& value, bool password)
 {
     size_t length = value.size();
     if (password) {
-        char* buffer = new char[length];
         for (size_t i=0; i<length; ++i)
-            buffer[i] = value[i] ^ 0x99;
-        if (write(buffer, 1, length) != length) {
-            delete[] buffer;
-            throw ccl::IOException("Error writing to stream");
-        }
-        delete[] buffer;
+            write8((uint8_t)(value[i] ^ 0x99));
     } else {
         if (write(value.c_str(), 1, length) != length)
             throw ccl::IOException("Error writing to stream");

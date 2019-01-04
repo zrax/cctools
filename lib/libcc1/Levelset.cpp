@@ -72,16 +72,16 @@ tile_t ccl::LevelMap::pop(int x, int y)
 long ccl::LevelMap::read(ccl::Stream* stream)
 {
     long begin = stream->tell();
-    stream->read_rle(m_fgTiles, CCL_WIDTH * CCL_HEIGHT);
-    stream->read_rle(m_bgTiles, CCL_WIDTH * CCL_HEIGHT);
+    stream->readRLE(m_fgTiles, CCL_WIDTH * CCL_HEIGHT);
+    stream->readRLE(m_bgTiles, CCL_WIDTH * CCL_HEIGHT);
     return stream->tell() - begin;
 }
 
 long ccl::LevelMap::write(ccl::Stream* stream) const
 {
     long outsize = 0;
-    outsize += stream->write_rle(m_fgTiles, CCL_WIDTH * CCL_HEIGHT);
-    outsize += stream->write_rle(m_bgTiles, CCL_WIDTH * CCL_HEIGHT);
+    outsize += stream->writeRLE(m_fgTiles, CCL_WIDTH * CCL_HEIGHT);
+    outsize += stream->writeRLE(m_bgTiles, CCL_WIDTH * CCL_HEIGHT);
     return outsize;
 }
 
@@ -260,13 +260,13 @@ long ccl::LevelData::read(ccl::Stream* stream, bool forClipboard)
 
         switch (field) {
         case FieldName:
-            m_name = stream->read_string(size);
+            m_name = stream->readString(size);
             break;
         case FieldHint:
-            m_hint = stream->read_string(size);
+            m_hint = stream->readString(size);
             break;
         case FieldPassword:
-            m_password = stream->read_string(size, true);
+            m_password = stream->readString(size, true);
             break;
         case FieldTraps:
             if ((size % 10) != 0)
@@ -334,17 +334,17 @@ long ccl::LevelData::write(ccl::Stream* stream, bool forClipboard) const
     if (!m_name.empty()) {
         stream->write8((uint8_t)FieldName);
         stream->write8((uint8_t)(m_name.size() + 1));
-        stream->write_string(m_name);
+        stream->writeString(m_name);
     }
     if (!m_hint.empty()) {
         stream->write8((uint8_t)FieldHint);
         stream->write8((uint8_t)(m_hint.size() + 1));
-        stream->write_string(m_hint);
+        stream->writeString(m_hint);
     }
     if (!m_password.empty()) {
         stream->write8((uint8_t)FieldPassword);
         stream->write8((uint8_t)(m_password.size() + 1));
-        stream->write_string(m_password, true);
+        stream->writeString(m_password, true);
     }
     if (m_traps.size() > 0) {
         stream->write8((uint8_t)FieldTraps);

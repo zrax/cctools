@@ -22,13 +22,7 @@
 #include <QDir>
 #include <cstdio>
 #include "Errors.h"
-
-#ifdef BYTES_BIG_ENDIAN
-#define SWAP32(x)   (((x) << 24) & 0xFF000000) | (((x) << 8) & 0x00FF0000) | \
-                    (((x) >> 24) & 0x000000FF) | (((x) >> 8) & 0x0000FF00)
-#else
-#define SWAP32(x)   (x)
-#endif
+#include "Stream.h"
 
 static quint8 read8(QFile& file)
 {
