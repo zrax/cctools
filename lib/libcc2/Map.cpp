@@ -215,8 +215,22 @@ long cc2::MapData::write(ccl::Stream* stream) const
 
 void cc2::ReplayData::read(ccl::Stream* stream, long size)
 {
-    // TODO
-    stream->seek(size, SEEK_CUR);
+    long start = stream->tell();
+
+    m_flag = stream->read8();
+    m_initRandDir = stream->read8();
+    m_randSeed = stream->read8();
+
+    while (stream->tell() < start + size) {
+        uint8_t frames = stream->read8();
+        uint8_t action = stream->read8();
+        if (frames == 0xff)
+            break;
+        m_input.emplace_back(frames, action);
+    }
+
+    if (start + size != stream->tell())
+        throw ccl::FormatException("Failed to parse replay data");
 }
 
 long cc2::ReplayData::write(ccl::Stream* stream) const

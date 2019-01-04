@@ -210,15 +210,51 @@ private:
     Tile* m_map;
 };
 
+class ReplayInput {
+public:
+    enum ActionFlags {
+        DropItem = 0x1,
+        Down = 0x2,
+        Left = 0x4,
+        Right = 0x8,
+        Up = 0x10,
+        SwitchPlayer = 0x20,
+        CycleInventory = 0x40,
+        Player2Mask = 0x80,
+    };
+
+    explicit ReplayInput(uint8_t frames, uint8_t action)
+        : m_frames(frames), m_action(action) { }
+
+    uint8_t frames() const { return m_frames; }
+    uint8_t action() const { return m_action; }
+
+private:
+    uint8_t m_frames;
+    uint8_t m_action;
+};
+
 class ReplayData {
 public:
-    ReplayData() { }
+    ReplayData() : m_flag(), m_initRandDir(), m_randSeed() { }
+
+    uint8_t initRandDir() const { return m_initRandDir; }
+    uint8_t randSeed() const { return m_randSeed; }
+
+    void setInitRandDir(uint8_t dir) { m_initRandDir = dir; }
+    void setRandSeed(uint8_t seed) { m_randSeed = seed; }
+
+    std::list<ReplayInput>& input() { return m_input; }
+    const std::list<ReplayInput>& input() const { return m_input; }
 
     void read(ccl::Stream* stream, long size);
     long write(ccl::Stream* stream) const;
 
 private:
-    // TODO
+    uint8_t m_flag;
+    uint8_t m_initRandDir;
+    uint8_t m_randSeed;
+    std::list<ReplayInput> m_input;
 };
 
 class Map {
