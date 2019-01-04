@@ -73,13 +73,138 @@ long cc2::MapOption::write(ccl::Stream* stream) const
 }
 
 
+void cc2::Tile::read(ccl::Stream* stream)
+{
+    m_type = stream->read8();
+    if (m_type == Modifier1 || m_type == Modifier2) {
+        m_modifiers[0] = stream->read8();
+        if (m_type == Modifier2)
+            m_modifiers[1] = stream->read8();
+        m_type = stream->read8();
+    }
+
+    switch (m_type) {
+    case Player:
+    case DirtBlock:
+    case Walker:
+    case Ship:
+    case IceBlock:
+    case BlueTank:
+    case Ant:
+    case Centipede:
+    case Ball:
+    case Blob:
+    case AngryTeeth:
+    case FireBox:
+    case Player2:
+    case TimidTeeth:
+    case YellowTank:
+    case MirrorPlayer:
+    case MirrorPlayer2:
+    case Rover:
+    case FloorMimic:
+    case Ghost:
+        m_direction = stream->read8();
+        break;
+    case PanelCanopy:
+        m_panelFlags = stream->read8();
+        break;
+    case DirBlock:
+        m_direction = stream->read8();
+        m_arrowMask = stream->read8();
+        break;
+    default:
+        // No extra data
+        break;
+    }
+
+    if (haveLower()) {
+        m_lower = new Tile;
+        m_lower->read(stream);
+    }
+}
+
+void cc2::Tile::write(ccl::Stream* stream) const
+{
+    throw std::runtime_error("Not yet implemented");
+}
+
+bool cc2::Tile::haveLower() const
+{
+    switch (m_type) {
+    case Player:
+    case DirtBlock:
+    case Walker:
+    case Ship:
+    case IceBlock:
+    case BlueTank:
+    case Key_Red:
+    case Key_Blue:
+    case Key_Yellow:
+    case Key_Green:
+    case Chip:
+    case ExtraChip:
+    case Ant:
+    case Centipede:
+    case Ball:
+    case Blob:
+    case AngryTeeth:
+    case FireBox:
+    case IceCleats:
+    case MagnoShoes:
+    case FireShoes:
+    case Flippers:
+    case RedBomb:
+    case TimeBonus:
+    case ToggleClock:
+    case TimeBomb:
+    case Helmet:
+    case Player2:
+    case TimidTeeth:
+    case HikingBoots:
+    case Lightning:
+    case YellowTank:
+    case MirrorPlayer:
+    case MirrorPlayer2:
+    case BowlingBall:
+    case Rover:
+    case TimePenalty:
+    case PanelCanopy:
+    case RRSign:
+    case Flag10:
+    case Flag100:
+    case Flag1000:
+    case Disallow:
+    case Flag2x:
+    case DirBlock:
+    case FloorMimic:
+    case GreenBomb:
+    case GreenChip:
+    case Ghost:
+    case SteelFoil:
+    case Eye:
+    case Bribe:
+    case SpeedShoes:
+    case Hook:
+        return true;
+    default:
+        return false;
+    }
+}
+
+
 void cc2::MapData::read(ccl::Stream* stream, long size)
 {
+    long start = stream->tell();
+
     m_width = stream->read8();
     m_height = stream->read8();
+    m_map = new Tile[m_width * m_height];
+    for (size_t i = 0; i < m_width * m_height; ++i)
+        m_map[i].read(stream);
 
-    // TODO
-    stream->seek(size - 2, SEEK_CUR);
+    if (start + size != stream->tell())
+        throw ccl::FormatException("Failed to parse map data");
 }
 
 long cc2::MapData::write(ccl::Stream* stream) const
