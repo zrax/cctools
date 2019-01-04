@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import struct
 
@@ -11,11 +11,11 @@ def write_tileset(filename, tile_size, name, desc, base_gfx_file, overlay_gfx_fi
     src.close()
 
     tis = open(filename, 'wb')
-    tis.write('CCTILE01')
+    tis.write(b'CCTILE01')
     tis.write(struct.pack('I', len(name)))
-    tis.write(name)
+    tis.write(bytes(name, 'utf-8'))
     tis.write(struct.pack('I', len(desc)))
-    tis.write(desc)
+    tis.write(bytes(desc, 'utf-8'))
     tis.write(struct.pack('B', tile_size))
     tis.write(struct.pack('I', len(base_data)))
     tis.write(base_data)
@@ -32,3 +32,7 @@ if __name__ == '__main__':
     write_tileset('WEP.tis', 32, 'MSCC/Editor Color',
                   'Microsoft WEP Default 32x32 Editor Graphics',
                   'MSCC_base.png', 'MSCC_overlay.png')
+
+    write_tileset('CC2.tis', 32, 'CC2/Editor',
+                  "Default 32x32 Chip's Challenge 2 Editor Graphics",
+                  'CC2_base.png', 'CC2_overlay.png')
