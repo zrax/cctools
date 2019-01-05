@@ -20,6 +20,8 @@
 
 #include "libcc1/Stream.h"
 
+#include <list>
+
 namespace cc2 {
 
 class MapOption {
@@ -41,8 +43,8 @@ public:
     Viewport view() const { return m_view; }
     BlobPattern blobPattern() const { return m_blobPattern; }
     uint16_t timeLimit() const { return m_timeLimit; }
-    const uint8_t* solutionMD5() const { return m_solutionMD5; }
-    bool solutionValid() const { return m_solutionValid; }
+    const uint8_t* replayMD5() const { return m_replayMD5; }
+    bool replayValid() const { return m_replayValid; }
     bool hidden() const { return m_hidden; }
     bool readOnly() const { return m_readOnly; }
     bool hideLogic() const { return m_hideLogic; }
@@ -51,22 +53,22 @@ public:
     void setView(Viewport view) { m_view = view; }
     void setBlobPattern(BlobPattern pattern) { m_blobPattern = pattern; }
     void setTimeLimit(uint16_t limit) { m_timeLimit = limit; }
-    void setSolutionMD5(const uint8_t* md5);
-    void setSolutionValid(bool valid) { m_solutionValid = valid; }
+    void setReplayMD5(const uint8_t* md5);
+    void setReplayValid(bool valid) { m_replayValid = valid; }
     void setHidden(bool hidden) { m_hidden = hidden; }
     void setReadOnly(bool ro) { m_readOnly = ro; }
     void setHideLogic(bool hide) { m_hideLogic = hide; }
     void setCc1Boots(bool cc1Boots) { m_cc1Boots = cc1Boots; }
 
     void read(ccl::Stream* stream, long size);
-    long write(ccl::Stream* stream) const;
+    void write(ccl::Stream* stream) const;
 
 private:
     Viewport m_view;
     BlobPattern m_blobPattern;
     uint16_t m_timeLimit;
-    uint8_t m_solutionMD5[16];
-    bool m_solutionValid;
+    uint8_t m_replayMD5[16];
+    bool m_replayValid;
     bool m_hidden;
     bool m_readOnly;
     bool m_hideLogic;
@@ -160,8 +162,7 @@ public:
     void write(ccl::Stream* stream) const;
 
     bool haveLower() const;
-    Tile* lower() { return m_lower; }
-    const Tile* lower() const { return m_lower; }
+    Tile* lower();
 
 private:
     uint8_t m_type;
@@ -186,7 +187,7 @@ public:
     ~MapData() { delete[] m_map; }
 
     void read(ccl::Stream* stream, long size);
-    long write(ccl::Stream* stream) const;
+    void write(ccl::Stream* stream) const;
 
     uint8_t width() const { return m_width; }
     uint8_t height() const { return m_height; }
@@ -254,7 +255,7 @@ public:
     const std::list<ReplayInput>& input() const { return m_input; }
 
     void read(ccl::Stream* stream, long size);
-    long write(ccl::Stream* stream) const;
+    void write(ccl::Stream* stream) const;
 
 private:
     Tile::Direction m_initRandDir;
