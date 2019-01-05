@@ -125,22 +125,31 @@ public:
         Canopy = 0x10,
     };
 
-    explicit Tile(int type = 0)
+    explicit Tile(int type = Floor)
         : m_type(type), m_direction(), m_arrowMask(), m_lower()
     {
         m_modifiers[0] = 0;
         m_modifiers[1] = 0;
+        checkLower();
     }
 
     ~Tile() { delete m_lower; }
+
+    Tile(const Tile& copy);
+    Tile& operator=(const Tile& copy);
 
     Type type() const { return (Type)m_type; }
     Direction direction() const { return (Direction)m_direction; }
     uint8_t arrowMask() const { return m_arrowMask; }
     uint8_t panelFlags() const { return m_panelFlags; }
 
-    void setType(int type) { m_type = type; }
-    void setDirection(Direction dir) { m_direction = (uint8_t)dir; }
+    void set(int type, Direction dir = (Direction)0)
+    {
+        m_type = type;
+        m_direction = dir;
+        checkLower();
+    }
+
     void setArrowMask(uint8_t mask) { m_arrowMask = mask; }
     void setPanelFlags(uint8_t flags) { m_panelFlags = flags; }
 
@@ -161,8 +170,13 @@ public:
     void read(ccl::Stream* stream);
     void write(ccl::Stream* stream) const;
 
-    bool haveLower() const;
-    Tile* lower();
+    // This may return NULL if the tile should have a lower layer
+    // but it hasn't yet been created.  Use checkLower() to ensure
+    // a lower layer is created for tiles that need one.
+    const Tile* lower() const { return haveLower() ? m_lower : 0; }
+
+    // This method will create the lower layer if necessary
+    Tile* checkLower();
 
 private:
     uint8_t m_type;
@@ -179,6 +193,8 @@ private:
 
     // Lower-layer tile, if any (All tile data may recurse!)
     Tile* m_lower;
+
+    bool haveLower() const;
 };
 
 class MapData {
@@ -191,6 +207,8 @@ public:
 
     uint8_t width() const { return m_width; }
     uint8_t height() const { return m_height; }
+
+    void resize(uint8_t width, uint8_t height);
 
     Tile& tile(int x, int y)
     {

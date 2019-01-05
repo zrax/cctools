@@ -105,6 +105,29 @@ void cc2::MapOption::write(ccl::Stream* stream) const
 }
 
 
+cc2::Tile::Tile(const Tile& copy)
+    : m_type(copy.m_type), m_direction(copy.m_direction),
+      m_arrowMask(copy.m_arrowMask)
+{
+    memcpy(m_modifiers, copy.m_modifiers, sizeof(m_modifiers));
+    auto lower = checkLower();
+    if (lower && copy.m_lower)
+        lower->operator=(*copy.m_lower);
+}
+
+cc2::Tile& cc2::Tile::operator=(const Tile& copy)
+{
+    m_type = copy.m_type;
+    m_direction = copy.m_direction;
+    m_arrowMask = copy.m_arrowMask;
+    memcpy(m_modifiers, copy.m_modifiers, sizeof(m_modifiers));
+    auto lower = checkLower();
+    if (lower && copy.m_lower)
+        lower->operator=(*copy.m_lower);
+
+    return *this;
+}
+
 void cc2::Tile::read(ccl::Stream* stream)
 {
     m_type = stream->read8();
@@ -150,7 +173,7 @@ void cc2::Tile::read(ccl::Stream* stream)
         break;
     }
 
-    auto nextLayer = lower();
+    auto nextLayer = checkLower();
     if (nextLayer)
         nextLayer->read(stream);
 }
@@ -204,10 +227,8 @@ void cc2::Tile::write(ccl::Stream* stream) const
     }
 
     if (haveLower()) {
-        if (m_lower)
-            m_lower->write(stream);
-        else
-            stream->write8((uint8_t)Floor);
+        Q_ASSERT(m_lower);
+        m_lower->write(stream);
     }
 }
 
@@ -274,7 +295,7 @@ bool cc2::Tile::haveLower() const
     }
 }
 
-cc2::Tile* cc2::Tile::lower()
+cc2::Tile* cc2::Tile::checkLower()
 {
     if (!haveLower())
         return 0;
@@ -305,6 +326,32 @@ void cc2::MapData::write(ccl::Stream* stream) const
     stream->write8(m_height);
     for (size_t i = 0; i < (size_t)(m_width * m_height); ++i)
         m_map[i].write(stream);
+}
+
+void cc2::MapData::resize(uint8_t width, uint8_t height)
+{
+    if (width == 0 || height == 0) {
+        delete[] m_map;
+        m_map = 0;
+        m_width = 0;
+        m_height = 0;
+        return;
+    }
+
+    Tile* newMap = new Tile[width * height];
+
+    // Copy the old map if possible
+    uint8_t copyWidth = std::min(m_width, width);
+    uint8_t copyHeight = std::min(m_height, height);
+    for (uint8_t y = 0; y < copyHeight; ++y) {
+        for (uint8_t x = 0; x < copyWidth; ++x)
+            newMap[(y * width) + x] = m_map[(y * m_width) + x];
+    }
+
+    delete[] m_map;
+    m_map = newMap;
+    m_width = width;
+    m_height = height;
 }
 
 
