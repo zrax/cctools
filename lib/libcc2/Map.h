@@ -79,33 +79,34 @@ class Tile {
 public:
     enum Type {
         // These do NOT match CC1 tiles, so it needs its own enum.
-        Nothing = 0,
+        Invalid = 0,
         Floor, Wall, Ice, Ice_NE, Ice_SE, Ice_SW, Ice_NW, Water, Fire,
         Force_N, Force_E, Force_S, Force_W, ToggleWall, ToggleFloor,
-        Fan_Blue, Fan_Red, Fan_Yellow, Fan_Green, Exit, Slime, Player,
-        DirtBlock, Walker, Ship, IceBlock, UNUSED_1b, UNUSED_1c,
-        UNUSED_1d, Gravel, ToggleButton, TankButton, BlueTank,
-        Door_Red, Door_Blue, Door_Yellow, Door_Green, Key_Red, Key_Blue,
-        Key_Yellow, Key_Green, Chip, ExtraChip, Socket,
-        PopUpWall, AppearingWall, InvisWall, BlueWall, BlueFloor, Dirt,
-        Ant, Centipede, Ball, Blob, AngryTeeth, FireBox,
-        CloneButton, TrapButton, IceCleats, MagnoShoes, FireShoes, Flippers,
-        ToolThief, RedBomb, UNUSED_41, Trap, UNUSED_43, Cloner, Clue,
-        Force_Rand, AreaCtlButton, RevolvDoor_SW, RevolvDoor_NW,
-        RevolvDoor_NE, RevolvDoor_SE, TimeBonus, ToggleClock, Transformer,
-        TrainTracks, SteelWall, TimeBomb, Helmet, UNUSED_53,
-        UNUSED_54, UNUSED_55, Player2, TimidTeeth, UNUSED_58,
-        HikingBoots, MaleOnly, FemaleOnly, InverterGate, UNUSED_5d,
-        LogicSwitch, FlameJet_Off, FlameJet_On, FlameJetButton, Lightning,
-        YellowTank, YellowTankCtrl, MirrorPlayer, MirrorPlayer2,
-        UNUSED_67, BowlingBall, Rover, TimePenalty, CustomFloor,
-        UNUSED_6c, PanelCanopy, UNUSED_6e, RRSign, CustomWall,
-        AsciiGlyph, LSwitchWall, LSwitchFloor, UNUSED_74, UNUSED_75,
-        Modifier1, Modifier2, UNUSED_78, UNUSED_79, Flag10, Flag100, Flag1000,
-        StayUpWall, PopDownWall, Disallow, Flag2x, DirBlock, FloorMimic,
-        GreenBomb, GreenChip, UNUSED_85, UNUSED_86, RevLogicButton,
-        Switch_Off, Switch_On, KeyThief, Ghost, SteelFoil, Turtle, Eye,
-        Bribe, SpeedShoes, UNUSED_91, Hook,
+        Teleport_Red, Teleport_Blue, Teleport_Yellow, Teleport_Green,
+        Exit, Slime, Player, DirtBlock, Walker, Ship, IceBlock,
+        UNUSED_Barrier_E, UNUSED_Barrier_S, UNUSED_Barrier_SE, Gravel,
+        ToggleButton, TankButton, BlueTank, Door_Red, Door_Blue,
+        Door_Yellow, Door_Green, Key_Red, Key_Blue, Key_Yellow, Key_Green,
+        Chip, ExtraChip, Socket, PopUpWall, AppearingWall, InvisWall,
+        BlueWall, BlueFloor, Dirt, Ant, Centipede, Ball, Blob,
+        AngryTeeth, FireBox, CloneButton, TrapButton, IceCleats, MagnoShoes,
+        FireShoes, Flippers, ToolThief, RedBomb, UNUSED_41, Trap,
+        UNUSED_Cloner, Cloner, Clue, Force_Rand, AreaCtlButton,
+        RevolvDoor_SW, RevolvDoor_NW, RevolvDoor_NE, RevolvDoor_SE,
+        TimeBonus, ToggleClock, Transformer, TrainTracks, SteelWall,
+        TimeBomb, Helmet, UNUSED_53, UNUSED_54, UNUSED_55, Player2,
+        TimidTeeth, UNUSED_Explosion, HikingBoots, MaleOnly, FemaleOnly,
+        LogicGate, UNUSED_5d, LogicSwitch, FlameJet_Off, FlameJet_On,
+        FlameJetButton, Lightning, YellowTank, YellowTankCtrl,
+        MirrorPlayer, MirrorPlayer2, UNUSED_67, BowlingBall, Rover,
+        TimePenalty, CustomFloor, UNUSED_6c, PanelCanopy, UNUSED_6e, RRSign,
+        CustomWall, AsciiGlyph, LSwitchWall, LSwitchFloor,
+        UNUSED_74, UNUSED_75, Modifier8, Modifier16, Modifier32, UNUSED_79,
+        Flag10, Flag100, Flag1000, StayUpGWall, PopDownGWall, Disallow,
+        Flag2x, DirBlock, FloorMimic, GreenBomb, GreenChip,
+        UNUSED_85, UNUSED_86, RevLogicButton, Switch_Off, Switch_On,
+        KeyThief, Ghost, SteelFoil, Turtle, Eye, Bribe, SpeedShoes,
+        UNUSED_91, Hook,
     };
 
     enum Direction { North, East, South, West };
@@ -126,10 +127,8 @@ public:
     };
 
     explicit Tile(int type = Floor)
-        : m_type(type), m_direction(), m_arrowMask(), m_lower()
+        : m_type(type), m_direction(), m_arrowMask(), m_modifier(), m_lower()
     {
-        m_modifiers[0] = 0;
-        m_modifiers[1] = 0;
         checkLower();
     }
 
@@ -153,19 +152,8 @@ public:
     void setArrowMask(uint8_t mask) { m_arrowMask = mask; }
     void setPanelFlags(uint8_t flags) { m_panelFlags = flags; }
 
-    uint8_t modifier(size_t n) const
-    {
-        if (n >= sizeof(m_modifiers) / sizeof(m_modifiers[0]))
-            throw std::out_of_range("Invalid modifier index");
-        return m_modifiers[n];
-    }
-
-    void setModifier(size_t n, uint8_t value)
-    {
-        if (n >= sizeof(m_modifiers) / sizeof(m_modifiers[0]))
-            throw std::out_of_range("Invalid modifier index");
-        m_modifiers[n] = value;
-    }
+    uint32_t modifier() const { return m_modifier; }
+    void setModifier(uint32_t modifier) { m_modifier = modifier; }
 
     void read(ccl::Stream* stream);
     void write(ccl::Stream* stream) const;
@@ -173,6 +161,7 @@ public:
     // This may return NULL if the tile should have a lower layer
     // but it hasn't yet been created.  Use checkLower() to ensure
     // a lower layer is created for tiles that need one.
+    Tile* lower() { return haveLower() ? m_lower : 0; }
     const Tile* lower() const { return haveLower() ? m_lower : 0; }
 
     // This method will create the lower layer if necessary
@@ -180,21 +169,18 @@ public:
 
 private:
     uint8_t m_type;
-    union {
-        struct {
-            uint8_t m_direction;
-            uint8_t m_arrowMask;
-        };
-        uint8_t m_panelFlags;
-    };
+    uint8_t m_direction;
+    uint8_t m_arrowMask;
+    uint8_t m_panelFlags;
 
-    // Attached modifier values, if any
-    uint8_t m_modifiers[2];
+    // Attached modifier value, if any
+    uint32_t m_modifier;
 
     // Lower-layer tile, if any (All tile data may recurse!)
     Tile* m_lower;
 
     bool haveLower() const;
+    bool haveDirection() const;
 };
 
 class MapData {

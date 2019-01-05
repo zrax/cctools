@@ -107,9 +107,8 @@ void cc2::MapOption::write(ccl::Stream* stream) const
 
 cc2::Tile::Tile(const Tile& copy)
     : m_type(copy.m_type), m_direction(copy.m_direction),
-      m_arrowMask(copy.m_arrowMask)
+      m_arrowMask(copy.m_arrowMask), m_modifier(copy.m_modifier)
 {
-    memcpy(m_modifiers, copy.m_modifiers, sizeof(m_modifiers));
     auto lower = checkLower();
     if (lower && copy.m_lower)
         lower->operator=(*copy.m_lower);
@@ -120,7 +119,7 @@ cc2::Tile& cc2::Tile::operator=(const Tile& copy)
     m_type = copy.m_type;
     m_direction = copy.m_direction;
     m_arrowMask = copy.m_arrowMask;
-    memcpy(m_modifiers, copy.m_modifiers, sizeof(m_modifiers));
+    m_modifier = copy.m_modifier;
     auto lower = checkLower();
     if (lower && copy.m_lower)
         lower->operator=(*copy.m_lower);
@@ -131,47 +130,30 @@ cc2::Tile& cc2::Tile::operator=(const Tile& copy)
 void cc2::Tile::read(ccl::Stream* stream)
 {
     m_type = stream->read8();
-    if (m_type == Modifier1 || m_type == Modifier2) {
-        m_modifiers[0] = stream->read8();
-        if (m_type == Modifier2)
-            m_modifiers[1] = stream->read8();
+    if (m_type >= Modifier8 && m_type <= Modifier32) {
+        switch (m_type) {
+        case Modifier8:
+            m_modifier = stream->read8();
+            break;
+        case Modifier16:
+            m_modifier = stream->read16();
+            break;
+        case Modifier32:
+            m_modifier = stream->read32();
+            break;
+        default:
+            // Should never get here
+            Q_ASSERT(false);
+        }
         m_type = stream->read8();
     }
 
-    switch (m_type) {
-    case Player:
-    case DirtBlock:
-    case Walker:
-    case Ship:
-    case IceBlock:
-    case BlueTank:
-    case Ant:
-    case Centipede:
-    case Ball:
-    case Blob:
-    case AngryTeeth:
-    case FireBox:
-    case Player2:
-    case TimidTeeth:
-    case YellowTank:
-    case MirrorPlayer:
-    case MirrorPlayer2:
-    case Rover:
-    case FloorMimic:
-    case Ghost:
+    if (haveDirection())
         m_direction = stream->read8();
-        break;
-    case PanelCanopy:
+    if (m_type == PanelCanopy)
         m_panelFlags = stream->read8();
-        break;
-    case DirBlock:
-        m_direction = stream->read8();
+    if (m_type == DirBlock)
         m_arrowMask = stream->read8();
-        break;
-    default:
-        // No extra data
-        break;
-    }
 
     auto nextLayer = checkLower();
     if (nextLayer)
@@ -180,51 +162,25 @@ void cc2::Tile::read(ccl::Stream* stream)
 
 void cc2::Tile::write(ccl::Stream* stream) const
 {
-    if (m_modifiers[1] != 0) {
-        stream->write8(Modifier2);
-        stream->write8(m_modifiers[0]);
-        stream->write8(m_modifiers[1]);
-    } else if (m_modifiers[0] != 0) {
-        stream->write8(Modifier1);
-        stream->write8(m_modifiers[0]);
+    if (m_modifier > 0xFFFF) {
+        stream->write8(Modifier32);
+        stream->write32(m_modifier);
+    } else if (m_modifier > 0xFF) {
+        stream->write8(Modifier16);
+        stream->write16((uint16_t)m_modifier);
+    } else if (m_modifier != 0) {
+        stream->write8(Modifier8);
+        stream->write8((uint8_t)m_modifier);
     }
 
     stream->write8(m_type);
 
-    switch (m_type) {
-    case Player:
-    case DirtBlock:
-    case Walker:
-    case Ship:
-    case IceBlock:
-    case BlueTank:
-    case Ant:
-    case Centipede:
-    case Ball:
-    case Blob:
-    case AngryTeeth:
-    case FireBox:
-    case Player2:
-    case TimidTeeth:
-    case YellowTank:
-    case MirrorPlayer:
-    case MirrorPlayer2:
-    case Rover:
-    case FloorMimic:
-    case Ghost:
+    if (haveDirection())
         stream->write8(m_direction);
-        break;
-    case PanelCanopy:
+    if (m_type == PanelCanopy)
         stream->write8(m_panelFlags);
-        break;
-    case DirBlock:
-        stream->write8(m_direction);
+    if (m_type == DirBlock)
         stream->write8(m_arrowMask);
-        break;
-    default:
-        // No extra data
-        break;
-    }
 
     if (haveLower()) {
         Q_ASSERT(m_lower);
@@ -240,6 +196,9 @@ bool cc2::Tile::haveLower() const
     case Walker:
     case Ship:
     case IceBlock:
+    case UNUSED_Barrier_E:
+    case UNUSED_Barrier_S:
+    case UNUSED_Barrier_SE:
     case BlueTank:
     case Key_Red:
     case Key_Blue:
@@ -262,9 +221,12 @@ bool cc2::Tile::haveLower() const
     case ToggleClock:
     case TimeBomb:
     case Helmet:
+    case UNUSED_53:
     case Player2:
     case TimidTeeth:
+    case UNUSED_Explosion:
     case HikingBoots:
+    case UNUSED_5d:
     case Lightning:
     case YellowTank:
     case MirrorPlayer:
@@ -274,6 +236,7 @@ bool cc2::Tile::haveLower() const
     case TimePenalty:
     case PanelCanopy:
     case RRSign:
+    case UNUSED_79:
     case Flag10:
     case Flag100:
     case Flag1000:
@@ -283,12 +246,48 @@ bool cc2::Tile::haveLower() const
     case FloorMimic:
     case GreenBomb:
     case GreenChip:
+    case UNUSED_85:
+    case UNUSED_86:
     case Ghost:
     case SteelFoil:
     case Eye:
     case Bribe:
     case SpeedShoes:
     case Hook:
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool cc2::Tile::haveDirection() const
+{
+    switch (m_type) {
+    case Player:
+    case DirtBlock:
+    case Walker:
+    case Ship:
+    case IceBlock:
+    case BlueTank:
+    case Ant:
+    case Centipede:
+    case Ball:
+    case Blob:
+    case AngryTeeth:
+    case FireBox:
+    case UNUSED_53:
+    case Player2:
+    case TimidTeeth:
+    case UNUSED_Explosion:
+    case UNUSED_5d:
+    case YellowTank:
+    case MirrorPlayer:
+    case MirrorPlayer2:
+    case Rover:
+    case UNUSED_79:
+    case DirBlock:
+    case FloorMimic:
+    case Ghost:
         return true;
     default:
         return false;
