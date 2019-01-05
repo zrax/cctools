@@ -223,14 +223,18 @@ public:
         Player2Mask = 0x80,
     };
 
-    explicit ReplayInput(uint8_t frames, uint8_t action)
+    explicit ReplayInput(int frames, uint8_t action)
         : m_frames(frames), m_action(action) { }
 
-    uint8_t frames() const { return m_frames; }
+    int frames() const { return m_frames; }
     uint8_t action() const { return m_action; }
 
+    void setFrames(int frames) { m_frames = frames; }
+    void addFrames(int frames) { m_frames += frames; }
+    void setAction(uint8_t action) { m_action = action; }
+
 private:
-    uint8_t m_frames;
+    int m_frames;
     uint8_t m_action;
 };
 
@@ -238,10 +242,12 @@ class ReplayData {
 public:
     ReplayData() : m_flag(), m_initRandDir(), m_randSeed() { }
 
-    uint8_t initRandDir() const { return m_initRandDir; }
+    uint8_t flag() const { return m_flag; }
+    Tile::Direction initRandDir() const { return m_initRandDir; }
     uint8_t randSeed() const { return m_randSeed; }
 
-    void setInitRandDir(uint8_t dir) { m_initRandDir = dir; }
+    void setFlag(uint8_t flag) { m_flag = flag; }
+    void setInitRandDir(Tile::Direction dir) { m_initRandDir = dir; }
     void setRandSeed(uint8_t seed) { m_randSeed = seed; }
 
     std::list<ReplayInput>& input() { return m_input; }
@@ -251,8 +257,8 @@ public:
     long write(ccl::Stream* stream) const;
 
 private:
+    Tile::Direction m_initRandDir;
     uint8_t m_flag;
-    uint8_t m_initRandDir;
     uint8_t m_randSeed;
     std::list<ReplayInput> m_input;
 };

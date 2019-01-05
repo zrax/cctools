@@ -218,7 +218,7 @@ void cc2::ReplayData::read(ccl::Stream* stream, long size)
     long start = stream->tell();
 
     m_flag = stream->read8();
-    m_initRandDir = stream->read8();
+    m_initRandDir = (Tile::Direction)stream->read8();
     m_randSeed = stream->read8();
 
     while (stream->tell() < start + size) {
@@ -226,7 +226,12 @@ void cc2::ReplayData::read(ccl::Stream* stream, long size)
         uint8_t action = stream->read8();
         if (frames == 0xff)
             break;
-        m_input.emplace_back(frames, action);
+
+        // Merge split action groups for easier processing
+        if (!m_input.empty() && m_input.back().action() == action)
+            m_input.back().addFrames(frames);
+        else
+            m_input.emplace_back(frames, action);
     }
 
     if (start + size != stream->tell())
