@@ -852,7 +852,7 @@ void CCEditMain::saveLevelset(QString filename)
             if (set.open(searchPath.absoluteFilePath(m_dacInfo.m_filename.c_str()).toUtf8().data(), "wb")) {
                 try {
                     m_levelset->write(&set);
-                } catch (ccl::Exception e) {
+                } catch (const ccl::Exception& e) {
                     QMessageBox::critical(this, tr("Error saving levelset"),
                                           tr("Error saving levelset: %1").arg(e.what()));
                     return;
@@ -873,7 +873,7 @@ void CCEditMain::saveLevelset(QString filename)
         if (set.open(filename.toUtf8(), "wb")) {
             try {
                 m_levelset->write(&set);
-            } catch (ccl::Exception e) {
+            } catch (const ccl::Exception& e) {
                 QMessageBox::critical(this, tr("Error saving levelset"),
                                       tr("Error saving levelset: %1").arg(e.what()));
                 return;

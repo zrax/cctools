@@ -18,6 +18,7 @@
 #include "Stream.h"
 
 #include <cstring>
+#include <memory>
 
 uint8_t ccl::Stream::read8()
 {

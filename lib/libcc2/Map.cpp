@@ -19,6 +19,7 @@
 
 #include <QtGlobal>
 #include <algorithm>
+#include <memory>
 #include <cstring>
 
 cc2::MapOption::MapOption()
@@ -34,20 +35,18 @@ void cc2::MapOption::setReplayMD5(const uint8_t* md5)
     memcpy(m_replayMD5, md5, sizeof(m_replayMD5));
 }
 
-#define KNOWN_OPTION_LENGTH 25L
+#define KNOWN_OPTION_LENGTH 25
 
-void cc2::MapOption::read(ccl::Stream* stream, long size)
+void cc2::MapOption::read(ccl::Stream* stream, size_t size)
 {
     // We treat all fields as optional with a zero-default
-    size_t alloc_size = (size_t)std::max(KNOWN_OPTION_LENGTH, size);
-    uint8_t* buffer = new uint8_t[alloc_size];
-    memset(buffer, 0, alloc_size);
-    if (stream->read(buffer, 1, size) != size) {
-        delete[] buffer;
+    size_t alloc_size = std::max((size_t)KNOWN_OPTION_LENGTH, size);
+    std::unique_ptr<uint8_t[]> buffer(new uint8_t[alloc_size]);
+    memset(buffer.get(), 0, alloc_size);
+    if (stream->read(buffer.get(), 1, size) != size)
         throw ccl::IOException("Read past end of stream");
-    }
 
-    const uint8_t* bufp = buffer;
+    const uint8_t* bufp = buffer.get();
     memcpy(&m_timeLimit, bufp, sizeof(m_timeLimit));
     bufp += sizeof(m_timeLimit);
     m_timeLimit = SWAP16(m_timeLimit);
@@ -64,7 +63,7 @@ void cc2::MapOption::read(ccl::Stream* stream, long size)
     m_cc1Boots = (*bufp++) != 0;
     m_blobPattern = (BlobPattern)(*bufp++);
 
-    Q_ASSERT((bufp - buffer) == KNOWN_OPTION_LENGTH);
+    Q_ASSERT((bufp - buffer.get()) == KNOWN_OPTION_LENGTH);
 }
 
 void cc2::MapOption::write(ccl::Stream* stream) const
@@ -304,7 +303,7 @@ cc2::Tile* cc2::Tile::checkLower()
 }
 
 
-void cc2::MapData::read(ccl::Stream* stream, long size)
+void cc2::MapData::read(ccl::Stream* stream, size_t size)
 {
     long start = stream->tell();
 
@@ -315,7 +314,7 @@ void cc2::MapData::read(ccl::Stream* stream, long size)
     for (size_t i = 0; i < (size_t)(m_width * m_height); ++i)
         m_map[i].read(stream);
 
-    if (start + size != stream->tell())
+    if (start + (long)size != stream->tell())
         throw ccl::FormatException("Failed to parse map data");
 }
 
@@ -354,7 +353,7 @@ void cc2::MapData::resize(uint8_t width, uint8_t height)
 }
 
 
-void cc2::ReplayData::read(ccl::Stream* stream, long size)
+void cc2::ReplayData::read(ccl::Stream* stream, size_t size)
 {
     long start = stream->tell();
 
@@ -363,7 +362,7 @@ void cc2::ReplayData::read(ccl::Stream* stream, long size)
     m_randSeed = stream->read8();
 
     m_input.clear();
-    while (stream->tell() < start + size) {
+    while (stream->tell() < start + (long)size) {
         uint8_t frames = stream->read8();
         uint8_t action = stream->read8();
         if (frames == 0xff)
@@ -376,7 +375,7 @@ void cc2::ReplayData::read(ccl::Stream* stream, long size)
             m_input.emplace_back(frames, action);
     }
 
-    if (start + size != stream->tell())
+    if (start + (long)size != stream->tell())
         throw ccl::FormatException("Failed to parse replay data");
 }
 
@@ -472,9 +471,9 @@ void cc2::Map::read(ccl::Stream* stream)
         } else if (memcmp(tag, "NOTE", 4) == 0) {
             m_note = toGenericLF(stream->readString(size));
         } else if (memcmp(tag, "OPTN", 4) == 0) {
-            m_option.read(stream, (long)size);
+            m_option.read(stream, size);
         } else if (memcmp(tag, "MAP ", 4) == 0) {
-            m_mapData.read(stream, (long)size);
+            m_mapData.read(stream, size);
         } else if (memcmp(tag, "PACK", 4) == 0) {
             std::unique_ptr<ccl::Stream> ustream(stream->unpack(size));
             m_mapData.read(ustream.get(), ustream->size());
@@ -484,7 +483,7 @@ void cc2::Map::read(ccl::Stream* stream)
             if (stream->read(&m_key, 1, sizeof(m_key)) != sizeof(m_key))
                 throw ccl::IOException("Read past end of file");
         } else if (memcmp(tag, "REPL", 4) == 0) {
-            m_replay.read(stream, (long)size);
+            m_replay.read(stream, size);
         } else if (memcmp(tag, "PRPL", 4) == 0) {
             std::unique_ptr<ccl::Stream> ustream(stream->unpack(size));
             m_replay.read(ustream.get(), ustream->size());
@@ -502,7 +501,7 @@ void cc2::Map::read(ccl::Stream* stream)
 }
 
 template <typename Writer>
-void writeTagged(ccl::Stream* stream, const char* tag, Writer& writer)
+void writeTagged(ccl::Stream* stream, const char* tag, const Writer& writer)
 {
     if (stream->write(tag, 1, 4) != 4)
         throw ccl::IOException("Error writing to stream");

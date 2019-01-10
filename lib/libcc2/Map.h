@@ -21,6 +21,7 @@
 #include "libcc1/Stream.h"
 
 #include <list>
+#include <stdexcept>
 
 namespace cc2 {
 
@@ -60,7 +61,7 @@ public:
     void setHideLogic(bool hide) { m_hideLogic = hide; }
     void setCc1Boots(bool cc1Boots) { m_cc1Boots = cc1Boots; }
 
-    void read(ccl::Stream* stream, long size);
+    void read(ccl::Stream* stream, size_t size);
     void write(ccl::Stream* stream) const;
 
 private:
@@ -188,7 +189,7 @@ public:
     MapData() : m_width(), m_height(), m_map() { }
     ~MapData() { delete[] m_map; }
 
-    void read(ccl::Stream* stream, long size);
+    void read(ccl::Stream* stream, size_t size);
     void write(ccl::Stream* stream) const;
 
     uint8_t width() const { return m_width; }
@@ -245,7 +246,7 @@ private:
 
 class ReplayData {
 public:
-    ReplayData() : m_flag(), m_initRandDir(), m_randSeed() { }
+    ReplayData() : m_initRandDir(), m_flag(), m_randSeed() { }
 
     uint8_t flag() const { return m_flag; }
     Tile::Direction initRandDir() const { return m_initRandDir; }
@@ -258,7 +259,7 @@ public:
     std::list<ReplayInput>& input() { return m_input; }
     const std::list<ReplayInput>& input() const { return m_input; }
 
-    void read(ccl::Stream* stream, long size);
+    void read(ccl::Stream* stream, size_t size);
     void write(ccl::Stream* stream) const;
 
 private:
