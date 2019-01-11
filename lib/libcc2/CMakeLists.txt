@@ -17,10 +17,12 @@ include_directories(${CCTools_SOURCE_DIR}/lib)
 
 set(libcc2_HEADERS
     Map.h
+    Tileset.h
 )
 
 set(libcc2_SOURCES
     Map.cpp
+    Tileset.cpp
 )
 
 add_library(libcc2 STATIC ${libcc2_HEADERS} ${libcc2_SOURCES})

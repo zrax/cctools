@@ -76,6 +76,80 @@ private:
     bool m_cc1Boots;
 };
 
+/* Only used as a namespace for modifier values */
+class TileModifier {
+public:
+    enum WireMask {
+        WireNorth = 0x1,
+        WireEast = 0x2,
+        WireSouth = 0x4,
+        WireWest = 0x8,
+        WireTunnelNorth = 0x10,
+        WireTunnelEast = 0x20,
+        WireTunnelSouth = 0x40,
+        WireTunnelWest = 0x80,
+    };
+
+    enum CloneDirection {
+        // Any combination of arrows will be shown, but only
+        // one will be used for the clone direction
+        CloneNorth = 0x1,
+        CloneEast = 0x2,
+        CloneSouth = 0x4,
+        CloneWest = 0x8,
+    };
+
+    enum ColorTheme {
+        // For CustomFloor / CustomWall tiles
+        CamoTheme,
+        PinkDotsTheme,
+        YellowBrickTheme,
+        BlueTheme,
+    };
+
+    enum LogicGateType {
+        Inverter_N, Inverter_E, Inverter_S, Inverter_W,
+        AndGate_N, AndGate_E, AndGate_S, AndGate_W,
+        OrGate_N, OrGate_E, OrGate_S, OrGate_W,
+        XorGate_N, XorGate_E, XorGate_S, XorGate_W,
+        LatchGateCW_N, LatchGateCW_E, LatchGateCW_S, LatchGateCW_W,
+        NandGate_N, NandGate_E, NandGate_S, NandGate_W,
+        CounterGate_0 = 30, CounterGate_1, CounterGate_2, CounterGate_3,
+        CounterGate_4, CounterGate_5, CounterGate_6, CounterGate_7,
+        CounterGate_8, CounterGate_9,
+        LatchGateCCW_N = 0x40, LatchGateCCW_E, LatchGateCCW_S, LatchGateCCW_W,
+    };
+
+    enum TrainTracks {
+        Track_NE = 0x1,
+        Track_SE = 0x2,
+        Track_SW = 0x4,
+        Track_NW = 0x8,
+        Track_WE = 0x10,
+        Track_NS = 0x20,
+        TrackSwitch = 0x40,
+
+        ActiveTrack_MASK = 0x700,
+        ActiveTrack_NE = 0x000,
+        ActiveTrack_SE = 0x100,
+        ActiveTrack_SW = 0x200,
+        ActiveTrack_NW = 0x300,
+        ActiveTrack_WE = 0x400,
+        ActiveTrack_NS = 0x500,
+    };
+
+    enum AsciiGlyphType {
+        GlyphUp = 0x1c,
+        GlyphRight = 0x1d,
+        GlyphDown = 0x1e,
+        GlyphLeft = 0x1f,
+        /* Range from ' ' to '_' can be represented with the equivalent
+           ASCII character, rather than duplicating them in the enum */
+        GlyphMIN = GlyphUp,
+        GlyphMAX = '_',
+    };
+};
+
 class Tile {
 public:
     enum Type {
@@ -101,7 +175,7 @@ public:
         FlameJetButton, Lightning, YellowTank, YellowTankCtrl,
         MirrorPlayer, MirrorPlayer2, UNUSED_67, BowlingBall, Rover,
         TimePenalty, CustomFloor, UNUSED_6c, PanelCanopy, UNUSED_6e, RRSign,
-        CustomWall, AsciiGlyph, LSwitchWall, LSwitchFloor,
+        CustomWall, AsciiGlyph, LSwitchFloor, LSwitchWall,
         UNUSED_74, UNUSED_75, Modifier8, Modifier16, Modifier32, UNUSED_79,
         Flag10, Flag100, Flag1000, StayUpGWall, PopDownGWall, Disallow,
         Flag2x, DirBlock, FloorMimic, GreenBomb, GreenChip,

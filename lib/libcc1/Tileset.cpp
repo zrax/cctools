@@ -19,9 +19,7 @@
 
 #include <QPainter>
 #include <QFile>
-#include <QDir>
-#include <cstdio>
-#include "Errors.h"
+#include <QFileInfo>
 #include "Stream.h"
 
 static quint8 read8(QFile& file)
@@ -38,70 +36,63 @@ static quint32 read32(QFile& file)
     return SWAP32(value);
 }
 
-void CCETileset::load(QString filename)
+void CCETileset::load(const QString& filename)
 {
     QFile file(filename);
     if (!file.open(QFile::ReadOnly))
         throw ccl::IOException("Cannot open tileset file for reading");
 
     char magic[8];
-    if (file.read(magic, 8) != 8 || memcmp(magic, "CCTILE01", 8) != 0) {
+    if (file.read(magic, 8) != 8
+            || (memcmp(magic, "CCTILE01", 8) != 0 && memcmp(magic, "CCTILE02", 8) != 0)) {
         file.close();
         throw ccl::IOException("Invalid Tileset format");
     }
 
     quint32 len;
-    char* utfbuffer;
-    uchar* pixbuffer;
+    std::unique_ptr<char[]> utfbuffer;
+    std::unique_ptr<uchar[]> pixbuffer;
     QPixmap tempmap;
 
     // Tileset name
     len = read32(file);
-    utfbuffer = new char[len+1];
-    file.read(utfbuffer, len);
-    utfbuffer[len] = 0;
-    m_name = QString::fromUtf8(utfbuffer);
-    delete[] utfbuffer;
+    utfbuffer.reset(new char[len]);
+    file.read(utfbuffer.get(), len);
+    m_name = QString::fromUtf8(utfbuffer.get(), len);
 
     // Description
     len = read32(file);
-    utfbuffer = new char[len+1];
-    file.read(utfbuffer, len);
-    utfbuffer[len] = 0;
-    m_description = QString::fromUtf8(utfbuffer);
-    delete[] utfbuffer;
+    utfbuffer.reset(new char[len]);
+    file.read(utfbuffer.get(), len);
+    m_description = QString::fromUtf8(utfbuffer.get(), len);
 
     // Tile size
     m_size = (int)read8(file);
 
     // Base tiles
     len = read32(file);
-    pixbuffer = new uchar[len];
-    file.read((char*)pixbuffer, len);
-    if (!tempmap.loadFromData(pixbuffer, len, "PNG")) {
-        delete[] pixbuffer;
+    pixbuffer.reset(new uchar[len]);
+    file.read((char*)pixbuffer.get(), len);
+    if (!tempmap.loadFromData(pixbuffer.get(), len, "PNG")) {
         file.close();
         throw ccl::IOException("Invalid or corrupt base image");
     }
     for (int i=0; i<ccl::NUM_TILE_TYPES; ++i)
         m_base[i] = tempmap.copy((i / 16) * m_size, (i % 16) * m_size, m_size, m_size);
-    delete[] pixbuffer;
 
     // Overlay tiles
     len = read32(file);
-    pixbuffer = new uchar[len];
-    file.read((char*)pixbuffer, len);
-    if (!tempmap.loadFromData(pixbuffer, len, "PNG")) {
-        delete[] pixbuffer;
+    pixbuffer.reset(new uchar[len]);
+    file.read((char*)pixbuffer.get(), len);
+    if (!tempmap.loadFromData(pixbuffer.get(), len, "PNG")) {
         file.close();
         throw ccl::IOException("Invalid or corrupt overlay image");
     }
     for (int i=0; i<ccl::NUM_TILE_TYPES; ++i)
         m_overlay[i] = tempmap.copy((i / 16) * m_size, (i % 16) * m_size, m_size, m_size);
-    delete[] pixbuffer;
 
     file.close();
-    m_filename = QDir(filename).absolutePath().section(QChar('/'), -1);
+    m_filename = QFileInfo(filename).fileName();
 }
 
 void CCETileset::drawAt(QPainter& painter, int x, int y, tile_t upper, tile_t lower) const

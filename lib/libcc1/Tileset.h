@@ -30,7 +30,7 @@ class CCETileset : public QObject {
 
 public:
     CCETileset(QObject* parent = 0)
-        : QObject(parent), m_size(0)
+        : QObject(parent), m_size()
     { }
 
     QString name() const { return m_name; }
@@ -38,12 +38,15 @@ public:
     int size() const { return m_size; }
     QSize qsize() const { return QSize(m_size, m_size); }
 
-    void load(QString filename);
+    void load(const QString& filename);
     QString filename() const { return m_filename; }
 
     void drawAt(QPainter& painter, int x, int y, tile_t upper, tile_t lower = 0) const;
+
     void draw(QPainter& painter, int x, int y, tile_t upper, tile_t lower = 0) const
-    { drawAt(painter, x * m_size, y * m_size,  upper, lower); }
+    {
+        drawAt(painter, x * m_size, y * m_size,  upper, lower);
+    }
 
     QIcon getIcon(tile_t tile) const { return QIcon(m_base[tile]); }
     static QString TileName(tile_t tile);
