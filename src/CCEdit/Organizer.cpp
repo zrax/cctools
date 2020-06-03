@@ -46,7 +46,7 @@ void LevelListWidget::addLevel(ccl::LevelData* level)
     level->ref();
 
     QListWidgetItem* item = new QListWidgetItem(this);
-    item->setData(Qt::UserRole, qVariantFromValue<ccl::LevelData*>(level));
+    item->setData(Qt::UserRole, QVariant::fromValue(level));
     QString infoText = tr("%1\nPassword: %2\nChips: %3\nTime: %4\n%5")
                        .arg(level->name().c_str()).arg(level->password().c_str())
                        .arg(level->chips()).arg(level->timer()).arg(level->hint().c_str());
@@ -58,7 +58,7 @@ void LevelListWidget::insertLevel(int row, ccl::LevelData* level)
     level->ref();
 
     QListWidgetItem* item = new QListWidgetItem();
-    item->setData(Qt::UserRole, qVariantFromValue<ccl::LevelData*>(level));
+    item->setData(Qt::UserRole, QVariant::fromValue(level));
     QString infoText = tr("%1\nPassword: %2\nChips: %3\nTime: %4\n%5")
                        .arg(level->name().c_str()).arg(level->password().c_str())
                        .arg(level->chips()).arg(level->timer()).arg(level->hint().c_str());

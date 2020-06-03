@@ -54,6 +54,8 @@
 
 #define CCEDIT_TITLE "CCEdit 2.1"
 
+Q_DECLARE_METATYPE(CCETileset*)
+
 CCEditMain::CCEditMain(QWidget* parent)
     : QMainWindow(parent), m_currentTileset(0), m_savedDrawMode(ActionDrawPencil),
       m_currentDrawMode(EditorWidget::DrawPencil),  m_levelset(0), m_useDac(false),
@@ -655,7 +657,7 @@ CCEditMain::CCEditMain(QWidget* parent)
         QString tilesetFilename = settings.value("TilesetName").toString();
         bool foundTset = false;
         for (int i=0; i<m_tilesetGroup->actions().size(); ++i) {
-            CCETileset* tileset = (CCETileset*)m_tilesetGroup->actions()[i]->data().value<void*>();
+            CCETileset* tileset = m_tilesetGroup->actions()[i]->data().value<CCETileset*>();
             if (tileset->filename() == tilesetFilename) {
                 m_tilesetGroup->actions()[i]->setChecked(true);
                 loadTileset(tileset);
@@ -665,11 +667,11 @@ CCEditMain::CCEditMain(QWidget* parent)
         }
         if (!foundTset) {
             m_tilesetGroup->actions()[0]->setChecked(true);
-            loadTileset((CCETileset*)m_tilesetGroup->actions()[0]->data().value<void*>());
+            loadTileset(m_tilesetGroup->actions()[0]->data().value<CCETileset*>());
         }
     } else {
         m_tilesetGroup->actions()[0]->setChecked(true);
-        loadTileset((CCETileset*)m_tilesetGroup->actions()[0]->data().value<void*>());
+        loadTileset(m_tilesetGroup->actions()[0]->data().value<CCETileset*>());
     }
 
     if (m_zoomFactor == 1.0)
@@ -1000,7 +1002,7 @@ void CCEditMain::registerTileset(QString filename)
     QAction* menuItem = m_tilesetMenu->addAction(tileset->name());
     menuItem->setCheckable(true);
     menuItem->setStatusTip(tileset->description());
-    menuItem->setData(qVariantFromValue((void*)tileset));
+    menuItem->setData(QVariant::fromValue(tileset));
     m_tilesetGroup->addAction(menuItem);
 }
 
@@ -1696,7 +1698,7 @@ void CCEditMain::onZoomFit()
 
 void CCEditMain::onTilesetMenu(QAction* which)
 {
-    CCETileset* tileset = (CCETileset*)which->data().value<void*>();
+    CCETileset* tileset = which->data().value<CCETileset*>();
     loadTileset(tileset);
 }
 
@@ -1838,7 +1840,7 @@ void CCEditMain::onTestChips()
     connect(m_subProc, SIGNAL(error(QProcess::ProcessError)), SLOT(onProcessError(QProcess::ProcessError)));
 #ifdef Q_OS_WIN
     // Native execution
-    m_subProc->start(m_tempExe);
+    m_subProc->start(m_tempExe, QStringList());
 #else
     // Try to use WINE
     m_subProc->start(winePath, QStringList() << m_tempExe);
