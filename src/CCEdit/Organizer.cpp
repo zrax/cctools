@@ -26,6 +26,16 @@
 #include <QMimeData>
 #include <QMessageBox>
 
+static QDataStream& operator<<(QDataStream& out, const ccl::LevelData *data)
+{
+    return out;
+}
+
+static QDataStream& operator>>(QDataStream& in, ccl::LevelData *data)
+{
+    return in;
+}
+
 LevelListWidget::LevelListWidget(QWidget* parent)
                : QListWidget(parent), m_tileset(0)
 {
@@ -33,6 +43,12 @@ LevelListWidget::LevelListWidget(QWidget* parent)
     setSpacing(2);
     setDragDropMode(InternalMove);
     setSelectionMode(ExtendedSelection);
+
+    static bool streamOperatorsRegistered = false;
+    if (!streamOperatorsRegistered) {
+        qRegisterMetaTypeStreamOperators<ccl::LevelData *>();
+        streamOperatorsRegistered = true;
+    }
 }
 
 LevelListWidget::~LevelListWidget()
