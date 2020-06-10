@@ -70,12 +70,12 @@ enum GraphicIndex {
     G_CounterGate_8, G_CounterGate_9, G_LogicSwitch,
     G_FlameJet_Off, G_FlameJet_On, G_FlameJetButton, G_Lightning,
     G_YellowTank_N, G_YellowTank_E, G_YellowTank_S, G_YellowTank_W,
-    G_YellowTankCtrl, G_MirrorPlayer_Overlay, G_BowlingBall,
+    G_YellowTankCtrl, G_MirrorPlayer_Underlay, G_BowlingBall,
     G_Rover_N, G_Rover_E, G_Rover_S, G_Rover_W, G_TimePenalty,
     G_CamoCFloor, G_PinkDotsCFloor, G_YellowBrickCFloor, G_BlueCFloor,
     G_CamoCWall, G_PinkDotsCWall, G_YellowBrickCWall, G_BlueCWall,
     G_Panel_N, G_Panel_E, G_Panel_S, G_Panel_W, G_Canopy, G_Canopy_Xray,
-    G_RRSign, G_AsciiGlyphFrame, G_LSwitchWall, LSwitchFloor,
+    G_RRSign, G_AsciiGlyphFrame, G_LSwitchFloor, G_LSwitchWall,
     G_Flag10, G_Flag100, G_Flag1000, G_StayUpGWall, G_PopDownGWall,
     G_Disallow, G_Flag2x, G_DirBlock, G_DirBlockArrows, G_FloorMimic,
     G_GreenBomb, G_GreenChip, G_RevLogicButton, G_Switch_Off, G_Switch_On,
@@ -105,9 +105,9 @@ public:
     void load(const QString& filename);
     QString filename() const { return m_filename; }
 
-    void drawAt(QPainter& painter, int x, int y, cc2::Tile* tile) const;
+    void drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile) const;
 
-    void draw(QPainter& painter, int x, int y, cc2::Tile* tile) const
+    void draw(QPainter& painter, int x, int y, const cc2::Tile* tile) const
     {
         drawAt(painter, x * m_size, y * m_size, tile);
     }
@@ -120,6 +120,9 @@ private:
     int m_size;
 
     QPixmap m_gfx[cc2::NUM_GRAPHICS];
+
+    void drawArrow(QPainter& painter, int x, int y, cc2::Tile::Direction direction) const;
+    void drawGlyph(QPainter& painter, int x, int y, uint32_t glyph) const;
 };
 
 #endif

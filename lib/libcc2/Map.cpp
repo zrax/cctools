@@ -22,14 +22,6 @@
 #include <memory>
 #include <cstring>
 
-cc2::MapOption::MapOption()
-    : m_view(View9x9), m_blobPattern(BlobsDeterministic), m_timeLimit(),
-      m_replayValid(), m_hidden(), m_readOnly(), m_hideLogic(),
-      m_cc1Boots()
-{
-    memset(m_replayMD5, 0, sizeof(m_replayMD5));
-}
-
 void cc2::MapOption::setReplayMD5(const uint8_t* md5)
 {
     memcpy(m_replayMD5, md5, sizeof(m_replayMD5));
@@ -106,7 +98,8 @@ void cc2::MapOption::write(ccl::Stream* stream) const
 
 cc2::Tile::Tile(const Tile& copy)
     : m_type(copy.m_type), m_direction(copy.m_direction),
-      m_arrowMask(copy.m_arrowMask), m_modifier(copy.m_modifier)
+      m_arrowMask(copy.m_arrowMask), m_panelFlags(copy.m_panelFlags),
+      m_modifier(copy.m_modifier)
 {
     auto lower = checkLower();
     if (lower && copy.m_lower)
@@ -118,6 +111,7 @@ cc2::Tile& cc2::Tile::operator=(const Tile& copy)
     m_type = copy.m_type;
     m_direction = copy.m_direction;
     m_arrowMask = copy.m_arrowMask;
+    m_panelFlags = copy.m_panelFlags;
     m_modifier = copy.m_modifier;
     auto lower = checkLower();
     if (lower && copy.m_lower)
@@ -296,7 +290,7 @@ bool cc2::Tile::haveDirection() const
 cc2::Tile* cc2::Tile::checkLower()
 {
     if (!haveLower())
-        return 0;
+        return nullptr;
     if (!m_lower)
         m_lower = new Tile;
     return m_lower;
@@ -330,7 +324,7 @@ void cc2::MapData::resize(uint8_t width, uint8_t height)
 {
     if (width == 0 || height == 0) {
         delete[] m_map;
-        m_map = 0;
+        m_map = nullptr;
         m_width = 0;
         m_height = 0;
         return;
@@ -404,11 +398,6 @@ void cc2::ReplayData::write(ccl::Stream* stream) const
     stream->write8(0);
 }
 
-
-cc2::Map::Map() : m_version("7"), m_readOnly()
-{
-    memset(m_key, 0, sizeof(m_key));
-}
 
 static std::string toGenericLF(const std::string& text)
 {
@@ -532,7 +521,7 @@ static void writeTaggedString(ccl::Stream* stream, const char* tag,
 }
 
 template <size_t FixedSize>
-void writeTaggedBlock(ccl::Stream* stream, const char* tag, const void* data = 0)
+void writeTaggedBlock(ccl::Stream* stream, const char* tag, const void* data = nullptr)
 {
     if (stream->write(tag, 1, 4) != 4)
         throw ccl::IOException("Error writing to stream");

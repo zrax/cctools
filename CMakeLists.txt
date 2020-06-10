@@ -14,12 +14,10 @@
 # along with CCTools.  If not, see <http://www.gnu.org/licenses/>.
 
 project(CCTools)
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.1)
 
-if(POLICY CMP0054)
-    # Silence warning about string comparison to unquoted names
-    cmake_policy(SET CMP0054 NEW)
-endif()
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(TestBigEndian)
 test_big_endian(BYTES_BIG_ENDIAN)
@@ -55,6 +53,7 @@ add_subdirectory(lib/libcc2)
 add_subdirectory(src/CCEdit)
 add_subdirectory(src/CCPlay)
 add_subdirectory(src/CCHack)
+add_subdirectory(src/CC2Edit)
 
 if(WIN32)
     install(FILES ${CCTools_Tilesets}

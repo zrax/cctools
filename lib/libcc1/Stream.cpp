@@ -19,6 +19,7 @@
 
 #include <cstring>
 #include <memory>
+#include <stdexcept>
 
 uint8_t ccl::Stream::read8()
 {

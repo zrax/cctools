@@ -39,7 +39,10 @@ public:
         BlobsExtraRandom,
     };
 
-    MapOption();
+    MapOption()
+        : m_view(View9x9), m_blobPattern(BlobsDeterministic), m_timeLimit(),
+          m_replayMD5(), m_replayValid(), m_hidden(), m_readOnly(),
+          m_hideLogic(), m_cc1Boots() { }
 
     Viewport view() const { return m_view; }
     BlobPattern blobPattern() const { return m_blobPattern; }
@@ -159,7 +162,7 @@ public:
         Force_N, Force_E, Force_S, Force_W, ToggleWall, ToggleFloor,
         Teleport_Red, Teleport_Blue, Teleport_Yellow, Teleport_Green,
         Exit, Slime, Player, DirtBlock, Walker, Ship, IceBlock,
-        UNUSED_Barrier_E, UNUSED_Barrier_S, UNUSED_Barrier_SE, Gravel,
+        UNUSED_Barrier_S, UNUSED_Barrier_E, UNUSED_Barrier_SE, Gravel,
         ToggleButton, TankButton, BlueTank, Door_Red, Door_Blue,
         Door_Yellow, Door_Green, Key_Red, Key_Blue, Key_Yellow, Key_Green,
         Chip, ExtraChip, Socket, PopUpWall, AppearingWall, InvisWall,
@@ -174,8 +177,8 @@ public:
         LogicGate, UNUSED_5d, LogicSwitch, FlameJet_Off, FlameJet_On,
         FlameJetButton, Lightning, YellowTank, YellowTankCtrl,
         MirrorPlayer, MirrorPlayer2, UNUSED_67, BowlingBall, Rover,
-        TimePenalty, CustomFloor, UNUSED_6c, PanelCanopy, UNUSED_6e, RRSign,
-        CustomWall, AsciiGlyph, LSwitchFloor, LSwitchWall,
+        TimePenalty, StyledFloor, UNUSED_6c, PanelCanopy, UNUSED_6e, RRSign,
+        StyledWall, AsciiGlyph, LSwitchFloor, LSwitchWall,
         UNUSED_74, UNUSED_75, Modifier8, Modifier16, Modifier32, UNUSED_79,
         Flag10, Flag100, Flag1000, StayUpGWall, PopDownGWall, Disallow,
         Flag2x, DirBlock, FloorMimic, GreenBomb, GreenChip,
@@ -202,7 +205,8 @@ public:
     };
 
     explicit Tile(int type = Floor)
-        : m_type(type), m_direction(), m_arrowMask(), m_modifier(), m_lower()
+        : m_type(type), m_direction(), m_arrowMask(), m_panelFlags(),
+          m_modifier(), m_lower()
     {
         checkLower();
     }
@@ -216,6 +220,8 @@ public:
     Direction direction() const { return (Direction)m_direction; }
     uint8_t arrowMask() const { return m_arrowMask; }
     uint8_t panelFlags() const { return m_panelFlags; }
+
+    bool needXray() const { return m_type > Floor; }
 
     void set(int type, Direction dir = (Direction)0)
     {
@@ -233,14 +239,11 @@ public:
     void read(ccl::Stream* stream);
     void write(ccl::Stream* stream) const;
 
-    // This may return NULL if the tile should have a lower layer
-    // but it hasn't yet been created.  Use checkLower() to ensure
-    // a lower layer is created for tiles that need one.
-    Tile* lower() { return haveLower() ? m_lower : 0; }
-    const Tile* lower() const { return haveLower() ? m_lower : 0; }
+    Tile* lower() { return haveLower() ? m_lower : nullptr; }
+    const Tile* lower() const { return haveLower() ? m_lower : nullptr; }
 
-    // This method will create the lower layer if necessary
-    Tile* checkLower();
+    bool haveLower() const;
+    bool haveDirection() const;
 
 private:
     uint8_t m_type;
@@ -254,8 +257,8 @@ private:
     // Lower-layer tile, if any (All tile data may recurse!)
     Tile* m_lower;
 
-    bool haveLower() const;
-    bool haveDirection() const;
+    // This will create the lower layer if necessary
+    Tile* checkLower();
 };
 
 class MapData {
@@ -271,18 +274,18 @@ public:
 
     void resize(uint8_t width, uint8_t height);
 
-    Tile& tile(int x, int y)
+    Tile* tile(int x, int y)
     {
         if (!m_map || x >= m_width || y >= m_height)
             throw std::out_of_range("Map index out of bounds");
-        return m_map[(y * m_width) + x];
+        return &m_map[(y * m_width) + x];
     }
 
-    const Tile& tile(int x, int y) const
+    const Tile* tile(int x, int y) const
     {
         if (!m_map || x >= m_width || y >= m_height)
             throw std::out_of_range("Map index out of bounds");
-        return m_map[(y * m_width) + x];
+        return &m_map[(y * m_width) + x];
     }
 
 private:
@@ -345,7 +348,7 @@ private:
 
 class Map {
 public:
-    Map();
+    Map() : m_refs(1), m_version("7"), m_key(), m_readOnly() { }
 
     void read(ccl::Stream* stream);
     void write(ccl::Stream* stream) const;
@@ -377,7 +380,22 @@ public:
     ReplayData& replay() { return m_replay; }
     const ReplayData& replay() const { return m_replay; }
 
+    void ref()
+    {
+        ++m_refs;
+    }
+
+    void unref()
+    {
+        if (--m_refs == 0)
+            delete this;
+    }
+
+    int refs() const { return m_refs; }
+
 private:
+    int m_refs;
+
     std::string m_version;
     std::string m_lock;
     std::string m_title;
