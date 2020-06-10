@@ -347,58 +347,6 @@ void cc2::MapData::resize(uint8_t width, uint8_t height)
 }
 
 
-void cc2::ReplayData::read(ccl::Stream* stream, size_t size)
-{
-    long start = stream->tell();
-
-    m_flag = stream->read8();
-    m_initRandDir = (Tile::Direction)stream->read8();
-    m_randSeed = stream->read8();
-
-    m_input.clear();
-    while (stream->tell() < start + (long)size) {
-        uint8_t frames = stream->read8();
-        uint8_t action = stream->read8();
-        if (frames == 0xff)
-            break;
-
-        // Merge split action groups for easier processing
-        if (!m_input.empty() && m_input.back().action() == action)
-            m_input.back().addFrames(frames);
-        else
-            m_input.emplace_back(frames, action);
-    }
-
-    if (start + (long)size != stream->tell())
-        throw ccl::FormatException("Failed to parse replay data");
-}
-
-void cc2::ReplayData::write(ccl::Stream* stream) const
-{
-    stream->write8(m_flag);
-    stream->write8((uint8_t)m_initRandDir);
-    stream->write8(m_randSeed);
-
-    for (const auto& input : m_input) {
-        int frames = input.frames();
-        while (frames > 0) {
-            if (frames > 0xfc) {
-                stream->write8(0xfc);
-                frames -= 0xfc;
-            } else {
-                stream->write8((uint8_t)frames);
-                frames = 0;
-            }
-            stream->write8(input.action());
-        }
-    }
-
-    // Input list terminator
-    stream->write8(0xff);
-    stream->write8(0);
-}
-
-
 static std::string toGenericLF(const std::string& text)
 {
     std::string lftext = text;
@@ -472,10 +420,12 @@ void cc2::Map::read(ccl::Stream* stream)
             if (stream->read(&m_key, 1, sizeof(m_key)) != sizeof(m_key))
                 throw ccl::IOException("Read past end of file");
         } else if (memcmp(tag, "REPL", 4) == 0) {
-            m_replay.read(stream, size);
+            m_replay.resize(size);
+            stream->read(&m_replay[0], 1, size);
         } else if (memcmp(tag, "PRPL", 4) == 0) {
             std::unique_ptr<ccl::Stream> ustream(stream->unpack(size));
-            m_replay.read(ustream.get(), ustream->size());
+            m_replay.resize(ustream->size());
+            ustream->read(&m_replay[0], 1, ustream->size());
         } else if (memcmp(tag, "RDNY", 4) == 0) {
             m_readOnly = true;
             stream->seek(size, SEEK_CUR);
@@ -553,14 +503,18 @@ void cc2::Map::write(ccl::Stream* stream) const
 
     // To match the maps that ship with CC2, we always write at least
     // 3 bytes of the OPTN field
-    writeTagged(stream, "OPTN", [&]() { m_option.write(stream); });
+    writeTagged(stream, "OPTN", [&] { m_option.write(stream); });
 
     // TODO: Pack MAP data
-    writeTagged(stream, "MAP ", [&]() { m_mapData.write(stream); });
+    writeTagged(stream, "MAP ", [&] { m_mapData.write(stream); });
     writeTaggedBlock<sizeof(m_key)>(stream, "KEY ", m_key);
 
     // TODO: Pack REPL data
-    writeTagged(stream, "REPL", [&]() { m_replay.write(stream); });
+    if (!m_replay.empty()) {
+        writeTagged(stream, "REPL", [&] {
+            stream->write(&m_replay[0], 1, m_replay.size());
+        });
+    }
 
     if (m_readOnly)
         writeTaggedBlock<0>(stream, "RDNY");

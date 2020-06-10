@@ -20,7 +20,7 @@
 
 #include "libcc1/Stream.h"
 
-#include <list>
+#include <vector>
 #include <stdexcept>
 
 namespace cc2 {
@@ -293,59 +293,6 @@ private:
     Tile* m_map;
 };
 
-class ReplayInput {
-public:
-    enum ActionFlags {
-        DropItem = 0x1,
-        Down = 0x2,
-        Left = 0x4,
-        Right = 0x8,
-        Up = 0x10,
-        SwitchPlayer = 0x20,
-        CycleInventory = 0x40,
-        Player2Mask = 0x80,
-    };
-
-    explicit ReplayInput(int frames, uint8_t action)
-        : m_frames(frames), m_action(action) { }
-
-    int frames() const { return m_frames; }
-    uint8_t action() const { return m_action; }
-
-    void setFrames(int frames) { m_frames = frames; }
-    void addFrames(int frames) { m_frames += frames; }
-    void setAction(uint8_t action) { m_action = action; }
-
-private:
-    int m_frames;
-    uint8_t m_action;
-};
-
-class ReplayData {
-public:
-    ReplayData() : m_initRandDir(), m_flag(), m_randSeed() { }
-
-    uint8_t flag() const { return m_flag; }
-    Tile::Direction initRandDir() const { return m_initRandDir; }
-    uint8_t randSeed() const { return m_randSeed; }
-
-    void setFlag(uint8_t flag) { m_flag = flag; }
-    void setInitRandDir(Tile::Direction dir) { m_initRandDir = dir; }
-    void setRandSeed(uint8_t seed) { m_randSeed = seed; }
-
-    std::list<ReplayInput>& input() { return m_input; }
-    const std::list<ReplayInput>& input() const { return m_input; }
-
-    void read(ccl::Stream* stream, size_t size);
-    void write(ccl::Stream* stream) const;
-
-private:
-    Tile::Direction m_initRandDir;
-    uint8_t m_flag;
-    uint8_t m_randSeed;
-    std::list<ReplayInput> m_input;
-};
-
 class Map {
 public:
     Map() : m_refs(1), m_version("7"), m_key(), m_readOnly() { }
@@ -377,8 +324,9 @@ public:
     MapData& mapData() { return m_mapData; }
     const MapData& mapData() const { return m_mapData; }
 
-    ReplayData& replay() { return m_replay; }
-    const ReplayData& replay() const { return m_replay; }
+    std::vector<uint8_t>& replay() { return m_replay; }
+    const std::vector<uint8_t>& replay() const { return m_replay; }
+    void discardReplay() { m_replay.clear(); }
 
     void ref()
     {
@@ -406,7 +354,7 @@ private:
     MapOption m_option;
     MapData m_mapData;
     uint8_t m_key[16];
-    ReplayData m_replay;
+    std::vector<uint8_t> m_replay;
     bool m_readOnly;
 };
 
