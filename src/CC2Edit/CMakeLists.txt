@@ -30,11 +30,6 @@ if(WIN32)
     #set(CC2Edit_SOURCES ${CC2Edit_SOURCES} CC2Edit.rc)
 endif()
 
-set(CC2Edit_RCCS
-    CC2Edit.qrc
-)
-
-#qt5_add_resources(CC2Edit_RCCSRC ${CC2Edit_RCCS})
 add_executable(CC2Edit WIN32 MACOSX_BUNDLE
                ${CC2Edit_HEADERS} ${CC2Edit_SOURCES} ${CC2Edit_RCCSRC})
 target_link_libraries(CC2Edit Qt5::Core Qt5::Widgets libcc1 libcc2)

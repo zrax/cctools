@@ -47,13 +47,8 @@ if(WIN32)
     set(CCEdit_SOURCES ${CCEdit_SOURCES} CCEdit.rc)
 endif()
 
-set(CCEdit_RCCS
-    CCEdit.qrc
-)
-
-qt5_add_resources(CCEdit_RCCSRC ${CCEdit_RCCS})
 add_executable(CCEdit WIN32 MACOSX_BUNDLE
-               ${CCEdit_HEADERS} ${CCEdit_SOURCES} ${CCEdit_RCCSRC})
+               ${CCEdit_HEADERS} ${CCEdit_SOURCES} CCEdit.qrc)
 target_link_libraries(CCEdit Qt5::Core Qt5::Widgets Qt5::Xml libcc1)
 
 if(APPLE)

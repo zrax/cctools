@@ -33,13 +33,8 @@ if(WIN32)
     set(CCHack_SOURCES ${CCHack_SOURCES} CCHack.rc)
 endif()
 
-set(CCHack_RCCS
-    CCHack.qrc
-)
-
-qt5_add_resources(CCHack_RCCSRC ${CCHack_RCCS})
 add_executable(CCHack WIN32 MACOSX_BUNDLE
-               ${CCHack_HEADERS} ${CCHack_SOURCES} ${CCHack_RCCSRC})
+               ${CCHack_HEADERS} ${CCHack_SOURCES} CCHack.qrc)
 target_link_libraries(CCHack Qt5::Core Qt5::Widgets Qt5::Xml libcc1)
 
 if(APPLE)

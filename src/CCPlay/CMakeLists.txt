@@ -30,13 +30,8 @@ if(WIN32)
     set(CCPlay_SOURCES ${CCPlay_SOURCES} CCPlay.rc)
 endif()
 
-set(CCPlay_RCCS
-    CCPlay.qrc
-)
-
-qt5_add_resources(CCPlay_RCCSRC ${CCPlay_RCCS})
 add_executable(CCPlay WIN32 MACOSX_BUNDLE
-               ${CCPlay_HEADERS} ${CCPlay_SOURCES} ${CCPlay_RCCSRC})
+               ${CCPlay_HEADERS} ${CCPlay_SOURCES} CCPlay.qrc)
 target_link_libraries(CCPlay Qt5::Core Qt5::Widgets Qt5::Sql Qt5::Xml libcc1)
 
 if(APPLE)
