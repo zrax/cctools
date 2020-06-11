@@ -21,6 +21,7 @@
 #include "libcc1/Stream.h"
 
 #include <vector>
+#include <tuple>
 #include <stdexcept>
 
 namespace cc2 {
@@ -40,7 +41,7 @@ public:
     };
 
     MapOption()
-        : m_view(View9x9), m_blobPattern(BlobsDeterministic), m_timeLimit(),
+        : m_view(View10x10), m_blobPattern(BlobsDeterministic), m_timeLimit(),
           m_replayMD5(), m_replayValid(), m_hidden(), m_readOnly(),
           m_hideLogic(), m_cc1Boots() { }
 
@@ -273,6 +274,9 @@ public:
     uint8_t height() const { return m_height; }
 
     void resize(uint8_t width, uint8_t height);
+
+    int countChips() const;
+    std::tuple<int, int> countPoints() const;
 
     Tile* tile(int x, int y)
     {

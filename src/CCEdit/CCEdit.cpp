@@ -57,9 +57,9 @@
 Q_DECLARE_METATYPE(CCETileset*)
 
 CCEditMain::CCEditMain(QWidget* parent)
-    : QMainWindow(parent), m_currentTileset(0), m_savedDrawMode(ActionDrawPencil),
-      m_currentDrawMode(EditorWidget::DrawPencil),  m_levelset(0), m_useDac(false),
-      m_subProc(0)
+    : QMainWindow(parent), m_currentTileset(), m_savedDrawMode(ActionDrawPencil),
+      m_currentDrawMode(EditorWidget::DrawPencil),  m_levelset(), m_useDac(),
+      m_subProc()
 {
     setWindowTitle(CCEDIT_TITLE);
     QIcon appicon(":/icons/boot-48.png");
@@ -432,16 +432,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     newTabButton->setStatusTip(tr("Open a new editor tab"));
     newTabButton->setAutoRaise(true);
     m_editorTabs->setCornerWidget(newTabButton, Qt::TopLeftCorner);
-#if QT_VERSION >= 0x040500
     m_editorTabs->setMovable(true);
     m_editorTabs->setTabsClosable(true);
-#else
-    QToolButton* closeTabButton = new QToolButton(m_editorTabs);
-    closeTabButton->setIcon(QIcon(":/res/tab-close-sm.png"));
-    closeTabButton->setStatusTip(tr("Close the current editor tab"));
-    closeTabButton->setAutoRaise(true);
-    m_editorTabs->setCornerWidget(closeTabButton, Qt::TopRightCorner);
-#endif
     setCentralWidget(m_editorTabs);
 
     // Main Menu
@@ -601,11 +593,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(toolDock, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)), SLOT(onDockChanged(Qt::DockWidgetArea)));
     connect(qApp->clipboard(), SIGNAL(dataChanged()), SLOT(onClipboardDataChanged()));
 
-#if QT_VERSION >= 0x040500
     connect(m_editorTabs, SIGNAL(tabCloseRequested(int)), SLOT(onCloseTab(int)));
-#else
-    connect(closeTabButton, SIGNAL(clicked()), SLOT(onCloseCurrentTab()));
-#endif
     connect(m_editorTabs, SIGNAL(currentChanged(int)), SLOT(onTabChanged(int)));
     connect(newTabButton, SIGNAL(clicked()), SLOT(onNewTab()));
 
@@ -2230,11 +2218,6 @@ void CCEditMain::onCloseTab(int tabIdx)
     if (m_editorTabs->count() == 1)
         return;
     delete m_editorTabs->widget(tabIdx);
-}
-
-void CCEditMain::onCloseCurrentTab()
-{
-    onCloseTab(m_editorTabs->currentIndex());
 }
 
 void CCEditMain::onTabChanged(int tabIdx)

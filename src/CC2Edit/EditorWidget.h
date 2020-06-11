@@ -53,8 +53,10 @@ public:
 
     QSize sizeHint() const override
     {
-        int tilesetSize = m_tileset ? m_tileset->size() : 32;
-        return QSize(16 * tilesetSize * m_zoomFactor, 16 * tilesetSize * m_zoomFactor);
+        const int tilesetSize = m_tileset ? m_tileset->size() : 32;
+        const int width = m_map ? m_map->mapData().width() : 16;
+        const int height = m_map ? m_map->mapData().height() : 16;
+        return QSize(width * tilesetSize * m_zoomFactor, height * tilesetSize * m_zoomFactor);
     }
 
     void renderTileBuffer();
@@ -105,7 +107,7 @@ private:
     }
 
 signals:
-    void mouseInfo(QString text);
+    void mouseInfo(const QString& text, int timeout = 0);
     void canUndo(bool);
     void canRedo(bool);
     void hasSelection(bool);

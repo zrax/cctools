@@ -176,7 +176,6 @@ private slots:
 
     void onNewTab();
     void onCloseTab(int);
-    void onCloseCurrentTab();
     void onTabChanged(int);
     void onDockChanged(Qt::DockWidgetArea);
     void onMakeDirty() { m_levelset->makeDirty(); }

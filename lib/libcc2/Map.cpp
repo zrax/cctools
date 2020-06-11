@@ -346,6 +346,67 @@ void cc2::MapData::resize(uint8_t width, uint8_t height)
     m_height = height;
 }
 
+static int tileChips(const cc2::Tile* tile)
+{
+    const int lowerChips = tile->haveLower() ? tileChips(tile->lower()) : 0;
+
+    switch (tile->type()) {
+    case cc2::Tile::Chip:
+    case cc2::Tile::GreenChip:
+    case cc2::Tile::GreenBomb:
+        return 1 + lowerChips;
+    default:
+        return lowerChips;
+    }
+}
+
+int cc2::MapData::countChips() const
+{
+    int chips = 0;
+    const Tile* mapEnd = m_map + (m_width * m_height);
+    for (const Tile* tp = m_map; tp != mapEnd; ++tp)
+        chips += tileChips(tp);
+    return chips;
+}
+
+static std::tuple<int, int> tilePoints(const cc2::Tile* tile)
+{
+    auto points = tile->haveLower()
+                ? tilePoints(tile->lower()) : std::make_tuple(0, 1);
+
+    switch (tile->type()) {
+    case cc2::Tile::Flag10:
+        std::get<0>(points) += 10;
+        break;
+    case cc2::Tile::Flag100:
+        std::get<0>(points) += 100;
+        break;
+    case cc2::Tile::Flag1000:
+        std::get<0>(points) += 1000;
+        break;
+    case cc2::Tile::Flag2x:
+        std::get<1>(points) *= 2;
+        break;
+    default:
+        break;
+    }
+
+    return points;
+}
+
+std::tuple<int, int> cc2::MapData::countPoints() const
+{
+    // Raw points and multiplier
+    auto points = std::make_tuple(0, 1);
+    const Tile* mapEnd = m_map + (m_width * m_height);
+    for (const Tile* tp = m_map; tp != mapEnd; ++tp) {
+        auto p = tilePoints(tp);
+        std::get<0>(points) += std::get<0>(p);
+        std::get<1>(points) *= std::get<1>(p);
+    }
+    return points;
+}
+
 
 static std::string toGenericLF(const std::string& text)
 {
