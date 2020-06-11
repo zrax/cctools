@@ -114,6 +114,8 @@ public:
 
     QIcon getIcon(cc2::Tile* tile) const;
 
+    static QString getName(cc2::Tile* tile);
+
 private:
     QString m_name, m_filename;
     QString m_description;

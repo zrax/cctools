@@ -149,8 +149,10 @@ public:
         GlyphLeft = 0x1f,
         /* Range from ' ' to '_' can be represented with the equivalent
            ASCII character, rather than duplicating them in the enum */
+        GlyphASCII_MIN = ' ',
+        GlyphASCII_MAX = '_',
         GlyphMIN = GlyphUp,
-        GlyphMAX = '_',
+        GlyphMAX = GlyphASCII_MAX,
     };
 };
 

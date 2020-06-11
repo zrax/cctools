@@ -100,6 +100,18 @@ void CC2EditorWidget::mouseMoveEvent(QMouseEvent* event)
 
     int posX = event->x() / (m_tileset->size() * m_zoomFactor);
     int posY = event->y() / (m_tileset->size() * m_zoomFactor);
+    if (m_current == QPoint(posX, posY) && !m_cacheDirty)
+        return;
+    m_current = QPoint(posX, posY);
+
+    cc2::Tile* tile = m_map->mapData().tile(posX, posY);
+    QString info = QString("(%1, %2): %3").arg(posX).arg(posY).arg(CC2ETileset::getName(tile));
+    while (tile->haveLower() && tile->lower()->type() != cc2::Tile::Floor) {
+        tile = tile->lower();
+        info += tr(" / %1").arg(CC2ETileset::getName(tile));
+    }
+    emit mouseInfo(info);
+
     update();
 }
 

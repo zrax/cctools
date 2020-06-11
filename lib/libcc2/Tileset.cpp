@@ -979,3 +979,600 @@ void CC2ETileset::drawGlyph(QPainter& painter, int x, int y, uint32_t glyph) con
     painter.drawPixmap(x + (m_size / 4), y + (m_size / 4), m_gfx[id],
                        sx, sy, m_size / 2, m_size / 2);
 }
+
+QString CC2ETileset::getName(cc2::Tile* tile)
+{
+    QString name;
+
+    switch (tile->type()) {
+    case cc2::Tile::Floor:
+        name = tr("Floor");
+        break;
+    case cc2::Tile::Wall:
+        name = tr("Wall");
+        break;
+    case cc2::Tile::Ice:
+        name = tr("Ice");
+        break;
+    case cc2::Tile::Ice_NE:
+        name = tr("Ice Turn - North/East");
+        break;
+    case cc2::Tile::Ice_SE:
+        name = tr("Ice Turn - South/East");
+        break;
+    case cc2::Tile::Ice_SW:
+        name = tr("Ice Turn - South/West");
+        break;
+    case cc2::Tile::Ice_NW:
+        name = tr("Ice Turn - North/West");
+        break;
+    case cc2::Tile::Water:
+        name = tr("Water");
+        break;
+    case cc2::Tile::Fire:
+        name = tr("Fire");
+        break;
+    case cc2::Tile::Force_N:
+        name = tr("Force Floor - North");
+        break;
+    case cc2::Tile::Force_E:
+        name = tr("Force Floor - East");
+        break;
+    case cc2::Tile::Force_S:
+        name = tr("Force Floor - South");
+        break;
+    case cc2::Tile::Force_W:
+        name = tr("Force Floor - West");
+        break;
+    case cc2::Tile::ToggleWall:
+        name = tr("Toggle Door - Closed");
+        break;
+    case cc2::Tile::ToggleFloor:
+        name = tr("Toggle Door - Open");
+        break;
+    case cc2::Tile::Teleport_Red:
+        name = tr("Red Teleport");
+        break;
+    case cc2::Tile::Teleport_Blue:
+        name = tr("Blue Teleport");
+        break;
+    case cc2::Tile::Teleport_Yellow:
+        name = tr("Yellow Teleport");
+        break;
+    case cc2::Tile::Teleport_Green:
+        name = tr("Green Teleport");
+        break;
+    case cc2::Tile::Exit:
+        name = tr("Exit");
+        break;
+    case cc2::Tile::Slime:
+        name = tr("Slime");
+        break;
+    case cc2::Tile::Player:
+        name = tr("Player - Chip");
+        break;
+    case cc2::Tile::DirtBlock:
+        name = tr("Dirt Block");
+        break;
+    case cc2::Tile::Walker:
+        name = tr("Walker");
+        break;
+    case cc2::Tile::Ship:
+        name = tr("Ship");
+        break;
+    case cc2::Tile::IceBlock:
+        name = tr("Ice Block");
+        break;
+    case cc2::Tile::UNUSED_Barrier_S:
+        name = tr("(Deprecated) Panel - South");
+        break;
+    case cc2::Tile::UNUSED_Barrier_E:
+        name = tr("(Deprecated) Panel - East");
+        break;
+    case cc2::Tile::UNUSED_Barrier_SE:
+        name = tr("(Deprecated) Panel - South/East");
+        break;
+    case cc2::Tile::Gravel:
+        name = tr("Gravel");
+        break;
+    case cc2::Tile::ToggleButton:
+        name = tr("Toggle Door Button");
+        break;
+    case cc2::Tile::TankButton:
+        name = tr("Blue Tank Button");
+        break;
+    case cc2::Tile::BlueTank:
+        name = tr("Blue Tank");
+        break;
+    case cc2::Tile::Door_Red:
+        name = tr("Red Door");
+        break;
+    case cc2::Tile::Door_Blue:
+        name = tr("Blue Door");
+        break;
+    case cc2::Tile::Door_Yellow:
+        name = tr("Yellow Door");
+        break;
+    case cc2::Tile::Door_Green:
+        name = tr("Green Door");
+        break;
+    case cc2::Tile::Key_Red:
+        name = tr("Red Key");
+        break;
+    case cc2::Tile::Key_Blue:
+        name = tr("Blue Key");
+        break;
+    case cc2::Tile::Key_Yellow:
+        name = tr("Yellow Key");
+        break;
+    case cc2::Tile::Key_Green:
+        name = tr("Green Key");
+        break;
+    case cc2::Tile::Chip:
+        name = tr("IC Chip");
+        break;
+    case cc2::Tile::ExtraChip:
+        name = tr("Extra IC Chip");
+        break;
+    case cc2::Tile::Socket:
+        name = tr("Socket");
+        break;
+    case cc2::Tile::PopUpWall:
+        name = tr("Pop-Up Wall");
+        break;
+    case cc2::Tile::AppearingWall:
+        name = tr("Appearing Wall");
+        break;
+    case cc2::Tile::InvisWall:
+        name = tr("Invisible Wall");
+        break;
+    case cc2::Tile::BlueWall:
+        name = tr("Blue Block - Wall");
+        break;
+    case cc2::Tile::BlueFloor:
+        name = tr("Blue Block - Floor");
+        break;
+    case cc2::Tile::Dirt:
+        name = tr("Dirt");
+        break;
+    case cc2::Tile::Ant:
+        name = tr("Ant");
+        break;
+    case cc2::Tile::Centipede:
+        name = tr("Centipede");
+        break;
+    case cc2::Tile::Ball:
+        name = tr("Bouncy Ball");
+        break;
+    case cc2::Tile::Blob:
+        name = tr("Blob");
+        break;
+    case cc2::Tile::AngryTeeth:
+        name = tr("Angry Teeth");
+        break;
+    case cc2::Tile::FireBox:
+        name = tr("Fire Box");
+        break;
+    case cc2::Tile::CloneButton:
+        name = tr("Clone Button");
+        break;
+    case cc2::Tile::TrapButton:
+        name = tr("Trap Button");
+        break;
+    case cc2::Tile::IceCleats:
+        name = tr("Ice Cleats");
+        break;
+    case cc2::Tile::MagnoShoes:
+        name = tr("Magno Shoes");
+        break;
+    case cc2::Tile::FireShoes:
+        name = tr("Fire Boots");
+        break;
+    case cc2::Tile::Flippers:
+        name = tr("Flippers");
+        break;
+    case cc2::Tile::ToolThief:
+        name = tr("Tool Thief");
+        break;
+    case cc2::Tile::RedBomb:
+        name = tr("Red Bomb");
+        break;
+    case cc2::Tile::Trap:
+        name = tr("Trap");
+        break;
+    case cc2::Tile::Cloner:
+        name = tr("Cloning Machine");
+        break;
+    case cc2::Tile::Clue:
+        name = tr("Clue");
+        break;
+    case cc2::Tile::Force_Rand:
+        name = tr("Force Floor - Random");
+        break;
+    case cc2::Tile::AreaCtlButton:
+        name = tr("Area Control Button");
+        break;
+    case cc2::Tile::RevolvDoor_SW:
+        name = tr("Revolving Door - South/West");
+        break;
+    case cc2::Tile::RevolvDoor_NW:
+        name = tr("Revolving Door - North/West");
+        break;
+    case cc2::Tile::RevolvDoor_NE:
+        name = tr("Revolving Door - North/East");
+        break;
+    case cc2::Tile::RevolvDoor_SE:
+        name = tr("Revolving Door - South/East");
+        break;
+    case cc2::Tile::TimeBonus:
+        name = tr("Time Bonus");
+        break;
+    case cc2::Tile::ToggleClock:
+        name = tr("Toggle Clock");
+        break;
+    case cc2::Tile::Transformer:
+        name = tr("Transformer");
+        break;
+    case cc2::Tile::TrainTracks:
+        name = tr("Train Track");
+        // TODO: List direction and active tracks
+        break;
+    case cc2::Tile::SteelWall:
+        name = tr("Steel Wall");
+        break;
+    case cc2::Tile::TimeBomb:
+        name = tr("Time Bomb");
+        break;
+    case cc2::Tile::Helmet:
+        name = tr("Helmet");
+        break;
+    case cc2::Tile::Player2:
+        name = tr("Player - Melinda");
+        break;
+    case cc2::Tile::TimidTeeth:
+        name = tr("Timid Teeth");
+        break;
+    case cc2::Tile::HikingBoots:
+        name = tr("Hiking Boots");
+        break;
+    case cc2::Tile::MaleOnly:
+        name = tr("Male Only");
+        break;
+    case cc2::Tile::FemaleOnly:
+        name = tr("Female Only");
+        break;
+    case cc2::Tile::LogicGate:
+        switch (tile->modifier()) {
+        case cc2::TileModifier::Inverter_N:
+            name = tr("Inverter - North");
+            break;
+        case cc2::TileModifier::Inverter_E:
+            name = tr("Inverter - East");
+            break;
+        case cc2::TileModifier::Inverter_S:
+            name = tr("Inverter - South");
+            break;
+        case cc2::TileModifier::Inverter_W:
+            name = tr("Inverter - West");
+            break;
+        case cc2::TileModifier::AndGate_N:
+            name = tr("And Gate - North");
+            break;
+        case cc2::TileModifier::AndGate_E:
+            name = tr("And Gate - East");
+            break;
+        case cc2::TileModifier::AndGate_S:
+            name = tr("And Gate - South");
+            break;
+        case cc2::TileModifier::AndGate_W:
+            name = tr("And Gate - West");
+            break;
+        case cc2::TileModifier::OrGate_N:
+            name = tr("Or Gate - North");
+            break;
+        case cc2::TileModifier::OrGate_E:
+            name = tr("Or Gate - East");
+            break;
+        case cc2::TileModifier::OrGate_S:
+            name = tr("Or Gate - South");
+            break;
+        case cc2::TileModifier::OrGate_W:
+            name = tr("Or Gate - West");
+            break;
+        case cc2::TileModifier::XorGate_N:
+            name = tr("Xor Gate - North");
+            break;
+        case cc2::TileModifier::XorGate_E:
+            name = tr("Xor Gate - East");
+            break;
+        case cc2::TileModifier::XorGate_S:
+            name = tr("Xor Gate - South");
+            break;
+        case cc2::TileModifier::XorGate_W:
+            name = tr("Xor Gate - West");
+            break;
+        case cc2::TileModifier::LatchGateCW_N:
+            name = tr("Latch Gate CW - North");
+            break;
+        case cc2::TileModifier::LatchGateCW_E:
+            name = tr("Latch Gate CW - East");
+            break;
+        case cc2::TileModifier::LatchGateCW_S:
+            name = tr("Latch Gate CW - South");
+            break;
+        case cc2::TileModifier::LatchGateCW_W:
+            name = tr("Latch Gate CW - West");
+            break;
+        case cc2::TileModifier::NandGate_N:
+            name = tr("Nand Gate - North");
+            break;
+        case cc2::TileModifier::NandGate_E:
+            name = tr("Nand Gate - East");
+            break;
+        case cc2::TileModifier::NandGate_S:
+            name = tr("Nand Gate - South");
+            break;
+        case cc2::TileModifier::NandGate_W:
+            name = tr("Nand Gate - West");
+            break;
+        case cc2::TileModifier::CounterGate_0:
+            name = tr("Counter Gate - 0");
+            break;
+        case cc2::TileModifier::CounterGate_1:
+            name = tr("Counter Gate - 1");
+            break;
+        case cc2::TileModifier::CounterGate_2:
+            name = tr("Counter Gate - 2");
+            break;
+        case cc2::TileModifier::CounterGate_3:
+            name = tr("Counter Gate - 3");
+            break;
+        case cc2::TileModifier::CounterGate_4:
+            name = tr("Counter Gate - 4");
+            break;
+        case cc2::TileModifier::CounterGate_5:
+            name = tr("Counter Gate - 5");
+            break;
+        case cc2::TileModifier::CounterGate_6:
+            name = tr("Counter Gate - 6");
+            break;
+        case cc2::TileModifier::CounterGate_7:
+            name = tr("Counter Gate - 7");
+            break;
+        case cc2::TileModifier::CounterGate_8:
+            name = tr("Counter Gate - 8");
+            break;
+        case cc2::TileModifier::CounterGate_9:
+            name = tr("Counter Gate - 9");
+            break;
+        case cc2::TileModifier::LatchGateCCW_N:
+            name = tr("Latch Gate CCW - North");
+            break;
+        case cc2::TileModifier::LatchGateCCW_E:
+            name = tr("Latch Gate CCW - East");
+            break;
+        case cc2::TileModifier::LatchGateCCW_S:
+            name = tr("Latch Gate CCW - South");
+            break;
+        case cc2::TileModifier::LatchGateCCW_W:
+            name = tr("Latch Gate CCW - West");
+            break;
+        default:
+            name = tr("Invalid Logic Gate (%1)").arg(tile->modifier(), 0, 16);
+            break;
+        }
+        break;
+    case cc2::Tile::LogicSwitch:
+        name = tr("Logic Switch");
+        break;
+    case cc2::Tile::FlameJet_Off:
+        name = tr("Flame Jet - Off");
+        break;
+    case cc2::Tile::FlameJet_On:
+        name = tr("Flame Jet - On");
+        break;
+    case cc2::Tile::FlameJetButton:
+        name = tr("Flame Jet Button");
+        break;
+    case cc2::Tile::Lightning:
+        name = tr("Lightning");
+        break;
+    case cc2::Tile::YellowTank:
+        name = tr("Yellow Tank");
+        break;
+    case cc2::Tile::YellowTankCtrl:
+        name = tr("Yellow Tank Control");
+        break;
+    case cc2::Tile::MirrorPlayer:
+        name = tr("Mirror Player - Chip");
+        break;
+    case cc2::Tile::MirrorPlayer2:
+        name = tr("Mirror Player - Melinda");
+        break;
+    case cc2::Tile::BowlingBall:
+        name = tr("Bowling Ball");
+        break;
+    case cc2::Tile::Rover:
+        name = tr("Rover");
+        break;
+    case cc2::Tile::TimePenalty:
+        name = tr("Time Penalty");
+        break;
+    case cc2::Tile::StyledFloor:
+        switch (tile->modifier()) {
+        case cc2::TileModifier::CamoTheme:
+            name = tr("Styled Floor - Camo");
+            break;
+        case cc2::TileModifier::PinkDotsTheme:
+            name = tr("Styled Floor - Pink");
+            break;
+        case cc2::TileModifier::YellowBrickTheme:
+            name = tr("Styled Floor - Yellow Brick");
+            break;
+        case cc2::TileModifier::BlueTheme:
+            name = tr("Styled Floor - Blue");
+            break;
+        default:
+            name = tr("Styled Floor - Invalid (%1)").arg(tile->modifier(), 0, 16);
+            break;
+        }
+        break;
+    case cc2::Tile::PanelCanopy:
+        {
+            if (tile->panelFlags() & cc2::Tile::Canopy)
+                name = tr("Canopy");
+            QStringList directions;
+            if (tile->panelFlags() & cc2::Tile::PanelNorth)
+                directions << tr("North");
+            if (tile->panelFlags() & cc2::Tile::PanelSouth)
+                directions << tr("South");
+            if (tile->panelFlags() & cc2::Tile::PanelEast)
+                directions << tr("East");
+            if (tile->panelFlags() & cc2::Tile::PanelWest)
+                directions << tr("West");
+            if (!directions.isEmpty()) {
+                if (!name.isEmpty())
+                    name += QStringLiteral(" / ");
+                name += tr("Panel - ") + directions.join(QLatin1Char('/'));
+            }
+            if (tile->panelFlags() == 0)
+                name = tr("Panel/Canopy - Invalid");
+        }
+        break;
+    case cc2::Tile::RRSign:
+        name = tr("Railroad Sign");
+        break;
+    case cc2::Tile::StyledWall:
+        switch (tile->modifier()) {
+        case cc2::TileModifier::CamoTheme:
+            name = tr("Styled Wall - Camo");
+            break;
+        case cc2::TileModifier::PinkDotsTheme:
+            name = tr("Styled Wall - Pink");
+            break;
+        case cc2::TileModifier::YellowBrickTheme:
+            name = tr("Styled Wall - Yellow Brick");
+            break;
+        case cc2::TileModifier::BlueTheme:
+            name = tr("Styled Wall - Blue");
+            break;
+        default:
+            name = tr("Styled Wall - Invalid (%1)").arg(tile->modifier(), 0, 16);
+            break;
+        }
+        break;
+    case cc2::Tile::AsciiGlyph:
+        if (tile->modifier() == cc2::TileModifier::GlyphUp)
+            name = tr("Glyph - Up");
+        else if (tile->modifier() == cc2::TileModifier::GlyphRight)
+            name = tr("Glyph - Right");
+        else if (tile->modifier() == cc2::TileModifier::GlyphDown)
+            name = tr("Glyph - Down");
+        else if (tile->modifier() == cc2::TileModifier::GlyphLeft)
+            name = tr("Glyph - Left");
+        else if (tile->modifier() >= cc2::TileModifier::GlyphASCII_MIN
+                 && tile->modifier() <= cc2::TileModifier::GlyphASCII_MAX)
+            name = tr("Glyph - '%1'").arg(QLatin1Char(tile->modifier()));
+        else
+            name = tr("Glyph - Invalid (%1)").arg(tile->modifier(), 0, 16);
+        break;
+    case cc2::Tile::LSwitchFloor:
+        name = tr("Switch Door - Open");
+        break;
+    case cc2::Tile::LSwitchWall:
+        name = tr("Switch Door - Closed");
+        break;
+    case cc2::Tile::Flag10:
+        name = tr("10 Point Flag");
+        break;
+    case cc2::Tile::Flag100:
+        name = tr("100 Point Flag");
+        break;
+    case cc2::Tile::Flag1000:
+        name = tr("1000 Point Flag");
+        break;
+    case cc2::Tile::StayUpGWall:
+        name = tr("Stay Up Wall");
+        break;
+    case cc2::Tile::PopDownGWall:
+        name = tr("Pop Down Wall");
+        break;
+    case cc2::Tile::Disallow:
+        name = tr("Not Allowed");
+        break;
+    case cc2::Tile::Flag2x:
+        name = tr("2x Point Flag");
+        break;
+    case cc2::Tile::DirBlock:
+        name = tr("Directional Block");
+        // TODO: List directions
+        break;
+    case cc2::Tile::FloorMimic:
+        name = tr("Floor Mimic");
+        break;
+    case cc2::Tile::GreenBomb:
+        name = tr("Toggle Bomb");
+        break;
+    case cc2::Tile::GreenChip:
+        name = tr("Toggle IC Chip");
+        break;
+    case cc2::Tile::RevLogicButton:
+        name = tr("Reverse Logic Button");
+        break;
+    case cc2::Tile::Switch_Off:
+        name = tr("Switch - Off");
+        break;
+    case cc2::Tile::Switch_On:
+        name = tr("Switch - On");
+        break;
+    case cc2::Tile::KeyThief:
+        name = tr("Key Thief");
+        break;
+    case cc2::Tile::Ghost:
+        name = tr("Ghost");
+        break;
+    case cc2::Tile::SteelFoil:
+        name = tr("Steel Foil");
+        break;
+    case cc2::Tile::Turtle:
+        name = tr("Turtle");
+        break;
+    case cc2::Tile::Eye:
+        name = tr("Secret Eye");
+        break;
+    case cc2::Tile::Bribe:
+        name = tr("Bribe");
+        break;
+    case cc2::Tile::SpeedShoes:
+        name = tr("Speed Shoes");
+        break;
+    case cc2::Tile::Hook:
+        name = tr("Hook");
+        break;
+    default:
+        name = tr("Invalid (%1)").arg(tile->type(), 0, 16);
+        break;
+    }
+
+    if (tile->haveDirection()) {
+        switch (tile->direction()) {
+        case cc2::Tile::North:
+            name += tr(" - North");
+            break;
+        case cc2::Tile::East:
+            name += tr(" - East");
+            break;
+        case cc2::Tile::South:
+            name += tr(" - South");
+            break;
+        case cc2::Tile::West:
+            name += tr(" - West");
+            break;
+        default:
+            name += tr(" - Invalid Direction");
+            break;
+        }
+    }
+
+    return name;
+}

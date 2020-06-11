@@ -72,6 +72,7 @@ private:
     CC2ETileset* m_tileset;
     cc2::Map* m_map;
     QList<QPoint> m_hilights;
+    QPoint m_origin, m_current;
 
     double m_zoomFactor;
     QPixmap m_tileBuffer;
