@@ -1,0 +1,3 @@
+[submodule "qtextpad"]
+	path = qtextpad
+	url = https://github.com/zrax/qtextpad

@@ -32,4 +32,7 @@
     <file>icons/boot-24.png</file>
     <file>icons/boot-32.png</file>
 </qresource>
+<qresource prefix="/cc2-syntax">
+    <file>syntax/cc2game.xml</file>
+</qresource>
 </RCC>

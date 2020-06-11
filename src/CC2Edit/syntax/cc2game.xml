@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE language SYSTEM "language.dtd">
+<language name="CC2 Game Script" section="Other" version="1" kateversion="5.0"
+          extensions="*.c2g" author="Michael Hansen" license="MIT">
+  <highlighting>
+    <list name="directives">
+      <item>art</item>
+      <item>chain</item>
+      <item>chdir</item>
+      <item>dlc</item>
+      <item>do</item>
+      <item>edit</item>
+      <item>end</item>
+      <item>game</item>
+      <item>goto</item>
+      <item>main</item>
+      <item>map</item>
+      <item>music</item>
+      <item>script</item>
+      <item>wav</item>
+    </list>
+
+    <list name="variables">
+      <item>enter</item>
+      <item>exit</item>
+      <item>flags</item>
+      <item>gender</item>
+      <item>keys</item>
+      <item>level</item>
+      <item>line</item>
+      <item>menu</item>
+      <item>rand</item>
+      <item>reg1</item>
+      <item>reg2</item>
+      <item>reg3</item>
+      <item>reg4</item>
+      <item>result</item>
+      <item>score</item>
+      <item>speed</item>
+      <item>tleft</item>
+      <item>tools</item>
+    </list>
+
+    <list name="constants">
+      <item>continue</item>
+      <item>female</item>
+      <item>ktime</item>
+      <item>ktools</item>
+      <item>male</item>
+      <item>no_bonus</item>
+      <item>replay</item>
+      <item>silent</item>
+    </list>
+
+    <list name="unused">
+      <item>chips</item>
+      <item>bonus</item>
+      <item>no_l_doors</item>
+      <item>screen</item>
+      <item>start</item>
+    </list>
+
+    <contexts>
+      <context name="Normal" attribute="Normal Text" lineEndContext="#stay">
+        <DetectSpaces />
+        <DetectChar attribute="Comment" char=";" context="Comment"/>
+        <Detect2Chars attribute="Comment" char="/" char1="/" context="Comment"/>
+        <RegExpr attribute="Label" String="#[^ \t]+" context="#stay" />
+        <Int attribute="Decimal" context="#stay" />
+        <keyword attribute="Directive" String="directives" context="#stay"/>
+        <keyword attribute="Variable" String="variables" context="#stay"/>
+        <keyword attribute="Constant" String="constants" context="#stay"/>
+        <keyword attribute="Unused Keyword" String="unused" context="#stay"/>
+        <DetectChar attribute="String" char="&quot;" context="String"/>
+      </context>
+
+      <context name="Comment" attribute="Comment" lineEndContext="#pop">
+        <DetectSpaces />
+        <IncludeRules context="##Alerts" />
+        <DetectIdentifier />
+      </context>
+
+      <context name="String" attribute="String" lineEndContext="#pop">
+        <HlCStringChar attribute="String Char" context="#stay"/>
+        <DetectChar attribute="String" char="&quot;" context="#pop"/>
+      </context>
+    </contexts>
+
+    <itemDatas>
+      <itemData name="Normal Text" defStyleNum="dsNormal" spellChecking="false"/>
+      <itemData name="Label" defStyleNum="dsPreprocessor" spellChecking="false"/>
+      <itemData name="Directive" defStyleNum="dsKeyword" spellChecking="false"/>
+      <itemData name="Variable" defStyleNum="dsDataType" spellChecking="false"/>
+      <itemData name="Constant" defStyleNum="dsOthers" spellChecking="false"/>
+      <itemData name="Unused Keyword" defStyleNum="dsError" spellChecking="false"/>
+      <itemData name="Decimal" defStyleNum="dsDecVal" spellChecking="false"/>
+      <itemData name="Operator" defStyleNum="dsOperator" spellChecking="false"/>
+      <itemData name="String" defStyleNum="dsString"/>
+      <itemData name="String Char" defStyleNum="dsChar"/>
+      <itemData name="Comment" defStyleNum="dsComment"/>
+    </itemDatas>
+  </highlighting>
+
+  <general>
+    <comments>
+      <comment name="singleLine" start=";"/>
+    </comments>
+  </general>
+</language>

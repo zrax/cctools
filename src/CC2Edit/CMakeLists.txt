@@ -19,11 +19,13 @@ include_directories(${CCTools_SOURCE_DIR}/lib)
 set(CC2Edit_HEADERS
     CC2Edit.h
     EditorWidget.h
+    ScriptEditor.h
 )
 
 set(CC2Edit_SOURCES
     CC2Edit.cpp
     EditorWidget.cpp
+    ScriptEditor.cpp
 )
 
 if(WIN32)
@@ -32,7 +34,10 @@ endif()
 
 add_executable(CC2Edit WIN32 MACOSX_BUNDLE
                ${CC2Edit_HEADERS} ${CC2Edit_SOURCES} CC2Edit.qrc)
-target_link_libraries(CC2Edit Qt5::Core Qt5::Widgets libcc1 libcc2)
+target_link_libraries(CC2Edit PRIVATE Qt5::Core Qt5::Widgets libcc1 libcc2)
+
+target_include_directories(CC2Edit PRIVATE "${PROJECT_SOURCE_DIR}")
+target_link_libraries(CC2Edit PRIVATE qtextpad)
 
 if(APPLE)
     set(MACOSX_BUNDLE true)

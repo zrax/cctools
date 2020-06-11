@@ -56,11 +56,14 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     setDockOptions(QMainWindow::AnimatedDocks);
 
     // Actions
-    m_actions[ActionNew] = new QAction(QIcon(":/res/document-new.png"), tr("&New Map..."), this);
-    m_actions[ActionNew]->setStatusTip(tr("Create new map"));
-    m_actions[ActionNew]->setShortcut(Qt::Key_F2);
-    m_actions[ActionOpen] = new QAction(QIcon(":/res/document-open.png"), tr("&Open Map..."), this);
-    m_actions[ActionOpen]->setStatusTip(tr("Open a map file from disk"));
+    m_actions[ActionNewMap] = new QAction(QIcon(":/res/document-new.png"), tr("&New Map..."), this);
+    m_actions[ActionNewMap]->setStatusTip(tr("Create new map"));
+    m_actions[ActionNewMap]->setShortcut(Qt::Key_F2);
+    m_actions[ActionNewScript] = new QAction(QIcon(":/res/document-new.png"), tr("N&ew Script..."), this);
+    m_actions[ActionNewScript]->setStatusTip(tr("Create new game script"));
+    m_actions[ActionNewScript]->setShortcut(Qt::SHIFT | Qt::Key_F2);
+    m_actions[ActionOpen] = new QAction(QIcon(":/res/document-open.png"), tr("&Open..."), this);
+    m_actions[ActionOpen]->setStatusTip(tr("Open a game file from disk"));
     m_actions[ActionOpen]->setShortcut(Qt::CTRL | Qt::Key_O);
     m_actions[ActionSave] = new QAction(QIcon(":/res/document-save.png"), tr("&Save"), this);
     m_actions[ActionSave]->setStatusTip(tr("Save the current map to the same file"));
@@ -92,6 +95,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_actions[ActionSelect]->setStatusTip(tr("Enter selection mode"));
     m_actions[ActionSelect]->setShortcut(Qt::CTRL | Qt::Key_A);
     m_actions[ActionSelect]->setCheckable(true);
+    m_actions[ActionSelect]->setEnabled(false);
     m_actions[ActionCut] = new QAction(QIcon(":/res/edit-cut.png"), tr("Cu&t"), this);
     m_actions[ActionCut]->setStatusTip(tr("Put the selection in the clipboard and clear it from the editor"));
     m_actions[ActionCut]->setShortcut(Qt::CTRL | Qt::Key_X);
@@ -304,7 +308,8 @@ CC2EditMain::CC2EditMain(QWidget* parent)
 
     // Main Menu
     QMenu* fileMenu = menuBar()->addMenu(tr("&File"));
-    fileMenu->addAction(m_actions[ActionNew]);
+    fileMenu->addAction(m_actions[ActionNewMap]);
+    fileMenu->addAction(m_actions[ActionNewScript]);
     fileMenu->addSeparator();
     fileMenu->addAction(m_actions[ActionOpen]);
     fileMenu->addAction(m_actions[ActionSave]);
@@ -357,7 +362,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     QToolBar* tbarMain = addToolBar(QString());
     tbarMain->setObjectName("ToolbarMain");
     tbarMain->setWindowTitle(tr("Main"));
-    tbarMain->addAction(m_actions[ActionNew]);
+    tbarMain->addAction(m_actions[ActionNewMap]);
     tbarMain->addAction(m_actions[ActionOpen]);
     tbarMain->addAction(m_actions[ActionSave]);
     tbarMain->addSeparator();
@@ -381,7 +386,8 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     // Show status bar
     statusBar();
 
-    connect(m_actions[ActionNew], &QAction::triggered, this, &CC2EditMain::createNewMap);
+    connect(m_actions[ActionNewMap], &QAction::triggered, this, &CC2EditMain::createNewMap);
+    connect(m_actions[ActionNewScript], &QAction::triggered, this, &CC2EditMain::createNewScript);
     connect(m_actions[ActionOpen], &QAction::triggered, this, &CC2EditMain::onOpenAction);
     connect(m_actions[ActionClose], &QAction::triggered, this, &CC2EditMain::onCloseAction);
 
@@ -482,6 +488,18 @@ void CC2EditMain::createNewMap()
     m_actions[ActionSaveAs]->setEnabled(true);
     m_actions[ActionClose]->setEnabled(true);
     m_actions[ActionGenReport]->setEnabled(true);
+    m_actions[ActionSelect]->setEnabled(true);
+}
+
+void CC2EditMain::createNewScript()
+{
+    addScriptEditor(tr("Untitled"));
+
+    m_actions[ActionSave]->setEnabled(true);
+    m_actions[ActionSaveAs]->setEnabled(true);
+    m_actions[ActionClose]->setEnabled(true);
+    m_actions[ActionGenReport]->setEnabled(false);
+    m_actions[ActionSelect]->setEnabled(false);
 }
 
 void CC2EditMain::loadMap(const QString& filename)
@@ -507,6 +525,27 @@ void CC2EditMain::loadMap(const QString& filename)
     m_actions[ActionSaveAs]->setEnabled(true);
     m_actions[ActionClose]->setEnabled(true);
     m_actions[ActionGenReport]->setEnabled(true);
+    m_actions[ActionSelect]->setEnabled(true);
+}
+
+void CC2EditMain::loadScript(const QString& filename)
+{
+    QFile scriptFile(filename);
+    if (!scriptFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QMessageBox::critical(this, tr("Error opening file"),
+                tr("Could not open %1 for reading").arg(filename));
+        return;
+    }
+    QString text = QString::fromLatin1(scriptFile.readAll());
+    QFileInfo info(filename);
+    auto editor = addScriptEditor(info.fileName());
+    editor->setPlainText(text);
+
+    m_actions[ActionSave]->setEnabled(true);
+    m_actions[ActionSaveAs]->setEnabled(true);
+    m_actions[ActionClose]->setEnabled(true);
+    m_actions[ActionGenReport]->setEnabled(false);
+    m_actions[ActionSelect]->setEnabled(false);
 }
 
 void CC2EditMain::registerTileset(const QString& filename)
@@ -583,6 +622,13 @@ CC2EditorWidget* CC2EditMain::getEditorAt(int idx)
     return nullptr;
 }
 
+CC2ScriptEditor* CC2EditMain::getScriptEditorAt(int idx)
+{
+    if (idx < 0 || idx >= m_editorTabs->count())
+        return nullptr;
+    return qobject_cast<CC2ScriptEditor *>(m_editorTabs->widget(idx));
+}
+
 CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename)
 {
     QScrollArea* scroll = new QScrollArea(m_editorTabs);
@@ -610,12 +656,29 @@ CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename)
     return editor;
 }
 
+CC2ScriptEditor* CC2EditMain::addScriptEditor(const QString& filename)
+{
+    auto editor = new CC2ScriptEditor(m_editorTabs);
+    m_editorTabs->addTab(editor, filename);
+
+    // TODO: Hook up signals
+
+    m_editorTabs->setCurrentWidget(editor);
+    return editor;
+}
+
 void CC2EditMain::closeAllTabs()
 {
     while (m_editorTabs->count() != 0) {
         delete m_editorTabs->widget(0);
         m_editorTabs->removeTab(0);
     }
+
+    m_actions[ActionSave]->setEnabled(false);
+    m_actions[ActionSaveAs]->setEnabled(false);
+    m_actions[ActionClose]->setEnabled(false);
+    m_actions[ActionGenReport]->setEnabled(false);
+    m_actions[ActionSelect]->setEnabled(false);
 }
 
 void CC2EditMain::resizeEvent(QResizeEvent* event)
@@ -639,9 +702,19 @@ void CC2EditMain::resizeEvent(QResizeEvent* event)
 void CC2EditMain::onOpenAction()
 {
     QString filename = QFileDialog::getOpenFileName(this, tr("Open Map..."),
-                            m_dialogDir, "CC2 Maps (*.c2m)");
+                            m_dialogDir, tr("All supported files (*.c2m *.c2g);;"
+                                            "CC2 Maps (*.c2m);;"
+                                            "CC2 Game Scripts (*.c2g)"));
     if (!filename.isEmpty()) {
-        loadMap(filename);
+        QFileInfo info(filename);
+        if (info.suffix().compare(QLatin1String("c2g"), Qt::CaseInsensitive) == 0) {
+            loadScript(filename);
+        } else if (info.suffix().compare(QLatin1String("c2m"), Qt::CaseInsensitive) == 0) {
+            loadMap(filename);
+        } else {
+            QMessageBox::critical(this, tr("Invalid filename"),
+                    tr("Unsupported file type for %1").arg(filename));
+        }
         QDir dir(filename);
         dir.cdUp();
         m_dialogDir = dir.absolutePath();
@@ -712,13 +785,14 @@ void CC2EditMain::onCloseTab(int index)
         m_actions[ActionSaveAs]->setEnabled(false);
         m_actions[ActionClose]->setEnabled(false);
         m_actions[ActionGenReport]->setEnabled(false);
+        m_actions[ActionSelect]->setEnabled(false);
     }
 }
 
 void CC2EditMain::onTabChanged(int index)
 {
-    CC2EditorWidget* editor = getEditorAt(index);
-    if (!editor) {
+    CC2EditorWidget* mapEditor = getEditorAt(index);
+    if (!mapEditor) {
         m_title->setText(QString());
         m_author->setText(QString());
         m_lockText->setText(QString());
@@ -735,11 +809,14 @@ void CC2EditMain::onTabChanged(int index)
         m_clue->setPlainText(QString());
         m_note->setPlainText(QString());
         m_mapProperties->setEnabled(false);
+
+        CC2ScriptEditor* scriptEditor = getScriptEditorAt(index);
+        m_actions[ActionSelect]->setEnabled(scriptEditor == nullptr);
         return;
     }
 
-    editor->update();
-    //editor->updateUndoStatus();
+    mapEditor->update();
+    //mapEditor->updateUndoStatus();
 
     /*
     bool hasSelection = editor->selection() != QRect(-1, -1, -1, -1);
@@ -747,9 +824,10 @@ void CC2EditMain::onTabChanged(int index)
     m_actions[ActionCopy]->setEnabled(hasSelection);
     m_actions[ActionClear]->setEnabled(hasSelection);
     */
+    m_actions[ActionSelect]->setEnabled(true);
 
     // Update the map properties page
-    auto map = editor->map();
+    auto map = mapEditor->map();
     m_mapProperties->setEnabled(true);
     m_title->setText(QString::fromStdString(map->title()));
     m_author->setText(QString::fromStdString(map->author()));

@@ -49,6 +49,9 @@ set(CCTools_Tilesets
     ${CMAKE_CURRENT_SOURCE_DIR}/share/cctools/WEP.tis
 )
 
+set(QTEXTPAD_WIDGET_ONLY ON)
+add_subdirectory(qtextpad)
+
 add_subdirectory(lib/libcc1)
 add_subdirectory(lib/libcc2)
 add_subdirectory(src/CCEdit)

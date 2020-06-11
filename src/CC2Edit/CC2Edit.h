@@ -21,6 +21,7 @@
 #include <QMainWindow>
 #include "libcc2/Map.h"
 #include "libcc2/Tileset.h"
+#include "ScriptEditor.h"
 
 class QLineEdit;
 class QComboBox;
@@ -38,12 +39,16 @@ public:
     CC2EditMain(QWidget* parent = nullptr);
 
     void createNewMap();
+    void createNewScript();
     void loadMap(const QString& filename);
+    void loadScript(const QString& filename);
     void findTilesets();
     void loadTileset(CC2ETileset* tileset);
 
     CC2EditorWidget* getEditorAt(int idx);
     CC2EditorWidget* addEditor(cc2::Map* map, const QString& filename);
+    CC2ScriptEditor* getScriptEditorAt(int idx);
+    CC2ScriptEditor* addScriptEditor(const QString& filename);
     void closeAllTabs();
 
 protected:
@@ -63,7 +68,7 @@ private Q_SLOTS:
 
 private:
     enum ActionType {
-        ActionNew, ActionOpen, ActionSave, ActionSaveAs, ActionClose,
+        ActionNewMap, ActionNewScript, ActionOpen, ActionSave, ActionSaveAs, ActionClose,
         ActionGenReport, ActionExit, ActionSelect, ActionCut, ActionCopy,
         ActionPaste, ActionClear, ActionUndo, ActionRedo, ActionDrawPencil,
         ActionDrawLine, ActionDrawFill, ActionPathMaker, ActionDrawWire,
