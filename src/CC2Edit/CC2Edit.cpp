@@ -608,7 +608,14 @@ void CC2EditMain::findTilesets()
 void CC2EditMain::loadTileset(CC2ETileset* tileset)
 {
     m_currentTileset = tileset;
-    // TODO
+
+    for (int i = 0; i < m_editorTabs->count(); ++i) {
+        auto editor = getEditorAt(i);
+        if (editor)
+            editor->setTileset(tileset);
+    }
+
+    // TODO: Adjust tile picker widgets
 }
 
 CC2EditorWidget* CC2EditMain::getEditorAt(int idx)

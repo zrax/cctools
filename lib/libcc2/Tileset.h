@@ -125,6 +125,7 @@ private:
 
     void drawArrow(QPainter& painter, int x, int y, cc2::Tile::Direction direction) const;
     void drawGlyph(QPainter& painter, int x, int y, uint32_t glyph) const;
+    void drawTracks(QPainter& painter, int x, int y, uint32_t tracks) const;
 };
 
 #endif

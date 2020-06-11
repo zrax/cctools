@@ -177,7 +177,7 @@ public:
         TimeBonus, ToggleClock, Transformer, TrainTracks, SteelWall,
         TimeBomb, Helmet, UNUSED_53, UNUSED_54, UNUSED_55, Player2,
         TimidTeeth, UNUSED_Explosion, HikingBoots, MaleOnly, FemaleOnly,
-        LogicGate, UNUSED_5d, LogicSwitch, FlameJet_Off, FlameJet_On,
+        LogicGate, UNUSED_5d, LogicButton, FlameJet_Off, FlameJet_On,
         FlameJetButton, Lightning, YellowTank, YellowTankCtrl,
         MirrorPlayer, MirrorPlayer2, UNUSED_67, BowlingBall, Rover,
         TimePenalty, StyledFloor, UNUSED_6c, PanelCanopy, UNUSED_6e, RRSign,

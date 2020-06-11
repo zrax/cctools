@@ -431,7 +431,18 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile)
         break;
     case cc2::Tile::Cloner:
         painter.drawPixmap(x, y, m_gfx[cc2::G_Cloner]);
-        // TODO: Render modifier arrows
+        if (tile->modifier() & cc2::TileModifier::CloneNorth)
+            painter.drawPixmap(x, y, m_gfx[cc2::G_ClonerArrows],
+                               0, 0, m_size, m_size / 4);
+        if (tile->modifier() & cc2::TileModifier::CloneEast)
+            painter.drawPixmap(x + (3 * m_size) / 4, y, m_gfx[cc2::G_ClonerArrows],
+                               (3 * m_size) / 4, 0, m_size / 4, m_size);
+        if (tile->modifier() & cc2::TileModifier::CloneSouth)
+            painter.drawPixmap(x, y + (3 * m_size) / 4, m_gfx[cc2::G_ClonerArrows],
+                               0, (3 * m_size) / 4, m_size, m_size / 4);
+        if (tile->modifier() & cc2::TileModifier::CloneWest)
+            painter.drawPixmap(x, y, m_gfx[cc2::G_ClonerArrows],
+                               0, 0, m_size / 4, m_size);
         break;
     case cc2::Tile::Clue:
         painter.drawPixmap(x, y, m_gfx[cc2::G_Clue]);
@@ -465,7 +476,7 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile)
         break;
     case cc2::Tile::TrainTracks:
         painter.drawPixmap(x, y, m_gfx[cc2::G_Gravel]);
-        // TODO: Render tracks and rails
+        drawTracks(painter, x, y, tile->modifier());
         break;
     case cc2::Tile::SteelWall:
         if (tile->modifier() != 0) {
@@ -672,7 +683,7 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile)
     //case cc2::Tile::UNUSED_5d:
     //    painter.drawPixmap(x, y, m_gfx[cc2::G_Player]);
     //    break;
-    case cc2::Tile::LogicSwitch:
+    case cc2::Tile::LogicButton:
         // TODO: Draw wires properly
         painter.drawPixmap(x, y, m_gfx[cc2::G_WireFill]);
         painter.drawPixmap(x, y, m_gfx[cc2::G_LogicSwitch]);
@@ -853,7 +864,18 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile)
         break;
     case cc2::Tile::DirBlock:
         painter.drawPixmap(x, y, m_gfx[cc2::G_DirBlock]);
-        // TODO: Draw arrows
+        if (tile->arrowMask() & cc2::Tile::ArrowNorth)
+            painter.drawPixmap(x, y, m_gfx[cc2::G_DirBlockArrows],
+                               0, 0, m_size, m_size / 4);
+        if (tile->arrowMask() & cc2::Tile::ArrowEast)
+            painter.drawPixmap(x + (3 * m_size) / 4, y, m_gfx[cc2::G_DirBlockArrows],
+                               (3 * m_size) / 4, 0, m_size / 4, m_size);
+        if (tile->arrowMask() & cc2::Tile::ArrowSouth)
+            painter.drawPixmap(x, y + (3 * m_size) / 4, m_gfx[cc2::G_DirBlockArrows],
+                               0, (3 * m_size) / 4, m_size, m_size / 4);
+        if (tile->arrowMask() & cc2::Tile::ArrowWest)
+            painter.drawPixmap(x, y, m_gfx[cc2::G_DirBlockArrows],
+                               0, 0, m_size / 4, m_size);
         break;
     case cc2::Tile::FloorMimic:
         painter.drawPixmap(x, y, m_gfx[cc2::G_FloorMimic]);
@@ -978,6 +1000,84 @@ void CC2ETileset::drawGlyph(QPainter& painter, int x, int y, uint32_t glyph) con
     const int sy = ((glyph / 2) % 2) * (m_size / 2);
     painter.drawPixmap(x + (m_size / 4), y + (m_size / 4), m_gfx[id],
                        sx, sy, m_size / 2, m_size / 2);
+}
+
+void CC2ETileset::drawTracks(QPainter& painter, int x, int y, uint32_t tracks) const
+{
+    // Draw track base first
+    if (tracks & cc2::TileModifier::Track_NE)
+        painter.drawPixmap(x, y, m_gfx[cc2::G_Track_NE]);
+    if (tracks & cc2::TileModifier::Track_SE)
+        painter.drawPixmap(x, y, m_gfx[cc2::G_Track_SE]);
+    if (tracks & cc2::TileModifier::Track_SW)
+        painter.drawPixmap(x, y, m_gfx[cc2::G_Track_SW]);
+    if (tracks & cc2::TileModifier::Track_NW)
+        painter.drawPixmap(x, y, m_gfx[cc2::G_Track_NW]);
+    if (tracks & cc2::TileModifier::Track_NS)
+        painter.drawPixmap(x, y, m_gfx[cc2::G_Track_NS]);
+    if (tracks & cc2::TileModifier::Track_WE)
+        painter.drawPixmap(x, y, m_gfx[cc2::G_Track_WE]);
+
+    // Draw any applicable rails.  Active rails must be drawn after
+    // inactive rails, for cleanest appearance (and to match CC2)
+    const bool haveSwitch = (tracks & cc2::TileModifier::TrackSwitch) != 0;
+    const uint32_t activeTrack = tracks & cc2::TileModifier::ActiveTrack_MASK;
+    if (haveSwitch) {
+        if ((tracks & cc2::TileModifier::Track_NE) != 0
+                && activeTrack != cc2::TileModifier::ActiveTrack_NE)
+            painter.drawPixmap(x, y, m_gfx[cc2::G_InactiveTRail_NE]);
+        if ((tracks & cc2::TileModifier::Track_SE) != 0
+                && activeTrack != cc2::TileModifier::ActiveTrack_SE)
+            painter.drawPixmap(x, y, m_gfx[cc2::G_InactiveTRail_SE]);
+        if ((tracks & cc2::TileModifier::Track_SW) != 0
+                && activeTrack != cc2::TileModifier::ActiveTrack_SW)
+            painter.drawPixmap(x, y, m_gfx[cc2::G_InactiveTRail_SW]);
+        if ((tracks & cc2::TileModifier::Track_NW) != 0
+                && activeTrack != cc2::TileModifier::ActiveTrack_NW)
+            painter.drawPixmap(x, y, m_gfx[cc2::G_InactiveTRail_NW]);
+        if ((tracks & cc2::TileModifier::Track_NS) != 0
+                && activeTrack != cc2::TileModifier::ActiveTrack_NS)
+            painter.drawPixmap(x, y, m_gfx[cc2::G_InactiveTRail_NS]);
+        if ((tracks & cc2::TileModifier::Track_WE) != 0
+                && activeTrack != cc2::TileModifier::ActiveTrack_WE)
+            painter.drawPixmap(x, y, m_gfx[cc2::G_InactiveTRail_WE]);
+
+        if ((tracks & cc2::TileModifier::Track_NE) != 0
+                && activeTrack == cc2::TileModifier::ActiveTrack_NE)
+            painter.drawPixmap(x, y, m_gfx[cc2::G_ActiveTRail_NE]);
+        if ((tracks & cc2::TileModifier::Track_SE) != 0
+                && activeTrack == cc2::TileModifier::ActiveTrack_SE)
+            painter.drawPixmap(x, y, m_gfx[cc2::G_ActiveTRail_SE]);
+        if ((tracks & cc2::TileModifier::Track_SW) != 0
+                && activeTrack == cc2::TileModifier::ActiveTrack_SW)
+            painter.drawPixmap(x, y, m_gfx[cc2::G_ActiveTRail_SW]);
+        if ((tracks & cc2::TileModifier::Track_NW) != 0
+                && activeTrack == cc2::TileModifier::ActiveTrack_NW)
+            painter.drawPixmap(x, y, m_gfx[cc2::G_ActiveTRail_NW]);
+        if ((tracks & cc2::TileModifier::Track_NS) != 0
+                && activeTrack == cc2::TileModifier::ActiveTrack_NS)
+            painter.drawPixmap(x, y, m_gfx[cc2::G_ActiveTRail_NS]);
+        if ((tracks & cc2::TileModifier::Track_WE) != 0
+                && activeTrack == cc2::TileModifier::ActiveTrack_WE)
+            painter.drawPixmap(x, y, m_gfx[cc2::G_ActiveTRail_WE]);
+    } else {
+        if (tracks & cc2::TileModifier::Track_NE)
+            painter.drawPixmap(x, y, m_gfx[cc2::G_ActiveTRail_NE]);
+        if (tracks & cc2::TileModifier::Track_SE)
+            painter.drawPixmap(x, y, m_gfx[cc2::G_ActiveTRail_SE]);
+        if (tracks & cc2::TileModifier::Track_SW)
+            painter.drawPixmap(x, y, m_gfx[cc2::G_ActiveTRail_SW]);
+        if (tracks & cc2::TileModifier::Track_NW)
+            painter.drawPixmap(x, y, m_gfx[cc2::G_ActiveTRail_NW]);
+        if (tracks & cc2::TileModifier::Track_NS)
+            painter.drawPixmap(x, y, m_gfx[cc2::G_ActiveTRail_NS]);
+        if (tracks & cc2::TileModifier::Track_WE)
+            painter.drawPixmap(x, y, m_gfx[cc2::G_ActiveTRail_WE]);
+    }
+
+    // Always draw the switch last
+    if (haveSwitch)
+        painter.drawPixmap(x, y, m_gfx[cc2::G_Track_Switch]);
 }
 
 QString CC2ETileset::getName(cc2::Tile* tile)
@@ -1362,8 +1462,8 @@ QString CC2ETileset::getName(cc2::Tile* tile)
             break;
         }
         break;
-    case cc2::Tile::LogicSwitch:
-        name = tr("Logic Switch");
+    case cc2::Tile::LogicButton:
+        name = tr("Logic Button");
         break;
     case cc2::Tile::FlameJet_Off:
         name = tr("Flame Jet - Off");
@@ -1505,7 +1605,6 @@ QString CC2ETileset::getName(cc2::Tile* tile)
         break;
     case cc2::Tile::DirBlock:
         name = tr("Directional Block");
-        // TODO: List directions
         break;
     case cc2::Tile::FloorMimic:
         name = tr("Floor Mimic");
