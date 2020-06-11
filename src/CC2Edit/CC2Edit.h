@@ -46,10 +46,18 @@ public:
     CC2EditorWidget* addEditor(cc2::Map* map, const QString& filename);
     void closeAllTabs();
 
+protected:
+    void resizeEvent(QResizeEvent*) override;
+
 private Q_SLOTS:
     void onOpenAction();
     void onCloseAction();
+    void setZoomFactor(double);
+    void onZoomCust();
+    void onZoomFit();
+    void onTilesetMenu(QAction*);
 
+    void onDockChanged(Qt::DockWidgetArea);
     void onCloseTab(int);
     void onTabChanged(int);
 

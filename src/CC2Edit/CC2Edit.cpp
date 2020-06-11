@@ -38,6 +38,7 @@
 #include <QGridLayout>
 #include <QScrollArea>
 #include <QMessageBox>
+#include <QInputDialog>
 #include <QFileDialog>
 
 #define CC2EDIT_TITLE "CC2Edit 1.0"
@@ -384,6 +385,17 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     connect(m_actions[ActionOpen], &QAction::triggered, this, &CC2EditMain::onOpenAction);
     connect(m_actions[ActionClose], &QAction::triggered, this, &CC2EditMain::onCloseAction);
 
+    connect(m_tilesetGroup, &QActionGroup::triggered, this, &CC2EditMain::onTilesetMenu);
+    connect(m_actions[ActionZoom100], &QAction::triggered, this, [this] { setZoomFactor(1.0); });
+    connect(m_actions[ActionZoom75], &QAction::triggered, this, [this] { setZoomFactor(0.75); });
+    connect(m_actions[ActionZoom50], &QAction::triggered, this, [this] { setZoomFactor(0.5); });
+    connect(m_actions[ActionZoom25], &QAction::triggered, this, [this] { setZoomFactor(0.25); });
+    connect(m_actions[ActionZoom125], &QAction::triggered, this, [this] { setZoomFactor(0.125); });
+    connect(m_actions[ActionZoomCust], &QAction::triggered, this, &CC2EditMain::onZoomCust);
+    connect(m_actions[ActionZoomFit], &QAction::triggered, this, &CC2EditMain::onZoomFit);
+
+    connect(toolDock, &QDockWidget::dockLocationChanged, this, &CC2EditMain::onDockChanged);
+
     connect(m_editorTabs, &QTabWidget::tabCloseRequested, this, &CC2EditMain::onCloseTab);
     connect(m_editorTabs, &QTabWidget::currentChanged, this, &CC2EditMain::onTabChanged);
 
@@ -606,6 +618,24 @@ void CC2EditMain::closeAllTabs()
     }
 }
 
+void CC2EditMain::resizeEvent(QResizeEvent* event)
+{
+    if (event)
+        QWidget::resizeEvent(event);
+
+    if (m_zoomFactor == 0.0) {
+        auto scroll = qobject_cast<QScrollArea*>(m_editorTabs->currentWidget());
+        auto editor = getEditorAt(m_editorTabs->currentIndex());
+        if (scroll && editor) {
+            const auto& map = editor->map();
+            QSize zmax = scroll->maximumViewportSize();
+            double zx = (double)zmax.width() / (map->mapData().width() * m_currentTileset->size());
+            double zy = (double)zmax.height() / (map->mapData().height() * m_currentTileset->size());
+            editor->setZoom(std::min(zx, zy));
+        }
+    }
+}
+
 void CC2EditMain::onOpenAction()
 {
     QString filename = QFileDialog::getOpenFileName(this, tr("Open Map..."),
@@ -622,6 +652,54 @@ void CC2EditMain::onCloseAction()
 {
     if (m_editorTabs->count())
         onCloseTab(m_editorTabs->currentIndex());
+}
+
+void CC2EditMain::setZoomFactor(double zoom)
+{
+    m_zoomFactor = zoom;
+    for (int i = 0; i < m_editorTabs->count(); ++i) {
+        auto editor = getEditorAt(i);
+        if (editor)
+            editor->setZoom(m_zoomFactor);
+    }
+}
+
+void CC2EditMain::onZoomCust()
+{
+    bool ok;
+    double zoom = QInputDialog::getDouble(this, tr("Set Custom Zoom"),
+                        tr("Custom Zoom Percentage"), m_zoomFactor * 100.0,
+                        2.5, 800.0, 2, &ok);
+    if (ok)
+        setZoomFactor(zoom / 100.0);
+    if (m_zoomFactor == 1.0)
+        m_actions[ActionZoom100]->setChecked(true);
+    else if (m_zoomFactor == 0.5)
+        m_actions[ActionZoom50]->setChecked(true);
+    else if (m_zoomFactor == 0.25)
+        m_actions[ActionZoom25]->setChecked(true);
+    else if (m_zoomFactor == 0.125)
+        m_actions[ActionZoom125]->setChecked(true);
+}
+
+void CC2EditMain::onZoomFit()
+{
+    m_zoomFactor = 0.0;
+    resizeEvent(nullptr);
+}
+
+void CC2EditMain::onTilesetMenu(QAction* which)
+{
+    auto tileset = which->data().value<CC2ETileset*>();
+    loadTileset(tileset);
+}
+
+void CC2EditMain::onDockChanged(Qt::DockWidgetArea area)
+{
+    if (area == Qt::RightDockWidgetArea)
+        m_toolTabs->setTabPosition(QTabWidget::East);
+    else
+        m_toolTabs->setTabPosition(QTabWidget::West);
 }
 
 void CC2EditMain::onCloseTab(int index)
@@ -695,6 +773,9 @@ void CC2EditMain::onTabChanged(int index)
     m_readOnly->setChecked(map->readOnly());
     m_clue->setPlainText(QString::fromStdString(map->clue()));
     m_note->setPlainText(QString::fromStdString(map->note()));
+
+    // Apply zoom
+    resizeEvent(nullptr);
 }
 
 

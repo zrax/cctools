@@ -562,11 +562,11 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionViewMonsterPaths], SIGNAL(toggled(bool)), SLOT(onViewMonsterPathsToggled(bool)));
     connect(m_actions[ActionViewErrors], SIGNAL(toggled(bool)), SLOT(onViewErrorsToggled(bool)));
     connect(m_tilesetGroup, SIGNAL(triggered(QAction*)), SLOT(onTilesetMenu(QAction*)));
-    connect(m_actions[ActionZoom100], SIGNAL(triggered()), SLOT(onZoom100()));
-    connect(m_actions[ActionZoom75], SIGNAL(triggered()), SLOT(onZoom75()));
-    connect(m_actions[ActionZoom50], SIGNAL(triggered()), SLOT(onZoom50()));
-    connect(m_actions[ActionZoom25], SIGNAL(triggered()), SLOT(onZoom25()));
-    connect(m_actions[ActionZoom125], SIGNAL(triggered()), SLOT(onZoom125()));
+    connect(m_actions[ActionZoom100], &QAction::triggered, this, [this] { setZoomFactor(1.0); });
+    connect(m_actions[ActionZoom75], &QAction::triggered, this, [this] { setZoomFactor(0.75); });
+    connect(m_actions[ActionZoom50], &QAction::triggered, this, [this] { setZoomFactor(0.5); });
+    connect(m_actions[ActionZoom25], &QAction::triggered, this, [this] { setZoomFactor(0.25); });
+    connect(m_actions[ActionZoom125], &QAction::triggered, this, [this] { setZoomFactor(0.125); });
     connect(m_actions[ActionZoomCust], SIGNAL(triggered()), SLOT(onZoomCust()));
     connect(m_actions[ActionZoomFit], SIGNAL(triggered()), SLOT(onZoomFit()));
     connect(m_actions[ActionTestChips], SIGNAL(triggered()), SLOT(onTestChips()));
@@ -1622,37 +1622,9 @@ void CCEditMain::onViewErrorsToggled(bool view)
     }
 }
 
-void CCEditMain::onZoom100()
+void CCEditMain::setZoomFactor(double zoom)
 {
-    m_zoomFactor = 1.0;
-    for (int i=0; i<m_editorTabs->count(); ++i)
-        getEditorAt(i)->setZoom(m_zoomFactor);
-}
-
-void CCEditMain::onZoom75()
-{
-    m_zoomFactor = 0.75;
-    for (int i=0; i<m_editorTabs->count(); ++i)
-        getEditorAt(i)->setZoom(m_zoomFactor);
-}
-
-void CCEditMain::onZoom50()
-{
-    m_zoomFactor = 0.5;
-    for (int i=0; i<m_editorTabs->count(); ++i)
-        getEditorAt(i)->setZoom(m_zoomFactor);
-}
-
-void CCEditMain::onZoom25()
-{
-    m_zoomFactor = 0.25;
-    for (int i=0; i<m_editorTabs->count(); ++i)
-        getEditorAt(i)->setZoom(m_zoomFactor);
-}
-
-void CCEditMain::onZoom125()
-{
-    m_zoomFactor = 0.125;
+    m_zoomFactor = zoom;
     for (int i=0; i<m_editorTabs->count(); ++i)
         getEditorAt(i)->setZoom(m_zoomFactor);
 }
@@ -1663,11 +1635,8 @@ void CCEditMain::onZoomCust()
     double zoom = QInputDialog::getDouble(this, tr("Set Custom Zoom"),
                         tr("Custom Zoom Percentage"), m_zoomFactor * 100.0,
                         2.5, 800.0, 2, &ok);
-    if (ok) {
-        m_zoomFactor = zoom / 100.0;
-        for (int i=0; i<m_editorTabs->count(); ++i)
-            getEditorAt(i)->setZoom(m_zoomFactor);
-    }
+    if (ok)
+        setZoomFactor(zoom / 100.0);
     if (m_zoomFactor == 1.0)
         m_actions[ActionZoom100]->setChecked(true);
     else if (m_zoomFactor == 0.5)

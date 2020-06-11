@@ -111,8 +111,8 @@ protected:
     void registerTileset(QString filename);
     void doLevelsetLoad();
     void setLevelsetFilename(QString filename);
-    virtual void closeEvent(QCloseEvent*);
-    virtual void resizeEvent(QResizeEvent*);
+    void closeEvent(QCloseEvent*) override;
+    void resizeEvent(QResizeEvent*) override;
 
 private slots:
     void onNewAction();
@@ -142,11 +142,7 @@ private slots:
     void onViewViewportToggled(bool);
     void onViewMonsterPathsToggled(bool);
     void onViewErrorsToggled(bool);
-    void onZoom100();
-    void onZoom75();
-    void onZoom50();
-    void onZoom25();
-    void onZoom125();
+    void setZoomFactor(double);
     void onZoomCust();
     void onZoomFit();
     void onTilesetMenu(QAction*);
