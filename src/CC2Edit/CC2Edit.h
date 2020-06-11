@@ -43,7 +43,7 @@ public:
     void loadTileset(CC2ETileset* tileset);
 
     CC2EditorWidget* getEditorAt(int idx);
-    CC2EditorWidget* addEditor(cc2::Map* map);
+    CC2EditorWidget* addEditor(cc2::Map* map, const QString& filename);
     void closeAllTabs();
 
 private Q_SLOTS:

@@ -463,8 +463,7 @@ void CC2EditMain::createNewMap()
 {
     auto map = new cc2::Map;
     map->mapData().resize(32, 32);
-    map->setTitle("New Map");
-    addEditor(map);
+    addEditor(map, tr("Untitled"));
     map->unref();
 
     m_actions[ActionSave]->setEnabled(true);
@@ -483,9 +482,10 @@ void CC2EditMain::loadMap(const QString& filename)
     }
 
     auto map = new cc2::Map;
+    QFileInfo info(filename);
     try {
         map->read(&fs);
-        addEditor(map);
+        addEditor(map, info.fileName());
     } catch (const std::exception& ex) {
         QMessageBox::critical(this, tr("Error loading map"), ex.what());
     }
@@ -571,7 +571,7 @@ CC2EditorWidget* CC2EditMain::getEditorAt(int idx)
     return nullptr;
 }
 
-CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map)
+CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename)
 {
     QScrollArea* scroll = new QScrollArea(m_editorTabs);
     CC2EditorWidget* editor = new CC2EditorWidget(scroll);
@@ -583,7 +583,7 @@ CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map)
     editor->setMap(map);
     if (m_zoomFactor != 0.0)
         editor->setZoom(m_zoomFactor);
-    m_editorTabs->addTab(scroll, QString::fromStdString(map->title()));
+    m_editorTabs->addTab(scroll, filename);
     resizeEvent(nullptr);
 
     connect(editor, &CC2EditorWidget::mouseInfo, statusBar(), &QStatusBar::showMessage);
