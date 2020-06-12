@@ -99,7 +99,7 @@ void cc2::MapOption::write(ccl::Stream* stream) const
 cc2::Tile::Tile(const Tile& copy)
     : m_type(copy.m_type), m_direction(copy.m_direction),
       m_arrowMask(copy.m_arrowMask), m_panelFlags(copy.m_panelFlags),
-      m_modifier(copy.m_modifier)
+      m_modifier(copy.m_modifier), m_lower()
 {
     auto lower = checkLower();
     if (lower && copy.m_lower)

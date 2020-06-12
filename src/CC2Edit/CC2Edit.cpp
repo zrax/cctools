@@ -17,6 +17,7 @@
 
 #include "CC2Edit.h"
 #include "EditorWidget.h"
+#include "TileWidgets.h"
 
 #include <QApplication>
 #include <QSettings>
@@ -24,6 +25,7 @@
 #include <QAction>
 #include <QDesktopWidget>
 #include <QDockWidget>
+#include <QToolBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QSpinBox>
@@ -44,6 +46,23 @@
 #define CC2EDIT_TITLE "CC2Edit 1.0"
 
 Q_DECLARE_METATYPE(CC2ETileset*)
+
+enum TileListId {
+    ListStandard, ListObstacles, ListDoors, ListItems, ListMonsters,
+    ListLogic, ListGlyphs, ListMisc, NUM_TILE_LISTS
+};
+
+#define DIR_TILE_LIST(baseTile)                     \
+    cc2::Tile(baseTile, cc2::Tile::North, 0),       \
+    cc2::Tile(baseTile, cc2::Tile::East, 0),        \
+    cc2::Tile(baseTile, cc2::Tile::South, 0),       \
+    cc2::Tile(baseTile, cc2::Tile::West, 0)
+
+#define DIR_LOGIC_GATE(baseGate) \
+    cc2::Tile(cc2::Tile::LogicGate, baseGate##_N),  \
+    cc2::Tile(cc2::Tile::LogicGate, baseGate##_E),  \
+    cc2::Tile(cc2::Tile::LogicGate, baseGate##_S),  \
+    cc2::Tile(cc2::Tile::LogicGate, baseGate##_W)
 
 CC2EditMain::CC2EditMain(QWidget* parent)
     : QMainWindow(parent), m_currentTileset()
@@ -300,6 +319,258 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     mapPropsLayout->addWidget(m_note, row, 1, 1, 2);
     m_toolTabs->addTab(m_mapProperties, tr("Map &Properties"));
 
+    auto sortedTiles = new QWidget(toolDock);
+    auto tileBox = new QToolBox(sortedTiles);
+    TileListWidget* tileLists[NUM_TILE_LISTS];
+    tileLists[ListStandard] = new TileListWidget(tileBox);
+    tileLists[ListStandard]->setTiles({
+        cc2::Tile(cc2::Tile::Floor),
+        cc2::Tile(cc2::Tile::Wall),
+        cc2::Tile(cc2::Tile::SteelWall),
+        cc2::Tile(cc2::Tile::Chip),
+        cc2::Tile(cc2::Tile::ExtraChip),
+        cc2::Tile(cc2::Tile::Socket),
+        cc2::Tile(cc2::Tile::Exit),
+        cc2::Tile(cc2::Tile::Clue),
+        cc2::Tile(cc2::Tile::DirtBlock),
+        cc2::Tile(cc2::Tile::IceBlock),
+        cc2::Tile(cc2::Tile::Dirt),
+        cc2::Tile(cc2::Tile::Gravel),
+        cc2::Tile::panelTile(cc2::Tile::PanelNorth),
+        cc2::Tile::panelTile(cc2::Tile::PanelEast),
+        cc2::Tile::panelTile(cc2::Tile::PanelSouth),
+        cc2::Tile::panelTile(cc2::Tile::PanelWest),
+        cc2::Tile::panelTile(cc2::Tile::Canopy),
+        DIR_TILE_LIST(cc2::Tile::Player),
+        DIR_TILE_LIST(cc2::Tile::Player2),
+        cc2::Tile(cc2::Tile::StyledFloor, cc2::TileModifier::CamoTheme),
+        cc2::Tile(cc2::Tile::StyledWall, cc2::TileModifier::CamoTheme),
+        cc2::Tile(cc2::Tile::StyledFloor, cc2::TileModifier::PinkDotsTheme),
+        cc2::Tile(cc2::Tile::StyledWall, cc2::TileModifier::PinkDotsTheme),
+        cc2::Tile(cc2::Tile::StyledFloor, cc2::TileModifier::YellowBrickTheme),
+        cc2::Tile(cc2::Tile::StyledWall, cc2::TileModifier::YellowBrickTheme),
+        cc2::Tile(cc2::Tile::StyledFloor, cc2::TileModifier::BlueTheme),
+        cc2::Tile(cc2::Tile::StyledWall, cc2::TileModifier::BlueTheme),
+    });
+    tileBox->addItem(tileLists[ListStandard], tr("Standard"));
+    tileLists[ListObstacles] = new TileListWidget(tileBox);
+    tileLists[ListObstacles]->setTiles({
+        cc2::Tile(cc2::Tile::Ice),
+        cc2::Tile(cc2::Tile::Ice_NE),
+        cc2::Tile(cc2::Tile::Ice_SE),
+        cc2::Tile(cc2::Tile::Ice_SW),
+        cc2::Tile(cc2::Tile::Ice_NW),
+        cc2::Tile(cc2::Tile::Water),
+        cc2::Tile(cc2::Tile::Fire),
+        cc2::Tile(cc2::Tile::FlameJet_Off),
+        cc2::Tile(cc2::Tile::FlameJet_On),
+        cc2::Tile(cc2::Tile::FlameJetButton),
+        cc2::Tile(cc2::Tile::Force_N),
+        cc2::Tile(cc2::Tile::Force_E),
+        cc2::Tile(cc2::Tile::Force_S),
+        cc2::Tile(cc2::Tile::Force_W),
+        cc2::Tile(cc2::Tile::Force_Rand),
+        cc2::Tile(cc2::Tile::Slime),
+        cc2::Tile(cc2::Tile::RedBomb),
+        cc2::Tile(cc2::Tile::Trap),
+        cc2::Tile(cc2::Tile::TrapButton),
+        cc2::Tile(cc2::Tile::PopUpWall),
+        cc2::Tile(cc2::Tile::AppearingWall),
+        cc2::Tile(cc2::Tile::InvisWall),
+        cc2::Tile(cc2::Tile::Turtle),
+        cc2::Tile(cc2::Tile::MaleOnly),
+        cc2::Tile(cc2::Tile::FemaleOnly),
+        cc2::Tile(cc2::Tile::TrainTracks, cc2::TileModifier::Track_NE),
+        cc2::Tile(cc2::Tile::TrainTracks, cc2::TileModifier::Track_SE),
+        cc2::Tile(cc2::Tile::TrainTracks, cc2::TileModifier::Track_SW),
+        cc2::Tile(cc2::Tile::TrainTracks, cc2::TileModifier::Track_NW),
+        cc2::Tile(cc2::Tile::TrainTracks, cc2::TileModifier::Track_NS),
+        cc2::Tile(cc2::Tile::TrainTracks, cc2::TileModifier::Track_WE),
+        cc2::Tile(cc2::Tile::TrainTracks, cc2::TileModifier::TrackSwitch),
+    });
+    tileBox->addItem(tileLists[ListObstacles], tr("Obstacles"));
+    tileLists[ListDoors] = new TileListWidget(tileBox);
+    tileLists[ListDoors]->setTiles({
+        cc2::Tile(cc2::Tile::Door_Blue),
+        cc2::Tile(cc2::Tile::Door_Yellow),
+        cc2::Tile(cc2::Tile::Door_Green),
+        cc2::Tile(cc2::Tile::Door_Red),
+        cc2::Tile(cc2::Tile::ToggleFloor),
+        cc2::Tile(cc2::Tile::ToggleWall),
+        cc2::Tile(cc2::Tile::ToggleButton),
+        cc2::Tile(cc2::Tile::RevolvDoor_SW),
+        cc2::Tile(cc2::Tile::RevolvDoor_NW),
+        cc2::Tile(cc2::Tile::RevolvDoor_NE),
+        cc2::Tile(cc2::Tile::RevolvDoor_SE),
+        cc2::Tile(cc2::Tile::LSwitchFloor),
+        cc2::Tile(cc2::Tile::LSwitchWall),
+    });
+    tileBox->addItem(tileLists[ListDoors], tr("Doors"));
+    tileLists[ListItems] = new TileListWidget(tileBox);
+    tileLists[ListItems]->setTiles({
+        cc2::Tile(cc2::Tile::Key_Blue),
+        cc2::Tile(cc2::Tile::Key_Yellow),
+        cc2::Tile(cc2::Tile::Key_Green),
+        cc2::Tile(cc2::Tile::Key_Red),
+        cc2::Tile(cc2::Tile::Flippers),
+        cc2::Tile(cc2::Tile::FireShoes),
+        cc2::Tile(cc2::Tile::IceCleats),
+        cc2::Tile(cc2::Tile::MagnoShoes),
+        cc2::Tile(cc2::Tile::HikingBoots),
+        cc2::Tile(cc2::Tile::SpeedShoes),
+        cc2::Tile(cc2::Tile::Helmet),
+        cc2::Tile(cc2::Tile::RRSign),
+        cc2::Tile(cc2::Tile::Lightning),
+        cc2::Tile(cc2::Tile::TimeBomb),
+        cc2::Tile(cc2::Tile::BowlingBall),
+        cc2::Tile(cc2::Tile::SteelFoil),
+        cc2::Tile(cc2::Tile::Hook),
+        cc2::Tile(cc2::Tile::Eye),
+        cc2::Tile(cc2::Tile::Bribe),
+        cc2::Tile(cc2::Tile::Disallow),
+    });
+    tileBox->addItem(tileLists[ListItems], tr("Items"));
+    tileLists[ListMonsters] = new TileListWidget(tileBox);
+    tileLists[ListMonsters]->setTiles({
+        DIR_TILE_LIST(cc2::Tile::Ship),
+        DIR_TILE_LIST(cc2::Tile::Ant),
+        DIR_TILE_LIST(cc2::Tile::Centipede),
+        DIR_TILE_LIST(cc2::Tile::FireBox),
+        DIR_TILE_LIST(cc2::Tile::Ball),
+        DIR_TILE_LIST(cc2::Tile::Blob),
+        DIR_TILE_LIST(cc2::Tile::Walker),
+        DIR_TILE_LIST(cc2::Tile::AngryTeeth),
+        DIR_TILE_LIST(cc2::Tile::TimidTeeth),
+        DIR_TILE_LIST(cc2::Tile::BlueTank),
+        cc2::Tile(cc2::Tile::TankButton),
+        DIR_TILE_LIST(cc2::Tile::YellowTank),
+        cc2::Tile(cc2::Tile::YellowTankCtrl),
+        DIR_TILE_LIST(cc2::Tile::Ghost),
+        DIR_TILE_LIST(cc2::Tile::Rover),
+        DIR_TILE_LIST(cc2::Tile::FloorMimic),
+        DIR_TILE_LIST(cc2::Tile::MirrorPlayer),
+        DIR_TILE_LIST(cc2::Tile::MirrorPlayer2),
+    });
+    tileBox->addItem(tileLists[ListMonsters], tr("Monsters"));
+    tileLists[ListLogic] = new TileListWidget(tileBox);
+    tileLists[ListLogic]->setTiles({
+        cc2::Tile(cc2::Tile::LogicButton),
+        cc2::Tile(cc2::Tile::RevLogicButton),
+        cc2::Tile(cc2::Tile::AreaCtlButton),
+        cc2::Tile(cc2::Tile::LSwitchFloor),
+        cc2::Tile(cc2::Tile::LSwitchWall),
+        cc2::Tile(cc2::Tile::Teleport_Blue),
+        cc2::Tile(cc2::Tile::Teleport_Red),
+        cc2::Tile(cc2::Tile::Transformer),
+        cc2::Tile(cc2::Tile::Switch_Off),
+        cc2::Tile(cc2::Tile::Switch_On),
+        DIR_LOGIC_GATE(cc2::TileModifier::Inverter),
+        DIR_LOGIC_GATE(cc2::TileModifier::AndGate),
+        DIR_LOGIC_GATE(cc2::TileModifier::OrGate),
+        DIR_LOGIC_GATE(cc2::TileModifier::XorGate),
+        DIR_LOGIC_GATE(cc2::TileModifier::NandGate),
+        DIR_LOGIC_GATE(cc2::TileModifier::LatchGateCW),
+        DIR_LOGIC_GATE(cc2::TileModifier::LatchGateCCW),
+        cc2::Tile(cc2::Tile::LogicGate, cc2::TileModifier::CounterGate_0),
+        cc2::Tile(cc2::Tile::LogicGate, cc2::TileModifier::CounterGate_1),
+        cc2::Tile(cc2::Tile::LogicGate, cc2::TileModifier::CounterGate_2),
+        cc2::Tile(cc2::Tile::LogicGate, cc2::TileModifier::CounterGate_3),
+        cc2::Tile(cc2::Tile::LogicGate, cc2::TileModifier::CounterGate_4),
+        cc2::Tile(cc2::Tile::LogicGate, cc2::TileModifier::CounterGate_5),
+        cc2::Tile(cc2::Tile::LogicGate, cc2::TileModifier::CounterGate_6),
+        cc2::Tile(cc2::Tile::LogicGate, cc2::TileModifier::CounterGate_7),
+        cc2::Tile(cc2::Tile::LogicGate, cc2::TileModifier::CounterGate_8),
+        cc2::Tile(cc2::Tile::LogicGate, cc2::TileModifier::CounterGate_9),
+    });
+    tileBox->addItem(tileLists[ListLogic], tr("Logic"));
+    tileLists[ListGlyphs] = new TileListWidget(tileBox);
+    std::vector<cc2::Tile> glyphTiles;
+    glyphTiles.reserve(cc2::TileModifier::GlyphMAX - cc2::TileModifier::GlyphMIN);
+    for (uint32_t i = cc2::TileModifier::GlyphMIN; i < cc2::TileModifier::GlyphMAX; ++i)
+        glyphTiles.emplace_back(cc2::Tile::AsciiGlyph, i);
+    tileLists[ListGlyphs]->setTiles(glyphTiles);
+    tileBox->addItem(tileLists[ListGlyphs], tr("Glyph Tiles"));
+    tileLists[ListMisc] = new TileListWidget(tileBox);
+    tileLists[ListMisc]->setTiles({
+        cc2::Tile(cc2::Tile::ToolThief),
+        cc2::Tile(cc2::Tile::KeyThief),
+        cc2::Tile(cc2::Tile::BlueWall),
+        cc2::Tile(cc2::Tile::BlueFloor),
+        cc2::Tile(cc2::Tile::StayUpGWall),
+        cc2::Tile(cc2::Tile::PopDownGWall),
+        cc2::Tile(cc2::Tile::Teleport_Blue),
+        cc2::Tile(cc2::Tile::Teleport_Red),
+        cc2::Tile(cc2::Tile::Teleport_Green),
+        cc2::Tile(cc2::Tile::Teleport_Yellow),
+        cc2::Tile(cc2::Tile::Cloner, cc2::TileModifier::CloneNorth),
+        cc2::Tile(cc2::Tile::Cloner, cc2::TileModifier::CloneEast),
+        cc2::Tile(cc2::Tile::Cloner, cc2::TileModifier::CloneSouth),
+        cc2::Tile(cc2::Tile::Cloner, cc2::TileModifier::CloneWest),
+        cc2::Tile(cc2::Tile::CloneButton),
+        cc2::Tile::dirBlockTile(cc2::Tile::ArrowNorth),
+        cc2::Tile::dirBlockTile(cc2::Tile::ArrowEast),
+        cc2::Tile::dirBlockTile(cc2::Tile::ArrowSouth),
+        cc2::Tile::dirBlockTile(cc2::Tile::ArrowWest),
+        cc2::Tile::dirBlockTile(cc2::Tile::ArrowNorth | cc2::Tile::ArrowEast),
+        cc2::Tile::dirBlockTile(cc2::Tile::ArrowSouth | cc2::Tile::ArrowEast),
+        cc2::Tile::dirBlockTile(cc2::Tile::ArrowSouth | cc2::Tile::ArrowWest),
+        cc2::Tile::dirBlockTile(cc2::Tile::ArrowNorth | cc2::Tile::ArrowWest),
+        cc2::Tile::dirBlockTile(cc2::Tile::ArrowNorth | cc2::Tile::ArrowSouth),
+        cc2::Tile::dirBlockTile(cc2::Tile::ArrowEast | cc2::Tile::ArrowWest),
+        cc2::Tile::dirBlockTile(cc2::Tile::ArrowNorth | cc2::Tile::ArrowEast | cc2::Tile::ArrowSouth),
+        cc2::Tile::dirBlockTile(cc2::Tile::ArrowSouth | cc2::Tile::ArrowEast | cc2::Tile::ArrowWest),
+        cc2::Tile::dirBlockTile(cc2::Tile::ArrowNorth | cc2::Tile::ArrowSouth | cc2::Tile::ArrowWest),
+        cc2::Tile::dirBlockTile(cc2::Tile::ArrowNorth | cc2::Tile::ArrowEast | cc2::Tile::ArrowWest),
+        cc2::Tile::dirBlockTile(cc2::Tile::ArrowNorth | cc2::Tile::ArrowEast
+                                | cc2::Tile::ArrowSouth | cc2::Tile::ArrowWest),
+        cc2::Tile(cc2::Tile::Transformer),
+        cc2::Tile(cc2::Tile::GreenChip),
+        cc2::Tile(cc2::Tile::GreenBomb),
+        cc2::Tile(cc2::Tile::TimeBonus),
+        cc2::Tile(cc2::Tile::TimePenalty),
+        cc2::Tile(cc2::Tile::ToggleClock),
+        cc2::Tile(cc2::Tile::Flag10),
+        cc2::Tile(cc2::Tile::Flag100),
+        cc2::Tile(cc2::Tile::Flag1000),
+        cc2::Tile(cc2::Tile::Flag2x),
+    });
+    tileBox->addItem(tileLists[ListMisc], tr("Miscellaneous"));
+
+    for (auto listWidget : tileLists) {
+        connect(listWidget, &TileListWidget::itemSelectedLeft, this, &CC2EditMain::setForeground);
+        connect(listWidget, &TileListWidget::itemSelectedRight, this, &CC2EditMain::setBackground);
+        connect(this, &CC2EditMain::tilesetChanged, listWidget, &TileListWidget::setTileImages);
+    }
+
+    auto layerWidget = new LayerWidget(sortedTiles);
+    auto foreLabel = new QLabel(tr("Foreground: "), sortedTiles);
+    auto foreTileLabel = new QLabel(sortedTiles);
+    auto backLabel = new QLabel(tr("Background: "), sortedTiles);
+    auto backTileLabel = new QLabel(sortedTiles);
+    foreTileLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+    backTileLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+    connect(this, &CC2EditMain::tilesetChanged, layerWidget, &LayerWidget::setTileset);
+    connect(this, &CC2EditMain::foregroundChanged, layerWidget, &LayerWidget::setUpper);
+    connect(this, &CC2EditMain::backgroundChanged, layerWidget, &LayerWidget::setLower);
+    connect(this, &CC2EditMain::foregroundChanged, this, [foreTileLabel](const cc2::Tile* tile) {
+        foreTileLabel->setText(CC2ETileset::getName(tile));
+    });
+    connect(this, &CC2EditMain::backgroundChanged, this, [backTileLabel](const cc2::Tile* tile) {
+        backTileLabel->setText(CC2ETileset::getName(tile));
+    });
+
+    auto tileLayout = new QGridLayout(sortedTiles);
+    tileLayout->setContentsMargins(4, 4, 4, 4);
+    tileLayout->setVerticalSpacing(4);
+    tileLayout->addWidget(tileBox, 0, 0, 1, 3);
+    tileLayout->addWidget(foreLabel, 1, 0);
+    tileLayout->addWidget(foreTileLabel, 1, 1);
+    tileLayout->addWidget(backLabel, 2, 0);
+    tileLayout->addWidget(backTileLabel, 2, 1);
+    tileLayout->addWidget(layerWidget, 1, 2, 2, 1);
+    m_toolTabs->addTab(sortedTiles, tr("&Tiles - Sorted"));
+
     // Editor area
     m_editorTabs = new QTabWidget(this);
     m_editorTabs->setMovable(true);
@@ -475,13 +746,19 @@ CC2EditMain::CC2EditMain(QWidget* parent)
         m_actions[ActionZoomFit]->setChecked(true);
     else
         m_actions[ActionZoomCust]->setChecked(true);
+
+    // Set default editor tiles
+    cc2::Tile defTile(cc2::Tile::Wall);
+    setForeground(&defTile);
+    defTile.set(cc2::Tile::Floor);
+    setBackground(&defTile);
 }
 
 void CC2EditMain::createNewMap()
 {
     auto map = new cc2::Map;
     map->mapData().resize(32, 32);
-    addEditor(map, tr("Untitled"));
+    addEditor(map, tr("Untitled Map"));
     map->unref();
 
     m_actions[ActionSave]->setEnabled(true);
@@ -493,7 +770,7 @@ void CC2EditMain::createNewMap()
 
 void CC2EditMain::createNewScript()
 {
-    addScriptEditor(tr("Untitled"));
+    addScriptEditor(tr("Untitled Script"));
 
     m_actions[ActionSave]->setEnabled(true);
     m_actions[ActionSaveAs]->setEnabled(true);
@@ -608,14 +885,7 @@ void CC2EditMain::findTilesets()
 void CC2EditMain::loadTileset(CC2ETileset* tileset)
 {
     m_currentTileset = tileset;
-
-    for (int i = 0; i < m_editorTabs->count(); ++i) {
-        auto editor = getEditorAt(i);
-        if (editor)
-            editor->setTileset(tileset);
-    }
-
-    // TODO: Adjust tile picker widgets
+    emit tilesetChanged(tileset);
 }
 
 CC2EditorWidget* CC2EditMain::getEditorAt(int idx)
@@ -658,6 +928,8 @@ CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename)
     connect(editor, &CC2EditorWidget::hasSelection, m_actions[ActionCopy], &QAction::setEnabled);
     connect(editor, &CC2EditorWidget::hasSelection, m_actions[ActionClear], &QAction::setEnabled);
     //connect(editor, &CC2EditorWidget::makeDirty, this, [map] { map->makeDirty(); });
+
+    connect(this, &CC2EditMain::tilesetChanged, editor, &CC2EditorWidget::setTileset);
 
     m_editorTabs->setCurrentWidget(scroll);
     return editor;
@@ -863,6 +1135,17 @@ void CC2EditMain::onTabChanged(int index)
     resizeEvent(nullptr);
 }
 
+void CC2EditMain::setForeground(const cc2::Tile* tile)
+{
+    m_foreground = *tile;
+    emit foregroundChanged(tile);
+}
+
+void CC2EditMain::setBackground(const cc2::Tile* tile)
+{
+    m_background = *tile;
+    emit backgroundChanged(tile);
+}
 
 int main(int argc, char* argv[])
 {

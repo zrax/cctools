@@ -51,6 +51,11 @@ public:
     CC2ScriptEditor* addScriptEditor(const QString& filename);
     void closeAllTabs();
 
+Q_SIGNALS:
+    void tilesetChanged(CC2ETileset*);
+    void foregroundChanged(const cc2::Tile*);
+    void backgroundChanged(const cc2::Tile*);
+
 protected:
     void resizeEvent(QResizeEvent*) override;
 
@@ -65,6 +70,9 @@ private Q_SLOTS:
     void onDockChanged(Qt::DockWidgetArea);
     void onCloseTab(int);
     void onTabChanged(int);
+
+    void setForeground(const cc2::Tile*);
+    void setBackground(const cc2::Tile*);
 
 private:
     enum ActionType {
@@ -104,6 +112,8 @@ private:
     QCheckBox* m_readOnly;
     QPlainTextEdit* m_clue;
     QPlainTextEdit* m_note;
+
+    cc2::Tile m_foreground, m_background;
 
     QTabWidget* m_editorTabs;
 

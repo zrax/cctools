@@ -37,6 +37,7 @@ CC2ScriptEditor::CC2ScriptEditor(QWidget* parent)
 {
     setTabWidth(4);
     setHighlightCurrentLine(true);
+    setShowLineNumbers(true);
 
     setTheme((palette().color(QPalette::Base).lightness() < 128)
              ? SyntaxRepo()->defaultTheme(KSyntaxHighlighting::Repository::DarkTheme)

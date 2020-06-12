@@ -93,7 +93,7 @@ class CC2ETileset : public QObject {
     Q_OBJECT
 
 public:
-    CC2ETileset(QObject* parent = 0)
+    CC2ETileset(QObject* parent = nullptr)
         : QObject(parent), m_size()
     { }
 
@@ -112,9 +112,9 @@ public:
         drawAt(painter, x * m_size, y * m_size, tile);
     }
 
-    QIcon getIcon(cc2::Tile* tile) const;
+    QIcon getIcon(const cc2::Tile* tile) const;
 
-    static QString getName(cc2::Tile* tile);
+    static QString getName(const cc2::Tile* tile);
 
 private:
     QString m_name, m_filename;

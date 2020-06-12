@@ -208,11 +208,32 @@ public:
         Canopy = 0x10,
     };
 
-    explicit Tile(int type = Floor)
+    explicit Tile(int type = Floor, uint32_t modifier = 0)
         : m_type(type), m_direction(), m_arrowMask(), m_panelFlags(),
-          m_modifier(), m_lower()
+          m_modifier(modifier), m_lower()
     {
         checkLower();
+    }
+
+    Tile(int type, Direction dir, uint32_t modifier)
+        : m_type(type), m_direction(dir), m_arrowMask(), m_panelFlags(),
+          m_modifier(modifier), m_lower()
+    {
+        checkLower();
+    }
+
+    static Tile panelTile(uint8_t panelFlags)
+    {
+        Tile panel(PanelCanopy);
+        panel.setPanelFlags(panelFlags);
+        return panel;
+    }
+
+    static Tile dirBlockTile(uint8_t arrowMask)
+    {
+        Tile panel(DirBlock);
+        panel.setArrowMask(arrowMask);
+        return panel;
     }
 
     ~Tile() { delete m_lower; }

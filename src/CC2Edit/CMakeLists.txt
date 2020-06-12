@@ -20,12 +20,14 @@ set(CC2Edit_HEADERS
     CC2Edit.h
     EditorWidget.h
     ScriptEditor.h
+    TileWidgets.h
 )
 
 set(CC2Edit_SOURCES
     CC2Edit.cpp
     EditorWidget.cpp
     ScriptEditor.cpp
+    TileWidgets.cpp
 )
 
 if(WIN32)

@@ -215,7 +215,7 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile)
             painter.drawPixmap(x, y, m_gfx[cc2::G_DirtBlock_Xray]);
         else
             painter.drawPixmap(x, y, m_gfx[cc2::G_DirtBlock]);
-        drawArrow(painter, x, y, tile->direction());
+        //drawArrow(painter, x, y, tile->direction());
         break;
     case cc2::Tile::Walker:
         painter.drawPixmap(x, y, m_gfx[cc2::G_Walker]);
@@ -246,7 +246,7 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile)
             painter.drawPixmap(x, y, m_gfx[cc2::G_IceBlock_Xray]);
         else
             painter.drawPixmap(x, y, m_gfx[cc2::G_IceBlock]);
-        drawArrow(painter, x, y, tile->direction());
+        //drawArrow(painter, x, y, tile->direction());
         break;
     case cc2::Tile::UNUSED_Barrier_S:
         painter.drawPixmap(x, y, m_gfx[cc2::G_Panel_S]);
@@ -1114,7 +1114,16 @@ void CC2ETileset::drawWires(QPainter& painter, int x, int y, uint32_t wireMask,
                            0, mid - 1, mid + 1, 2);
 }
 
-QString CC2ETileset::getName(cc2::Tile* tile)
+QIcon CC2ETileset::getIcon(const cc2::Tile* tile) const
+{
+    QPixmap ico(m_size, m_size);
+    QPainter painter(&ico);
+    draw(painter, 0, 0, tile);
+    painter.end();
+    return QIcon(ico);
+}
+
+QString CC2ETileset::getName(const cc2::Tile* tile)
 {
     QString name;
 
@@ -1183,7 +1192,7 @@ QString CC2ETileset::getName(cc2::Tile* tile)
         name = tr("Slime");
         break;
     case cc2::Tile::Player:
-        name = tr("Player - Chip");
+        name = tr("Chip");
         break;
     case cc2::Tile::DirtBlock:
         name = tr("Dirt Block");
@@ -1316,6 +1325,19 @@ QString CC2ETileset::getName(cc2::Tile* tile)
         break;
     case cc2::Tile::Cloner:
         name = tr("Cloning Machine");
+        {
+            QStringList directions;
+            if (tile->modifier() & cc2::TileModifier::CloneNorth)
+                directions << "North";
+            if (tile->modifier() & cc2::TileModifier::CloneSouth)
+                directions << "South";
+            if (tile->modifier() & cc2::TileModifier::CloneEast)
+                directions << "East";
+            if (tile->modifier() & cc2::TileModifier::CloneWest)
+                directions << "West";
+            if (!directions.isEmpty())
+                name += QStringLiteral(" - ") + directions.join(QLatin1Char('/'));
+        }
         break;
     case cc2::Tile::Clue:
         name = tr("Clue");
@@ -1349,7 +1371,26 @@ QString CC2ETileset::getName(cc2::Tile* tile)
         break;
     case cc2::Tile::TrainTracks:
         name = tr("Train Track");
-        // TODO: List direction and active tracks
+        {
+            QStringList directions;
+            if (tile->modifier() & cc2::TileModifier::Track_NE)
+                directions << "NE";
+            if (tile->modifier() & cc2::TileModifier::Track_SE)
+                directions << "SE";
+            if (tile->modifier() & cc2::TileModifier::Track_SW)
+                directions << "SW";
+            if (tile->modifier() & cc2::TileModifier::Track_NW)
+                directions << "NW";
+            if (tile->modifier() & cc2::TileModifier::Track_NS)
+                directions << "NS";
+            if (tile->modifier() & cc2::TileModifier::Track_WE)
+                directions << "EW";
+            if (tile->modifier() & cc2::TileModifier::TrackSwitch)
+                directions << "Switch";
+            if (!directions.isEmpty())
+                name += QStringLiteral(" - ") + directions.join(QLatin1Char('/'));
+        }
+        // TODO: List active direction
         break;
     case cc2::Tile::SteelWall:
         name = tr("Steel Wall");
@@ -1361,7 +1402,7 @@ QString CC2ETileset::getName(cc2::Tile* tile)
         name = tr("Helmet");
         break;
     case cc2::Tile::Player2:
-        name = tr("Player - Melinda");
+        name = tr("Melinda");
         break;
     case cc2::Tile::TimidTeeth:
         name = tr("Timid Teeth");
@@ -1518,10 +1559,10 @@ QString CC2ETileset::getName(cc2::Tile* tile)
         name = tr("Yellow Tank Control");
         break;
     case cc2::Tile::MirrorPlayer:
-        name = tr("Mirror Player - Chip");
+        name = tr("Mirror Chip");
         break;
     case cc2::Tile::MirrorPlayer2:
-        name = tr("Mirror Player - Melinda");
+        name = tr("Mirror Melinda");
         break;
     case cc2::Tile::BowlingBall:
         name = tr("Bowling Ball");
@@ -1604,17 +1645,19 @@ QString CC2ETileset::getName(cc2::Tile* tile)
             name = tr("Glyph - Down");
         else if (tile->modifier() == cc2::TileModifier::GlyphLeft)
             name = tr("Glyph - Left");
+        else if (tile->modifier() == ' ')
+            name = tr("Glyph - Space");
         else if (tile->modifier() >= cc2::TileModifier::GlyphASCII_MIN
                  && tile->modifier() <= cc2::TileModifier::GlyphASCII_MAX)
-            name = tr("Glyph - '%1'").arg(QLatin1Char(tile->modifier()));
+            name = tr("Glyph - %1").arg(QLatin1Char(tile->modifier()));
         else
             name = tr("Glyph - Invalid (%1)").arg(tile->modifier(), 0, 16);
         break;
     case cc2::Tile::LSwitchFloor:
-        name = tr("Switch Door - Open");
+        name = tr("Logic Door - Open");
         break;
     case cc2::Tile::LSwitchWall:
-        name = tr("Switch Door - Closed");
+        name = tr("Logic Door - Closed");
         break;
     case cc2::Tile::Flag10:
         name = tr("10 Point Flag");
@@ -1639,6 +1682,19 @@ QString CC2ETileset::getName(cc2::Tile* tile)
         break;
     case cc2::Tile::DirBlock:
         name = tr("Directional Block");
+        {
+            QStringList arrows;
+            if (tile->arrowMask() & cc2::Tile::ArrowNorth)
+                arrows << "North";
+            if (tile->arrowMask() & cc2::Tile::ArrowSouth)
+                arrows << "South";
+            if (tile->arrowMask() & cc2::Tile::ArrowEast)
+                arrows << "East";
+            if (tile->arrowMask() & cc2::Tile::ArrowWest)
+                arrows << "West";
+            if (!arrows.isEmpty())
+                name += QStringLiteral(" - ") + arrows.join(QLatin1Char('/'));
+        }
         break;
     case cc2::Tile::FloorMimic:
         name = tr("Floor Mimic");
@@ -1687,7 +1743,9 @@ QString CC2ETileset::getName(cc2::Tile* tile)
         break;
     }
 
-    if (tile->haveDirection()) {
+    if (tile->haveDirection() && tile->type() != cc2::Tile::DirtBlock
+            && tile->type() != cc2::Tile::IceBlock
+            && tile->type() != cc2::Tile::DirBlock) {
         switch (tile->direction()) {
         case cc2::Tile::North:
             name += tr(" - North");
