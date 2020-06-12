@@ -217,29 +217,33 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     lblAIcon->setPixmap(QPixmap(":/icons/chip-48.png"));
     lblAIcon->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
 
-    QLabel* lblLicense = new QLabel(tabAbout);
-    lblLicense->setText(tr("\
-CCTools is free software: you can redistribute it and/or modify\n\
-it under the terms of the GNU General Public License as published by\n\
-the Free Software Foundation, either version 3 of the License, or\n\
-(at your option) any later version.\n\
-\n\
-This program is distributed in the hope that it will be useful,\n\
-but WITHOUT ANY WARRANTY; without even the implied warranty of\n\
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n\
-GNU General Public License for more details.\n\
-\n\
-You should have received a copy of the GNU General Public License\n\
-along with this program.  If not, see <http://www.gnu.org/licenses/>."));
+    auto lblLicense = new QLabel(this);
+    lblLicense->setTextFormat(Qt::RichText);
+    lblLicense->setOpenExternalLinks(true);
+    lblLicense->setWordWrap(true);
+    lblLicense->setText(tr(
+        "CCTools is free software: you can redistribute it and/or modify "
+        "it under the terms of the GNU General Public License as published by "
+        "the Free Software Foundation, either version 3 of the License, or "
+        "(at your option) any later version.<br />"
+        "<br />"
+        "This program is distributed in the hope that it will be useful, "
+        "but WITHOUT ANY WARRANTY; without even the implied warranty of "
+        "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the "
+        "GNU General Public License for more details.<br />"
+        "<br />"
+        "You should have received a copy of the GNU General Public License "
+        "along with this program.  If not, see "
+        "&lt;<a href=\"http://www.gnu.org/licenses/\">http://www.gnu.org/licenses/</a>&gt;."));
 
     QGridLayout* layAbout = new QGridLayout(tabAbout);
     layAbout->setContentsMargins(8, 8, 8, 8);
     layAbout->setVerticalSpacing(8);
     layAbout->setHorizontalSpacing(8);
     layAbout->addWidget(lblAIcon, 0, 0, 3, 1);
-    layAbout->addWidget(new QLabel("CCPlay 2.1.0", tabAbout), 0, 1);
+    layAbout->addWidget(new QLabel("CCPlay 2.0.95", tabAbout), 0, 1);
     layAbout->addWidget(new QLabel("Part of CCTools 2.1", tabAbout), 1, 1);
-    layAbout->addWidget(new QLabel(tr("Copyright (C) 2010  Michael Hansen"), tabAbout), 2, 1);
+    layAbout->addWidget(new QLabel(tr("Copyright (C) 2020  Michael Hansen"), tabAbout), 2, 1);
     layAbout->addWidget(lblLicense, 4, 0, 1, 2);
     dlgTabs->addTab(tabAbout, tr("&About CCPlay"));
 

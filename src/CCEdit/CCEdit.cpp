@@ -623,7 +623,11 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionTestTWorldCC], SIGNAL(triggered()), SLOT(onTestTWorldCC()));
     connect(m_actions[ActionTestTWorldLynx], SIGNAL(triggered()), SLOT(onTestTWorldLynx()));
     connect(m_actions[ActionTestSetup], SIGNAL(triggered()), SLOT(onTestSetup()));
-    connect(m_actions[ActionAbout], SIGNAL(triggered()), SLOT(onAboutAction()));
+
+    connect(m_actions[ActionAbout], &QAction::triggered, this, [this] {
+        AboutDialog about(this);
+        about.exec();
+    });
 
     connect(m_actions[ActionAddLevel], SIGNAL(triggered()), SLOT(onAddLevelAction()));
     connect(m_actions[ActionDelLevel], SIGNAL(triggered()), SLOT(onDelLevelAction()));
@@ -1914,12 +1918,6 @@ void CCEditMain::onTestSetup()
 {
     TestSetupDialog dlg;
     dlg.exec();
-}
-
-void CCEditMain::onAboutAction()
-{
-    AboutDialog about;
-    about.exec();
 }
 
 void CCEditMain::onAddLevelAction()

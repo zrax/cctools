@@ -18,6 +18,7 @@
 #include "CC2Edit.h"
 #include "EditorWidget.h"
 #include "TileWidgets.h"
+#include "About.h"
 
 #include <QApplication>
 #include <QSettings>
@@ -670,6 +671,11 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     connect(m_actions[ActionZoom125], &QAction::triggered, this, [this] { setZoomFactor(0.125); });
     connect(m_actions[ActionZoomCust], &QAction::triggered, this, &CC2EditMain::onZoomCust);
     connect(m_actions[ActionZoomFit], &QAction::triggered, this, &CC2EditMain::onZoomFit);
+
+    connect(m_actions[ActionAbout], &QAction::triggered, this, [this] {
+        AboutDialog about(this);
+        about.exec();
+    });
 
     connect(toolDock, &QDockWidget::dockLocationChanged, this, &CC2EditMain::onDockChanged);
 

@@ -116,7 +116,10 @@ CCHackMain::CCHackMain(QWidget* parent)
 
     connect(pager, SIGNAL(currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)),
             SLOT(onChangePage(QTreeWidgetItem*,QTreeWidgetItem*)));
-    connect(acAbout, SIGNAL(triggered()), SLOT(onAbout()));
+    connect(acAbout, &QAction::triggered, this, [this] {
+        AboutDialog about(this);
+        about.exec();
+    });
 
     m_defaults.setKnownDefaults();
     m_settings.clearAll();
@@ -154,12 +157,6 @@ void CCHackMain::onChangePage(QTreeWidgetItem* page, QTreeWidgetItem*)
         m_page->setDefaults(&m_defaults);
         m_page->setValues(&m_settings);
     }
-}
-
-void CCHackMain::onAbout()
-{
-    AboutDialog about;
-    about.exec();
 }
 
 
