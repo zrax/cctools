@@ -1325,7 +1325,9 @@ QString CC2ETileset::getName(const cc2::Tile* tile)
         break;
     case cc2::Tile::Cloner:
         name = tr("Cloning Machine");
-        {
+        if (tile->modifier() == cc2::TileModifier::CloneAllDirs) {
+            name += tr(" - Any");
+        } else {
             QStringList directions;
             if (tile->modifier() & cc2::TileModifier::CloneNorth)
                 directions << "North";
@@ -1682,7 +1684,9 @@ QString CC2ETileset::getName(const cc2::Tile* tile)
         break;
     case cc2::Tile::DirBlock:
         name = tr("Directional Block");
-        {
+        if (tile->arrowMask() == cc2::Tile::AllArrows) {
+            name += tr(" - Any");
+        } else {
             QStringList arrows;
             if (tile->arrowMask() & cc2::Tile::ArrowNorth)
                 arrows << "North";

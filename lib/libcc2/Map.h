@@ -102,6 +102,7 @@ public:
         CloneEast = 0x2,
         CloneSouth = 0x4,
         CloneWest = 0x8,
+        CloneAllDirs = 0xf,
     };
 
     enum ColorTheme {
@@ -198,6 +199,7 @@ public:
         ArrowEast = 0x2,
         ArrowSouth = 0x4,
         ArrowWest = 0x8,
+        AllArrows = 0xf,
     };
 
     enum PanelFlags {
