@@ -287,6 +287,24 @@ bool cc2::Tile::haveDirection() const
     }
 }
 
+bool cc2::Tile::supportsWires() const
+{
+    switch (m_type) {
+    case Floor:
+    case Teleport_Red:
+    case Teleport_Blue:
+    case Transformer:
+    case SteelWall:
+    case LogicButton:
+    case RevLogicButton:
+    case Switch_Off:
+    case Switch_On:
+        return true;
+    default:
+        return false;
+    }
+}
+
 cc2::Tile* cc2::Tile::checkLower()
 {
     if (!haveLower())

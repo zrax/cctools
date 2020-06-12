@@ -46,7 +46,7 @@ enum GraphicIndex {
     G_Ball, G_Blob, G_AngryTeeth_S, G_AngryTeeth_E, G_AngryTeeth_W,
     G_FireBox, G_CloneButton, G_TrapButton, G_IceCleats, G_MagnoShoes,
     G_FireShoes, G_Flippers, G_ToolThief, G_RedBomb, G_Trap, G_Cloner,
-    G_ClonerArrows, G_DirTileArrows, G_Clue, G_Force_Rand, G_AreaCtlButton,
+    G_ClonerArrows, G_WireTunnels, G_Clue, G_Force_Rand, G_AreaCtlButton,
     G_RevolvDoor_SW, G_RevolvDoor_NW, G_RevolvDoor_NE, G_RevolvDoor_SE,
     G_TimeBonus, G_ToggleClock, G_Transformer, G_Track_Switch,
     G_Track_NE, G_Track_SE, G_Track_SW, G_Track_NW, G_Track_WE, G_Track_NS,
@@ -126,6 +126,8 @@ private:
     void drawArrow(QPainter& painter, int x, int y, cc2::Tile::Direction direction) const;
     void drawGlyph(QPainter& painter, int x, int y, uint32_t glyph) const;
     void drawTracks(QPainter& painter, int x, int y, uint32_t tracks) const;
+    void drawWires(QPainter& painter, int x, int y, uint32_t wireMask,
+                   cc2::GraphicIndex base) const;
 };
 
 #endif

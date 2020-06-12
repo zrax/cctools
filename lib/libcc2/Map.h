@@ -88,6 +88,7 @@ public:
         WireEast = 0x2,
         WireSouth = 0x4,
         WireWest = 0x8,
+        Wire4Way = 0xf,
         WireTunnelNorth = 0x10,
         WireTunnelEast = 0x20,
         WireTunnelSouth = 0x40,
@@ -224,8 +225,6 @@ public:
     uint8_t arrowMask() const { return m_arrowMask; }
     uint8_t panelFlags() const { return m_panelFlags; }
 
-    bool needXray() const { return m_type > Floor; }
-
     void set(int type, Direction dir = (Direction)0)
     {
         m_type = type;
@@ -247,6 +246,12 @@ public:
 
     bool haveLower() const;
     bool haveDirection() const;
+    bool supportsWires() const;
+
+    bool needXray() const
+    {
+        return (m_type > Floor) || (m_type == Floor && m_modifier != 0);
+    }
 
 private:
     uint8_t m_type;
