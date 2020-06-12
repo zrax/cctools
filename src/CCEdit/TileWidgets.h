@@ -25,8 +25,11 @@ class TileListWidget : public QListWidget {
     Q_OBJECT
 
 public:
-    TileListWidget(QWidget* parent = 0) : QListWidget(parent) { }
+    TileListWidget(QWidget* parent = nullptr) : QListWidget(parent) { }
     void addTiles(const QList<tile_t>& tiles);
+
+public slots:
+    void setTileImages(CCETileset* tileset);
 
 protected:
     virtual void mousePressEvent(QMouseEvent*);

@@ -44,6 +44,8 @@
 #include <ctime>
 #include "LevelsetProps.h"
 #include "Organizer.h"
+#include "TileWidgets.h"
+#include "LayerWidget.h"
 #include "AdvancedMechanics.h"
 #include "TestSetup.h"
 #include "ErrorCheck.h"
@@ -53,6 +55,11 @@
 #include "libcc1/GameLogic.h"
 
 #define CCEDIT_TITLE "CCEdit 2.1"
+
+enum TileListId {
+    ListStandard, ListObstacles, ListDoors, ListItems, ListMonsters,
+    ListMisc, ListSpecial, NUM_TILE_LISTS
+};
 
 Q_DECLARE_METATYPE(CCETileset*)
 
@@ -332,38 +339,39 @@ CCEditMain::CCEditMain(QWidget* parent)
 
     QWidget* tileWidget = new QWidget(toolDock);
     QToolBox* tileBox = new QToolBox(tileWidget);
-    m_tileLists[ListStandard] = new TileListWidget(tileBox);
-    m_tileLists[ListStandard]->addTiles(QList<tile_t>()
+    TileListWidget *tileLists[NUM_TILE_LISTS];
+    tileLists[ListStandard] = new TileListWidget(tileBox);
+    tileLists[ListStandard]->addTiles(QList<tile_t>()
         << ccl::TileFloor << ccl::TileWall << ccl::TileChip << ccl::TileSocket
         << ccl::TileExit << ccl::TileHint << ccl::TileBarrier_N
         << ccl::TileBarrier_W << ccl::TileBarrier_S << ccl::TileBarrier_E
         << ccl::TileBarrier_SE << ccl::TileBlock << ccl::TileDirt
         << ccl::TileGravel << ccl::TilePlayer_N << ccl::TilePlayer_W
         << ccl::TilePlayer_S << ccl::TilePlayer_E);
-    tileBox->addItem(m_tileLists[ListStandard], tr("Standard"));
-    m_tileLists[ListObstacles] = new TileListWidget(tileBox);
-    m_tileLists[ListObstacles]->addTiles(QList<tile_t>()
+    tileBox->addItem(tileLists[ListStandard], tr("Standard"));
+    tileLists[ListObstacles] = new TileListWidget(tileBox);
+    tileLists[ListObstacles]->addTiles(QList<tile_t>()
         << ccl::TileWater << ccl::TileFire << ccl::TileBomb << ccl::TileForce_N
         << ccl::TileForce_W << ccl::TileForce_S << ccl::TileForce_E
         << ccl::TileForce_Rand << ccl::TileIce << ccl::TileIce_NW
         << ccl::TileIce_NE << ccl::TileIce_SE << ccl::TileIce_SW
         << ccl::TileTrap << ccl::TileTrapButton << ccl::TilePopUpWall
         << ccl::TileAppearingWall << ccl::TileInvisWall);
-    tileBox->addItem(m_tileLists[ListObstacles], tr("Obstacles"));
-    m_tileLists[ListDoors] = new TileListWidget(tileBox);
-    m_tileLists[ListDoors]->addTiles(QList<tile_t>()
+    tileBox->addItem(tileLists[ListObstacles], tr("Obstacles"));
+    tileLists[ListDoors] = new TileListWidget(tileBox);
+    tileLists[ListDoors]->addTiles(QList<tile_t>()
         << ccl::TileDoor_Blue << ccl::TileDoor_Red << ccl::TileDoor_Green
         << ccl::TileDoor_Yellow << ccl::TileToggleFloor << ccl::TileToggleWall
         << ccl::TileToggleButton);
-    tileBox->addItem(m_tileLists[ListDoors], tr("Doors"));
-    m_tileLists[ListItems] = new TileListWidget(tileBox);
-    m_tileLists[ListItems]->addTiles(QList<tile_t>()
+    tileBox->addItem(tileLists[ListDoors], tr("Doors"));
+    tileLists[ListItems] = new TileListWidget(tileBox);
+    tileLists[ListItems]->addTiles(QList<tile_t>()
         << ccl::TileKey_Blue << ccl::TileKey_Red << ccl::TileKey_Green
         << ccl::TileKey_Yellow << ccl::TileFlippers << ccl::TileFireBoots
         << ccl::TileIceSkates << ccl::TileForceBoots);
-    tileBox->addItem(m_tileLists[ListItems], tr("Items"));
-    m_tileLists[ListMonsters] = new TileListWidget(tileBox);
-    m_tileLists[ListMonsters]->addTiles(QList<tile_t>()
+    tileBox->addItem(tileLists[ListItems], tr("Items"));
+    tileLists[ListMonsters] = new TileListWidget(tileBox);
+    tileLists[ListMonsters]->addTiles(QList<tile_t>()
         << ccl::TileBug_N << ccl::TileBug_W << ccl::TileBug_S << ccl::TileBug_E
         << ccl::TileFireball_N << ccl::TileFireball_W << ccl::TileFireball_S
         << ccl::TileFireball_E << ccl::TileBall_N << ccl::TileBall_W
@@ -376,53 +384,95 @@ CCEditMain::CCEditMain(QWidget* parent)
         << ccl::TileWalker_E << ccl::TileBlob_N << ccl::TileBlob_W
         << ccl::TileBlob_S << ccl::TileBlob_E << ccl::TileCrawler_N
         << ccl::TileCrawler_W << ccl::TileCrawler_S << ccl::TileCrawler_E);
-    tileBox->addItem(m_tileLists[ListMonsters], tr("Monsters"));
-    m_tileLists[ListMisc] = new TileListWidget(tileBox);
-    m_tileLists[ListMisc]->addTiles(QList<tile_t>()
+    tileBox->addItem(tileLists[ListMonsters], tr("Monsters"));
+    tileLists[ListMisc] = new TileListWidget(tileBox);
+    tileLists[ListMisc]->addTiles(QList<tile_t>()
         << ccl::TileThief << ccl::TileBlueWall << ccl::TileBlueFloor
         << ccl::TileTeleport << ccl::TileCloner << ccl::TileCloneButton
         << ccl::TileBlock_N << ccl::TileBlock_W << ccl::TileBlock_S
         << ccl::TileBlock_E);
-    tileBox->addItem(m_tileLists[ListMisc], tr("Miscellaneous"));
-    m_tileLists[ListSpecial] = new TileListWidget(tileBox);
-    m_tileLists[ListSpecial]->addTiles(QList<tile_t>()
+    tileBox->addItem(tileLists[ListMisc], tr("Miscellaneous"));
+    tileLists[ListSpecial] = new TileListWidget(tileBox);
+    tileLists[ListSpecial]->addTiles(QList<tile_t>()
         << ccl::TileIceBlock << ccl::TilePlayerSplash << ccl::TilePlayerFire
         << ccl::TilePlayerBurnt << ccl::TilePlayerExit << ccl::TileExitAnim2
         << ccl::TileExitAnim3 << ccl::TilePlayerSwim_N << ccl::TilePlayerSwim_W
         << ccl::TilePlayerSwim_S << ccl::TilePlayerSwim_E << ccl::Tile_UNUSED_20
         << ccl::Tile_UNUSED_36 << ccl::Tile_UNUSED_37);
-    tileBox->addItem(m_tileLists[ListSpecial], tr("Special (Advanced)"));
+    tileBox->addItem(tileLists[ListSpecial], tr("Special (Advanced)"));
 
-    m_layer[0] = new LayerWidget(tileWidget);
-    m_foreLabel[0] = new QLabel(tileWidget);
-    m_backLabel[0] = new QLabel(tileWidget);
+    for (auto listWidget : tileLists) {
+        connect(this, &CCEditMain::tilesetChanged, listWidget, &TileListWidget::setTileImages);
+        connect(listWidget, &TileListWidget::itemSelectedLeft, this, &CCEditMain::setForeground);
+        connect(listWidget, &TileListWidget::itemSelectedRight, this, &CCEditMain::setBackground);
+    }
+
+    auto layerWidget = new LayerWidget(tileWidget);
+    auto foreLabel = new QLabel(tr("Foreground: "), tileWidget);
+    auto backLabel = new QLabel(tr("Background: "), tileWidget);
+    auto foreTileLabel = new QLabel(tileWidget);
+    auto backTileLabel = new QLabel(tileWidget);
+    foreTileLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+    backTileLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+    connect(this, &CCEditMain::tilesetChanged, layerWidget, &LayerWidget::setTileset);
+    connect(this, &CCEditMain::foregroundChanged, layerWidget, &LayerWidget::setUpper);
+    connect(this, &CCEditMain::backgroundChanged, layerWidget, &LayerWidget::setLower);
+    connect(this, &CCEditMain::foregroundChanged, this, [foreTileLabel](tile_t tile) {
+        foreTileLabel->setText(CCETileset::TileName(tile));
+    });
+    connect(this, &CCEditMain::backgroundChanged, this, [backTileLabel](tile_t tile) {
+        backTileLabel->setText(CCETileset::TileName(tile));
+    });
 
     QGridLayout* tileLayout = new QGridLayout(tileWidget);
     tileLayout->setContentsMargins(4, 4, 4, 4);
     tileLayout->setVerticalSpacing(4);
-    tileLayout->addWidget(tileBox, 0, 0, 1, 2);
-    tileLayout->addWidget(m_foreLabel[0], 1, 0);
-    tileLayout->addWidget(m_backLabel[0], 2, 0);
-    tileLayout->addWidget(m_layer[0], 1, 1, 2, 1);
+    tileLayout->addWidget(tileBox, 0, 0, 1, 3);
+    tileLayout->addWidget(foreLabel, 1, 0);
+    tileLayout->addWidget(foreTileLabel, 1, 1);
+    tileLayout->addWidget(backLabel, 2, 0);
+    tileLayout->addWidget(backTileLabel, 2, 1);
+    tileLayout->addWidget(layerWidget, 1, 2, 2, 1);
     m_toolTabs->addTab(tileWidget, tr("&Tiles - Sorted"));
 
-    QWidget* allTileWidget = new QWidget(toolDock);
-    QScrollArea* allTileScroll = new QScrollArea(allTileWidget);
-    m_allTiles = new BigTileWiget(allTileScroll);
-    m_layer[1] = new LayerWidget(allTileWidget);
-    m_foreLabel[1] = new QLabel(allTileWidget);
-    m_backLabel[1] = new QLabel(allTileWidget);
+    auto allTileWidget = new QWidget(toolDock);
+    auto allTileScroll = new QScrollArea(allTileWidget);
+    auto allTiles = new BigTileWiget(allTileScroll);
     allTileScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     allTileScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    allTileScroll->setWidget(m_allTiles);
+    allTileScroll->setWidget(allTiles);
+
+    layerWidget = new LayerWidget(allTileWidget);
+    foreLabel = new QLabel(tr("Foreground: "), allTileWidget);
+    backLabel = new QLabel(tr("Background: "), allTileWidget);
+    foreTileLabel = new QLabel(allTileWidget);
+    backTileLabel = new QLabel(allTileWidget);
+    foreTileLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+    backTileLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+    connect(this, &CCEditMain::tilesetChanged, allTiles, &BigTileWiget::setTileset);
+    connect(allTiles, &BigTileWiget::itemSelectedLeft, this, &CCEditMain::setForeground);
+    connect(allTiles, &BigTileWiget::itemSelectedRight, this, &CCEditMain::setBackground);
+    connect(this, &CCEditMain::tilesetChanged, layerWidget, &LayerWidget::setTileset);
+    connect(this, &CCEditMain::foregroundChanged, layerWidget, &LayerWidget::setUpper);
+    connect(this, &CCEditMain::backgroundChanged, layerWidget, &LayerWidget::setLower);
+    connect(this, &CCEditMain::foregroundChanged, this, [foreTileLabel](tile_t tile) {
+        foreTileLabel->setText(CCETileset::TileName(tile));
+    });
+    connect(this, &CCEditMain::backgroundChanged, this, [backTileLabel](tile_t tile) {
+        backTileLabel->setText(CCETileset::TileName(tile));
+    });
 
     QGridLayout* allTileLayout = new QGridLayout(allTileWidget);
     allTileLayout->setContentsMargins(4, 4, 4, 4);
     allTileLayout->setVerticalSpacing(4);
-    allTileLayout->addWidget(allTileScroll, 0, 0, 1, 2);
-    allTileLayout->addWidget(m_foreLabel[1], 1, 0);
-    allTileLayout->addWidget(m_backLabel[1], 2, 0);
-    allTileLayout->addWidget(m_layer[1], 1, 1, 2, 1);
+    allTileLayout->addWidget(allTileScroll, 0, 0, 1, 3);
+    allTileLayout->addWidget(foreLabel, 1, 0);
+    allTileLayout->addWidget(foreTileLabel, 1, 1);
+    allTileLayout->addWidget(backLabel, 2, 0);
+    allTileLayout->addWidget(backTileLabel, 2, 1);
+    allTileLayout->addWidget(layerWidget, 1, 2, 2, 1);
     m_toolTabs->addTab(allTileWidget, tr("&All Tiles"));
 
     // Editor area
@@ -596,13 +646,6 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_editorTabs, SIGNAL(tabCloseRequested(int)), SLOT(onCloseTab(int)));
     connect(m_editorTabs, SIGNAL(currentChanged(int)), SLOT(onTabChanged(int)));
     connect(newTabButton, SIGNAL(clicked()), SLOT(onNewTab()));
-
-    for (int i=0; i<NUM_TILE_LISTS; ++i) {
-        connect(m_tileLists[i], SIGNAL(itemSelectedLeft(tile_t)), SLOT(setForeground(tile_t)));
-        connect(m_tileLists[i], SIGNAL(itemSelectedRight(tile_t)), SLOT(setBackground(tile_t)));
-    }
-    connect(m_allTiles, SIGNAL(itemSelectedLeft(tile_t)), SLOT(setForeground(tile_t)));
-    connect(m_allTiles, SIGNAL(itemSelectedRight(tile_t)), SLOT(setBackground(tile_t)));
 
     // Load window settings and defaults
     QSettings settings("CCTools", "CCEdit");
@@ -963,24 +1006,11 @@ bool CCEditMain::closeLevelset()
     return true;
 }
 
-static void loadImageTiles(CCETileset* tileset, QListWidget* list)
-{
-    list->setIconSize(tileset->qsize());
-    for (int i=0; i<list->count(); ++i)
-        list->item(i)->setIcon(tileset->getIcon(list->item(i)->data(Qt::UserRole).toInt()));
-}
-
 void CCEditMain::loadTileset(CCETileset* tileset)
 {
     m_currentTileset = tileset;
-    m_layer[0]->setTileset(tileset);
-    m_layer[1]->setTileset(tileset);
-    for (int i=0; i<NUM_TILE_LISTS; ++i)
-        loadImageTiles(tileset, m_tileLists[i]);
-    m_allTiles->setTileset(tileset);
-    for (int i=0; i<m_editorTabs->count(); ++i)
-        getEditorAt(i)->setTileset(tileset);
-    resizeEvent(0);
+    emit tilesetChanged(tileset);
+    resizeEvent(nullptr);
 }
 
 void CCEditMain::registerTileset(QString filename)
@@ -1079,12 +1109,12 @@ EditorWidget* CCEditMain::addEditor(ccl::LevelData* level)
     editor->setDrawMode(m_currentDrawMode);
     editor->setTileset(m_currentTileset);
     editor->setLevelData(level);
-    editor->setLeftTile(m_layer[0]->upper());
-    editor->setRightTile(m_layer[0]->lower());
+    editor->setLeftTile(m_foreground);
+    editor->setRightTile(m_background);
     if (m_zoomFactor != 0.0)
         editor->setZoom(m_zoomFactor);
     m_editorTabs->addTab(scroll, level->name().c_str());
-    resizeEvent(0);
+    resizeEvent(nullptr);
 
     connect(editor, SIGNAL(mouseInfo(QString)), statusBar(), SLOT(showMessage(QString)));
     connect(editor, SIGNAL(canUndo(bool)), m_actions[ActionUndo], SLOT(setEnabled(bool)));
@@ -1093,6 +1123,10 @@ EditorWidget* CCEditMain::addEditor(ccl::LevelData* level)
     connect(editor, SIGNAL(hasSelection(bool)), m_actions[ActionCopy], SLOT(setEnabled(bool)));
     connect(editor, SIGNAL(hasSelection(bool)), m_actions[ActionClear], SLOT(setEnabled(bool)));
     connect(editor, SIGNAL(makeDirty()), SLOT(onMakeDirty()));
+    connect(this, &CCEditMain::tilesetChanged, editor, &EditorWidget::setTileset);
+    connect(this, &CCEditMain::foregroundChanged, editor, &EditorWidget::setLeftTile);
+    connect(this, &CCEditMain::backgroundChanged, editor, &EditorWidget::setRightTile);
+
     return editor;
 }
 
@@ -2150,22 +2184,14 @@ void CCEditMain::onHintChanged(QString value)
 
 void CCEditMain::setForeground(tile_t tile)
 {
-    m_layer[0]->setUpper(tile);
-    m_layer[1]->setUpper(tile);
-    m_foreLabel[0]->setText(tr("Foreground: ") + CCETileset::TileName(tile));
-    m_foreLabel[1]->setText(m_foreLabel[0]->text());
-    for (int i=0; i<m_editorTabs->count(); ++i)
-        getEditorAt(i)->setLeftTile(tile);
+    m_foreground = tile;
+    emit foregroundChanged(tile);
 }
 
 void CCEditMain::setBackground(tile_t tile)
 {
-    m_layer[0]->setLower(tile);
-    m_layer[1]->setLower(tile);
-    m_backLabel[0]->setText(tr("Background: ") + CCETileset::TileName(tile));
-    m_backLabel[1]->setText(m_backLabel[0]->text());
-    for (int i=0; i<m_editorTabs->count(); ++i)
-        getEditorAt(i)->setRightTile(tile);
+    m_background = tile;
+    emit backgroundChanged(tile);
 }
 
 void CCEditMain::onClipboardDataChanged()

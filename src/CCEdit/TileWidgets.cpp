@@ -29,6 +29,13 @@ void TileListWidget::addTiles(const QList<tile_t>& tiles)
     }
 }
 
+void TileListWidget::setTileImages(CCETileset* tileset)
+{
+    setIconSize(tileset->qsize());
+    for (int i = 0; i < count(); ++i)
+        item(i)->setIcon(tileset->getIcon(item(i)->data(Qt::UserRole).toInt()));
+}
+
 void TileListWidget::mousePressEvent(QMouseEvent* event)
 {
     QAbstractItemView::mousePressEvent(event);

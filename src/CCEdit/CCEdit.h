@@ -21,14 +21,13 @@
 #include <QMainWindow>
 #include <QAction>
 #include <QMenu>
+#include <QListWidget>
 #include <QLineEdit>
 #include <QSpinBox>
 #include <QTabWidget>
 #include <QLabel>
 #include <QProcess>
 #include "EditorWidget.h"
-#include "LayerWidget.h"
-#include "TileWidgets.h"
 #include "libcc1/Levelset.h"
 #include "libcc1/DacFile.h"
 #include "libcc1/CCMetaData.h"
@@ -50,6 +49,11 @@ public:
     EditorWidget* addEditor(ccl::LevelData* level);
     void closeAllTabs();
 
+signals:
+    void tilesetChanged(CCETileset*);
+    void foregroundChanged(tile_t);
+    void backgroundChanged(tile_t);
+
 private:
     enum ActionType {
         ActionNew, ActionOpen, ActionSave, ActionSaveAs, ActionClose,
@@ -65,11 +69,6 @@ private:
         ActionAddLevel, ActionDelLevel, ActionMoveUp, ActionMoveDown,
         ActionProperties, ActionOrganize,
         NUM_ACTIONS
-    };
-
-    enum TileListId {
-        ListStandard, ListObstacles, ListDoors, ListItems, ListMonsters,
-        ListMisc, ListSpecial, NUM_TILE_LISTS
     };
 
     QAction* m_actions[NUM_ACTIONS];
@@ -88,11 +87,7 @@ private:
     QSpinBox* m_chipEdit;
     QSpinBox* m_timeEdit;
     QLineEdit* m_hintEdit;
-    TileListWidget* m_tileLists[NUM_TILE_LISTS];
-    BigTileWiget* m_allTiles;
-    LayerWidget* m_layer[2];
-    QLabel* m_foreLabel[2];
-    QLabel* m_backLabel[2];
+    tile_t m_foreground, m_background;
 
     ccl::Levelset* m_levelset;
     ccl::DacFile m_dacInfo;
