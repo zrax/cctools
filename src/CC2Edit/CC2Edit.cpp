@@ -834,7 +834,14 @@ void CC2EditMain::loadScript(const QString& filename)
 void CC2EditMain::registerTileset(const QString& filename)
 {
     auto tileset = new CC2ETileset(this);
-    tileset->load(filename);
+    try {
+        tileset->load(filename);
+    } catch (const ccl::IOException&) {
+        // CC1 tileset or invalid file -- skip it
+        delete tileset;
+        return;
+    }
+
     QAction* menuItem = m_tilesetMenu->addAction(tileset->name());
     menuItem->setCheckable(true);
     menuItem->setStatusTip(tileset->description());
