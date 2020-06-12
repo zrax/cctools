@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with CCTools.  If not, see <http://www.gnu.org/licenses/>.
 
-project(CCTools)
 cmake_minimum_required(VERSION 3.1)
+project(CCTools)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

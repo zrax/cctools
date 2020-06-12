@@ -146,22 +146,22 @@ CCPlayMain::CCPlayMain(QWidget* parent)
     m_levelsetList->setHeaderLabels(QStringList() << tr("Levelset")
             << tr("Levels") << tr("Highest") << tr("Last") << tr("My Score"));
     m_levelsetList->setColumnWidth(0, 160);
-    m_levelsetList->setColumnWidth(1, m_levelsetList->fontMetrics().width(tr("Levels")) + 16);
-    m_levelsetList->setColumnWidth(2, m_levelsetList->fontMetrics().width(tr("Highest")) + 16);
-    m_levelsetList->setColumnWidth(3, m_levelsetList->fontMetrics().width(tr("Last")) + 16);
-    m_levelsetList->setColumnWidth(4, m_levelsetList->fontMetrics().width(tr("My Score")) + 16);
+    m_levelsetList->setColumnWidth(1, m_levelsetList->fontMetrics().boundingRect(tr("Levels")).width() + 16);
+    m_levelsetList->setColumnWidth(2, m_levelsetList->fontMetrics().boundingRect(tr("Highest")).width() + 16);
+    m_levelsetList->setColumnWidth(3, m_levelsetList->fontMetrics().boundingRect(tr("Last")).width() + 16);
+    m_levelsetList->setColumnWidth(4, m_levelsetList->fontMetrics().boundingRect(tr("My Score")).width() + 16);
     splitLevelsetData->addWidget(m_levelsetList);
 
     m_levelList = new QTreeWidget(splitLevelsetData);
     m_levelList->setRootIsDecorated(false);
     m_levelList->setHeaderLabels(QStringList() << "#" << tr("Name")
             << tr("Author") << tr("Time") << tr("My Time") << tr("My Score"));
-    m_levelList->setColumnWidth(0, m_levelList->fontMetrics().width("000") + 10);
+    m_levelList->setColumnWidth(0, m_levelList->fontMetrics().boundingRect("000").width() + 10);
     m_levelList->setColumnWidth(1, 160);
     m_levelList->setColumnWidth(2, 80);
-    m_levelList->setColumnWidth(3, m_levelList->fontMetrics().width(tr("Time")) + 16);
-    m_levelList->setColumnWidth(4, m_levelList->fontMetrics().width(tr("My Time")) + 16);
-    m_levelList->setColumnWidth(5, m_levelList->fontMetrics().width(tr("My Score")) + 16);
+    m_levelList->setColumnWidth(3, m_levelList->fontMetrics().boundingRect(tr("Time")).width() + 16);
+    m_levelList->setColumnWidth(4, m_levelList->fontMetrics().boundingRect(tr("My Time")).width() + 16);
+    m_levelList->setColumnWidth(5, m_levelList->fontMetrics().boundingRect(tr("My Score")).width() + 16);
     splitLevelsetData->addWidget(m_levelList);
 
     m_actions[ActionPlayMSCC] = new QAction(QIcon(":/res/play-chips.png"), tr("Play (MSCC)"), this);
@@ -543,7 +543,7 @@ void CCPlayMain::onPlayMSCC()
     QDir::setCurrent(exePath.absolutePath());
 #ifdef Q_OS_WIN
     // Native execution
-    QProcess::execute(tempExe);
+    QProcess::execute(tempExe, QStringList());
 #else
     // Try to use WINE
     QProcess::execute(winePath, QStringList() << tempExe);
