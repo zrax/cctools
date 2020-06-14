@@ -390,6 +390,13 @@ private:
     uint8_t m_key[16];
     std::vector<uint8_t> m_replay;
     bool m_readOnly;
+
+    struct FieldStorage
+    {
+        char tag[4];
+        std::vector<uint8_t> data;
+    };
+    std::vector<FieldStorage> m_unknown;
 };
 
 }

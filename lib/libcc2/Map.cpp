@@ -511,6 +511,13 @@ void cc2::Map::read(ccl::Stream* stream)
         } else if (memcmp(tag, "END ", 4) == 0) {
             stream->seek(size, SEEK_CUR);
             break;
+        } else {
+            fprintf(stderr, "Warning: Unrecognized field '%c%c%c%c' in map file.\n",
+                    tag[0], tag[1], tag[2], tag[3]);
+            FieldStorage unknown;
+            memcpy(unknown.tag, tag, sizeof(unknown.tag));
+            unknown.data.resize(size);
+            stream->read(&unknown.data[0], 1, size);
         }
     }
 
@@ -587,6 +594,13 @@ void cc2::Map::write(ccl::Stream* stream) const
     // TODO: Pack MAP data
     writeTagged(stream, "MAP ", [&] { m_mapData.write(stream); });
     writeTaggedBlock<sizeof(m_key)>(stream, "KEY ", m_key);
+
+    // Ensure any unrecognized fields are preserved upon write
+    for (const auto& unknown : m_unknown) {
+        writeTagged(stream, unknown.tag, [&] {
+            stream->write(&unknown.data[0], 1, unknown.data.size());
+        });
+    }
 
     // TODO: Pack REPL data
     if (!m_replay.empty()) {
