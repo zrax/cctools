@@ -18,6 +18,7 @@
 #include "CC2Edit.h"
 #include "EditorWidget.h"
 #include "TileWidgets.h"
+#include "ScriptTools.h"
 #include "About.h"
 
 #include <QApplication>
@@ -44,7 +45,7 @@
 #include <QInputDialog>
 #include <QFileDialog>
 
-#define CC2EDIT_TITLE "CC2Edit 1.0"
+#define CC2EDIT_TITLE "CC2Edit 2.1"
 
 Q_DECLARE_METATYPE(CC2ETileset*)
 
@@ -209,6 +210,13 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_actions[ActionAbout] = new QAction(QIcon(":/res/help-about.png"), tr("&About CC2Edit"), this);
     m_actions[ActionAbout]->setStatusTip(tr("Show information about CC2Edit"));
 
+    m_actions[ActionReloadScript] = new QAction(QIcon(":/res/view-refresh.png"),
+                                                tr("&Reload Game Script"), this);
+    m_actions[ActionReloadScript]->setStatusTip(tr("Re-load the current game script from disk"));
+    m_actions[ActionEditScript] = new QAction(QIcon(":/res/document-properties.png"),
+                                              tr("&Edit Game Script"), this);
+    m_actions[ActionEditScript]->setStatusTip(tr("Open the current game script for editing"));
+
     // Control Toolbox
     auto toolDock = new QDockWidget(this);
     toolDock->setObjectName("ToolDock");
@@ -220,6 +228,35 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_toolTabs->setTabPosition(QTabWidget::West);
     toolDock->setWidget(m_toolTabs);
     addDockWidget(Qt::LeftDockWidgetArea, toolDock);
+
+    m_gameProperties = new QWidget(toolDock);
+    m_gameName = new QLabel(m_gameProperties);
+    m_gameName->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+    auto gameNameFont = m_gameName->font();
+    gameNameFont.setBold(true);
+    gameNameFont.setPointSize((gameNameFont.pointSize() * 3) / 2);
+    m_gameName->setFont(gameNameFont);
+    auto tbarGameScript = new QToolBar(m_gameProperties);
+    tbarGameScript->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+    tbarGameScript->addWidget(m_gameName);
+    tbarGameScript->addAction(m_actions[ActionReloadScript]);
+    tbarGameScript->addAction(m_actions[ActionEditScript]);
+    m_gameMapList = new QListWidget(m_gameProperties);
+
+    connect(m_gameMapList, &QListWidget::itemActivated, this, [this](QListWidgetItem* item) {
+        QString filename = item->data(Qt::UserRole).toString();
+        if (!filename.isEmpty())
+            loadMap(filename);
+    });
+
+    auto gamePropsLayout = new QGridLayout(m_gameProperties);
+    gamePropsLayout->setContentsMargins(4, 4, 4, 4);
+    gamePropsLayout->setVerticalSpacing(4);
+    gamePropsLayout->setHorizontalSpacing(4);
+    gamePropsLayout->addWidget(tbarGameScript, 0, 0);
+    gamePropsLayout->addWidget(m_gameMapList, 1, 0);
+    m_toolTabs->addTab(m_gameProperties, tr("&Game"));
+    m_gameProperties->setEnabled(false);
 
     m_mapProperties = new QWidget(toolDock);
     m_title = new QLineEdit(m_mapProperties);
@@ -281,10 +318,10 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     noteLabel->setBuddy(m_note);
 
     auto mapPropsLayout = new QGridLayout(m_mapProperties);
-    int row = 0;
     mapPropsLayout->setContentsMargins(4, 4, 4, 4);
     mapPropsLayout->setVerticalSpacing(4);
     mapPropsLayout->setHorizontalSpacing(4);
+    int row = 0;
     mapPropsLayout->addWidget(titleLabel, row, 0);
     mapPropsLayout->addWidget(m_title, row, 1, 1, 2);
     mapPropsLayout->addWidget(authorLabel, ++row, 0);
@@ -677,6 +714,15 @@ CC2EditMain::CC2EditMain(QWidget* parent)
         about.exec();
     });
 
+    connect(m_actions[ActionReloadScript], &QAction::triggered, this, [this] {
+        if (!m_currentGameScript.isEmpty())
+            loadScript(m_currentGameScript);
+    });
+    connect(m_actions[ActionEditScript], &QAction::triggered, this, [this] {
+        if (!m_currentGameScript.isEmpty())
+            editScript(m_currentGameScript);
+    });
+
     connect(toolDock, &QDockWidget::dockLocationChanged, this, &CC2EditMain::onDockChanged);
 
     connect(m_editorTabs, &QTabWidget::tabCloseRequested, this, &CC2EditMain::onCloseTab);
@@ -764,7 +810,7 @@ void CC2EditMain::createNewMap()
 {
     auto map = new cc2::Map;
     map->mapData().resize(32, 32);
-    addEditor(map, tr("Untitled Map"));
+    addEditor(map, QString());
     map->unref();
 
     m_actions[ActionSave]->setEnabled(true);
@@ -776,7 +822,7 @@ void CC2EditMain::createNewMap()
 
 void CC2EditMain::createNewScript()
 {
-    addScriptEditor(tr("Untitled Script"));
+    addScriptEditor(QString());
 
     m_actions[ActionSave]->setEnabled(true);
     m_actions[ActionSaveAs]->setEnabled(true);
@@ -785,8 +831,32 @@ void CC2EditMain::createNewScript()
     m_actions[ActionSelect]->setEnabled(false);
 }
 
+void CC2EditMain::loadFile(const QString& filename)
+{
+    QFileInfo info(filename);
+    if (info.suffix().compare(QLatin1String("c2g"), Qt::CaseInsensitive) == 0) {
+        loadScript(filename);
+        m_toolTabs->setCurrentWidget(m_gameProperties);
+    } else if (info.suffix().compare(QLatin1String("c2m"), Qt::CaseInsensitive) == 0) {
+        loadMap(filename);
+        m_toolTabs->setCurrentWidget(m_mapProperties);
+    } else {
+        QMessageBox::critical(this, tr("Invalid filename"),
+                              tr("Unsupported file type for %1").arg(filename));
+    }
+}
+
 void CC2EditMain::loadMap(const QString& filename)
 {
+    QFileInfo info(filename);
+    for (int i = 0; i < m_editorTabs->count(); ++i) {
+        CC2EditorWidget* editor = getEditorAt(i);
+        if (editor && editor->filename() == info.canonicalFilePath()) {
+            m_editorTabs->setCurrentIndex(i);
+            return;
+        }
+    }
+
     ccl::FileStream fs;
     if (!fs.open(filename.toLocal8Bit().constData(), "rb")) {
         QMessageBox::critical(this, tr("Error loading map"),
@@ -795,10 +865,9 @@ void CC2EditMain::loadMap(const QString& filename)
     }
 
     auto map = new cc2::Map;
-    QFileInfo info(filename);
     try {
         map->read(&fs);
-        addEditor(map, info.fileName());
+        addEditor(map, filename);
     } catch (const std::exception& ex) {
         QMessageBox::critical(this, tr("Error loading map"), ex.what());
     }
@@ -813,6 +882,47 @@ void CC2EditMain::loadMap(const QString& filename)
 
 void CC2EditMain::loadScript(const QString& filename)
 {
+    m_gameMapList->clear();
+    m_gameName->setText(QString());
+
+    ScriptMapLoader mapLoader;
+    connect(&mapLoader, &ScriptMapLoader::gameName, m_gameName, &QLabel::setText);
+    connect(&mapLoader, &ScriptMapLoader::mapAdded, this, [this](const QString &filename) {
+        cc2::Map map;
+        ccl::FileStream fs;
+        if (fs.open(filename.toLocal8Bit().constData(), "rb")) {
+            try {
+                map.read(&fs);
+            } catch (const std::exception &err) {
+                QMessageBox::critical(this, tr("Error processing map"),
+                                      tr("Failed to load map data for %1: %2")
+                                              .arg(filename).arg(err.what()));
+            }
+        }
+        QString title = !map.title().empty() ? QString::fromStdString(map.title())
+                                             : QFileInfo(filename).fileName();
+
+        QString name = tr("%1 - %2").arg(m_gameMapList->count() + 1).arg(title);
+        auto item = new QListWidgetItem(name, m_gameMapList);
+        item->setData(Qt::UserRole, filename);
+    });
+    if (mapLoader.loadScript(filename)) {
+        m_currentGameScript = filename;
+        m_gameProperties->setEnabled(true);
+    }
+}
+
+void CC2EditMain::editScript(const QString& filename)
+{
+    QFileInfo info(filename);
+    for (int i = 0; i < m_editorTabs->count(); ++i) {
+        CC2ScriptEditor* editor = getScriptEditorAt(i);
+        if (editor && editor->filename() == info.canonicalFilePath()) {
+            m_editorTabs->setCurrentIndex(i);
+            return;
+        }
+    }
+
     QFile scriptFile(filename);
     if (!scriptFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QMessageBox::critical(this, tr("Error opening file"),
@@ -820,8 +930,7 @@ void CC2EditMain::loadScript(const QString& filename)
         return;
     }
     QString text = QString::fromLatin1(scriptFile.readAll());
-    QFileInfo info(filename);
-    auto editor = addScriptEditor(info.fileName());
+    auto editor = addScriptEditor(filename);
     editor->setPlainText(text);
 
     m_actions[ActionSave]->setEnabled(true);
@@ -931,7 +1040,14 @@ CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename)
     editor->setMap(map);
     if (m_zoomFactor != 0.0)
         editor->setZoom(m_zoomFactor);
-    m_editorTabs->addTab(scroll, filename);
+
+    if (filename.isEmpty()) {
+        m_editorTabs->addTab(scroll, tr("Untitled Map"));
+    } else {
+        QFileInfo info(filename);
+        editor->setFilename(info.canonicalFilePath());
+        m_editorTabs->addTab(scroll, info.fileName());
+    }
     resizeEvent(nullptr);
 
     connect(editor, &CC2EditorWidget::mouseInfo, statusBar(), &QStatusBar::showMessage);
@@ -951,7 +1067,13 @@ CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename)
 CC2ScriptEditor* CC2EditMain::addScriptEditor(const QString& filename)
 {
     auto editor = new CC2ScriptEditor(m_editorTabs);
-    m_editorTabs->addTab(editor, filename);
+    if (filename.isEmpty()) {
+        m_editorTabs->addTab(editor, tr("Untitled Script"));
+    } else {
+        QFileInfo info(filename);
+        editor->setFilename(info.canonicalFilePath());
+        m_editorTabs->addTab(editor, info.fileName());
+    }
 
     // TODO: Hook up signals
 
@@ -998,15 +1120,7 @@ void CC2EditMain::onOpenAction()
                                             "CC2 Maps (*.c2m);;"
                                             "CC2 Game Scripts (*.c2g)"));
     if (!filename.isEmpty()) {
-        QFileInfo info(filename);
-        if (info.suffix().compare(QLatin1String("c2g"), Qt::CaseInsensitive) == 0) {
-            loadScript(filename);
-        } else if (info.suffix().compare(QLatin1String("c2m"), Qt::CaseInsensitive) == 0) {
-            loadMap(filename);
-        } else {
-            QMessageBox::critical(this, tr("Invalid filename"),
-                    tr("Unsupported file type for %1").arg(filename));
-        }
+        loadFile(filename);
         QDir dir(filename);
         dir.cdUp();
         m_dialogDir = dir.absolutePath();
@@ -1169,7 +1283,7 @@ int main(int argc, char* argv[])
 
     QStringList qtArgs = app.arguments();
     if (qtArgs.size() > 1)
-        win.loadMap(qtArgs.at(1));
+        win.loadFile(qtArgs.at(1));
     else
         win.createNewMap();
 

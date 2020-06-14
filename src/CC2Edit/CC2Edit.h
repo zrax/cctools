@@ -23,10 +23,12 @@
 #include "libcc2/Tileset.h"
 #include "ScriptEditor.h"
 
+class QLabel;
 class QLineEdit;
 class QComboBox;
 class QCheckBox;
 class QSpinBox;
+class QListWidget;
 class QPlainTextEdit;
 class QActionGroup;
 
@@ -40,8 +42,10 @@ public:
 
     void createNewMap();
     void createNewScript();
+    void loadFile(const QString& filename);
     void loadMap(const QString& filename);
     void loadScript(const QString& filename);
+    void editScript(const QString& filename);
     void findTilesets();
     void loadTileset(CC2ETileset* tileset);
 
@@ -84,6 +88,7 @@ private:
         ActionViewMonsterPaths,
         ActionZoom100, ActionZoom75, ActionZoom50, ActionZoom25, ActionZoom125,
         ActionZoomCust, ActionZoomFit, ActionAbout,
+        ActionReloadScript, ActionEditScript,
         NUM_ACTIONS
     };
 
@@ -94,6 +99,12 @@ private:
     double m_zoomFactor;
 
     QTabWidget* m_toolTabs;
+
+    // Game (c2g) properties
+    QWidget* m_gameProperties;
+    QLabel* m_gameName;
+    QListWidget* m_gameMapList;
+    QString m_currentGameScript;
 
     // Map properties
     QWidget* m_mapProperties;

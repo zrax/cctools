@@ -14,6 +14,7 @@
     <file>res/edit-delete.png</file>
     <file>res/edit-undo.png</file>
     <file>res/edit-redo.png</file>
+    <file>res/view-refresh.png</file>
     <file>res/view-refresh-sm.png</file>
     <file>res/zoom-in.png</file>
     <file>res/zoom-out.png</file>

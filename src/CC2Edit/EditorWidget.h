@@ -46,6 +46,9 @@ public:
     cc2::Map* map() const { return m_map; }
     bool isOrphaned() const { return m_map->refs() == 1; }
 
+    void setFilename(const QString& filename) { m_filename = filename; }
+    QString filename() const { return m_filename; }
+
     void paintEvent(QPaintEvent*) override;
     void mouseMoveEvent(QMouseEvent*) override;
     void mousePressEvent(QMouseEvent*) override;
@@ -71,6 +74,7 @@ public slots:
 private:
     CC2ETileset* m_tileset;
     cc2::Map* m_map;
+    QString m_filename;
     QList<QPoint> m_hilights;
     QPoint m_origin, m_current;
 

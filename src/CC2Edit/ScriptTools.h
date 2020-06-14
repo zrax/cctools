@@ -15,22 +15,23 @@
  * along with CCTools.  If not, see <http://www.gnu.org/licenses/>.           *
  ******************************************************************************/
 
-#ifndef _SCRIPTEDITOR_H
-#define _SCRIPTEDITOR_H
+#ifndef _SCRIPTTOOLS_H
+#define _SCRIPTTOOLS_H
 
-#include "qtextpad/syntaxtextedit.h"
+#include <QObject>
 
-class CC2ScriptEditor : public SyntaxTextEdit {
+class ScriptMapLoader : public QObject {
     Q_OBJECT
 
 public:
-    CC2ScriptEditor(QWidget* parent = nullptr);
+    ScriptMapLoader(QObject* parent = nullptr)
+        : QObject(parent) { }
 
-    QString filename() const { return m_filename; }
-    void setFilename(const QString& filename) { m_filename = filename; }
+    bool loadScript(const QString& filename);
 
-private:
-    QString m_filename;
+signals:
+    void gameName(const QString& name);
+    void mapAdded(const QString& path);
 };
 
 #endif
