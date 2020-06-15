@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE language SYSTEM "language.dtd">
 <language name="CC2 Game Script" section="Other" version="1" kateversion="5.0"
-          extensions="*.c2g" author="Michael Hansen" license="MIT">
+          extensions="*.c2g" casesensitive="0" author="Michael Hansen" license="MIT">
   <highlighting>
     <list name="directives">
       <item>art</item>
@@ -104,6 +104,7 @@
   <general>
     <comments>
       <comment name="singleLine" start=";"/>
+      <keywords casesensitive="0"/>
     </comments>
   </general>
 </language>
