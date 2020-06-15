@@ -287,6 +287,18 @@ bool cc2::Tile::haveDirection() const
     }
 }
 
+bool cc2::Tile::needArrows() const
+{
+    switch (m_type) {
+    case DirtBlock:
+    case IceBlock:
+    case DirBlock:
+        return m_lower->type() == CC1Cloner;
+    default:
+        return haveDirection();
+    }
+}
+
 bool cc2::Tile::supportsWires() const
 {
     switch (m_type) {

@@ -215,7 +215,8 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile)
             painter.drawPixmap(x, y, m_gfx[cc2::G_DirtBlock_Xray]);
         else
             painter.drawPixmap(x, y, m_gfx[cc2::G_DirtBlock]);
-        //drawArrow(painter, x, y, tile->direction());
+        if (tile->needArrows())
+            drawArrow(painter, x, y, tile->direction());
         break;
     case cc2::Tile::Walker:
         painter.drawPixmap(x, y, m_gfx[cc2::G_Walker]);
@@ -246,7 +247,8 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile)
             painter.drawPixmap(x, y, m_gfx[cc2::G_IceBlock_Xray]);
         else
             painter.drawPixmap(x, y, m_gfx[cc2::G_IceBlock]);
-        //drawArrow(painter, x, y, tile->direction());
+        if (tile->needArrows())
+            drawArrow(painter, x, y, tile->direction());
         break;
     case cc2::Tile::UNUSED_Barrier_S:
         painter.drawPixmap(x, y, m_gfx[cc2::G_Panel_S]);
@@ -439,10 +441,8 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile)
     case cc2::Tile::Trap:
         painter.drawPixmap(x, y, m_gfx[cc2::G_Trap]);
         break;
-    case cc2::Tile::UNUSED_Cloner:
-        // TODO: Need a better graphic?
+    case cc2::Tile::CC1Cloner:
         painter.drawPixmap(x, y, m_gfx[cc2::G_Cloner]);
-        painter.drawPixmap(x, y, m_gfx[cc2::G_InvalidBase]);
         break;
     case cc2::Tile::Cloner:
         painter.drawPixmap(x, y, m_gfx[cc2::G_Cloner]);
@@ -892,6 +892,8 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile)
         if (tile->arrowMask() & cc2::Tile::ArrowWest)
             painter.drawPixmap(x, y, m_gfx[cc2::G_DirBlockArrows],
                                0, 0, m_size / 4, m_size);
+        if (tile->needArrows())
+            drawArrow(painter, x, y, tile->direction());
         break;
     case cc2::Tile::FloorMimic:
         painter.drawPixmap(x, y, m_gfx[cc2::G_FloorMimic]);
@@ -1323,6 +1325,9 @@ QString CC2ETileset::getName(const cc2::Tile* tile)
     case cc2::Tile::Trap:
         name = tr("Trap");
         break;
+    case cc2::Tile::CC1Cloner:
+        name = tr("CC1 Cloning Machine");
+        break;
     case cc2::Tile::Cloner:
         name = tr("Cloning Machine");
         if (tile->modifier() == cc2::TileModifier::CloneAllDirs) {
@@ -1747,9 +1752,7 @@ QString CC2ETileset::getName(const cc2::Tile* tile)
         break;
     }
 
-    if (tile->haveDirection() && tile->type() != cc2::Tile::DirtBlock
-            && tile->type() != cc2::Tile::IceBlock
-            && tile->type() != cc2::Tile::DirBlock) {
+    if (tile->needArrows()) {
         switch (tile->direction()) {
         case cc2::Tile::North:
             name += tr(" - North");

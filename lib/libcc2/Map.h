@@ -174,7 +174,7 @@ public:
         BlueWall, BlueFloor, Dirt, Ant, Centipede, Ball, Blob,
         AngryTeeth, FireBox, CloneButton, TrapButton, IceCleats, MagnoShoes,
         FireShoes, Flippers, ToolThief, RedBomb, UNUSED_41, Trap,
-        UNUSED_Cloner, Cloner, Clue, Force_Rand, AreaCtlButton,
+        CC1Cloner, Cloner, Clue, Force_Rand, AreaCtlButton,
         RevolvDoor_SW, RevolvDoor_NW, RevolvDoor_NE, RevolvDoor_SE,
         TimeBonus, ToggleClock, Transformer, TrainTracks, SteelWall,
         TimeBomb, Helmet, UNUSED_53, UNUSED_54, UNUSED_55, Player2,
@@ -269,6 +269,7 @@ public:
 
     bool haveLower() const;
     bool haveDirection() const;
+    bool needArrows() const;
     bool supportsWires() const;
 
     bool needXray() const
