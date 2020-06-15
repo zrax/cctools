@@ -37,6 +37,23 @@
 #include "libcc1/ChipsHax.h"
 #include "libcc1/CCMetaData.h"
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+static bool canRunMSCC()
+{
+    BOOL isWow64 = FALSE;
+    (void)IsWow64Process(GetCurrentProcess(), &isWow64);
+    return !isWow64;
+}
+#else
+static bool canRunMSCC()
+{
+    // TODO: Only for platforms we know how to do it (e.g. with wine)
+    return true;
+}
+#endif
+
 static ccl::Levelset* load_levelset(QString filename, QWidget* self,
                                     int* dacLastLevel = 0)
 {
@@ -113,7 +130,7 @@ static ccl::Levelset* load_levelset(QString filename, QWidget* self,
 }
 
 CCPlayMain::CCPlayMain(QWidget* parent)
-          : QMainWindow(parent)
+    : QMainWindow(parent)
 {
     setWindowTitle("CCPlay 2.1");
 
@@ -159,9 +176,11 @@ CCPlayMain::CCPlayMain(QWidget* parent)
     m_levelList->setColumnWidth(5, m_levelList->fontMetrics().boundingRect(tr("My Score")).width() + 16);
     splitLevelsetData->addWidget(m_levelList);
 
-    m_actions[ActionPlayMSCC] = new QAction(QIcon(":/res/play-chips.png"), tr("Play (MSCC)"), this);
-    m_actions[ActionPlayMSCC]->setStatusTip(tr("Play level in CHIPS.EXE (F5)"));
-    m_actions[ActionPlayMSCC]->setShortcut(Qt::Key_F5);
+    if (canRunMSCC()) {
+        m_actions[ActionPlayMSCC] = new QAction(QIcon(":/res/play-chips.png"), tr("Play (MSCC)"), this);
+        m_actions[ActionPlayMSCC]->setStatusTip(tr("Play level in CHIPS.EXE (F5)"));
+        m_actions[ActionPlayMSCC]->setShortcut(Qt::Key_F5);
+    }
     m_actions[ActionPlayTWorld] = new QAction(QIcon(":/res/play-tworld.png"), tr("Play (TWorld)"), this);
     m_actions[ActionPlayTWorld]->setStatusTip(tr("Play level in Tile World (F6)"));
     m_actions[ActionPlayTWorld]->setShortcut(Qt::Key_F6);
@@ -188,7 +207,8 @@ CCPlayMain::CCPlayMain(QWidget* parent)
     m_playButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     m_playButton->setPopupMode(QToolButton::MenuButtonPopup);
     m_playButton->setMenu(new QMenu(m_playButton));
-    m_playButton->menu()->addAction(m_actions[ActionPlayMSCC]);
+    if (canRunMSCC())
+        m_playButton->menu()->addAction(m_actions[ActionPlayMSCC]);
     m_playButton->menu()->addAction(m_actions[ActionPlayTWorld]);
     m_playButton->menu()->addAction(m_actions[ActionPlayTWorld2]);
     QLayout* layPlayButton = new QGridLayout(alignPlayButton);
@@ -225,7 +245,8 @@ CCPlayMain::CCPlayMain(QWidget* parent)
     setCentralWidget(contents);
     statusBar();
 
-    connect(m_actions[ActionPlayMSCC], SIGNAL(triggered()), SLOT(onPlayMSCC()));
+    if (canRunMSCC())
+        connect(m_actions[ActionPlayMSCC], &QAction::triggered, this, &CCPlayMain::onPlayMSCC);
     connect(m_actions[ActionPlayTWorld], &QAction::triggered,
             [this]() { this->onPlayTWorld(false); });
     connect(m_actions[ActionPlayTWorld2], &QAction::triggered,
@@ -330,8 +351,10 @@ void CCPlayMain::refreshTools()
         m_playButton->setDefaultAction(m_actions[ActionPlayTWorld2]);
     else if (settings.value("DefaultGame").toString() == "TWorld")
         m_playButton->setDefaultAction(m_actions[ActionPlayTWorld]);
-    else
+    else if (canRunMSCC())
         m_playButton->setDefaultAction(m_actions[ActionPlayMSCC]);
+    else
+        m_playButton->setDefaultAction(m_actions[ActionPlayTWorld]);
 
     QStringList editors = settings.value("EditorNames").toStringList();
     QStringList editorIcons = settings.value("EditorIcons").toStringList();

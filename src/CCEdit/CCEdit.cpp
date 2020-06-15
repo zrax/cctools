@@ -54,6 +54,24 @@
 #include "libcc1/ChipsHax.h"
 #include "libcc1/GameLogic.h"
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+static bool canRunMSCC()
+{
+    BOOL isWow64 = FALSE;
+    (void)IsWow64Process(GetCurrentProcess(), &isWow64);
+    return !isWow64;
+}
+#else
+static bool canRunMSCC()
+{
+    // TODO: Only for platforms we know how to do it (e.g. with wine)
+    return true;
+}
+#endif
+
 #define CCEDIT_TITLE "CCEdit 2.1"
 
 enum TileListId {
@@ -219,10 +237,12 @@ CCEditMain::CCEditMain(QWidget* parent)
     zoomGroup->addAction(m_actions[ActionZoomCust]);
     zoomGroup->addAction(m_actions[ActionZoomFit]);
 
-    m_actions[ActionTestChips] = new QAction(tr("Test in &MSCC"), this);
-    m_actions[ActionTestChips]->setStatusTip(tr("Test the current level in Chips.exe"));
-    m_actions[ActionTestChips]->setShortcut(Qt::Key_F5);
-    m_actions[ActionTestChips]->setEnabled(false);
+    if (canRunMSCC()) {
+        m_actions[ActionTestChips] = new QAction(tr("Test in &MSCC"), this);
+        m_actions[ActionTestChips]->setStatusTip(tr("Test the current level in Chips.exe"));
+        m_actions[ActionTestChips]->setShortcut(Qt::Key_F5);
+        m_actions[ActionTestChips]->setEnabled(false);
+    }
     m_actions[ActionTestTWorldCC] = new QAction(tr("Test in &Tile World (MSCC)"), this);
     m_actions[ActionTestTWorldCC]->setStatusTip(tr("Test the current level in Tile World with the MSCC Ruleset"));
     m_actions[ActionTestTWorldCC]->setShortcut(Qt::Key_F6);
@@ -546,7 +566,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     zoomMenu->addAction(m_actions[ActionZoomFit]);
 
     QMenu* testMenu = menuBar()->addMenu(tr("Te&st"));
-    testMenu->addAction(m_actions[ActionTestChips]);
+    if (canRunMSCC())
+        testMenu->addAction(m_actions[ActionTestChips]);
     testMenu->addAction(m_actions[ActionTestTWorldCC]);
     testMenu->addAction(m_actions[ActionTestTWorldLynx]);
     testMenu->addAction(m_actions[ActionTestTWorld2CC]);
@@ -624,7 +645,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionZoom125], &QAction::triggered, this, [this] { setZoomFactor(0.125); });
     connect(m_actions[ActionZoomCust], &QAction::triggered, this, &CCEditMain::onZoomCust);
     connect(m_actions[ActionZoomFit], &QAction::triggered, this, &CCEditMain::onZoomFit);
-    connect(m_actions[ActionTestChips], &QAction::triggered, this, &CCEditMain::onTestChips);
+    if (canRunMSCC())
+        connect(m_actions[ActionTestChips], &QAction::triggered, this, &CCEditMain::onTestChips);
     connect(m_actions[ActionTestTWorldCC], &QAction::triggered, this, [this] {
         onTestTWorld(ccl::Levelset::TypeMS, false);
     });
@@ -834,7 +856,8 @@ void CCEditMain::loadLevelset(QString filename)
     m_actions[ActionSaveAs]->setEnabled(true);
     m_actions[ActionClose]->setEnabled(true);
     m_actions[ActionGenReport]->setEnabled(true);
-    m_actions[ActionTestChips]->setEnabled(true);
+    if (canRunMSCC())
+        m_actions[ActionTestChips]->setEnabled(true);
     m_actions[ActionTestTWorldCC]->setEnabled(true);
     m_actions[ActionTestTWorldLynx]->setEnabled(true);
     m_actions[ActionTestTWorld2CC]->setEnabled(true);
@@ -1018,7 +1041,8 @@ bool CCEditMain::closeLevelset()
     m_actions[ActionSaveAs]->setEnabled(false);
     m_actions[ActionClose]->setEnabled(false);
     m_actions[ActionGenReport]->setEnabled(false);
-    m_actions[ActionTestChips]->setEnabled(false);
+    if (canRunMSCC())
+        m_actions[ActionTestChips]->setEnabled(false);
     m_actions[ActionTestTWorldCC]->setEnabled(false);
     m_actions[ActionTestTWorldLynx]->setEnabled(false);
     m_actions[ActionTestTWorld2CC]->setEnabled(false);
@@ -1178,7 +1202,8 @@ void CCEditMain::onNewAction()
     m_actions[ActionSaveAs]->setEnabled(true);
     m_actions[ActionClose]->setEnabled(true);
     m_actions[ActionGenReport]->setEnabled(true);
-    m_actions[ActionTestChips]->setEnabled(true);
+    if (canRunMSCC())
+        m_actions[ActionTestChips]->setEnabled(true);
     m_actions[ActionTestTWorldCC]->setEnabled(true);
     m_actions[ActionTestTWorldLynx]->setEnabled(true);
     m_actions[ActionTestTWorld2CC]->setEnabled(true);
