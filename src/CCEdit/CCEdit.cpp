@@ -69,11 +69,6 @@ CCEditMain::CCEditMain(QWidget* parent)
       m_subProc()
 {
     setWindowTitle(CCEDIT_TITLE);
-    QIcon appicon(":/icons/boot-48.png");
-    appicon.addFile(":/icons/boot-32.png");
-    appicon.addFile(":/icons/boot-24.png");
-    appicon.addFile(":/icons/boot-16.png");
-    setWindowIcon(appicon);
     setDockOptions(QMainWindow::AnimatedDocks);
 
     // Actions
@@ -2292,7 +2287,13 @@ int main(int argc, char* argv[])
     srand(time(NULL));
 
     QApplication app(argc, argv);
-    app.setAttribute(Qt::AA_DontShowIconsInMenus, false);
+
+    QIcon appicon(":/icons/boot-48.png");
+    appicon.addFile(":/icons/boot-32.png");
+    appicon.addFile(":/icons/boot-24.png");
+    appicon.addFile(":/icons/boot-16.png");
+    app.setWindowIcon(appicon);
+
     CCEditMain mainWin;
     mainWin.show();
     if (argc > 1)

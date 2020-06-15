@@ -33,14 +33,9 @@ enum PageType {
 };
 
 CCHackMain::CCHackMain(QWidget* parent)
-    : QMainWindow(parent), m_page(0)
+    : QMainWindow(parent), m_page()
 {
     setWindowTitle("CCHack 2.1");
-    QIcon appicon(":/icons/sock-48.png");
-    appicon.addFile(":/icons/sock-32.png");
-    appicon.addFile(":/icons/sock-24.png");
-    appicon.addFile(":/icons/sock-16.png");
-    setWindowIcon(appicon);
 
     QSplitter* split = new QSplitter(this);
     QTreeWidget* pager = new QTreeWidget(split);
@@ -163,6 +158,13 @@ void CCHackMain::onChangePage(QTreeWidgetItem* page, QTreeWidgetItem*)
 int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
+
+    QIcon appicon(":/icons/sock-48.png");
+    appicon.addFile(":/icons/sock-32.png");
+    appicon.addFile(":/icons/sock-24.png");
+    appicon.addFile(":/icons/sock-16.png");
+    app.setWindowIcon(appicon);
+
     CCHackMain mainWin;
     mainWin.show();
 

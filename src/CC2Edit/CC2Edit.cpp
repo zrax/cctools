@@ -70,10 +70,6 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     : QMainWindow(parent), m_currentTileset()
 {
     setWindowTitle(CC2EDIT_TITLE);
-    QIcon appicon(":/icons/boot-32.png");
-    appicon.addFile(":/icons/boot-24.png");
-    appicon.addFile(":/icons/boot-16.png");
-    setWindowIcon(appicon);
     setDockOptions(QMainWindow::AnimatedDocks);
 
     // Actions
@@ -356,6 +352,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     mapPropsLayout->addWidget(noteLabel, ++row, 0, Qt::AlignTop);
     mapPropsLayout->addWidget(m_note, row, 1, 1, 2);
     m_toolTabs->addTab(m_mapProperties, tr("Map &Properties"));
+    m_mapProperties->setEnabled(false);
 
     auto sortedTiles = new QWidget(toolDock);
     auto tileBox = new QToolBox(sortedTiles);
@@ -1277,6 +1274,11 @@ void CC2EditMain::setBackground(const cc2::Tile* tile)
 int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
+
+    QIcon appicon(":/icons/boot-32.png");
+    appicon.addFile(":/icons/boot-24.png");
+    appicon.addFile(":/icons/boot-16.png");
+    app.setWindowIcon(appicon);
 
     CC2EditMain win;
     win.show();

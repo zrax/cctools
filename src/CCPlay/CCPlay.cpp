@@ -116,11 +116,6 @@ CCPlayMain::CCPlayMain(QWidget* parent)
           : QMainWindow(parent)
 {
     setWindowTitle("CCPlay 2.1");
-    QIcon appicon(":/icons/chip-48.png");
-    appicon.addFile(":/icons/chip-32.png");
-    appicon.addFile(":/icons/chip-24.png");
-    appicon.addFile(":/icons/chip-16.png");
-    setWindowIcon(appicon);
 
     QWidget* contents = new QWidget(this);
     m_levelsetPath = new QLineEdit(contents);
@@ -949,6 +944,13 @@ void CCPlayMain::onLevelsetChanged(QTreeWidgetItem* item, QTreeWidgetItem*)
 int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
+
+    QIcon appicon(":/icons/chip-48.png");
+    appicon.addFile(":/icons/chip-32.png");
+    appicon.addFile(":/icons/chip-24.png");
+    appicon.addFile(":/icons/chip-16.png");
+    app.setWindowIcon(appicon);
+
     CCPlayMain mainWin;
     mainWin.show();
     if (!mainWin.initDatabase())
