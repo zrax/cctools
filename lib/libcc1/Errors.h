@@ -18,30 +18,24 @@
 #ifndef _ERRORS_H
 #define _ERRORS_H
 
-#include <exception>
+#include <stdexcept>
 #include <string>
 
 namespace ccl {
 
-class Exception : public std::exception {
+class Exception : public std::runtime_error {
 public:
-    Exception(const char* msg) : m_msg(msg) { }
-    virtual ~Exception() throw() { }
-
-    virtual const char* what() const throw() { return m_msg.c_str(); }
-
-private:
-    std::string m_msg;
+    explicit Exception(const char* msg) : std::runtime_error(msg) { }
 };
 
 class IOException : public ccl::Exception {
 public:
-    IOException(const char* msg) : ccl::Exception(msg) { }
+    explicit IOException(const char* msg) : ccl::Exception(msg) { }
 };
 
 class FormatException : public ccl::Exception {
 public:
-    FormatException(const char* msg) : ccl::Exception(msg) { }
+    explicit FormatException(const char* msg) : ccl::Exception(msg) { }
 };
 
 }
