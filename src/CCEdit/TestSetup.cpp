@@ -27,12 +27,10 @@
 #include <QFileDialog>
 
 #ifdef Q_OS_WIN
-    #define POSIX_OFFSET 0
     #define EXE_FILTER "Executables (*.exe)"
     #define WINEXE_FILTER "Executables (*.exe)"
-    #define EXE_LIST QStringList() << "*.exe"
+    #define EXE_LIST QStringList{ "*.exe" }
 #else
-    #define POSIX_OFFSET 1
     #define EXE_FILTER "Executables (*)"
     #define WINEXE_FILTER "Windows Executables (*.exe *.EXE)"
     #define EXE_LIST QStringList()
@@ -65,19 +63,26 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
 
     m_msccPath = new QLineEdit(settings.value("ChipsExe").toString(), this);
     m_msccPath->setCompleter(winExeCompleter);
-    QLabel* lblMsccPath = new QLabel(tr("MS&CC Path:"), this);
+    auto lblMsccPath = new QLabel(tr("MS&CC Path:"), this);
     lblMsccPath->setBuddy(m_msccPath);
-    QToolButton* browseChips = new QToolButton(this);
+    auto browseChips = new QToolButton(this);
     browseChips->setIcon(QIcon(":/res/document-open-folder-sm.png"));
     browseChips->setAutoRaise(true);
     m_tworldPath = new QLineEdit(settings.value("TWorldExe").toString(), this);
     m_tworldPath->setCompleter(exeCompleter);
-    QLabel* lblTWorldPath = new QLabel(tr("&Tile World Path:"), this);
+    auto lblTWorldPath = new QLabel(tr("&Tile World Path:"), this);
     lblTWorldPath->setBuddy(m_tworldPath);
-    QToolButton* browseTWorld = new QToolButton(this);
+    auto browseTWorld = new QToolButton(this);
     browseTWorld->setIcon(QIcon(":/res/document-open-folder-sm.png"));
     browseTWorld->setAutoRaise(true);
-    QDialogButtonBox* buttons = new QDialogButtonBox(
+    m_tworld2Path = new QLineEdit(settings.value("TWorld2Exe").toString(), this);
+    m_tworld2Path->setCompleter(exeCompleter);
+    auto lblTWorld2Path = new QLabel(tr("Tile World &2 Path:"), this);
+    lblTWorld2Path->setBuddy(m_tworld2Path);
+    auto browseTWorld2 = new QToolButton(this);
+    browseTWorld2->setIcon(QIcon(":/res/document-open-folder-sm.png"));
+    browseTWorld2->setAutoRaise(true);
+    auto buttons = new QDialogButtonBox(
             QDialogButtonBox::Save | QDialogButtonBox::Cancel,
             Qt::Horizontal, this);
 
@@ -90,39 +95,45 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     layout->setContentsMargins(8, 8, 8, 8);
     layout->setVerticalSpacing(4);
     layout->setHorizontalSpacing(4);
+    int row = 0;
 #ifndef Q_OS_WIN
-    layout->addWidget(lblWinePath, 0, 0);
-    layout->addWidget(m_winePath, 0, 1);
-    layout->addWidget(browseWine, 0, 2);
+    layout->addWidget(lblWinePath, row, 0);
+    layout->addWidget(m_winePath, row, 1);
+    layout->addWidget(browseWine, row, 2);
 #endif
-    layout->addWidget(lblMsccPath, POSIX_OFFSET + 0, 0);
-    layout->addWidget(m_msccPath, POSIX_OFFSET + 0, 1);
-    layout->addWidget(browseChips, POSIX_OFFSET + 0, 2);
-    layout->addWidget(m_useCCPatch, POSIX_OFFSET + 1, 1);
-    layout->addWidget(m_usePGPatch, POSIX_OFFSET + 2, 1);
-    layout->addWidget(lblTWorldPath, POSIX_OFFSET + 3, 0);
-    layout->addWidget(m_tworldPath, POSIX_OFFSET + 3, 1);
-    layout->addWidget(browseTWorld, POSIX_OFFSET + 3, 2);
+    layout->addWidget(lblMsccPath, ++row, 0);
+    layout->addWidget(m_msccPath, row, 1);
+    layout->addWidget(browseChips, row, 2);
+    layout->addWidget(m_useCCPatch, ++row, 1);
+    layout->addWidget(m_usePGPatch, ++row, 1);
+    layout->addWidget(lblTWorldPath, ++row, 0);
+    layout->addWidget(m_tworldPath, row, 1);
+    layout->addWidget(browseTWorld, row, 2);
+    layout->addWidget(lblTWorld2Path, ++row, 0);
+    layout->addWidget(m_tworld2Path, row, 1);
+    layout->addWidget(browseTWorld2, row, 2);
 #ifndef Q_OS_WIN
     layout->addWidget(new QLabel(
             tr("Note: Leave WINE or Tile World paths empty to use system-installed locations"),
-            this), POSIX_OFFSET + 4, 0, 1, 3);
+            this), ++row, 0, 1, 3);
 #else
     layout->addWidget(new QLabel(
             tr("Note: MSCC will not work on 64-bit Windows platforms"),
-            this), POSIX_OFFSET + 4, 0, 1, 3);
+            this), ++row, 0, 1, 3);
 #endif
-    layout->addItem(new QSpacerItem(0, 0, QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding), POSIX_OFFSET + 5, 0, 1, 3);
-    layout->addWidget(buttons, POSIX_OFFSET + 6, 0, 1, 3);
+    layout->addItem(new QSpacerItem(0, 0, QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding),
+                    ++row, 0, 1, 3);
+    layout->addWidget(buttons, ++row, 0, 1, 3);
     resize(400, sizeHint().height());
 
-    connect(buttons, SIGNAL(rejected()), SLOT(reject()));
-    connect(buttons, SIGNAL(accepted()), SLOT(onSaveSettings()));
+    connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
+    connect(buttons, &QDialogButtonBox::accepted, this, &TestSetupDialog::onSaveSettings);
 #ifndef Q_OS_WIN
-    connect(browseWine, SIGNAL(clicked()), SLOT(onBrowseWine()));
+    connect(browseWine, &QToolButton::clicked, this, &TestSetupDialog::onBrowseWine);
 #endif
-    connect(browseChips, SIGNAL(clicked()), SLOT(onBrowseChips()));
-    connect(browseTWorld, SIGNAL(clicked()), SLOT(onBrowseTWorld()));
+    connect(browseChips, &QToolButton::clicked, this, &TestSetupDialog::onBrowseChips);
+    connect(browseTWorld, &QToolButton::clicked, this, &TestSetupDialog::onBrowseTWorld);
+    connect(browseTWorld2, &QToolButton::clicked, this, &TestSetupDialog::onBrowseTWorld2);
 }
 
 void TestSetupDialog::onSaveSettings()
@@ -133,6 +144,7 @@ void TestSetupDialog::onSaveSettings()
 #endif
     settings.setValue("ChipsExe", m_msccPath->text());
     settings.setValue("TWorldExe", m_tworldPath->text());
+    settings.setValue("TWorld2Exe", m_tworld2Path->text());
     settings.setValue("TestCCPatch", m_useCCPatch->isChecked());
     settings.setValue("TestPGPatch", m_usePGPatch->isChecked());
     accept();
@@ -164,4 +176,12 @@ void TestSetupDialog::onBrowseTWorld()
                                 m_tworldPath->text(), EXE_FILTER);
     if (!path.isEmpty())
         m_tworldPath->setText(path);
+}
+
+void TestSetupDialog::onBrowseTWorld2()
+{
+    QString path = QFileDialog::getOpenFileName(this, tr("Browse for Tile World 2 executable"),
+                                                m_tworld2Path->text(), EXE_FILTER);
+    if (!path.isEmpty())
+        m_tworld2Path->setText(path);
 }

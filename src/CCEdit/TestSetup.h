@@ -34,6 +34,7 @@ private:
 #endif
     QLineEdit* m_msccPath;
     QLineEdit* m_tworldPath;
+    QLineEdit* m_tworld2Path;
 
     QCheckBox* m_useCCPatch;
     QCheckBox* m_usePGPatch;
@@ -43,6 +44,7 @@ private slots:
     void onBrowseWine();
     void onBrowseChips();
     void onBrowseTWorld();
+    void onBrowseTWorld2();
 };
 
 #endif
