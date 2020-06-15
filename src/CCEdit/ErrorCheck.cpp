@@ -273,13 +273,11 @@ void ErrorCheckDialog::checkLevel(int level)
                         reportError(level, QString("[Invalid Trap]\n"
                                     "Trap button at (%1, %2) has no connections")
                                     .arg(x).arg(y));
-                    }
-                    if (targets.size() > 1) {
+                    } else  if (targets.size() > 1) {
                         reportError(level, QString("[Invalid Trap]\n"
                                     "Trap buttons at (%1, %2) has multiple connections")
                                     .arg(x).arg(y));
-                    }
-                    if (targets.front() != levelData->map().findNext(x, y, ccl::TileTrap)) {
+                    } else if (targets.front() != levelData->map().findNext(x, y, ccl::TileTrap)) {
                         reportError(level, QString("[Invalid Trap]\n"
                                     "Trap connection for (%1, %2) violates the reading-order rule")
                                     .arg(x).arg(y));
@@ -292,13 +290,11 @@ void ErrorCheckDialog::checkLevel(int level)
                         reportError(level, QString("[Invalid Cloner]\n"
                                     "Clone button at (%1, %2) has no connections")
                                     .arg(x).arg(y));
-                    }
-                    if (targets.size() > 1) {
+                    } else  if (targets.size() > 1) {
                         reportError(level, QString("[Invalid Cloner]\n"
                                     "Clone button at (%1, %2) has multiple connections")
                                     .arg(x).arg(y));
-                    }
-                    if (targets.front() != levelData->map().findNext(x, y, ccl::TileCloner)) {
+                    } else  if (targets.front() != levelData->map().findNext(x, y, ccl::TileCloner)) {
                         reportError(level, QString("[Invalid Cloner]\n"
                                     "Cloner connections for (%1, %2) violates the reading-order rule")
                                     .arg(x).arg(y));
