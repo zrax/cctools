@@ -328,7 +328,7 @@ void EditorWidget::renderTo(QPainter& painter)
                 if ((move & ccl::MoveDirMask) < ccl::MoveBlocked) {
                     if ((move & ccl::MoveTrapped) != 0)
                         break;
-                    ccl::Point to = ccl::AdvanceCreature(tile, from, move);
+                    ccl::Point to = ccl::AdvanceCreature(from, move);
                     painter.drawLine(calcTileCenter(from.X, from.Y),
                                      calcTileCenter(to.X, to.Y));
                     if ((move & ccl::MoveDeath) != 0)

@@ -28,11 +28,13 @@
 
 static QDataStream& operator<<(QDataStream& out, const ccl::LevelData *data)
 {
+    (void)data;
     return out;
 }
 
 static QDataStream& operator>>(QDataStream& in, ccl::LevelData *data)
 {
+    (void)data;
     return in;
 }
 

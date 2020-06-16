@@ -20,6 +20,7 @@
 
 #include <memory>
 #include <vector>
+#include <cstring>
 
 #ifdef _WIN32
 #  define stricmp _stricmp

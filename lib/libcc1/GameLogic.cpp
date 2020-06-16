@@ -220,13 +220,12 @@ tile_t ccl::TurnCreature(tile_t tile, MoveState state)
     return (tile & 0xFC) | (state & MoveDirMask);
 }
 
-ccl::Point ccl::AdvanceCreature(tile_t tile, const ccl::Point& pos, MoveState state)
+ccl::Point ccl::AdvanceCreature(const ccl::Point& pos, MoveState state)
 {
     if ((state & MoveDirMask) >= MoveBlocked)
         return pos;
 
     ccl::Point result;
-
     switch (state & MoveDirMask) {
     case ccl::MoveNorth:
         result.X = pos.X;
