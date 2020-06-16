@@ -74,19 +74,40 @@ ccl::MoveState ccl::CheckMove(ccl::LevelData* level, tile_t tile, int x, int y)
         base = level->map().getBG(x, y);
     int state = 0;
 
-    if (base == TileTrap) {
-        std::list<ccl::Trap>::const_iterator trap_iter;
+    switch (base) {
+    case TileForce_N:
+        return (ccl::MoveState)(state | MoveNorth);
+    case TileForce_W:
+        return (ccl::MoveState)(state | MoveWest);
+    case TileForce_S:
+        return (ccl::MoveState)(state | MoveSouth);
+    case TileForce_E:
+        return (ccl::MoveState)(state | MoveEast);
+    case TileForce_Rand:
+        // TODO: Blocked isn't really accurate here...
+        return (ccl::MoveState)(state | MoveBlocked);
+    case TileTrap:
         state |= MoveTrapped;
-        for (trap_iter = level->traps().begin(); trap_iter != level->traps().end(); ++trap_iter) {
-            if (trap_iter->trap.X == x && trap_iter->trap.Y == y
-                && level->map().getBG(trap_iter->button.X, trap_iter->button.Y) == TileTrapButton) {
-                tile_t trigger = level->map().getFG(trap_iter->button.X, trap_iter->button.Y);
+        for (const auto& trap_iter : level->traps()) {
+            if (trap_iter.trap.X == x && trap_iter.trap.Y == y
+                && level->map().getBG(trap_iter.button.X, trap_iter.button.Y) == TileTrapButton) {
+                tile_t trigger = level->map().getFG(trap_iter.button.X, trap_iter.button.Y);
                 if (trigger == TileBlock || MOVING_TILE(trigger)
                     || (trigger >= TilePlayer_N && trigger <= TilePlayer_E))
                     state &= ~MoveTrapped;
                 break;
             }
         }
+        break;
+    case TileIce:
+        // Preferred directions are only straight and back when on ice.
+        dirs[0] = (ccl::Direction)(((tile    ) & 0x03) + ccl::DirNorth);
+        dirs[1] = (ccl::Direction)(((tile + 2) & 0x03) + ccl::DirNorth);
+        dirs[2] = ccl::DirInvalid;
+        dirs[3] = ccl::DirInvalid;
+        break;
+    default:
+        break;
     }
 
     for (int i=0; i<4; ++i) {
@@ -139,17 +160,6 @@ ccl::MoveState ccl::CheckMove(ccl::LevelData* level, tile_t tile, int x, int y)
             if (dir == DirWest)
                 return (ccl::MoveState)(state | MoveNorth);
             break;
-        case TileForce_N:
-            return (ccl::MoveState)(state | MoveNorth);
-        case TileForce_W:
-            return (ccl::MoveState)(state | MoveWest);
-        case TileForce_S:
-            return (ccl::MoveState)(state | MoveSouth);
-        case TileForce_E:
-            return (ccl::MoveState)(state | MoveEast);
-        case TileForce_Rand:
-            // TODO: Blocked isn't really accurate here...
-            return (ccl::MoveState)(state | MoveBlocked);
         }
 
         tile_t peek = (dir == DirNorth) ? GET_N1(x, y, level)
