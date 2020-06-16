@@ -158,6 +158,9 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     drawModeGroup->addAction(m_actions[ActionDrawFill]);
     m_actions[ActionDrawPencil]->setChecked(true);
 
+    m_actions[ActionViewButtons] = new QAction(tr("Show &Button Connections"), this);
+    m_actions[ActionViewButtons]->setStatusTip(tr("Draw lines between connected buttons/traps/cloning machines in editor"));
+    m_actions[ActionViewButtons]->setCheckable(true);
     m_actions[ActionViewActivePlayer] = new QAction(tr("Show &Player Starting Position"), this);
     m_actions[ActionViewActivePlayer]->setStatusTip(tr("Highlight the Player's start position"));
     m_actions[ActionViewActivePlayer]->setCheckable(true);
@@ -653,6 +656,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     toolsMenu->addAction(m_actions[ActionToggleWalls]);
 
     QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
+    viewMenu->addAction(m_actions[ActionViewButtons]);
     viewMenu->addAction(m_actions[ActionViewActivePlayer]);
     viewMenu->addAction(m_actions[ActionViewViewport]);
     viewMenu->addAction(m_actions[ActionViewMonsterPaths]);
@@ -709,6 +713,8 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     connect(m_actions[ActionOpen], &QAction::triggered, this, &CC2EditMain::onOpenAction);
     connect(m_actions[ActionClose], &QAction::triggered, this, &CC2EditMain::onCloseAction);
 
+    connect(m_actions[ActionViewViewport], &QAction::toggled, this, &CC2EditMain::onViewViewportToggled);
+
     connect(m_tilesetGroup, &QActionGroup::triggered, this, &CC2EditMain::onTilesetMenu);
     connect(m_actions[ActionZoom100], &QAction::triggered, this, [this] { setZoomFactor(1.0); });
     connect(m_actions[ActionZoom75], &QAction::triggered, this, [this] { setZoomFactor(0.75); });
@@ -751,6 +757,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     if (settings.contains("WindowState"))
         restoreState(settings.value("WindowState").toByteArray());
     m_zoomFactor = settings.value("ZoomFactor", 1.0).toDouble();
+    m_actions[ActionViewButtons]->setChecked(settings.value("ViewButtons", true).toBool());
     m_actions[ActionViewActivePlayer]->setChecked(settings.value("ViewActivePlayer", false).toBool());
     m_actions[ActionViewViewport]->setChecked(settings.value("ViewViewport", true).toBool());
     m_actions[ActionViewMonsterPaths]->setChecked(settings.value("ViewMonsterPaths", false).toBool());
@@ -1054,7 +1061,16 @@ CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename)
     scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     scroll->setWidget(editor);
-    // TODO: Set render flags
+    if (m_actions[ActionViewButtons]->isChecked())
+        editor->setPaintFlag(CC2EditorWidget::ShowButtons);
+    if (m_actions[ActionViewActivePlayer]->isChecked())
+        editor->setPaintFlag(CC2EditorWidget::ShowPlayer);
+    if (m_actions[ActionViewViewport]->isChecked())
+        editor->setPaintFlag(CC2EditorWidget::ShowViewBox);
+    if (m_actions[ActionViewMonsterPaths]->isChecked())
+        editor->setPaintFlag(CC2EditorWidget::ShowMovePaths);
+    //if (m_actions[ActionViewErrors]->isChecked())
+    //    editor->setPaintFlag(CC2EditorWidget::ShowErrors);
     editor->setTileset(m_currentTileset);
     editor->setMap(map);
     if (m_zoomFactor != 0.0)
@@ -1151,6 +1167,19 @@ void CC2EditMain::onCloseAction()
 {
     if (m_editorTabs->count())
         onCloseTab(m_editorTabs->currentIndex());
+}
+
+void CC2EditMain::onViewViewportToggled(bool view)
+{
+    for (int i = 0; i < m_editorTabs->count(); ++i) {
+        CC2EditorWidget* editor = getEditorAt(i);
+        if (editor) {
+            if (view)
+                editor->setPaintFlag(CC2EditorWidget::ShowViewBox);
+            else
+                editor->clearPaintFlag(CC2EditorWidget::ShowViewBox);
+        }
+    }
 }
 
 void CC2EditMain::setZoomFactor(double zoom)

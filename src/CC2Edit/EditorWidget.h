@@ -31,6 +31,15 @@ public:
         DrawPencil, DrawLine, DrawFill, DrawSelect, DrawPathMaker,
     };
 
+    enum PaintFlags {
+        ShowPlayer = (1<<0),
+        ShowMovement = (1<<1),
+        ShowButtons = (1<<2),
+        ShowMovePaths = (1<<3),
+        ShowViewBox = (1<<4),
+        ShowErrors = (1<<5),
+    };
+
     CC2EditorWidget(QWidget* parent = nullptr);
 
     ~CC2EditorWidget() override
@@ -49,17 +58,24 @@ public:
     void setFilename(const QString& filename) { m_filename = filename; }
     QString filename() const { return m_filename; }
 
-    void paintEvent(QPaintEvent*) override;
-    void mouseMoveEvent(QMouseEvent*) override;
-    void mousePressEvent(QMouseEvent*) override;
-    void mouseReleaseEvent(QMouseEvent*) override;
-
     QSize sizeHint() const override
     {
         const int tilesetSize = m_tileset ? m_tileset->size() : 32;
         const int width = m_map ? m_map->mapData().width() : 16;
         const int height = m_map ? m_map->mapData().height() : 16;
         return QSize(width * tilesetSize * m_zoomFactor, height * tilesetSize * m_zoomFactor);
+    }
+
+    void setPaintFlag(int flag)
+    {
+        m_paintFlags |= flag;
+        update();
+    }
+
+    void clearPaintFlag(int flag)
+    {
+        m_paintFlags &= ~flag;
+        update();
     }
 
     void renderTileBuffer();
@@ -71,11 +87,19 @@ public:
 public slots:
     void setZoom(double factor);
 
+protected:
+    void paintEvent(QPaintEvent*) override;
+    void mouseMoveEvent(QMouseEvent*) override;
+    void mousePressEvent(QMouseEvent*) override;
+    void mouseReleaseEvent(QMouseEvent*) override;
+
 private:
     CC2ETileset* m_tileset;
     cc2::Map* m_map;
     QString m_filename;
     QList<QPoint> m_hilights;
+    DrawMode m_drawMode;
+    uint32_t m_paintFlags;
     QPoint m_origin, m_current;
 
     double m_zoomFactor;
@@ -83,7 +107,7 @@ private:
     QPixmap m_tileCache;
     bool m_cacheDirty;
 
-    QRect calcTileRect(int x, int y, int w = 1, int h = 1)
+    QRect calcTileRect(int x, int y, int w = 1, int h = 1) const
     {
         // Size is calculated inclusively, so -2 is needed to get past
         // the border and adjust for the inclusive offset
@@ -94,12 +118,12 @@ private:
         return QRect(topleft, botright);
     }
 
-    QRect calcTileRect(QRect rect)
+    QRect calcTileRect(const QRect& rect) const
     {
         return calcTileRect(rect.left(), rect.top(), rect.width(), rect.height());
     }
 
-    QPoint calcTileCenter(int x, int y)
+    QPoint calcTileCenter(int x, int y) const
     {
         return QPoint((int)((x * m_tileset->size() + (m_tileset->size() / 2)) * m_zoomFactor),
                       (int)((y * m_tileset->size() + (m_tileset->size() / 2)) * m_zoomFactor));

@@ -68,6 +68,7 @@ protected:
 private Q_SLOTS:
     void onOpenAction();
     void onCloseAction();
+    void onViewViewportToggled(bool);
     void setZoomFactor(double);
     void onZoomCust();
     void onZoomFit();
@@ -90,8 +91,8 @@ private:
         ActionGenReport, ActionExit, ActionSelect, ActionCut, ActionCopy,
         ActionPaste, ActionClear, ActionUndo, ActionRedo, ActionDrawPencil,
         ActionDrawLine, ActionDrawFill, ActionPathMaker, ActionDrawWire,
-        ActionToggleWalls, ActionViewActivePlayer, ActionViewViewport,
-        ActionViewMonsterPaths,
+        ActionToggleWalls, ActionViewButtons, ActionViewActivePlayer,
+        ActionViewViewport, ActionViewMonsterPaths,
         ActionZoom100, ActionZoom75, ActionZoom50, ActionZoom25, ActionZoom125,
         ActionZoomCust, ActionZoomFit, ActionTest, ActionTestSetup, ActionAbout,
         ActionReloadScript, ActionEditScript,

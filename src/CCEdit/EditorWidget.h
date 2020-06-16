@@ -50,8 +50,8 @@ public:
         PaintOverlayMask = PaintLeftTemp | PaintRightTemp,
     };
 
-    EditorWidget(QWidget* parent = 0);
-    virtual ~EditorWidget()
+    EditorWidget(QWidget* parent = nullptr);
+    ~EditorWidget() override
     {
         if (m_levelData)
             m_levelData->unref();
@@ -64,12 +64,7 @@ public:
     ccl::LevelData* levelData() const { return m_levelData; }
     bool isOrphaned() const { return m_levelData->refs() == 1; }
 
-    virtual void paintEvent(QPaintEvent*);
-    virtual void mouseMoveEvent(QMouseEvent*);
-    virtual void mousePressEvent(QMouseEvent*);
-    virtual void mouseReleaseEvent(QMouseEvent*);
-
-    virtual QSize sizeHint() const
+    QSize sizeHint() const override
     {
         if (m_tileset == 0)
             return QSize();
@@ -99,7 +94,9 @@ public:
     }
 
     void beginEdit(CCEHistoryNode::Type type)
-    { m_history.beginEdit(type, m_levelData); }
+    {
+        m_history.beginEdit(type, m_levelData);
+    }
 
     void endEdit()
     {
@@ -130,13 +127,19 @@ public slots:
     void redo();
     void setZoom(double factor);
 
+protected:
+    void paintEvent(QPaintEvent*) override;
+    void mouseMoveEvent(QMouseEvent*) override;
+    void mousePressEvent(QMouseEvent*) override;
+    void mouseReleaseEvent(QMouseEvent*) override;
+
 private:
     CCETileset* m_tileset;
     ccl::LevelData* m_levelData;
     QList<QPoint> m_hilights;
     tile_t m_leftTile, m_rightTile;
     DrawMode m_drawMode;
-    int m_paintFlags;
+    uint32_t m_paintFlags;
     Qt::MouseButton m_cachedButton;
     QPixmap m_numbers, m_errmk;
     QPoint m_origin, m_current;
@@ -149,7 +152,7 @@ private:
     QPixmap m_tileCache;
     bool m_cacheDirty;
 
-    QRect calcTileRect(int x, int y, int w = 1, int h = 1)
+    QRect calcTileRect(int x, int y, int w = 1, int h = 1) const
     {
         // Size is calculated inclusively, so -2 is needed to get past
         // the border and adjust for the inclusive offset
@@ -160,13 +163,25 @@ private:
         return QRect(topleft, botright);
     }
 
-    QRect calcTileRect(QRect rect)
-    { return calcTileRect(rect.left(), rect.top(), rect.width(), rect.height()); }
+    QRect calcTileRect(const QPoint& point) const
+    {
+        return calcTileRect(point.x(), point.y());
+    }
 
-    QPoint calcTileCenter(int x, int y)
+    QRect calcTileRect(const QRect& rect) const
+    {
+        return calcTileRect(rect.left(), rect.top(), rect.width(), rect.height());
+    }
+
+    QPoint calcTileCenter(int x, int y) const
     {
         return QPoint((int)((x * m_tileset->size() + (m_tileset->size() / 2)) * m_zoomFactor),
                       (int)((y * m_tileset->size() + (m_tileset->size() / 2)) * m_zoomFactor));
+    }
+
+    QPoint calcTileCenter(const QPoint& point) const
+    {
+        return calcTileCenter(point.x(), point.y());
     }
 
 signals:

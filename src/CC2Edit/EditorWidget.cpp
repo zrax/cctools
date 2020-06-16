@@ -22,7 +22,8 @@
 
 
 CC2EditorWidget::CC2EditorWidget(QWidget* parent)
-    : QWidget(parent), m_tileset(), m_map(), m_zoomFactor(1.0)
+    : QWidget(parent), m_tileset(), m_map(), m_drawMode(DrawPencil),
+      m_paintFlags(), m_zoomFactor(1.0)
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     setMouseTracking(true);
@@ -86,6 +87,27 @@ void CC2EditorWidget::renderTo(QPainter& painter)
         m_cacheDirty = false;
     }
     painter.drawPixmap(0, 0, m_tileCache);
+
+    if ((m_paintFlags & ShowViewBox) != 0) {
+        painter.setPen(QColor(0, 255, 127));
+        QRect tileRect;
+        if (m_map->option().view() == cc2::MapOption::View9x9) {
+            tileRect = calcTileRect(m_current.x() - 4, m_current.y() - 4, 9, 9);
+        } else {
+            tileRect = calcTileRect(m_current.x() - 4, m_current.y() - 4, 10, 10);
+            tileRect.translate(-((m_tileset->size() / 2) * m_zoomFactor),
+                               -((m_tileset->size() / 2) * m_zoomFactor));
+        }
+        if (tileRect.left() < 0)
+            tileRect.moveLeft(0);
+        if (tileRect.top() < 0)
+            tileRect.moveTop(0);
+        if (tileRect.right() > m_tileCache.width() - 2)
+            tileRect.moveRight(m_tileCache.width() - 2);
+        if (tileRect.bottom() > m_tileCache.height() - 2)
+            tileRect.moveBottom(m_tileCache.height() - 2);
+        painter.drawRect(tileRect);
+    }
 
     // Highlight context-sensitive objects
     painter.setPen(QColor(255, 0, 0));

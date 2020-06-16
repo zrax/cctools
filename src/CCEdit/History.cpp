@@ -17,7 +17,7 @@
 
 #include "History.h"
 
-CCEHistory::CCEHistory() : m_temp(0), m_entryCount(0)
+CCEHistory::CCEHistory() : m_temp(), m_entryCount()
 {
     m_history = new CCEHistoryNode(CCEHistoryNode::HistInit);
     m_present = m_history;
@@ -26,7 +26,7 @@ CCEHistory::CCEHistory() : m_temp(0), m_entryCount(0)
 CCEHistory::~CCEHistory()
 {
     CCEHistoryNode* node = m_history;
-    while (node != 0) {
+    while (node) {
         CCEHistoryNode* next = node->m_next;
         delete node;
         node = next;
@@ -36,7 +36,7 @@ CCEHistory::~CCEHistory()
 void CCEHistory::clear()
 {
     CCEHistoryNode* node = m_history;
-    while (node != 0) {
+    while (node) {
         CCEHistoryNode* next = node->m_next;
         delete node;
         node = next;
@@ -75,7 +75,7 @@ void CCEHistory::endEdit(ccl::LevelData* after)
         m_temp->m_after = new ccl::LevelData(*after);
 
         CCEHistoryNode* node = m_present->m_next;
-        while (node != 0) {
+        while (node) {
             CCEHistoryNode* next = node->m_next;
             delete node;
             node = next;

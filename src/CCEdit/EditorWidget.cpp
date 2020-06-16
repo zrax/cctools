@@ -350,7 +350,7 @@ void EditorWidget::renderTo(QPainter& painter)
     if ((m_paintFlags & ShowPlayer) != 0) {
         painter.setPen(QColor(255, 127, 0));
         QPoint playerPos = find_player(m_levelData);
-        painter.drawRect(calcTileRect(playerPos.x(), playerPos.y()));
+        painter.drawRect(calcTileRect(playerPos));
     }
 
     if ((m_paintFlags & ShowViewBox) != 0) {
@@ -369,19 +369,17 @@ void EditorWidget::renderTo(QPainter& painter)
 
     if ((m_paintFlags & ShowButtons) != 0) {
         painter.setPen(QColor(255, 0, 0));
-        std::list<ccl::Trap>::const_iterator trap_iter;
-        for (trap_iter = m_levelData->traps().begin(); trap_iter != m_levelData->traps().end(); ++trap_iter) {
-            if (!isValidPoint(trap_iter->button) || !isValidPoint(trap_iter->trap))
+        for (const auto& trap_iter : m_levelData->traps()) {
+            if (!isValidPoint(trap_iter.button) || !isValidPoint(trap_iter.trap))
                 continue;
-            painter.drawLine(calcTileCenter(trap_iter->button.X, trap_iter->button.Y),
-                             calcTileCenter(trap_iter->trap.X, trap_iter->trap.Y));
+            painter.drawLine(calcTileCenter(trap_iter.button.X, trap_iter.button.Y),
+                             calcTileCenter(trap_iter.trap.X, trap_iter.trap.Y));
         }
-        std::list<ccl::Clone>::const_iterator clone_iter;
-        for (clone_iter = m_levelData->clones().begin(); clone_iter != m_levelData->clones().end(); ++clone_iter) {
-            if (!isValidPoint(clone_iter->button) || !isValidPoint(clone_iter->clone))
+        for (const auto& clone_iter : m_levelData->clones()) {
+            if (!isValidPoint(clone_iter.button) || !isValidPoint(clone_iter.clone))
                 continue;
-            painter.drawLine(calcTileCenter(clone_iter->button.X, clone_iter->button.Y),
-                             calcTileCenter(clone_iter->clone.X, clone_iter->clone.Y));
+            painter.drawLine(calcTileCenter(clone_iter.button.X, clone_iter.button.Y),
+                             calcTileCenter(clone_iter.clone.X, clone_iter.clone.Y));
         }
     }
 
@@ -391,14 +389,13 @@ void EditorWidget::renderTo(QPainter& painter)
             painter.setPen(QColor(255, 0, 0));
         else
             painter.setPen(QColor(127, 127, 127));
-        painter.drawLine(calcTileCenter(m_origin.x(), m_origin.y()),
-                         calcTileCenter(m_current.x(), m_current.y()));
+        painter.drawLine(calcTileCenter(m_origin), calcTileCenter(m_current));
     }
 
-    // Hilight context-sensitive objects
+    // Highlight context-sensitive objects
     painter.setPen(QColor(255, 0, 0));
     foreach (QPoint hi, m_hilights)
-        painter.drawRect(calcTileRect(hi.x(), hi.y()));
+        painter.drawRect(calcTileRect(hi));
 }
 
 /* This is only used to generate special reports, so no old draw/render state
@@ -526,42 +523,40 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
     QString tipText;
 
     m_hilights.clear();
-    std::list<ccl::Trap>::const_iterator trap_iter;
-    for (trap_iter = m_levelData->traps().begin(); trap_iter != m_levelData->traps().end(); ++trap_iter) {
-        if (trap_iter->button.X == posX && trap_iter->button.Y == posY) {
-            if (isValidPoint(trap_iter->trap))
-                m_hilights << QPoint(trap_iter->trap.X, trap_iter->trap.Y);
+    for (const auto& trap_iter : m_levelData->traps()) {
+        if (trap_iter.button.X == posX && trap_iter.button.Y == posY) {
+            if (isValidPoint(trap_iter.trap))
+                m_hilights << QPoint(trap_iter.trap.X, trap_iter.trap.Y);
             if (!tipText.isEmpty())
                 tipText += "\n";
             tipText += tr("Trap: (%1, %2)")
-                       .arg(trap_iter->trap.X).arg(trap_iter->trap.Y);
+                       .arg(trap_iter.trap.X).arg(trap_iter.trap.Y);
         }
-        if (trap_iter->trap.X == posX && trap_iter->trap.Y == posY) {
-            if (isValidPoint(trap_iter->button))
-                m_hilights << QPoint(trap_iter->button.X, trap_iter->button.Y);
+        if (trap_iter.trap.X == posX && trap_iter.trap.Y == posY) {
+            if (isValidPoint(trap_iter.button))
+                m_hilights << QPoint(trap_iter.button.X, trap_iter.button.Y);
             if (!tipText.isEmpty())
                 tipText += "\n";
             tipText += tr("Button: (%1, %2)")
-                       .arg(trap_iter->button.X).arg(trap_iter->button.Y);
+                       .arg(trap_iter.button.X).arg(trap_iter.button.Y);
         }
     }
-    std::list<ccl::Clone>::const_iterator clone_iter;
-    for (clone_iter = m_levelData->clones().begin(); clone_iter != m_levelData->clones().end(); ++clone_iter) {
-        if (clone_iter->button.X == posX && clone_iter->button.Y == posY) {
-            if (isValidPoint(clone_iter->clone))
-                m_hilights << QPoint(clone_iter->clone.X, clone_iter->clone.Y);
+    for (const auto& clone_iter : m_levelData->clones()) {
+        if (clone_iter.button.X == posX && clone_iter.button.Y == posY) {
+            if (isValidPoint(clone_iter.clone))
+                m_hilights << QPoint(clone_iter.clone.X, clone_iter.clone.Y);
             if (!tipText.isEmpty())
                 tipText += "\n";
             tipText += tr("Cloner: (%1, %2)")
-                       .arg(clone_iter->clone.X).arg(clone_iter->clone.Y);
+                       .arg(clone_iter.clone.X).arg(clone_iter.clone.Y);
         }
-        if (clone_iter->clone.X == posX && clone_iter->clone.Y == posY) {
-            if (isValidPoint(clone_iter->button))
-                m_hilights << QPoint(clone_iter->button.X, clone_iter->button.Y);
+        if (clone_iter.clone.X == posX && clone_iter.clone.Y == posY) {
+            if (isValidPoint(clone_iter.button))
+                m_hilights << QPoint(clone_iter.button.X, clone_iter.button.Y);
             if (!tipText.isEmpty())
                 tipText += "\n";
             tipText += tr("Button: (%1, %2)")
-                       .arg(clone_iter->button.X).arg(clone_iter->button.Y);
+                       .arg(clone_iter.button.X).arg(clone_iter.button.Y);
         }
     }
 
@@ -594,12 +589,11 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
     }
 
     if (MONSTER_TILE(m_levelData->map().getFG(posX, posY))) {
-        std::list<ccl::Point>::const_iterator move_iter;
         bool canMove = false;
         int moveIdx = 0;
-        for (move_iter = m_levelData->moveList().begin(); move_iter != m_levelData->moveList().end(); ++move_iter) {
+        for (const auto& move_iter : m_levelData->moveList()) {
             ++moveIdx;
-            if (move_iter->X == posX && move_iter->Y == posY) {
+            if (move_iter.X == posX && move_iter.Y == posY) {
                 if (!tipText.isEmpty())
                     tipText += "\n";
                 tipText += tr("Move order: %1").arg(moveIdx);

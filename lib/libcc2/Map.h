@@ -367,7 +367,12 @@ public:
 
     std::vector<uint8_t>& replay() { return m_replay; }
     const std::vector<uint8_t>& replay() const { return m_replay; }
-    void discardReplay() { m_replay.clear(); }
+
+    void discardReplay()
+    {
+        m_replay.clear();
+        m_option.setReplayValid(false);
+    }
 
     void ref()
     {

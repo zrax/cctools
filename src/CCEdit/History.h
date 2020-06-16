@@ -26,8 +26,8 @@ struct CCEHistoryNode {
         HistEditMech, HistToggleWalls,
     };
 
-    CCEHistoryNode(Type type)
-        : m_type(type), m_before(0), m_after(0), m_prev(0), m_next(0)
+    explicit CCEHistoryNode(Type type)
+        : m_type(type), m_before(), m_after(), m_prev(), m_next()
     { }
 
     ~CCEHistoryNode()
@@ -51,8 +51,8 @@ public:
     ~CCEHistory();
 
     void clear();
-    bool canUndo() const { return m_present->m_prev != 0; }
-    bool canRedo() const { return m_present->m_next != 0; }
+    bool canUndo() const { return m_present->m_prev != nullptr; }
+    bool canRedo() const { return m_present->m_next != nullptr; }
     ccl::LevelData* undo();
     ccl::LevelData* redo();
 
