@@ -32,6 +32,8 @@
 #include "libcc1/DacFile.h"
 #include "libcc1/CCMetaData.h"
 
+class EditorTabWidget;
+
 class CCEditMain : public QMainWindow {
     Q_OBJECT
 
@@ -80,7 +82,7 @@ private:
     EditorWidget::DrawMode m_currentDrawMode;
     double m_zoomFactor;
 
-    QTabWidget* m_editorTabs;
+    EditorTabWidget* m_editorTabs;
     QTabWidget* m_toolTabs;
     QListWidget* m_levelList;
     QLineEdit* m_nameEdit;

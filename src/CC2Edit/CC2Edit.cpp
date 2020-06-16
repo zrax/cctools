@@ -17,6 +17,7 @@
 
 #include "CC2Edit.h"
 #include "EditorWidget.h"
+#include "ExtWidgets.h"
 #include "TileWidgets.h"
 #include "ScriptTools.h"
 #include "TestSetup.h"
@@ -615,9 +616,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_toolTabs->addTab(sortedTiles, tr("&Tiles - Sorted"));
 
     // Editor area
-    m_editorTabs = new QTabWidget(this);
-    m_editorTabs->setMovable(true);
-    m_editorTabs->setTabsClosable(true);
+    m_editorTabs = new EditorTabWidget(this);
     setCentralWidget(m_editorTabs);
 
     // Main Menu

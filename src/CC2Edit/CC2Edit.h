@@ -34,6 +34,7 @@ class QPlainTextEdit;
 class QActionGroup;
 
 class CC2EditorWidget;
+class EditorTabWidget;
 
 class CC2EditMain : public QMainWindow {
     Q_OBJECT
@@ -131,7 +132,7 @@ private:
 
     cc2::Tile m_foreground, m_background;
 
-    QTabWidget* m_editorTabs;
+    EditorTabWidget* m_editorTabs;
 
     QString m_dialogDir;
     QProcess* m_subProc;

@@ -28,6 +28,7 @@ set(CCEdit_HEADERS
     TestSetup.h
     ErrorCheck.h
     Organizer.h
+    ExtWidgets.h
 )
 
 set(CCEdit_SOURCES
@@ -41,6 +42,7 @@ set(CCEdit_SOURCES
     TestSetup.cpp
     ErrorCheck.cpp
     Organizer.cpp
+    ExtWidgets.cpp
 )
 
 if(WIN32)

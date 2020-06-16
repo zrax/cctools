@@ -44,6 +44,7 @@
 #include <ctime>
 #include "LevelsetProps.h"
 #include "Organizer.h"
+#include "ExtWidgets.h"
 #include "TileWidgets.h"
 #include "LayerWidget.h"
 #include "AdvancedMechanics.h"
@@ -499,14 +500,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_toolTabs->addTab(allTileWidget, tr("&All Tiles"));
 
     // Editor area
-    m_editorTabs = new QTabWidget(this);
-    QToolButton* newTabButton = new QToolButton(m_editorTabs);
-    newTabButton->setIcon(QIcon(":/res/tab-new-sm.png"));
-    newTabButton->setStatusTip(tr("Open a new editor tab"));
-    newTabButton->setAutoRaise(true);
-    m_editorTabs->setCornerWidget(newTabButton, Qt::TopLeftCorner);
-    m_editorTabs->setMovable(true);
-    m_editorTabs->setTabsClosable(true);
+    m_editorTabs = new EditorTabWidget(this);
     setCentralWidget(m_editorTabs);
 
     // Main Menu
@@ -687,9 +681,9 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(toolDock, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)), SLOT(onDockChanged(Qt::DockWidgetArea)));
     connect(qApp->clipboard(), SIGNAL(dataChanged()), SLOT(onClipboardDataChanged()));
 
-    connect(m_editorTabs, SIGNAL(tabCloseRequested(int)), SLOT(onCloseTab(int)));
-    connect(m_editorTabs, SIGNAL(currentChanged(int)), SLOT(onTabChanged(int)));
-    connect(newTabButton, SIGNAL(clicked()), SLOT(onNewTab()));
+    connect(m_editorTabs, &QTabWidget::tabCloseRequested, this, &CCEditMain::onCloseTab);
+    connect(m_editorTabs, &QTabWidget::currentChanged, this, &CCEditMain::onTabChanged);
+    connect(m_editorTabs, &EditorTabWidget::newTabRequested, this, &CCEditMain::onNewTab);
 
     // Load window settings and defaults
     QSettings settings("CCTools", "CCEdit");

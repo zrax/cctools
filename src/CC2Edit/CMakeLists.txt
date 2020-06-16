@@ -20,6 +20,7 @@ set(CC2Edit_HEADERS
     About.h
     CC2Edit.h
     EditorWidget.h
+    ExtWidgets.h
     ScriptEditor.h
     ScriptTools.h
     TestSetup.h
@@ -29,6 +30,7 @@ set(CC2Edit_HEADERS
 set(CC2Edit_SOURCES
     CC2Edit.cpp
     EditorWidget.cpp
+    ExtWidgets.cpp
     ScriptEditor.cpp
     ScriptTools.cpp
     TestSetup.cpp
