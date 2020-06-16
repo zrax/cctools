@@ -1348,9 +1348,26 @@ void CC2EditMain::onTestChips2()
     listFile.close();
 
     QString cwd = QDir::currentPath();
-    QDir exePath = chips2Exe;
-    exePath.cdUp();
-    QDir::setCurrent(exePath.absolutePath());
+    chips2Dir.setPath(m_testGameDir);
+    if (chips2Dir.exists("steam_api.dll") && !chips2Dir.exists("steam_appid.txt")) {
+        // This enables the game to work without being launched from Steam
+        QFile appidFile(chips2Dir.absoluteFilePath("steam_appid.txt"));
+        if (!appidFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            QMessageBox::critical(this, tr("Error setting up playtest"),
+                    tr("Could not write steam_appid.txt.  Do you have write access?"));
+            return;
+        }
+        if (chips2Exe.contains(QLatin1String("chips2"), Qt::CaseInsensitive)) {
+            // Chip's Challenge 2
+            appidFile.write("348300");
+        } else {
+            // Chip's Challenge 1
+            appidFile.write("346850");
+        }
+        appidFile.close();
+    }
+
+    QDir::setCurrent(chips2Dir.absolutePath());
     m_subProc = new QProcess(this);
     connect(m_subProc, SIGNAL(finished(int)), this, SLOT(onProcessFinished(int)));
     connect(m_subProc, SIGNAL(error(QProcess::ProcessError)),
