@@ -19,6 +19,7 @@
 #include "EditorWidget.h"
 #include "TileWidgets.h"
 #include "ScriptTools.h"
+#include "TestSetup.h"
 #include "About.h"
 
 #include <QApplication>
@@ -67,7 +68,7 @@ enum TileListId {
     cc2::Tile(cc2::Tile::LogicGate, baseGate##_W)
 
 CC2EditMain::CC2EditMain(QWidget* parent)
-    : QMainWindow(parent), m_currentTileset()
+    : QMainWindow(parent), m_currentTileset(), m_subProc()
 {
     setWindowTitle(CC2EDIT_TITLE);
     setDockOptions(QMainWindow::AnimatedDocks);
@@ -202,6 +203,13 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     zoomGroup->addAction(m_actions[ActionZoom125]);
     zoomGroup->addAction(m_actions[ActionZoomCust]);
     zoomGroup->addAction(m_actions[ActionZoomFit]);
+
+    m_actions[ActionTest] = new QAction(tr("&Test"), this);
+    m_actions[ActionTest]->setStatusTip(tr("Test the current level in Chip's Challenge 2"));
+    m_actions[ActionTest]->setShortcut(Qt::Key_F5);
+    m_actions[ActionTest]->setEnabled(false);
+    m_actions[ActionTestSetup] = new QAction(tr("&Setup Testing..."), this);
+    m_actions[ActionTestSetup]->setStatusTip(tr("Setup testing parameters and options"));
 
     m_actions[ActionAbout] = new QAction(QIcon(":/res/help-about.png"), tr("&About CC2Edit"), this);
     m_actions[ActionAbout]->setStatusTip(tr("Show information about CC2Edit"));
@@ -661,6 +669,11 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     zoomMenu->addAction(m_actions[ActionZoomCust]);
     zoomMenu->addAction(m_actions[ActionZoomFit]);
 
+    QMenu* testMenu = menuBar()->addMenu(tr("Te&st"));
+    testMenu->addAction(m_actions[ActionTest]);
+    testMenu->addSeparator();
+    testMenu->addAction(m_actions[ActionTestSetup]);
+
     QMenu* helpMenu = menuBar()->addMenu(tr("&Help"));
     helpMenu->addAction(m_actions[ActionAbout]);
 
@@ -705,6 +718,12 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     connect(m_actions[ActionZoom125], &QAction::triggered, this, [this] { setZoomFactor(0.125); });
     connect(m_actions[ActionZoomCust], &QAction::triggered, this, &CC2EditMain::onZoomCust);
     connect(m_actions[ActionZoomFit], &QAction::triggered, this, &CC2EditMain::onZoomFit);
+
+    connect(m_actions[ActionTest], &QAction::triggered, this, &CC2EditMain::onTestChips2);
+    connect(m_actions[ActionTestSetup], &QAction::triggered, this, [] {
+        TestSetupDialog dlg;
+        dlg.exec();
+    });
 
     connect(m_actions[ActionAbout], &QAction::triggered, this, [this] {
         AboutDialog about(this);
@@ -815,6 +834,7 @@ void CC2EditMain::createNewMap()
     m_actions[ActionClose]->setEnabled(true);
     m_actions[ActionGenReport]->setEnabled(true);
     m_actions[ActionSelect]->setEnabled(true);
+    m_actions[ActionTest]->setEnabled(true);
 }
 
 void CC2EditMain::createNewScript()
@@ -826,6 +846,7 @@ void CC2EditMain::createNewScript()
     m_actions[ActionClose]->setEnabled(true);
     m_actions[ActionGenReport]->setEnabled(false);
     m_actions[ActionSelect]->setEnabled(false);
+    m_actions[ActionTest]->setEnabled(true);
 }
 
 void CC2EditMain::loadFile(const QString& filename)
@@ -875,6 +896,7 @@ void CC2EditMain::loadMap(const QString& filename)
     m_actions[ActionClose]->setEnabled(true);
     m_actions[ActionGenReport]->setEnabled(true);
     m_actions[ActionSelect]->setEnabled(true);
+    m_actions[ActionTest]->setEnabled(true);
 }
 
 void CC2EditMain::loadScript(const QString& filename)
@@ -935,6 +957,7 @@ void CC2EditMain::editScript(const QString& filename)
     m_actions[ActionClose]->setEnabled(true);
     m_actions[ActionGenReport]->setEnabled(false);
     m_actions[ActionSelect]->setEnabled(false);
+    m_actions[ActionTest]->setEnabled(true);
 }
 
 void CC2EditMain::registerTileset(const QString& filename)
@@ -1090,6 +1113,7 @@ void CC2EditMain::closeAllTabs()
     m_actions[ActionClose]->setEnabled(false);
     m_actions[ActionGenReport]->setEnabled(false);
     m_actions[ActionSelect]->setEnabled(false);
+    m_actions[ActionTest]->setEnabled(false);
 }
 
 void CC2EditMain::resizeEvent(QResizeEvent* event)
@@ -1170,6 +1194,171 @@ void CC2EditMain::onTilesetMenu(QAction* which)
     loadTileset(tileset);
 }
 
+void CC2EditMain::onTestChips2()
+{
+    auto editor = getEditorAt(m_editorTabs->currentIndex());
+    if (!editor)
+        return;
+
+    if (m_subProc) {
+        QMessageBox::critical(this, tr("Process already running"),
+                tr("A CCEdit test process is already running.  Please close the "
+                   "running process before trying to start a new one"),
+                QMessageBox::Ok);
+        return;
+    }
+
+    QSettings settings("CCTools", "CC2Edit");
+    QString chips2Exe = settings.value("Chips2Exe").toString();
+    if (chips2Exe.isEmpty() || !QFile::exists(chips2Exe)) {
+        QMessageBox::critical(this, tr("Could not find Chips2 executable"),
+                tr("Could not find Chip's Challenge 2 executable.\n"
+                   "Please configure Chips2 in the Test Setup dialog."));
+        return;
+    }
+#ifndef Q_OS_WIN
+    QString winePath = settings.value("WineExe").toString();
+    if (winePath.isEmpty() || !QFile::exists(winePath)) {
+        // Try standard paths
+        if (QFile::exists("/usr/bin/wine")) {
+            winePath = "/usr/bin/wine";
+        } else if (QFile::exists("/usr/local/bin/wine")) {
+            winePath = "/usr/local/bin/wine";
+        } else {
+            QMessageBox::critical(this, tr("Could not find WINE"),
+                    tr("Could not find WINE executable.\n"
+                       "Please configure WINE in the Test Setup dialog."));
+            return;
+        }
+    }
+#endif
+
+    QDir chips2Dir(chips2Exe);
+    chips2Dir.cdUp();
+    m_testGameDir = chips2Dir.absolutePath();
+    if (!chips2Dir.cd("data/games")) {
+        QMessageBox::critical(this, tr("Could not find game data"),
+                tr("Could not find game data relative to Chips2 executable."));
+        return;
+    }
+
+    if (chips2Dir.exists("CC2Edit-playtest") && chips2Dir.cd("CC2Edit-playtest")) {
+        chips2Dir.removeRecursively();
+        chips2Dir.cdUp();
+    }
+    if (!chips2Dir.mkdir("CC2Edit-playtest")) {
+        QMessageBox::critical(this, tr("Error setting up playtest"),
+                tr("Could not create playtest directory in %1.  Do you have write access?")
+                .arg(chips2Dir.absoluteFilePath("CC2Edit-playtest")));
+        return;
+    }
+    chips2Dir.cd("CC2Edit-playtest");
+    QFile testScript(chips2Dir.absoluteFilePath("playtest.c2g"));
+    if (!testScript.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QMessageBox::critical(this, tr("Error setting up playtest"),
+                tr("Could not create playtest script at %1.  Do you have write access?")
+                .arg(chips2Dir.absoluteFilePath("playtest.c2g")));
+        return;
+    }
+    testScript.write("game \"CC2Edit-playtest\"\n"
+                     "0 flags =\n"
+                     "0 score =\n"
+                     "0 hispeed =\n"
+                     "1 level =\n"
+                     "map \"playtest.c2m\"\n");
+    testScript.close();
+
+    ccl::FileStream fs;
+    if (!fs.open(chips2Dir.absoluteFilePath("playtest.c2m").toLocal8Bit().constData(), "wb")) {
+        QMessageBox::critical(this, tr("Error setting up playtest"),
+                tr("Could not create playtest map at %1.  Do you have write access?")
+                .arg(chips2Dir.absoluteFilePath("playtest.c2m")));
+        return;
+    }
+    editor->map()->write(&fs);
+    fs.close();
+
+    // Write a save and high score file, so we can jump directly into the map.
+    cc2::CC2Save save;
+    save.saveData().setLevel(1);
+    save.saveData().setLine(2);    // After the "game" directive
+    //save.saveData().setChecksum(what?);
+    save.setFilename("playtest.c2g");
+    save.setGamePath(QDir::toNativeSeparators(chips2Dir.absolutePath()).toStdString());
+
+    cc2::CC2HighScore highScore;
+    highScore.scores().emplace_back();
+    auto& levelScore = highScore.scores().back();
+    levelScore.setFilename("playtest.c2m");
+    levelScore.setGameType("CC2Edit-playtest");
+    levelScore.setTitle(editor->map()->title());
+    levelScore.saveData().setLevel(1);
+    levelScore.saveData().setLine(6);   // The line containing the "map" directive
+    //levelScore.saveData().setChecksum(what?);
+
+    QDir savesDir(m_testGameDir);
+    if (!savesDir.cd("data/saves")) {
+        QMessageBox::critical(this, tr("Could not find save data"),
+                              tr("Could not find save data relative to Chips2 executable."));
+        return;
+    }
+
+    if (savesDir.exists("CC2Edit-playtest") && savesDir.cd("CC2Edit-playtest")) {
+        savesDir.removeRecursively();
+        savesDir.cdUp();
+    }
+    if (!savesDir.mkdir("CC2Edit-playtest")) {
+        QMessageBox::critical(this, tr("Error setting up playtest"),
+                tr("Could not create playtest saves directory in %1.  Do you have write access?")
+                .arg(savesDir.absoluteFilePath("CC2Edit-playtest")));
+        return;
+    }
+    savesDir.cd("CC2Edit-playtest");
+
+    if (!fs.open(savesDir.absoluteFilePath("save.c2s").toLocal8Bit().constData(), "wb")) {
+        QMessageBox::critical(this, tr("Error setting up playtest"),
+                tr("Could not create playtest save data at %1.  Do you have write access?")
+                .arg(savesDir.absoluteFilePath("save.c2s")));
+        return;
+    }
+    save.write(&fs);
+    fs.close();
+
+    if (!fs.open(savesDir.absoluteFilePath("save.c2h").toLocal8Bit().constData(), "wb")) {
+        QMessageBox::critical(this, tr("Error setting up playtest"),
+                tr("Could not create playtest highscore data at %1.  Do you have write access?")
+                .arg(savesDir.absoluteFilePath("save.c2h")));
+        return;
+    }
+    highScore.write(&fs);
+    fs.close();
+
+    // Indicate the currently active game
+    chips2Dir.cdUp();
+    if (chips2Dir.exists("save.c2l") && !chips2Dir.exists("save.c2l.CC2Edit-backup"))
+        chips2Dir.rename("save.c2l", "save.c2l.CC2Edit-backup");
+    QFile listFile(chips2Dir.absoluteFilePath("save.c2l"));
+    if (!listFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QMessageBox::critical(this, tr("Error setting up playtest"),
+                tr("Could not create file at %1.  Do you have write access?")
+                .arg(chips2Dir.absoluteFilePath("save.c2l")));
+        return;
+    }
+    listFile.write("CC2Edit-playtest/save.c2s");
+    listFile.close();
+
+    QString cwd = QDir::currentPath();
+    QDir exePath = chips2Exe;
+    exePath.cdUp();
+    QDir::setCurrent(exePath.absolutePath());
+    m_subProc = new QProcess(this);
+    connect(m_subProc, SIGNAL(finished(int)), this, SLOT(onProcessFinished(int)));
+    connect(m_subProc, SIGNAL(error(QProcess::ProcessError)),
+            this, SLOT(onProcessError(QProcess::ProcessError)));
+    m_subProc->start(chips2Exe, QStringList());
+    QDir::setCurrent(cwd);
+}
+
 void CC2EditMain::onDockChanged(Qt::DockWidgetArea area)
 {
     if (area == Qt::RightDockWidgetArea)
@@ -1189,6 +1378,7 @@ void CC2EditMain::onCloseTab(int index)
         m_actions[ActionClose]->setEnabled(false);
         m_actions[ActionGenReport]->setEnabled(false);
         m_actions[ActionSelect]->setEnabled(false);
+        m_actions[ActionTest]->setEnabled(false);
     }
 }
 
@@ -1270,6 +1460,43 @@ void CC2EditMain::setBackground(const cc2::Tile* tile)
     m_background = *tile;
     emit backgroundChanged(tile);
 }
+
+void CC2EditMain::onProcessError(QProcess::ProcessError err)
+{
+    if (err == QProcess::FailedToStart) {
+        QMessageBox::critical(this, tr("Error starting process"),
+                tr("Error starting test process.  Please check your settings "
+                   "and try again"), QMessageBox::Ok);
+    }
+    onProcessFinished(-1);
+}
+
+void CC2EditMain::onProcessFinished(int)
+{
+    // Clean up temporary files
+    QDir chips2Dir(m_testGameDir);
+    if (chips2Dir.exists("data/games/CC2Edit-playtest") && chips2Dir.cd("data/games/CC2Edit-playtest")) {
+        chips2Dir.removeRecursively();
+        chips2Dir.cd("../../..");
+    }
+    if (chips2Dir.exists("data/saves/CC2Edit-playtest") && chips2Dir.cd("data/saves/CC2Edit-playtest")) {
+        chips2Dir.removeRecursively();
+        chips2Dir.cd("../../..");
+    }
+    if (chips2Dir.exists("data/games") && chips2Dir.cd("data/games")) {
+        if (chips2Dir.exists("save.c2l") && chips2Dir.exists("save.c2l.CC2Edit-backup")) {
+            chips2Dir.remove("save.c2l");
+            chips2Dir.rename("save.c2l.CC2Edit-backup", "save.c2l");
+        }
+        chips2Dir.cd("../..");
+    }
+
+    // Clean up subproc
+    m_subProc->disconnect();
+    m_subProc->deleteLater();
+    m_subProc = nullptr;
+}
+
 
 int main(int argc, char* argv[])
 {

@@ -19,6 +19,7 @@
 #define _CC2EDIT_H
 
 #include <QMainWindow>
+#include <QProcess>
 #include "libcc2/Map.h"
 #include "libcc2/Tileset.h"
 #include "ScriptEditor.h"
@@ -70,6 +71,7 @@ private Q_SLOTS:
     void onZoomCust();
     void onZoomFit();
     void onTilesetMenu(QAction*);
+    void onTestChips2();
 
     void onDockChanged(Qt::DockWidgetArea);
     void onCloseTab(int);
@@ -77,6 +79,9 @@ private Q_SLOTS:
 
     void setForeground(const cc2::Tile*);
     void setBackground(const cc2::Tile*);
+
+    void onProcessError(QProcess::ProcessError err);
+    void onProcessFinished(int result);
 
 private:
     enum ActionType {
@@ -87,7 +92,7 @@ private:
         ActionToggleWalls, ActionViewActivePlayer, ActionViewViewport,
         ActionViewMonsterPaths,
         ActionZoom100, ActionZoom75, ActionZoom50, ActionZoom25, ActionZoom125,
-        ActionZoomCust, ActionZoomFit, ActionAbout,
+        ActionZoomCust, ActionZoomFit, ActionTest, ActionTestSetup, ActionAbout,
         ActionReloadScript, ActionEditScript,
         NUM_ACTIONS
     };
@@ -129,6 +134,8 @@ private:
     QTabWidget* m_editorTabs;
 
     QString m_dialogDir;
+    QProcess* m_subProc;
+    QString m_testGameDir;
 
     void registerTileset(const QString& filename);
 };

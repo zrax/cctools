@@ -26,7 +26,7 @@ class TestSetupDialog : public QDialog {
     Q_OBJECT
 
 public:
-    TestSetupDialog(QWidget* parent = 0);
+    TestSetupDialog(QWidget* parent = nullptr);
 
 private:
 #ifndef Q_OS_WIN

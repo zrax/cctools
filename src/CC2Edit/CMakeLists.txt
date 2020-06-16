@@ -22,6 +22,7 @@ set(CC2Edit_HEADERS
     EditorWidget.h
     ScriptEditor.h
     ScriptTools.h
+    TestSetup.h
     TileWidgets.h
 )
 
@@ -30,6 +31,7 @@ set(CC2Edit_SOURCES
     EditorWidget.cpp
     ScriptEditor.cpp
     ScriptTools.cpp
+    TestSetup.cpp
     TileWidgets.cpp
 )
 

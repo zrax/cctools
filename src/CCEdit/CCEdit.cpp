@@ -1897,7 +1897,7 @@ void CCEditMain::onTestTWorld(unsigned int levelsetType, bool tworld2)
     if (m_levelset == 0 || m_levelList->currentRow() < 0)
         return;
 
-    if (m_subProc != 0) {
+    if (m_subProc) {
         QMessageBox::critical(this, tr("Process already running"),
                 tr("A CCEdit test process is already running.  Please close the "
                    "running process before trying to start a new one"),

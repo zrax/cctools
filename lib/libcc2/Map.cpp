@@ -526,7 +526,7 @@ void cc2::Map::read(ccl::Stream* stream)
         } else {
             fprintf(stderr, "Warning: Unrecognized field '%c%c%c%c' in map file.\n",
                     tag[0], tag[1], tag[2], tag[3]);
-            FieldStorage unknown;
+            CC2FieldStorage unknown;
             memcpy(unknown.tag, tag, sizeof(unknown.tag));
             unknown.data.resize(size);
             stream->read(&unknown.data[0], 1, size);
@@ -623,6 +623,210 @@ void cc2::Map::write(ccl::Stream* stream) const
 
     if (m_readOnly)
         writeTaggedBlock<0>(stream, "RDNY");
+
+    // End of tagged data
+    writeTaggedBlock<0>(stream, "END ");
+}
+
+
+#define SAVE_DATA_SIZE 100
+
+void cc2::SaveData::read(ccl::Stream* stream, size_t size)
+{
+    // We treat all fields as optional with a zero-default
+    size_t alloc_size = std::max((size_t)SAVE_DATA_SIZE, size);
+    std::unique_ptr<uint8_t[]> buffer(new uint8_t[alloc_size]);
+    memset(buffer.get(), 0, alloc_size);
+    if (stream->read(buffer.get(), 1, size) != size)
+        throw ccl::IOException("Read past end of stream");
+
+    const uint8_t* bufp = buffer.get();
+    auto read32 = [&bufp](uint32_t& value) {
+        memcpy(&value, bufp, sizeof(uint32_t));
+        bufp += sizeof(uint32_t);
+        value = SWAP32(value);
+    };
+
+    read32(m_line);
+    read32(m_score);
+    read32(m_scoreBonus);
+    read32(m_timeLeft);
+    read32(m_chipsLeft);
+    read32(m_bonus);
+    read32(m_level);
+    read32(m_time);
+    read32(m_tries);
+    read32(m_gender);
+    read32(m_enter);
+    read32(m_exit);
+    read32(m_finished);
+    read32(m_result);
+    read32(m_reg1);
+    read32(m_reg2);
+    read32(m_reg3);
+    read32(m_reg4);
+    read32(m_menu);
+    read32(m_flags);
+    read32(m_tools);
+    read32(m_keys);
+    read32(m_lastTime);
+    read32(m_levelScore);
+    read32(m_checksum);
+
+    Q_ASSERT((bufp - buffer.get()) == SAVE_DATA_SIZE);
+}
+
+void cc2::SaveData::write(ccl::Stream* stream) const
+{
+    // Write the whole block of known options, and truncate it if
+    // possible to a shorter size.
+    uint8_t buffer[SAVE_DATA_SIZE];
+
+    uint8_t* bufp = buffer;
+    auto write32 = [&bufp](const uint32_t& value) {
+        uint32_t wval = SWAP32(value);
+        memcpy(bufp, &wval, sizeof(uint32_t));
+        bufp += sizeof(uint32_t);
+    };
+
+    write32(m_line);
+    write32(m_score);
+    write32(m_scoreBonus);
+    write32(m_timeLeft);
+    write32(m_chipsLeft);
+    write32(m_bonus);
+    write32(m_level);
+    write32(m_time);
+    write32(m_tries);
+    write32(m_gender);
+    write32(m_enter);
+    write32(m_exit);
+    write32(m_finished);
+    write32(m_result);
+    write32(m_reg1);
+    write32(m_reg2);
+    write32(m_reg3);
+    write32(m_reg4);
+    write32(m_menu);
+    write32(m_flags);
+    write32(m_tools);
+    write32(m_keys);
+    write32(m_lastTime);
+    write32(m_levelScore);
+    write32(m_checksum);
+
+    Q_ASSERT((bufp - buffer) == SAVE_DATA_SIZE);
+    if (stream->write(buffer, 1, SAVE_DATA_SIZE) != SAVE_DATA_SIZE)
+        throw ccl::IOException("Error writing to stream");
+}
+
+
+void cc2::CC2HighScore::read(ccl::Stream* stream)
+{
+    char tag[4];
+    uint32_t size;
+    bool have_magic = false;
+
+    for ( ;; ) {
+        if (stream->read(tag, 1, sizeof(tag)) != sizeof(tag))
+            throw ccl::IOException("Read past end of stream");
+        size = stream->read32();
+
+        if (memcmp(tag, "CC2H", 4) == 0) {
+            m_version = stream->readString(size);
+            have_magic = true;
+        } else if (memcmp(tag, "FILE", 4) == 0) {
+            m_scores.emplace_back();
+            m_scores.back().setFilename(stream->readString(size));
+        } else if (memcmp(tag, "TYPE", 4) == 0) {
+            if (m_scores.empty())
+                throw ccl::IOException("Got a TYPE field with no FILE");
+            m_scores.back().setGameType(stream->readString(size));
+        } else if (memcmp(tag, "NAME", 4) == 0) {
+            if (m_scores.empty())
+                throw ccl::IOException("Got a NAME field with no FILE");
+            m_scores.back().setTitle(stream->readString(size));
+        } else if (memcmp(tag, "SAVE", 4) == 0) {
+            if (m_scores.empty())
+                throw ccl::IOException("Got a SAVE field with no FILE");
+            m_scores.back().saveData().read(stream, size);
+        } else if (memcmp(tag, "END ", 4) == 0) {
+            stream->seek(size, SEEK_CUR);
+            break;
+        } else {
+            fprintf(stderr, "Warning: Unrecognized field '%c%c%c%c' in c2h file.\n",
+                    tag[0], tag[1], tag[2], tag[3]);
+            CC2FieldStorage unknown;
+            memcpy(unknown.tag, tag, sizeof(unknown.tag));
+            unknown.data.resize(size);
+            stream->read(&unknown.data[0], 1, size);
+        }
+    }
+
+    if (!have_magic)
+        throw ccl::FormatException("Invalid c2h file format");
+}
+
+void cc2::CC2HighScore::write(ccl::Stream* stream) const
+{
+    writeTaggedString(stream, "CC2H", m_version);
+
+    for (const auto& score : m_scores) {
+        writeTaggedString(stream, "FILE", score.filename());
+        writeTaggedString(stream, "TYPE", score.gameType());
+        writeTaggedString(stream, "NAME", score.title());
+        writeTagged(stream, "SAVE", [&] { score.saveData().write(stream); });
+    }
+
+    // End of tagged data
+    writeTaggedBlock<0>(stream, "END ");
+}
+
+
+void cc2::CC2Save::read(ccl::Stream* stream)
+{
+    char tag[4];
+    uint32_t size;
+    bool have_magic = false;
+
+    for ( ;; ) {
+        if (stream->read(tag, 1, sizeof(tag)) != sizeof(tag))
+            throw ccl::IOException("Read past end of stream");
+        size = stream->read32();
+
+        if (memcmp(tag, "CC2S", 4) == 0) {
+            m_version = stream->readString(size);
+            have_magic = true;
+        } else if (memcmp(tag, "FILE", 4) == 0) {
+            m_filename = stream->readString(size);
+        } else if (memcmp(tag, "PATH", 4) == 0) {
+            m_gamePath = stream->readString(size);
+        } else if (memcmp(tag, "GAME", 4) == 0) {
+            m_save.read(stream, size);
+        } else if (memcmp(tag, "END ", 4) == 0) {
+            stream->seek(size, SEEK_CUR);
+            break;
+        } else {
+            fprintf(stderr, "Warning: Unrecognized field '%c%c%c%c' in c2h file.\n",
+                    tag[0], tag[1], tag[2], tag[3]);
+            CC2FieldStorage unknown;
+            memcpy(unknown.tag, tag, sizeof(unknown.tag));
+            unknown.data.resize(size);
+            stream->read(&unknown.data[0], 1, size);
+        }
+    }
+
+    if (!have_magic)
+        throw ccl::FormatException("Invalid c2h file format");
+}
+
+void cc2::CC2Save::write(ccl::Stream* stream) const
+{
+    writeTaggedString(stream, "CC2S", m_version);
+
+    writeTaggedString(stream, "FILE", m_filename);
+    writeTaggedString(stream, "PATH", m_gamePath);
+    writeTagged(stream, "SAVE", [&] { m_save.write(stream); });
 
     // End of tagged data
     writeTaggedBlock<0>(stream, "END ");

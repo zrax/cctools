@@ -328,6 +328,12 @@ private:
     Tile* m_map;
 };
 
+struct CC2FieldStorage
+{
+    char tag[4];
+    std::vector<uint8_t> data;
+};
+
 class Map {
 public:
     Map() : m_refs(1), m_version("7"), m_key(), m_readOnly() { }
@@ -344,13 +350,13 @@ public:
     std::string note() const { return m_note; }
     bool readOnly() const { return m_readOnly; }
 
-    void setVersion(const std::string& version) { m_version = version; }
-    void setLock(const std::string& lock) { m_lock = lock; }
-    void setTitle(const std::string& title) { m_title = title; }
-    void setAuthor(const std::string& author) { m_author = author; }
-    void setEditorVersion(const std::string& version) { m_editorVersion = version; }
-    void setClue(const std::string& clue) { m_clue = clue; }
-    void setNote(const std::string& note) { m_note = note; }
+    void setVersion(std::string version) { m_version = std::move(version); }
+    void setLock(std::string lock) { m_lock = std::move(lock); }
+    void setTitle(std::string title) { m_title = std::move(title); }
+    void setAuthor(std::string author) { m_author = std::move(author); }
+    void setEditorVersion(std::string version) { m_editorVersion = std::move(version); }
+    void setClue(std::string clue) { m_clue = std::move(clue); }
+    void setNote(std::string note) { m_note = std::move(note); }
     void setReadOnly(bool ro) { m_readOnly = ro; }
 
     MapOption& option() { return m_option; }
@@ -392,12 +398,121 @@ private:
     std::vector<uint8_t> m_replay;
     bool m_readOnly;
 
-    struct FieldStorage
-    {
-        char tag[4];
-        std::vector<uint8_t> data;
+    std::vector<CC2FieldStorage> m_unknown;
+};
+
+class SaveData {
+public:
+    SaveData()
+        : m_line(), m_score(), m_scoreBonus(), m_timeLeft(), m_chipsLeft(),
+          m_bonus(), m_level(), m_time(), m_tries(), m_gender(), m_enter(),
+          m_exit(), m_finished(), m_result(), m_reg1(), m_reg2(), m_reg3(), m_reg4(),
+          m_menu(), m_flags(), m_tools(), m_keys(), m_lastTime(), m_levelScore(),
+          m_checksum() { }
+
+    void setLine(uint32_t line) { m_line = line; }
+    void setLevel(uint32_t level) { m_level = level; }
+    void setChecksum(uint32_t checksum) { m_checksum = checksum; }
+
+    void read(ccl::Stream* stream, size_t size);
+    void write(ccl::Stream* stream) const;
+
+private:
+    // From http://www.pvv.org/~spaans/CC2fileformat.txt
+    uint32_t m_line;        // 0 where in the script it is
+    uint32_t m_score;       //+ 1 total score for all levels ( this should probably be global)
+    uint32_t m_scoreBonus;  //+ 2 flag bonus
+    uint32_t m_timeLeft;    //- 3 sixtyth of a seconds left
+    uint32_t m_chipsLeft;   //+ 4 chips left (assuming exited and counter was non zero)
+    uint32_t m_bonus;       //+ 5 time bonus
+    uint32_t m_level;       // 6 level number
+    uint32_t m_time;        // 7 initial time in seconds
+    uint32_t m_tries;       //- 8 how many try for Yowser!, ect
+    uint32_t m_gender;      // 9 exit gender
+    uint32_t m_enter;       // 10 which entry point was used (advanced scripting)
+    uint32_t m_exit;        // 11 which exit was used
+    uint32_t m_finished;    //+ 12 one (1) for levels that were finished
+    uint32_t m_result;      // 13 advanced scripting
+    uint32_t m_reg1;        // 14 advanced scripting
+    uint32_t m_reg2;        // 15 advanced scripting
+    uint32_t m_reg3;        // 16 advanced scripting
+    uint32_t m_reg4;        // 17 advanced scripting
+    uint32_t m_menu;        // 18 menu processing
+    uint32_t m_flags;       // 19 internal
+    uint32_t m_tools;       //+ 20 tools carried on exit
+    uint32_t m_keys;        //+ 21 keys carried on exit
+    uint32_t m_lastTime;    //+ 22 seconds left
+    uint32_t m_levelScore;  //+ 23 final score
+    uint32_t m_checksum;    // 24 level checksum
+};
+
+class CC2HighScore {
+public:
+    class ScoreData {
+    public:
+        ScoreData() = default;
+
+        std::string filename() const { return m_filename; }
+        std::string gameType() const { return m_gameType; }
+        std::string title() const { return m_title; }
+
+        void setFilename(std::string filename) { m_filename = std::move(filename); }
+        void setGameType(std::string type) { m_gameType = std::move(type); }
+        void setTitle(std::string title) { m_title = std::move(title); }
+
+        SaveData& saveData() { return m_save; }
+        const SaveData& saveData() const { return m_save; }
+
+    private:
+        std::string m_filename;
+        std::string m_gameType;
+        std::string m_title;
+        SaveData m_save;
     };
-    std::vector<FieldStorage> m_unknown;
+
+    CC2HighScore() : m_version("7") { }
+
+    void read(ccl::Stream* stream);
+    void write(ccl::Stream* stream) const;
+
+    std::string version() const { return m_version; }
+    void setVersion(std::string version) { m_version = std::move(version); }
+
+    std::vector<ScoreData>& scores() { return m_scores; }
+    const std::vector<ScoreData>& scores() const { return m_scores; }
+
+private:
+    std::string m_version;
+    std::vector<ScoreData> m_scores;
+
+    std::vector<CC2FieldStorage> m_unknown;
+};
+
+class CC2Save {
+public:
+    CC2Save() : m_version("7") { }
+
+    void read(ccl::Stream* stream);
+    void write(ccl::Stream* stream) const;
+
+    std::string version() const { return m_version; }
+    std::string filename() const { return m_filename; }
+    std::string gamePath() const { return m_gamePath; }
+
+    void setVersion(std::string version) { m_version = std::move(version); }
+    void setFilename(std::string filename) { m_filename = std::move(filename); }
+    void setGamePath(std::string path) { m_gamePath = std::move(path); }
+
+    SaveData& saveData() { return m_save; }
+    const SaveData& saveData() const { return m_save; }
+
+private:
+    std::string m_version;
+    std::string m_filename;
+    std::string m_gamePath;
+    SaveData m_save;
+
+    std::vector<CC2FieldStorage> m_unknown;
 };
 
 }
