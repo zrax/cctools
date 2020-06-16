@@ -65,7 +65,7 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
 
     m_chips2Path = new QLineEdit(settings.value("Chips2Exe").toString(), this);
     m_chips2Path->setCompleter(winExeCompleter);
-    auto lblChips2Path = new QLabel(tr("&Chips2 Path:"), this);
+    auto lblChips2Path = new QLabel(tr("&Chips2.exe Path:"), this);
     lblChips2Path->setBuddy(m_chips2Path);
     auto browseChips2 = new QToolButton(this);
     browseChips2->setIcon(QIcon(":/res/document-open-folder-sm.png"));
@@ -83,15 +83,22 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     layout->addWidget(lblWinePath, row, 0);
     layout->addWidget(m_winePath, row, 1);
     layout->addWidget(browseWine, row, 2);
+    auto wineLabel = new QLabel(
+            tr("Note: Leave WINE path empty to use system-installed location."),
+            this);
+    wineLabel->setWordWrap(true);
+    layout->addWidget(wineLabel, ++row, 0, 1, 3);
+    layout->addItem(new QSpacerItem(0, 10, QSizePolicy::Minimum, QSizePolicy::Minimum),
+                    ++row, 0, 1, 3);
 #endif
     layout->addWidget(lblChips2Path, ++row, 0);
     layout->addWidget(m_chips2Path, row, 1);
     layout->addWidget(browseChips2, row, 2);
-#ifndef Q_OS_WIN
-    layout->addWidget(new QLabel(
-            tr("Note: Leave WINE or Tile World paths empty to use system-installed locations"),
-            this), ++row, 0, 1, 3);
-#endif
+    auto chips1Label = new QLabel(
+            tr("Note: The Steam version of Chip's Challenge 1 (chips1.exe) may also be used."),
+            this);
+    chips1Label->setWordWrap(true);
+    layout->addWidget(chips1Label, ++row, 0, 1, 3);
     layout->addItem(new QSpacerItem(0, 0, QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding),
                     ++row, 0, 1, 3);
     layout->addWidget(buttons, ++row, 0, 1, 3);

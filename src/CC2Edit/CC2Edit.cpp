@@ -1360,7 +1360,7 @@ void CC2EditMain::onTestChips2()
         if (chips2Exe.contains(QLatin1String("chips2"), Qt::CaseInsensitive)) {
             // Chip's Challenge 2
             appidFile.write("348300");
-        } else {
+        } else if (chips2Exe.contains(QLatin1String("chips1"), Qt::CaseInsensitive)) {
             // Chip's Challenge 1
             appidFile.write("346850");
         }
