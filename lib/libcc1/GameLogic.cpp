@@ -43,14 +43,9 @@ void ccl::GetPreferredDirections(tile_t tile, ccl::Direction dirs[])
         dirs[3] = (ccl::Direction)(((tile + 2) & 0x03) + ccl::DirNorth);
         break;
     case TileBall_N:        // F,B
+    case TileTank_N:        // F,B  -- Treat tank as going both directions
         dirs[0] = (ccl::Direction)(((tile    ) & 0x03) + ccl::DirNorth);
         dirs[1] = (ccl::Direction)(((tile + 2) & 0x03) + ccl::DirNorth);
-        dirs[2] = ccl::DirInvalid;
-        dirs[3] = ccl::DirInvalid;
-        break;
-    case TileTank_N:        // F
-        dirs[0] = (ccl::Direction)(((tile    ) & 0x03) + ccl::DirNorth);
-        dirs[1] = ccl::DirInvalid;
         dirs[2] = ccl::DirInvalid;
         dirs[3] = ccl::DirInvalid;
         break;
@@ -98,18 +93,64 @@ ccl::MoveState ccl::CheckMove(ccl::LevelData* level, tile_t tile, int x, int y)
         ccl::Direction dir = dirs[i];
         if (dir == DirInvalid)
             return (ccl::MoveState)(state | MoveBlocked);
-        if ((base == TileBarrier_N || base == TileIce_SE || base == TileIce_SW)
-            && dir == DirNorth)
-            continue;
-        if ((base == TileBarrier_W || base == TileIce_SE || base == TileIce_NE)
-            && dir == DirWest)
-            continue;
-        if ((base == TileBarrier_S || base == TileBarrier_SE || base == TileIce_NE
-            || base == TileIce_NW) && dir == DirSouth)
-            continue;
-        if ((base == TileBarrier_E || base == TileBarrier_SE || base == TileIce_NW
-            || base == TileIce_SW) && dir == DirEast)
-            continue;
+
+        switch (base) {
+        case TileBarrier_N:
+            if (dir == DirNorth)
+                continue;
+            break;
+        case TileBarrier_W:
+            if (dir == DirWest)
+                continue;
+            break;
+        case TileBarrier_S:
+            if (dir == DirSouth)
+                continue;
+            break;
+        case TileBarrier_E:
+            if (dir == DirEast)
+                continue;
+            break;
+        case TileBarrier_SE:
+            if (dir == DirSouth || dir == DirEast)
+                continue;
+            break;
+        case TileIce_SE:
+            if (dir == DirNorth)
+                return (ccl::MoveState)(state | MoveEast);
+            if (dir == DirWest)
+                return (ccl::MoveState)(state | MoveSouth);
+            break;
+        case TileIce_SW:
+            if (dir == DirNorth)
+                return (ccl::MoveState)(state | MoveWest);
+            if (dir == DirEast)
+                return (ccl::MoveState)(state | MoveSouth);
+            break;
+        case TileIce_NW:
+            if (dir == DirSouth)
+                return (ccl::MoveState)(state | MoveWest);
+            if (dir == DirEast)
+                return (ccl::MoveState)(state | MoveNorth);
+            break;
+        case TileIce_NE:
+            if (dir == DirSouth)
+                return (ccl::MoveState)(state | MoveEast);
+            if (dir == DirWest)
+                return (ccl::MoveState)(state | MoveNorth);
+            break;
+        case TileForce_N:
+            return (ccl::MoveState)(state | MoveNorth);
+        case TileForce_W:
+            return (ccl::MoveState)(state | MoveWest);
+        case TileForce_S:
+            return (ccl::MoveState)(state | MoveSouth);
+        case TileForce_E:
+            return (ccl::MoveState)(state | MoveEast);
+        case TileForce_Rand:
+            // TODO: Blocked isn't really accurate here...
+            return (ccl::MoveState)(state | MoveBlocked);
+        }
 
         tile_t peek = (dir == DirNorth) ? GET_N1(x, y, level)
                     : (dir == DirWest)  ? GET_W1(x, y, level)
@@ -156,7 +197,7 @@ ccl::MoveState ccl::CheckMove(ccl::LevelData* level, tile_t tile, int x, int y)
             state |= MoveDeath;
         if (peek == TileTeleport)
             state |= MoveTeleport;
-        return (ccl::MoveState)(state | (MoveOk1 + i));
+        return (ccl::MoveState)(state | (dirs[i] - DirNorth));
     }
     return (ccl::MoveState)(state | MoveBlocked);
 }
@@ -166,12 +207,7 @@ tile_t ccl::TurnCreature(tile_t tile, MoveState state)
     if ((state & MoveDirMask) >= MoveBlocked)
         return tile;
 
-    ccl::Direction dirs[4];
-    GetPreferredDirections(tile, dirs);
-    ccl::Direction newDir = dirs[(state & MoveDirMask) - MoveOk1];
-    if (newDir == ccl::DirInvalid)
-        return tile;
-    return (tile & 0xFC) | (newDir - ccl::DirNorth);
+    return (tile & 0xFC) | (state & MoveDirMask);
 }
 
 ccl::Point ccl::AdvanceCreature(tile_t tile, const ccl::Point& pos, MoveState state)
@@ -180,23 +216,21 @@ ccl::Point ccl::AdvanceCreature(tile_t tile, const ccl::Point& pos, MoveState st
         return pos;
 
     ccl::Point result;
-    ccl::Direction dirs[4];
-    GetPreferredDirections(tile, dirs);
 
-    switch (dirs[(state & MoveDirMask) - MoveOk1]) {
-    case ccl::DirNorth:
+    switch (state & MoveDirMask) {
+    case ccl::MoveNorth:
         result.X = pos.X;
         result.Y = pos.Y - 1;
         break;
-    case ccl::DirWest:
+    case ccl::MoveWest:
         result.X = pos.X - 1;
         result.Y = pos.Y;
         break;
-    case ccl::DirSouth:
+    case ccl::MoveSouth:
         result.X = pos.X;
         result.Y = pos.Y + 1;
         break;
-    case ccl::DirEast:
+    case ccl::MoveEast:
         result.X = pos.X + 1;
         result.Y = pos.Y;
         break;

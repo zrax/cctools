@@ -199,11 +199,10 @@ static QPoint find_player(ccl::LevelData* levelData)
 
 
 EditorWidget::EditorWidget(QWidget* parent)
-            : QWidget(parent), m_tileset(0), m_levelData(0), m_leftTile(0),
-              m_rightTile(0), m_drawMode(DrawPencil), m_paintFlags(0),
-              m_cachedButton(Qt::NoButton),  m_numbers(":/res/numbers.png"),
-              m_errmk(":/res/err-mark.png"), m_lastDir(ccl::DirInvalid),
-              m_zoomFactor(1.0)
+    : QWidget(parent), m_tileset(), m_levelData(), m_leftTile(), m_rightTile(),
+      m_drawMode(DrawPencil), m_paintFlags(), m_cachedButton(Qt::NoButton),
+      m_numbers(":/res/numbers.png"), m_errmk(":/res/err-mark.png"),
+      m_lastDir(ccl::DirInvalid), m_zoomFactor(1.0)
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     setMouseTracking(true);

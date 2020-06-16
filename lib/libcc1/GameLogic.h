@@ -28,10 +28,10 @@
 namespace ccl {
 
 enum MoveState {
-    MoveOk1,        // OK to move (first choice)
-    MoveOk2,        // OK to move (second choice)
-    MoveOk3,        // OK to move (third choice)
-    MoveOk4,        // OK to move (final choice)
+    MoveNorth,      // OK to move, moves North
+    MoveWest,       // OK to move, moves West
+    MoveSouth,      // OK to move, moves South
+    MoveEast,       // OK to move, moves East
     MoveBlocked,    // All 4 directions are blocked
     MoveDirMask = 0x0F,
 
