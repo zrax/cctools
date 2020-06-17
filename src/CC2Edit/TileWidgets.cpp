@@ -56,8 +56,8 @@ void LayerWidget::paintEvent(QPaintEvent* event)
 
     QPainter painter(this);
     const int halfway = m_tileset->size() / 2;
-    m_tileset->drawAt(painter, halfway, halfway, &m_lower);
-    m_tileset->drawAt(painter, 0, 0, &m_upper);
+    m_tileset->drawAt(painter, halfway, halfway, &m_lower, false);
+    m_tileset->drawAt(painter, 0, 0, &m_upper, false);
 }
 
 

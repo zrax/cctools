@@ -29,6 +29,7 @@ class CC2EditorWidget : public QWidget {
 public:
     enum DrawMode {
         DrawPencil, DrawLine, DrawFill, DrawSelect, DrawPathMaker,
+        DrawInspectTile,
     };
 
     enum PaintFlags {
@@ -66,6 +67,9 @@ public:
         return QSize(width * tilesetSize * m_zoomFactor, height * tilesetSize * m_zoomFactor);
     }
 
+    DrawMode drawMode() const { return m_drawMode; }
+    void setDrawMode(DrawMode mode);
+
     void setPaintFlag(int flag)
     {
         m_paintFlags |= flag;
@@ -84,6 +88,15 @@ public:
 
     void renderTo(QPainter& painter);
 
+signals:
+    void mouseInfo(const QString& text, int timeout = 0);
+    void canUndo(bool);
+    void canRedo(bool);
+    void hasSelection(bool);
+    void makeDirty();
+
+    void inspectTile(cc2::Tile* tile);
+
 public slots:
     void setZoom(double factor);
 
@@ -100,7 +113,9 @@ private:
     QList<QPoint> m_hilights;
     DrawMode m_drawMode;
     uint32_t m_paintFlags;
+    Qt::MouseButton m_cachedButton;
     QPoint m_origin, m_current;
+    QRect m_selectRect;
 
     double m_zoomFactor;
     QPixmap m_tileBuffer;
@@ -134,13 +149,6 @@ private:
         return QSize(m_map->mapData().width() * m_tileset->size() * m_zoomFactor,
                      m_map->mapData().height() * m_tileset->size() * m_zoomFactor);
     }
-
-signals:
-    void mouseInfo(const QString& text, int timeout = 0);
-    void canUndo(bool);
-    void canRedo(bool);
-    void hasSelection(bool);
-    void makeDirty();
 };
 
 #endif

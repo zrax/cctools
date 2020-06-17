@@ -38,11 +38,7 @@ endif()
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
-find_package(Qt5Core REQUIRED)
-find_package(Qt5Gui REQUIRED)
-find_package(Qt5Xml REQUIRED)
-find_package(Qt5Widgets REQUIRED)
-find_package(Qt5Sql REQUIRED)
+find_package(Qt5 5.4 REQUIRED COMPONENTS Core Gui Xml Widgets Sql)
 
 set(CCTools_Tilesets
     ${CMAKE_CURRENT_SOURCE_DIR}/share/cctools/TW32.tis

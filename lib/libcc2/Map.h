@@ -167,14 +167,14 @@ public:
         Force_N, Force_E, Force_S, Force_W, ToggleWall, ToggleFloor,
         Teleport_Red, Teleport_Blue, Teleport_Yellow, Teleport_Green,
         Exit, Slime, Player, DirtBlock, Walker, Ship, IceBlock,
-        UNUSED_Barrier_S, UNUSED_Barrier_E, UNUSED_Barrier_SE, Gravel,
+        CC1_Barrier_S, CC1_Barrier_E, CC1_Barrier_SE, Gravel,
         ToggleButton, TankButton, BlueTank, Door_Red, Door_Blue,
         Door_Yellow, Door_Green, Key_Red, Key_Blue, Key_Yellow, Key_Green,
         Chip, ExtraChip, Socket, PopUpWall, AppearingWall, InvisWall,
         BlueWall, BlueFloor, Dirt, Ant, Centipede, Ball, Blob,
         AngryTeeth, FireBox, CloneButton, TrapButton, IceCleats, MagnoShoes,
         FireShoes, Flippers, ToolThief, RedBomb, UNUSED_41, Trap,
-        CC1Cloner, Cloner, Clue, Force_Rand, AreaCtlButton,
+        CC1_Cloner, Cloner, Clue, Force_Rand, AreaCtlButton,
         RevolvDoor_SW, RevolvDoor_NW, RevolvDoor_NE, RevolvDoor_SE,
         TimeBonus, ToggleClock, Transformer, TrainTracks, SteelWall,
         TimeBomb, Helmet, UNUSED_53, UNUSED_54, UNUSED_55, Player2,
@@ -190,6 +190,7 @@ public:
         UNUSED_85, UNUSED_86, RevLogicButton, Switch_Off, Switch_On,
         KeyThief, Ghost, SteelFoil, Turtle, Eye, Bribe, SpeedShoes,
         UNUSED_91, Hook,
+        NUM_TILE_TYPES,
     };
 
     enum Direction { North, East, South, West };
@@ -211,15 +212,15 @@ public:
     };
 
     explicit Tile(int type = Floor, uint32_t modifier = 0)
-        : m_type(type), m_direction(), m_arrowMask(), m_panelFlags(),
-          m_modifier(modifier), m_lower()
+        : m_type(type), m_direction(), m_tileFlags(), m_modifier(modifier),
+          m_lower()
     {
         checkLower();
     }
 
     Tile(int type, Direction dir, uint32_t modifier)
-        : m_type(type), m_direction(dir), m_arrowMask(), m_panelFlags(),
-          m_modifier(modifier), m_lower()
+        : m_type(type), m_direction(dir), m_tileFlags(), m_modifier(modifier),
+          m_lower()
     {
         checkLower();
     }
@@ -227,14 +228,14 @@ public:
     static Tile panelTile(uint8_t panelFlags)
     {
         Tile panel(PanelCanopy);
-        panel.setPanelFlags(panelFlags);
+        panel.setTileFlags(panelFlags);
         return panel;
     }
 
     static Tile dirBlockTile(uint8_t arrowMask)
     {
         Tile panel(DirBlock);
-        panel.setArrowMask(arrowMask);
+        panel.setTileFlags(arrowMask);
         return panel;
     }
 
@@ -245,18 +246,23 @@ public:
 
     Type type() const { return (Type)m_type; }
     Direction direction() const { return (Direction)m_direction; }
-    uint8_t arrowMask() const { return m_arrowMask; }
-    uint8_t panelFlags() const { return m_panelFlags; }
 
-    void set(int type, Direction dir = (Direction)0)
+    void setType(int type)
     {
         m_type = type;
-        m_direction = dir;
         checkLower();
     }
 
-    void setArrowMask(uint8_t mask) { m_arrowMask = mask; }
-    void setPanelFlags(uint8_t flags) { m_panelFlags = flags; }
+    void setDirection(Direction dir) { m_direction = dir; }
+
+    void set(int type, Direction dir = (Direction)0)
+    {
+        setType(type);
+        setDirection(dir);
+    }
+
+    uint8_t tileFlags() const { return m_tileFlags; }
+    void setTileFlags(uint8_t mask) { m_tileFlags = mask; }
 
     uint32_t modifier() const { return m_modifier; }
     void setModifier(uint32_t modifier) { m_modifier = modifier; }
@@ -267,10 +273,14 @@ public:
     Tile* lower() { return haveLower() ? m_lower : nullptr; }
     const Tile* lower() const { return haveLower() ? m_lower : nullptr; }
 
-    bool haveLower() const;
-    bool haveDirection() const;
+    static bool haveLower(int type);
+    static bool haveDirection(int type);
+    static bool supportsWires(int type);
+
+    bool haveLower() const { return haveLower(m_type); }
+    bool haveDirection() const { return haveDirection(m_type); }
+    bool supportsWires() const { return supportsWires(m_type); }
     bool needArrows() const;
-    bool supportsWires() const;
 
     bool needXray() const
     {
@@ -280,8 +290,7 @@ public:
 private:
     uint8_t m_type;
     uint8_t m_direction;
-    uint8_t m_arrowMask;
-    uint8_t m_panelFlags;
+    uint8_t m_tileFlags;
 
     // Attached modifier value, if any
     uint32_t m_modifier;

@@ -23,7 +23,7 @@
 
 CC2EditorWidget::CC2EditorWidget(QWidget* parent)
     : QWidget(parent), m_tileset(), m_map(), m_drawMode(DrawPencil),
-      m_paintFlags(), m_zoomFactor(1.0)
+      m_paintFlags(), m_cachedButton(Qt::NoButton), m_zoomFactor(1.0)
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     setMouseTracking(true);
@@ -55,6 +55,15 @@ void CC2EditorWidget::setMap(cc2::Map* map)
     emit hasSelection(false);
 }
 
+void CC2EditorWidget::setDrawMode(DrawMode mode)
+{
+    m_drawMode = mode;
+    m_origin = QPoint(-1, -1);
+    m_selectRect = QRect(-1, -1, -1, -1);
+    update();
+    emit hasSelection(false);
+}
+
 void CC2EditorWidget::renderTileBuffer()
 {
     if (!m_map)
@@ -64,7 +73,7 @@ void CC2EditorWidget::renderTileBuffer()
     const cc2::MapData& mapData = m_map->mapData();
     for (int y = 0; y < mapData.height(); ++y) {
         for (int x = 0; x < mapData.width(); ++x)
-            m_tileset->draw(tilePainter, x, y, mapData.tile(x, y));
+            m_tileset->draw(tilePainter, x, y, mapData.tile(x, y), true);
     }
 
     dirtyBuffer();
@@ -120,8 +129,8 @@ void CC2EditorWidget::mouseMoveEvent(QMouseEvent* event)
     if (!m_tileset || !m_map || !rect().contains(event->pos()))
         return;
 
-    int posX = event->x() / (m_tileset->size() * m_zoomFactor);
-    int posY = event->y() / (m_tileset->size() * m_zoomFactor);
+    const int posX = event->x() / (m_tileset->size() * m_zoomFactor);
+    const int posY = event->y() / (m_tileset->size() * m_zoomFactor);
     if (m_current == QPoint(posX, posY) && !m_cacheDirty)
         return;
     m_current = QPoint(posX, posY);
@@ -139,12 +148,35 @@ void CC2EditorWidget::mouseMoveEvent(QMouseEvent* event)
 
 void CC2EditorWidget::mousePressEvent(QMouseEvent* event)
 {
+    if (!m_tileset || !m_map || !rect().contains(event->pos()))
+        return;
+    if (m_cachedButton != Qt::NoButton
+            || (event->button() & (Qt::LeftButton | Qt ::MidButton | Qt::RightButton)) == 0)
+        return;
+
+    const int posX = event->x() / (m_tileset->size() * m_zoomFactor);
+    const int posY = event->y() / (m_tileset->size() * m_zoomFactor);
+    m_current = QPoint(-1, -1);
+    m_cachedButton = event->button();
+    m_origin = QPoint(posX, posY);
+
     mouseMoveEvent(event);
 }
 
 void CC2EditorWidget::mouseReleaseEvent(QMouseEvent* event)
 {
+    if (!m_tileset || !m_map || !rect().contains(event->pos()))
+        return;
+    if (event->button() != m_cachedButton)
+        return;
+
+    if (m_drawMode == DrawInspectTile) {
+        cc2::Tile* tile = m_map->mapData().tile(m_origin.x(), m_origin.y());
+        emit inspectTile(tile);
+    }
+
     update();
+    m_cachedButton = Qt::NoButton;
 }
 
 void CC2EditorWidget::setZoom(double factor)

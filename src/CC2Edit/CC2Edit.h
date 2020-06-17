@@ -22,6 +22,7 @@
 #include <QProcess>
 #include "libcc2/Map.h"
 #include "libcc2/Tileset.h"
+#include "EditorWidget.h"
 #include "ScriptEditor.h"
 
 class QLabel;
@@ -33,7 +34,6 @@ class QListWidget;
 class QPlainTextEdit;
 class QActionGroup;
 
-class CC2EditorWidget;
 class EditorTabWidget;
 
 class CC2EditMain : public QMainWindow {
@@ -68,7 +68,11 @@ protected:
 private Q_SLOTS:
     void onOpenAction();
     void onCloseAction();
+
+    void onInspectToggled(bool);
+
     void onViewViewportToggled(bool);
+
     void setZoomFactor(double);
     void onZoomCust();
     void onZoomFit();
@@ -91,6 +95,7 @@ private:
         ActionGenReport, ActionExit, ActionSelect, ActionCut, ActionCopy,
         ActionPaste, ActionClear, ActionUndo, ActionRedo, ActionDrawPencil,
         ActionDrawLine, ActionDrawFill, ActionPathMaker, ActionDrawWire,
+        ActionInspectTiles,
         ActionToggleWalls, ActionViewButtons, ActionViewActivePlayer,
         ActionViewViewport, ActionViewMonsterPaths,
         ActionZoom100, ActionZoom75, ActionZoom50, ActionZoom25, ActionZoom125,
@@ -103,6 +108,8 @@ private:
     QMenu* m_tilesetMenu;
     QActionGroup* m_tilesetGroup;
     CC2ETileset* m_currentTileset;
+    ActionType m_savedDrawMode;
+    CC2EditorWidget::DrawMode m_currentDrawMode;
     double m_zoomFactor;
 
     QTabWidget* m_toolTabs;

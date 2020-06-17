@@ -16,9 +16,9 @@
  ******************************************************************************/
 
 #include "CC2Edit.h"
-#include "EditorWidget.h"
 #include "ExtWidgets.h"
 #include "TileWidgets.h"
+#include "TileInspector.h"
 #include "ScriptTools.h"
 #include "TestSetup.h"
 #include "About.h"
@@ -69,7 +69,8 @@ enum TileListId {
     cc2::Tile(cc2::Tile::LogicGate, baseGate##_W)
 
 CC2EditMain::CC2EditMain(QWidget* parent)
-    : QMainWindow(parent), m_currentTileset(), m_subProc()
+    : QMainWindow(parent), m_currentTileset(),  m_savedDrawMode(ActionDrawPencil),
+      m_currentDrawMode(CC2EditorWidget::DrawPencil), m_subProc()
 {
     setWindowTitle(CC2EDIT_TITLE);
     setDockOptions(QMainWindow::AnimatedDocks);
@@ -148,6 +149,14 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_actions[ActionPathMaker]->setStatusTip(tr("Draw a directional path of tiles"));
     m_actions[ActionPathMaker]->setShortcut(Qt::CTRL | Qt::Key_M);
     m_actions[ActionPathMaker]->setCheckable(true);
+    m_actions[ActionDrawWire] = new QAction(QIcon(":/res/draw-wire.png"), tr("Draw &Wires"), this);
+    m_actions[ActionDrawWire]->setStatusTip(tr("Draw logic wires"));
+    m_actions[ActionDrawWire]->setShortcut(Qt::CTRL | Qt::Key_T);
+    m_actions[ActionDrawWire]->setCheckable(true);
+    m_actions[ActionInspectTiles] = new QAction(QIcon(":/res/draw-inspect.png"), tr("&Inspect Tiles"), this);
+    m_actions[ActionInspectTiles]->setStatusTip(tr("Inspect tiles and make advanced modifications"));
+    m_actions[ActionInspectTiles]->setShortcut(Qt::CTRL | Qt::Key_I);
+    m_actions[ActionInspectTiles]->setCheckable(true);
     m_actions[ActionToggleWalls] = new QAction(QIcon(":/res/cctools-gbutton.png"), tr("&Toggle Walls"), this);
     m_actions[ActionToggleWalls]->setStatusTip(tr("Toggle all toggle floors/walls in the current level"));
     m_actions[ActionToggleWalls]->setShortcut(Qt::CTRL | Qt::Key_G);
@@ -652,6 +661,9 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     toolsMenu->addAction(m_actions[ActionDrawLine]);
     toolsMenu->addAction(m_actions[ActionDrawFill]);
     toolsMenu->addAction(m_actions[ActionPathMaker]);
+    toolsMenu->addAction(m_actions[ActionDrawWire]);
+    toolsMenu->addSeparator();
+    toolsMenu->addAction(m_actions[ActionInspectTiles]);
     toolsMenu->addSeparator();
     toolsMenu->addAction(m_actions[ActionToggleWalls]);
 
@@ -702,6 +714,9 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     tbarTools->addAction(m_actions[ActionDrawLine]);
     tbarTools->addAction(m_actions[ActionDrawFill]);
     tbarTools->addAction(m_actions[ActionPathMaker]);
+    tbarTools->addAction(m_actions[ActionDrawWire]);
+    tbarTools->addSeparator();
+    tbarTools->addAction(m_actions[ActionInspectTiles]);
     tbarTools->addSeparator();
     tbarTools->addAction(m_actions[ActionToggleWalls]);
 
@@ -712,6 +727,8 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     connect(m_actions[ActionNewScript], &QAction::triggered, this, &CC2EditMain::createNewScript);
     connect(m_actions[ActionOpen], &QAction::triggered, this, &CC2EditMain::onOpenAction);
     connect(m_actions[ActionClose], &QAction::triggered, this, &CC2EditMain::onCloseAction);
+
+    connect(m_actions[ActionInspectTiles], &QAction::triggered, this, &CC2EditMain::onInspectToggled);
 
     connect(m_actions[ActionViewViewport], &QAction::toggled, this, &CC2EditMain::onViewViewportToggled);
 
@@ -1072,6 +1089,7 @@ CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename)
     //if (m_actions[ActionViewErrors]->isChecked())
     //    editor->setPaintFlag(CC2EditorWidget::ShowErrors);
     editor->setTileset(m_currentTileset);
+    editor->setDrawMode(m_currentDrawMode);
     editor->setMap(map);
     if (m_zoomFactor != 0.0)
         editor->setZoom(m_zoomFactor);
@@ -1092,6 +1110,15 @@ CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename)
     connect(editor, &CC2EditorWidget::hasSelection, m_actions[ActionCopy], &QAction::setEnabled);
     connect(editor, &CC2EditorWidget::hasSelection, m_actions[ActionClear], &QAction::setEnabled);
     //connect(editor, &CC2EditorWidget::makeDirty, this, [map] { map->makeDirty(); });
+
+    connect(editor, &CC2EditorWidget::inspectTile, this, [this](cc2::Tile* tile) {
+        TileInspector inspector(this);
+        inspector.setTileset(m_currentTileset);
+        inspector.loadTile(tile);
+        if (inspector.exec() == QDialog::Accepted) {
+            // TODO
+        }
+    });
 
     connect(this, &CC2EditMain::tilesetChanged, editor, &CC2EditorWidget::setTileset);
 
@@ -1169,6 +1196,24 @@ void CC2EditMain::onCloseAction()
         onCloseTab(m_editorTabs->currentIndex());
 }
 
+void CC2EditMain::onInspectToggled(bool mode)
+{
+    if (!mode && m_currentDrawMode == CC2EditorWidget::DrawInspectTile) {
+        m_actions[m_savedDrawMode]->setChecked(true);
+    } else if (mode) {
+        m_currentDrawMode = CC2EditorWidget::DrawInspectTile;
+        m_actions[ActionSelect]->setChecked(false);
+        m_actions[ActionDrawPencil]->setChecked(false);
+        m_actions[ActionDrawLine]->setChecked(false);
+        m_actions[ActionDrawFill]->setChecked(false);
+        m_actions[ActionPathMaker]->setChecked(false);
+        m_actions[ActionDrawWire]->setChecked(false);
+
+        for (int i = 0; i < m_editorTabs->count(); ++i)
+            getEditorAt(i)->setDrawMode(m_currentDrawMode);
+    }
+}
+
 void CC2EditMain::onViewViewportToggled(bool view)
 {
     for (int i = 0; i < m_editorTabs->count(); ++i) {
@@ -1230,7 +1275,7 @@ void CC2EditMain::onTestChips2()
 
     if (m_subProc) {
         QMessageBox::critical(this, tr("Process already running"),
-                tr("A CCEdit test process is already running.  Please close the "
+                tr("A CC2Edit test process is already running.  Please close the "
                    "running process before trying to start a new one"),
                 QMessageBox::Ok);
         return;

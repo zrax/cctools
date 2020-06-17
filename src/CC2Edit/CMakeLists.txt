@@ -24,6 +24,7 @@ set(CC2Edit_HEADERS
     ScriptEditor.h
     ScriptTools.h
     TestSetup.h
+    TileInspector.h
     TileWidgets.h
 )
 
@@ -34,6 +35,7 @@ set(CC2Edit_SOURCES
     ScriptEditor.cpp
     ScriptTools.cpp
     TestSetup.cpp
+    TileInspector.cpp
     TileWidgets.cpp
 )
 

@@ -28,6 +28,9 @@
     <file>res/draw-line.png</file>
     <file>res/draw-box.png</file>
     <file>res/draw-path.png</file>
+    <file>res/draw-wire.png</file>
+    <file>res/draw-inspect.png</file>
+    <file>res/cctools-gbutton.png</file>
 
     <file>icons/boot-16.png</file>
     <file>icons/boot-24.png</file>

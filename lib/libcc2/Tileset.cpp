@@ -91,11 +91,16 @@ void CC2ETileset::load(const QString& filename)
     m_filename = QFileInfo(filename).fileName();
 }
 
-void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile) const
+void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile,
+                         bool allLayers) const
 {
     // Recurse up from the bottom-most layer
-    if (tile->haveLower())
-        drawAt(painter, x, y, tile->lower());
+    if (tile->haveLower()) {
+        if (allLayers)
+            drawAt(painter, x, y, tile->lower(), true);
+        else
+            painter.drawPixmap(x, y, m_gfx[cc2::G_Floor]);
+    }
 
     // Draw the base tile
     switch (tile->type()) {
@@ -211,7 +216,7 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile)
         }
         break;
     case cc2::Tile::DirtBlock:
-        if (tile->haveLower() && tile->lower()->needXray())
+        if (allLayers && tile->haveLower() && tile->lower()->needXray())
             painter.drawPixmap(x, y, m_gfx[cc2::G_DirtBlock_Xray]);
         else
             painter.drawPixmap(x, y, m_gfx[cc2::G_DirtBlock]);
@@ -243,20 +248,20 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile)
         }
         break;
     case cc2::Tile::IceBlock:
-        if (tile->haveLower() && tile->lower()->needXray())
+        if (allLayers && tile->haveLower() && tile->lower()->needXray())
             painter.drawPixmap(x, y, m_gfx[cc2::G_IceBlock_Xray]);
         else
             painter.drawPixmap(x, y, m_gfx[cc2::G_IceBlock]);
         if (tile->needArrows())
             drawArrow(painter, x, y, tile->direction());
         break;
-    case cc2::Tile::UNUSED_Barrier_S:
+    case cc2::Tile::CC1_Barrier_S:
         painter.drawPixmap(x, y, m_gfx[cc2::G_Panel_S]);
         break;
-    case cc2::Tile::UNUSED_Barrier_E:
+    case cc2::Tile::CC1_Barrier_E:
         painter.drawPixmap(x, y, m_gfx[cc2::G_Panel_E]);
         break;
-    case cc2::Tile::UNUSED_Barrier_SE:
+    case cc2::Tile::CC1_Barrier_SE:
         painter.drawPixmap(x, y, m_gfx[cc2::G_Panel_S]);
         painter.drawPixmap(x, y, m_gfx[cc2::G_Panel_E]);
         break;
@@ -441,7 +446,7 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile)
     case cc2::Tile::Trap:
         painter.drawPixmap(x, y, m_gfx[cc2::G_Trap]);
         break;
-    case cc2::Tile::CC1Cloner:
+    case cc2::Tile::CC1_Cloner:
         painter.drawPixmap(x, y, m_gfx[cc2::G_Cloner]);
         break;
     case cc2::Tile::Cloner:
@@ -792,21 +797,21 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile)
     //    painter.drawPixmap(x, y, m_gfx[cc2::G_??]);
     //    break;
     case cc2::Tile::PanelCanopy:
-        if (tile->panelFlags() & cc2::Tile::Canopy) {
-            if (tile->haveLower() && tile->lower()->needXray())
+        if (tile->tileFlags() & cc2::Tile::Canopy) {
+            if (allLayers && tile->haveLower() && tile->lower()->needXray())
                 painter.drawPixmap(x, y, m_gfx[cc2::G_Canopy_Xray]);
             else
                 painter.drawPixmap(x, y, m_gfx[cc2::G_Canopy]);
         }
-        if (tile->panelFlags() & cc2::Tile::PanelNorth)
+        if (tile->tileFlags() & cc2::Tile::PanelNorth)
             painter.drawPixmap(x, y, m_gfx[cc2::G_Panel_N]);
-        if (tile->panelFlags() & cc2::Tile::PanelEast)
+        if (tile->tileFlags() & cc2::Tile::PanelEast)
             painter.drawPixmap(x, y, m_gfx[cc2::G_Panel_E]);
-        if (tile->panelFlags() & cc2::Tile::PanelSouth)
+        if (tile->tileFlags() & cc2::Tile::PanelSouth)
             painter.drawPixmap(x, y, m_gfx[cc2::G_Panel_S]);
-        if (tile->panelFlags() & cc2::Tile::PanelWest)
+        if (tile->tileFlags() & cc2::Tile::PanelWest)
             painter.drawPixmap(x, y, m_gfx[cc2::G_Panel_W]);
-        if (tile->panelFlags() == 0) {
+        if (tile->tileFlags() == 0) {
             painter.drawPixmap(x, y, m_gfx[cc2::G_Canopy_Xray]);
             painter.drawPixmap(x, y, m_gfx[cc2::G_InvalidBase]);
         }
@@ -880,16 +885,16 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile)
         break;
     case cc2::Tile::DirBlock:
         painter.drawPixmap(x, y, m_gfx[cc2::G_DirBlock]);
-        if (tile->arrowMask() & cc2::Tile::ArrowNorth)
+        if (tile->tileFlags() & cc2::Tile::ArrowNorth)
             painter.drawPixmap(x, y, m_gfx[cc2::G_DirBlockArrows],
                                0, 0, m_size, m_size / 4);
-        if (tile->arrowMask() & cc2::Tile::ArrowEast)
+        if (tile->tileFlags() & cc2::Tile::ArrowEast)
             painter.drawPixmap(x + (3 * m_size) / 4, y, m_gfx[cc2::G_DirBlockArrows],
                                (3 * m_size) / 4, 0, m_size / 4, m_size);
-        if (tile->arrowMask() & cc2::Tile::ArrowSouth)
+        if (tile->tileFlags() & cc2::Tile::ArrowSouth)
             painter.drawPixmap(x, y + (3 * m_size) / 4, m_gfx[cc2::G_DirBlockArrows],
                                0, (3 * m_size) / 4, m_size, m_size / 4);
-        if (tile->arrowMask() & cc2::Tile::ArrowWest)
+        if (tile->tileFlags() & cc2::Tile::ArrowWest)
             painter.drawPixmap(x, y, m_gfx[cc2::G_DirBlockArrows],
                                0, 0, m_size / 4, m_size);
         if (tile->needArrows())
@@ -1120,216 +1125,281 @@ QIcon CC2ETileset::getIcon(const cc2::Tile* tile) const
 {
     QPixmap ico(m_size, m_size);
     QPainter painter(&ico);
-    draw(painter, 0, 0, tile);
+    draw(painter, 0, 0, tile, false);
     painter.end();
     return QIcon(ico);
 }
 
+QString CC2ETileset::baseName(cc2::Tile::Type type)
+{
+    switch (type) {
+    case cc2::Tile::Floor:
+        return tr("Floor");
+    case cc2::Tile::Wall:
+        return tr("Wall");
+    case cc2::Tile::Ice:
+        return tr("Ice");
+    case cc2::Tile::Ice_NE:
+        return tr("Ice Turn - North/East");
+    case cc2::Tile::Ice_SE:
+        return tr("Ice Turn - South/East");
+    case cc2::Tile::Ice_SW:
+        return tr("Ice Turn - South/West");
+    case cc2::Tile::Ice_NW:
+        return tr("Ice Turn - North/West");
+    case cc2::Tile::Water:
+        return tr("Water");
+    case cc2::Tile::Fire:
+        return tr("Fire");
+    case cc2::Tile::Force_N:
+        return tr("Force Floor - North");
+    case cc2::Tile::Force_E:
+        return tr("Force Floor - East");
+    case cc2::Tile::Force_S:
+        return tr("Force Floor - South");
+    case cc2::Tile::Force_W:
+        return tr("Force Floor - West");
+    case cc2::Tile::ToggleWall:
+        return tr("Toggle Door - Closed");
+    case cc2::Tile::ToggleFloor:
+        return tr("Toggle Door - Open");
+    case cc2::Tile::Teleport_Red:
+        return tr("Red Teleport");
+    case cc2::Tile::Teleport_Blue:
+        return tr("Blue Teleport");
+    case cc2::Tile::Teleport_Yellow:
+        return tr("Yellow Teleport");
+    case cc2::Tile::Teleport_Green:
+        return tr("Green Teleport");
+    case cc2::Tile::Exit:
+        return tr("Exit");
+    case cc2::Tile::Slime:
+        return tr("Slime");
+    case cc2::Tile::Player:
+        return tr("Chip");
+    case cc2::Tile::DirtBlock:
+        return tr("Dirt Block");
+    case cc2::Tile::Walker:
+        return tr("Walker");
+    case cc2::Tile::Ship:
+        return tr("Ship");
+    case cc2::Tile::IceBlock:
+        return tr("Ice Block");
+    case cc2::Tile::CC1_Barrier_S:
+        return tr("CC1 Panel - South");
+    case cc2::Tile::CC1_Barrier_E:
+        return tr("CC1 Panel - East");
+    case cc2::Tile::CC1_Barrier_SE:
+        return tr("CC1 Panel - South/East");
+    case cc2::Tile::Gravel:
+        return tr("Gravel");
+    case cc2::Tile::ToggleButton:
+        return tr("Toggle Door Button");
+    case cc2::Tile::TankButton:
+        return tr("Blue Tank Button");
+    case cc2::Tile::BlueTank:
+        return tr("Blue Tank");
+    case cc2::Tile::Door_Red:
+        return tr("Red Door");
+    case cc2::Tile::Door_Blue:
+        return tr("Blue Door");
+    case cc2::Tile::Door_Yellow:
+        return tr("Yellow Door");
+    case cc2::Tile::Door_Green:
+        return tr("Green Door");
+    case cc2::Tile::Key_Red:
+        return tr("Red Key");
+    case cc2::Tile::Key_Blue:
+        return tr("Blue Key");
+    case cc2::Tile::Key_Yellow:
+        return tr("Yellow Key");
+    case cc2::Tile::Key_Green:
+        return tr("Green Key");
+    case cc2::Tile::Chip:
+        return tr("IC Chip");
+    case cc2::Tile::ExtraChip:
+        return tr("Extra IC Chip");
+    case cc2::Tile::Socket:
+        return tr("Socket");
+    case cc2::Tile::PopUpWall:
+        return tr("Pop-Up Wall");
+    case cc2::Tile::AppearingWall:
+        return tr("Appearing Wall");
+    case cc2::Tile::InvisWall:
+        return tr("Invisible Wall");
+    case cc2::Tile::BlueWall:
+        return tr("Blue Block - Wall");
+    case cc2::Tile::BlueFloor:
+        return tr("Blue Block - Floor");
+    case cc2::Tile::Dirt:
+        return tr("Dirt");
+    case cc2::Tile::Ant:
+        return tr("Ant");
+    case cc2::Tile::Centipede:
+        return tr("Centipede");
+    case cc2::Tile::Ball:
+        return tr("Bouncy Ball");
+    case cc2::Tile::Blob:
+        return tr("Blob");
+    case cc2::Tile::AngryTeeth:
+        return tr("Angry Teeth");
+    case cc2::Tile::FireBox:
+        return tr("Fire Box");
+    case cc2::Tile::CloneButton:
+        return tr("Clone Button");
+    case cc2::Tile::TrapButton:
+        return tr("Trap Button");
+    case cc2::Tile::IceCleats:
+        return tr("Ice Cleats");
+    case cc2::Tile::MagnoShoes:
+        return tr("Magno Shoes");
+    case cc2::Tile::FireShoes:
+        return tr("Fire Boots");
+    case cc2::Tile::Flippers:
+        return tr("Flippers");
+    case cc2::Tile::ToolThief:
+        return tr("Tool Thief");
+    case cc2::Tile::RedBomb:
+        return tr("Red Bomb");
+    case cc2::Tile::Trap:
+        return tr("Trap");
+    case cc2::Tile::CC1_Cloner:
+        return tr("CC1 Cloning Machine");
+    case cc2::Tile::Cloner:
+        return tr("Cloning Machine");
+    case cc2::Tile::Clue:
+        return tr("Clue");
+    case cc2::Tile::Force_Rand:
+        return tr("Force Floor - Random");
+    case cc2::Tile::AreaCtlButton:
+        return tr("Area Control Button");
+    case cc2::Tile::RevolvDoor_SW:
+        return tr("Revolving Door - South/West");
+    case cc2::Tile::RevolvDoor_NW:
+        return tr("Revolving Door - North/West");
+    case cc2::Tile::RevolvDoor_NE:
+        return tr("Revolving Door - North/East");
+    case cc2::Tile::RevolvDoor_SE:
+        return tr("Revolving Door - South/East");
+    case cc2::Tile::TimeBonus:
+        return tr("Time Bonus");
+    case cc2::Tile::ToggleClock:
+        return tr("Toggle Clock");
+    case cc2::Tile::Transformer:
+        return tr("Transformer");
+    case cc2::Tile::TrainTracks:
+        return tr("Train Track");
+    case cc2::Tile::SteelWall:
+        return tr("Steel Wall");
+    case cc2::Tile::TimeBomb:
+        return tr("Time Bomb");
+    case cc2::Tile::Helmet:
+        return tr("Helmet");
+    case cc2::Tile::Player2:
+        return tr("Melinda");
+    case cc2::Tile::TimidTeeth:
+        return tr("Timid Teeth");
+    case cc2::Tile::HikingBoots:
+        return tr("Hiking Boots");
+    case cc2::Tile::MaleOnly:
+        return tr("Male Only");
+    case cc2::Tile::FemaleOnly:
+        return tr("Female Only");
+    case cc2::Tile::LogicGate:
+        return tr("Logic Gate");
+    case cc2::Tile::LogicButton:
+        return tr("Logic Button");
+    case cc2::Tile::FlameJet_Off:
+        return tr("Flame Jet - Off");
+    case cc2::Tile::FlameJet_On:
+        return tr("Flame Jet - On");
+    case cc2::Tile::FlameJetButton:
+        return tr("Flame Jet Button");
+    case cc2::Tile::Lightning:
+        return tr("Lightning");
+    case cc2::Tile::YellowTank:
+        return tr("Yellow Tank");
+    case cc2::Tile::YellowTankCtrl:
+        return tr("Yellow Tank Control");
+    case cc2::Tile::MirrorPlayer:
+        return tr("Mirror Chip");
+    case cc2::Tile::MirrorPlayer2:
+        return tr("Mirror Melinda");
+    case cc2::Tile::BowlingBall:
+        return tr("Bowling Ball");
+    case cc2::Tile::Rover:
+        return tr("Rover");
+    case cc2::Tile::TimePenalty:
+        return tr("Time Penalty");
+    case cc2::Tile::StyledFloor:
+        return tr("Styled Floor");
+    case cc2::Tile::PanelCanopy:
+        return tr("Panel / Canopy");
+    case cc2::Tile::RRSign:
+        return tr("Railroad Sign");
+    case cc2::Tile::StyledWall:
+        return tr("Styled Wall");
+    case cc2::Tile::AsciiGlyph:
+        return tr("Glyph");
+    case cc2::Tile::LSwitchFloor:
+        return tr("Logic Door - Open");
+    case cc2::Tile::LSwitchWall:
+        return tr("Logic Door - Closed");
+    case cc2::Tile::Flag10:
+        return tr("10 Point Flag");
+    case cc2::Tile::Flag100:
+        return tr("100 Point Flag");
+    case cc2::Tile::Flag1000:
+        return tr("1000 Point Flag");
+    case cc2::Tile::StayUpGWall:
+        return tr("Stay Up Wall");
+    case cc2::Tile::PopDownGWall:
+        return tr("Pop Down Wall");
+    case cc2::Tile::Disallow:
+        return tr("Not Allowed");
+    case cc2::Tile::Flag2x:
+        return tr("2x Point Flag");
+    case cc2::Tile::DirBlock:
+        return tr("Directional Block");
+    case cc2::Tile::FloorMimic:
+        return tr("Floor Mimic");
+    case cc2::Tile::GreenBomb:
+        return tr("Toggle Bomb");
+    case cc2::Tile::GreenChip:
+        return tr("Toggle IC Chip");
+    case cc2::Tile::RevLogicButton:
+        return tr("Reverse Logic Button");
+    case cc2::Tile::Switch_Off:
+        return tr("Switch - Off");
+    case cc2::Tile::Switch_On:
+        return tr("Switch - On");
+    case cc2::Tile::KeyThief:
+        return tr("Key Thief");
+    case cc2::Tile::Ghost:
+        return tr("Ghost");
+    case cc2::Tile::SteelFoil:
+        return tr("Steel Foil");
+    case cc2::Tile::Turtle:
+        return tr("Turtle");
+    case cc2::Tile::Eye:
+        return tr("Secret Eye");
+    case cc2::Tile::Bribe:
+        return tr("Bribe");
+    case cc2::Tile::SpeedShoes:
+        return tr("Speed Shoes");
+    case cc2::Tile::Hook:
+        return tr("Hook");
+    default:
+        return tr("Invalid (%1)").arg(type);
+    }
+}
+
 QString CC2ETileset::getName(const cc2::Tile* tile)
 {
-    QString name;
+    QString name = baseName(tile->type());
 
     switch (tile->type()) {
-    case cc2::Tile::Floor:
-        name = tr("Floor");
-        break;
-    case cc2::Tile::Wall:
-        name = tr("Wall");
-        break;
-    case cc2::Tile::Ice:
-        name = tr("Ice");
-        break;
-    case cc2::Tile::Ice_NE:
-        name = tr("Ice Turn - North/East");
-        break;
-    case cc2::Tile::Ice_SE:
-        name = tr("Ice Turn - South/East");
-        break;
-    case cc2::Tile::Ice_SW:
-        name = tr("Ice Turn - South/West");
-        break;
-    case cc2::Tile::Ice_NW:
-        name = tr("Ice Turn - North/West");
-        break;
-    case cc2::Tile::Water:
-        name = tr("Water");
-        break;
-    case cc2::Tile::Fire:
-        name = tr("Fire");
-        break;
-    case cc2::Tile::Force_N:
-        name = tr("Force Floor - North");
-        break;
-    case cc2::Tile::Force_E:
-        name = tr("Force Floor - East");
-        break;
-    case cc2::Tile::Force_S:
-        name = tr("Force Floor - South");
-        break;
-    case cc2::Tile::Force_W:
-        name = tr("Force Floor - West");
-        break;
-    case cc2::Tile::ToggleWall:
-        name = tr("Toggle Door - Closed");
-        break;
-    case cc2::Tile::ToggleFloor:
-        name = tr("Toggle Door - Open");
-        break;
-    case cc2::Tile::Teleport_Red:
-        name = tr("Red Teleport");
-        break;
-    case cc2::Tile::Teleport_Blue:
-        name = tr("Blue Teleport");
-        break;
-    case cc2::Tile::Teleport_Yellow:
-        name = tr("Yellow Teleport");
-        break;
-    case cc2::Tile::Teleport_Green:
-        name = tr("Green Teleport");
-        break;
-    case cc2::Tile::Exit:
-        name = tr("Exit");
-        break;
-    case cc2::Tile::Slime:
-        name = tr("Slime");
-        break;
-    case cc2::Tile::Player:
-        name = tr("Chip");
-        break;
-    case cc2::Tile::DirtBlock:
-        name = tr("Dirt Block");
-        break;
-    case cc2::Tile::Walker:
-        name = tr("Walker");
-        break;
-    case cc2::Tile::Ship:
-        name = tr("Ship");
-        break;
-    case cc2::Tile::IceBlock:
-        name = tr("Ice Block");
-        break;
-    case cc2::Tile::UNUSED_Barrier_S:
-        name = tr("(Deprecated) Panel - South");
-        break;
-    case cc2::Tile::UNUSED_Barrier_E:
-        name = tr("(Deprecated) Panel - East");
-        break;
-    case cc2::Tile::UNUSED_Barrier_SE:
-        name = tr("(Deprecated) Panel - South/East");
-        break;
-    case cc2::Tile::Gravel:
-        name = tr("Gravel");
-        break;
-    case cc2::Tile::ToggleButton:
-        name = tr("Toggle Door Button");
-        break;
-    case cc2::Tile::TankButton:
-        name = tr("Blue Tank Button");
-        break;
-    case cc2::Tile::BlueTank:
-        name = tr("Blue Tank");
-        break;
-    case cc2::Tile::Door_Red:
-        name = tr("Red Door");
-        break;
-    case cc2::Tile::Door_Blue:
-        name = tr("Blue Door");
-        break;
-    case cc2::Tile::Door_Yellow:
-        name = tr("Yellow Door");
-        break;
-    case cc2::Tile::Door_Green:
-        name = tr("Green Door");
-        break;
-    case cc2::Tile::Key_Red:
-        name = tr("Red Key");
-        break;
-    case cc2::Tile::Key_Blue:
-        name = tr("Blue Key");
-        break;
-    case cc2::Tile::Key_Yellow:
-        name = tr("Yellow Key");
-        break;
-    case cc2::Tile::Key_Green:
-        name = tr("Green Key");
-        break;
-    case cc2::Tile::Chip:
-        name = tr("IC Chip");
-        break;
-    case cc2::Tile::ExtraChip:
-        name = tr("Extra IC Chip");
-        break;
-    case cc2::Tile::Socket:
-        name = tr("Socket");
-        break;
-    case cc2::Tile::PopUpWall:
-        name = tr("Pop-Up Wall");
-        break;
-    case cc2::Tile::AppearingWall:
-        name = tr("Appearing Wall");
-        break;
-    case cc2::Tile::InvisWall:
-        name = tr("Invisible Wall");
-        break;
-    case cc2::Tile::BlueWall:
-        name = tr("Blue Block - Wall");
-        break;
-    case cc2::Tile::BlueFloor:
-        name = tr("Blue Block - Floor");
-        break;
-    case cc2::Tile::Dirt:
-        name = tr("Dirt");
-        break;
-    case cc2::Tile::Ant:
-        name = tr("Ant");
-        break;
-    case cc2::Tile::Centipede:
-        name = tr("Centipede");
-        break;
-    case cc2::Tile::Ball:
-        name = tr("Bouncy Ball");
-        break;
-    case cc2::Tile::Blob:
-        name = tr("Blob");
-        break;
-    case cc2::Tile::AngryTeeth:
-        name = tr("Angry Teeth");
-        break;
-    case cc2::Tile::FireBox:
-        name = tr("Fire Box");
-        break;
-    case cc2::Tile::CloneButton:
-        name = tr("Clone Button");
-        break;
-    case cc2::Tile::TrapButton:
-        name = tr("Trap Button");
-        break;
-    case cc2::Tile::IceCleats:
-        name = tr("Ice Cleats");
-        break;
-    case cc2::Tile::MagnoShoes:
-        name = tr("Magno Shoes");
-        break;
-    case cc2::Tile::FireShoes:
-        name = tr("Fire Boots");
-        break;
-    case cc2::Tile::Flippers:
-        name = tr("Flippers");
-        break;
-    case cc2::Tile::ToolThief:
-        name = tr("Tool Thief");
-        break;
-    case cc2::Tile::RedBomb:
-        name = tr("Red Bomb");
-        break;
-    case cc2::Tile::Trap:
-        name = tr("Trap");
-        break;
-    case cc2::Tile::CC1Cloner:
-        name = tr("CC1 Cloning Machine");
-        break;
     case cc2::Tile::Cloner:
-        name = tr("Cloning Machine");
         if (tile->modifier() == cc2::TileModifier::CloneAllDirs) {
             name += tr(" - Any");
         } else {
@@ -1346,38 +1416,7 @@ QString CC2ETileset::getName(const cc2::Tile* tile)
                 name += QStringLiteral(" - ") + directions.join(QLatin1Char('/'));
         }
         break;
-    case cc2::Tile::Clue:
-        name = tr("Clue");
-        break;
-    case cc2::Tile::Force_Rand:
-        name = tr("Force Floor - Random");
-        break;
-    case cc2::Tile::AreaCtlButton:
-        name = tr("Area Control Button");
-        break;
-    case cc2::Tile::RevolvDoor_SW:
-        name = tr("Revolving Door - South/West");
-        break;
-    case cc2::Tile::RevolvDoor_NW:
-        name = tr("Revolving Door - North/West");
-        break;
-    case cc2::Tile::RevolvDoor_NE:
-        name = tr("Revolving Door - North/East");
-        break;
-    case cc2::Tile::RevolvDoor_SE:
-        name = tr("Revolving Door - South/East");
-        break;
-    case cc2::Tile::TimeBonus:
-        name = tr("Time Bonus");
-        break;
-    case cc2::Tile::ToggleClock:
-        name = tr("Toggle Clock");
-        break;
-    case cc2::Tile::Transformer:
-        name = tr("Transformer");
-        break;
     case cc2::Tile::TrainTracks:
-        name = tr("Train Track");
         {
             QStringList directions;
             if (tile->modifier() & cc2::TileModifier::Track_NE)
@@ -1398,30 +1437,6 @@ QString CC2ETileset::getName(const cc2::Tile* tile)
                 name += QStringLiteral(" - ") + directions.join(QLatin1Char('/'));
         }
         // TODO: List active direction
-        break;
-    case cc2::Tile::SteelWall:
-        name = tr("Steel Wall");
-        break;
-    case cc2::Tile::TimeBomb:
-        name = tr("Time Bomb");
-        break;
-    case cc2::Tile::Helmet:
-        name = tr("Helmet");
-        break;
-    case cc2::Tile::Player2:
-        name = tr("Melinda");
-        break;
-    case cc2::Tile::TimidTeeth:
-        name = tr("Timid Teeth");
-        break;
-    case cc2::Tile::HikingBoots:
-        name = tr("Hiking Boots");
-        break;
-    case cc2::Tile::MaleOnly:
-        name = tr("Male Only");
-        break;
-    case cc2::Tile::FemaleOnly:
-        name = tr("Female Only");
         break;
     case cc2::Tile::LogicGate:
         switch (tile->modifier()) {
@@ -1540,215 +1555,108 @@ QString CC2ETileset::getName(const cc2::Tile* tile)
             name = tr("Latch Gate CCW - West");
             break;
         default:
-            name = tr("Invalid Logic Gate (%1)").arg(tile->modifier(), 0, 16);
+            name = tr("Invalid Logic Gate (0x%1)").arg(tile->modifier(), 0, 16);
             break;
         }
-        break;
-    case cc2::Tile::LogicButton:
-        name = tr("Logic Button");
-        break;
-    case cc2::Tile::FlameJet_Off:
-        name = tr("Flame Jet - Off");
-        break;
-    case cc2::Tile::FlameJet_On:
-        name = tr("Flame Jet - On");
-        break;
-    case cc2::Tile::FlameJetButton:
-        name = tr("Flame Jet Button");
-        break;
-    case cc2::Tile::Lightning:
-        name = tr("Lightning");
-        break;
-    case cc2::Tile::YellowTank:
-        name = tr("Yellow Tank");
-        break;
-    case cc2::Tile::YellowTankCtrl:
-        name = tr("Yellow Tank Control");
-        break;
-    case cc2::Tile::MirrorPlayer:
-        name = tr("Mirror Chip");
-        break;
-    case cc2::Tile::MirrorPlayer2:
-        name = tr("Mirror Melinda");
-        break;
-    case cc2::Tile::BowlingBall:
-        name = tr("Bowling Ball");
-        break;
-    case cc2::Tile::Rover:
-        name = tr("Rover");
-        break;
-    case cc2::Tile::TimePenalty:
-        name = tr("Time Penalty");
         break;
     case cc2::Tile::StyledFloor:
         switch (tile->modifier()) {
         case cc2::TileModifier::CamoTheme:
-            name = tr("Styled Floor - Camo");
+            name += tr(" - Camo");
             break;
         case cc2::TileModifier::PinkDotsTheme:
-            name = tr("Styled Floor - Pink");
+            name += tr(" - Pink");
             break;
         case cc2::TileModifier::YellowBrickTheme:
-            name = tr("Styled Floor - Yellow Brick");
+            name += tr(" - Yellow Brick");
             break;
         case cc2::TileModifier::BlueTheme:
-            name = tr("Styled Floor - Blue");
+            name += tr(" - Blue");
             break;
         default:
-            name = tr("Styled Floor - Invalid (%1)").arg(tile->modifier(), 0, 16);
+            name += tr(" - Invalid (0x%1)").arg(tile->modifier(), 0, 16);
             break;
         }
         break;
     case cc2::Tile::PanelCanopy:
         {
-            if (tile->panelFlags() & cc2::Tile::Canopy)
+            if (tile->tileFlags() & cc2::Tile::Canopy)
                 name = tr("Canopy");
+            else
+                name = QString();
+
             QStringList directions;
-            if (tile->panelFlags() & cc2::Tile::PanelNorth)
+            if (tile->tileFlags() & cc2::Tile::PanelNorth)
                 directions << tr("North");
-            if (tile->panelFlags() & cc2::Tile::PanelSouth)
+            if (tile->tileFlags() & cc2::Tile::PanelSouth)
                 directions << tr("South");
-            if (tile->panelFlags() & cc2::Tile::PanelEast)
+            if (tile->tileFlags() & cc2::Tile::PanelEast)
                 directions << tr("East");
-            if (tile->panelFlags() & cc2::Tile::PanelWest)
+            if (tile->tileFlags() & cc2::Tile::PanelWest)
                 directions << tr("West");
             if (!directions.isEmpty()) {
                 if (!name.isEmpty())
                     name += QStringLiteral(" / ");
                 name += tr("Panel - ") + directions.join(QLatin1Char('/'));
             }
-            if (tile->panelFlags() == 0)
+            if (tile->tileFlags() == 0)
                 name = tr("Panel/Canopy - Invalid");
         }
-        break;
-    case cc2::Tile::RRSign:
-        name = tr("Railroad Sign");
         break;
     case cc2::Tile::StyledWall:
         switch (tile->modifier()) {
         case cc2::TileModifier::CamoTheme:
-            name = tr("Styled Wall - Camo");
+            name += tr(" - Camo");
             break;
         case cc2::TileModifier::PinkDotsTheme:
-            name = tr("Styled Wall - Pink");
+            name += tr(" - Pink");
             break;
         case cc2::TileModifier::YellowBrickTheme:
-            name = tr("Styled Wall - Yellow Brick");
+            name += tr(" - Yellow Brick");
             break;
         case cc2::TileModifier::BlueTheme:
-            name = tr("Styled Wall - Blue");
+            name += tr(" - Blue");
             break;
         default:
-            name = tr("Styled Wall - Invalid (%1)").arg(tile->modifier(), 0, 16);
+            name += tr(" - Invalid (0x%1)").arg(tile->modifier(), 0, 16);
             break;
         }
         break;
     case cc2::Tile::AsciiGlyph:
         if (tile->modifier() == cc2::TileModifier::GlyphUp)
-            name = tr("Glyph - Up");
+            name += tr(" - Up");
         else if (tile->modifier() == cc2::TileModifier::GlyphRight)
-            name = tr("Glyph - Right");
+            name += tr(" - Right");
         else if (tile->modifier() == cc2::TileModifier::GlyphDown)
-            name = tr("Glyph - Down");
+            name += tr(" - Down");
         else if (tile->modifier() == cc2::TileModifier::GlyphLeft)
-            name = tr("Glyph - Left");
+            name += tr(" - Left");
         else if (tile->modifier() == ' ')
-            name = tr("Glyph - Space");
+            name += tr(" - Space");
         else if (tile->modifier() >= cc2::TileModifier::GlyphASCII_MIN
                  && tile->modifier() <= cc2::TileModifier::GlyphASCII_MAX)
-            name = tr("Glyph - %1").arg(QLatin1Char(tile->modifier()));
+            name += tr(" - %1").arg(QLatin1Char(tile->modifier()));
         else
-            name = tr("Glyph - Invalid (%1)").arg(tile->modifier(), 0, 16);
-        break;
-    case cc2::Tile::LSwitchFloor:
-        name = tr("Logic Door - Open");
-        break;
-    case cc2::Tile::LSwitchWall:
-        name = tr("Logic Door - Closed");
-        break;
-    case cc2::Tile::Flag10:
-        name = tr("10 Point Flag");
-        break;
-    case cc2::Tile::Flag100:
-        name = tr("100 Point Flag");
-        break;
-    case cc2::Tile::Flag1000:
-        name = tr("1000 Point Flag");
-        break;
-    case cc2::Tile::StayUpGWall:
-        name = tr("Stay Up Wall");
-        break;
-    case cc2::Tile::PopDownGWall:
-        name = tr("Pop Down Wall");
-        break;
-    case cc2::Tile::Disallow:
-        name = tr("Not Allowed");
-        break;
-    case cc2::Tile::Flag2x:
-        name = tr("2x Point Flag");
+            name += tr(" - Invalid (0x%1)").arg(tile->modifier(), 0, 16);
         break;
     case cc2::Tile::DirBlock:
-        name = tr("Directional Block");
-        if (tile->arrowMask() == cc2::Tile::AllArrows) {
+        if (tile->tileFlags() == cc2::Tile::AllArrows) {
             name += tr(" - Any");
         } else {
             QStringList arrows;
-            if (tile->arrowMask() & cc2::Tile::ArrowNorth)
+            if (tile->tileFlags() & cc2::Tile::ArrowNorth)
                 arrows << "North";
-            if (tile->arrowMask() & cc2::Tile::ArrowSouth)
+            if (tile->tileFlags() & cc2::Tile::ArrowSouth)
                 arrows << "South";
-            if (tile->arrowMask() & cc2::Tile::ArrowEast)
+            if (tile->tileFlags() & cc2::Tile::ArrowEast)
                 arrows << "East";
-            if (tile->arrowMask() & cc2::Tile::ArrowWest)
+            if (tile->tileFlags() & cc2::Tile::ArrowWest)
                 arrows << "West";
             if (!arrows.isEmpty())
                 name += QStringLiteral(" - ") + arrows.join(QLatin1Char('/'));
         }
         break;
-    case cc2::Tile::FloorMimic:
-        name = tr("Floor Mimic");
-        break;
-    case cc2::Tile::GreenBomb:
-        name = tr("Toggle Bomb");
-        break;
-    case cc2::Tile::GreenChip:
-        name = tr("Toggle IC Chip");
-        break;
-    case cc2::Tile::RevLogicButton:
-        name = tr("Reverse Logic Button");
-        break;
-    case cc2::Tile::Switch_Off:
-        name = tr("Switch - Off");
-        break;
-    case cc2::Tile::Switch_On:
-        name = tr("Switch - On");
-        break;
-    case cc2::Tile::KeyThief:
-        name = tr("Key Thief");
-        break;
-    case cc2::Tile::Ghost:
-        name = tr("Ghost");
-        break;
-    case cc2::Tile::SteelFoil:
-        name = tr("Steel Foil");
-        break;
-    case cc2::Tile::Turtle:
-        name = tr("Turtle");
-        break;
-    case cc2::Tile::Eye:
-        name = tr("Secret Eye");
-        break;
-    case cc2::Tile::Bribe:
-        name = tr("Bribe");
-        break;
-    case cc2::Tile::SpeedShoes:
-        name = tr("Speed Shoes");
-        break;
-    case cc2::Tile::Hook:
-        name = tr("Hook");
-        break;
     default:
-        name = tr("Invalid (%1)").arg(tile->type(), 0, 16);
         break;
     }
 

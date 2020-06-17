@@ -105,15 +105,18 @@ public:
     void load(const QString& filename);
     QString filename() const { return m_filename; }
 
-    void drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile) const;
+    void drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile,
+                bool allLayers) const;
 
-    void draw(QPainter& painter, int x, int y, const cc2::Tile* tile) const
+    void draw(QPainter& painter, int x, int y, const cc2::Tile* tile,
+              bool allLayers) const
     {
-        drawAt(painter, x * m_size, y * m_size, tile);
+        drawAt(painter, x * m_size, y * m_size, tile, allLayers);
     }
 
     QIcon getIcon(const cc2::Tile* tile) const;
 
+    static QString baseName(cc2::Tile::Type type);
     static QString getName(const cc2::Tile* tile);
 
 private:

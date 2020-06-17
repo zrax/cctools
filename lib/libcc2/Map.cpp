@@ -98,8 +98,7 @@ void cc2::MapOption::write(ccl::Stream* stream) const
 
 cc2::Tile::Tile(const Tile& copy)
     : m_type(copy.m_type), m_direction(copy.m_direction),
-      m_arrowMask(copy.m_arrowMask), m_panelFlags(copy.m_panelFlags),
-      m_modifier(copy.m_modifier), m_lower()
+      m_tileFlags(copy.m_tileFlags), m_modifier(copy.m_modifier), m_lower()
 {
     auto lower = checkLower();
     if (lower && copy.m_lower)
@@ -110,8 +109,7 @@ cc2::Tile& cc2::Tile::operator=(const Tile& copy)
 {
     m_type = copy.m_type;
     m_direction = copy.m_direction;
-    m_arrowMask = copy.m_arrowMask;
-    m_panelFlags = copy.m_panelFlags;
+    m_tileFlags = copy.m_tileFlags;
     m_modifier = copy.m_modifier;
     auto lower = checkLower();
     if (lower && copy.m_lower)
@@ -143,10 +141,8 @@ void cc2::Tile::read(ccl::Stream* stream)
 
     if (haveDirection())
         m_direction = stream->read8();
-    if (m_type == PanelCanopy)
-        m_panelFlags = stream->read8();
-    if (m_type == DirBlock)
-        m_arrowMask = stream->read8();
+    if (m_type == PanelCanopy || m_type == DirBlock)
+        m_tileFlags = stream->read8();
 
     auto nextLayer = checkLower();
     if (nextLayer)
@@ -170,10 +166,8 @@ void cc2::Tile::write(ccl::Stream* stream) const
 
     if (haveDirection())
         stream->write8(m_direction);
-    if (m_type == PanelCanopy)
-        stream->write8(m_panelFlags);
-    if (m_type == DirBlock)
-        stream->write8(m_arrowMask);
+    if (m_type == PanelCanopy || m_type == DirBlock)
+        stream->write8(m_tileFlags);
 
     if (haveLower()) {
         Q_ASSERT(m_lower);
@@ -181,17 +175,17 @@ void cc2::Tile::write(ccl::Stream* stream) const
     }
 }
 
-bool cc2::Tile::haveLower() const
+bool cc2::Tile::haveLower(int type)
 {
-    switch (m_type) {
+    switch (type) {
     case Player:
     case DirtBlock:
     case Walker:
     case Ship:
     case IceBlock:
-    case UNUSED_Barrier_E:
-    case UNUSED_Barrier_S:
-    case UNUSED_Barrier_SE:
+    case CC1_Barrier_E:
+    case CC1_Barrier_S:
+    case CC1_Barrier_SE:
     case BlueTank:
     case Key_Red:
     case Key_Blue:
@@ -253,9 +247,9 @@ bool cc2::Tile::haveLower() const
     }
 }
 
-bool cc2::Tile::haveDirection() const
+bool cc2::Tile::haveDirection(int type)
 {
-    switch (m_type) {
+    switch (type) {
     case Player:
     case DirtBlock:
     case Walker:
@@ -287,21 +281,9 @@ bool cc2::Tile::haveDirection() const
     }
 }
 
-bool cc2::Tile::needArrows() const
+bool cc2::Tile::supportsWires(int type)
 {
-    switch (m_type) {
-    case DirtBlock:
-    case IceBlock:
-    case DirBlock:
-        return m_lower->type() == CC1Cloner;
-    default:
-        return haveDirection();
-    }
-}
-
-bool cc2::Tile::supportsWires() const
-{
-    switch (m_type) {
+    switch (type) {
     case Floor:
     case Teleport_Red:
     case Teleport_Blue:
@@ -314,6 +296,18 @@ bool cc2::Tile::supportsWires() const
         return true;
     default:
         return false;
+    }
+}
+
+bool cc2::Tile::needArrows() const
+{
+    switch (m_type) {
+    case DirtBlock:
+    case IceBlock:
+    case DirBlock:
+        return m_lower->type() == CC1_Cloner;
+    default:
+        return haveDirection();
     }
 }
 

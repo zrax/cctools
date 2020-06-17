@@ -416,7 +416,7 @@ QPixmap EditorWidget::renderReport()
 
 void EditorWidget::mouseMoveEvent(QMouseEvent* event)
 {
-    if (m_tileset == 0 || m_levelData == 0 || !rect().contains(event->pos()))
+    if (!m_tileset || !m_levelData || !rect().contains(event->pos()))
         return;
 
     int posX = event->x() / (m_tileset->size() * m_zoomFactor);
@@ -613,14 +613,14 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
 
 void EditorWidget::mousePressEvent(QMouseEvent* event)
 {
+    if (!m_tileset || !m_levelData || !rect().contains(event->pos()))
+        return;
     if (m_cachedButton != Qt::NoButton
         || (event->button() & (Qt::LeftButton | Qt ::MidButton | Qt::RightButton)) == 0)
         return;
-    if (m_tileset == 0 || m_levelData == 0)
-        return;
 
-    int posX = event->x() / (m_tileset->size() * m_zoomFactor);
-    int posY = event->y() / (m_tileset->size() * m_zoomFactor);
+    const int posX = event->x() / (m_tileset->size() * m_zoomFactor);
+    const int posY = event->y() / (m_tileset->size() * m_zoomFactor);
     m_current = QPoint(-1, -1);
     m_cachedButton = event->button();
 
@@ -689,9 +689,9 @@ void EditorWidget::mousePressEvent(QMouseEvent* event)
 
 void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
 {
-    if (event->button() != m_cachedButton)
+    if (!m_tileset || !m_levelData || !rect().contains(event->pos()))
         return;
-    if (m_tileset == 0 || m_levelData == 0)
+    if (event->button() != m_cachedButton)
         return;
 
     bool resetOrigin = true;
