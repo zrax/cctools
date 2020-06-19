@@ -86,19 +86,19 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_actions[ActionOpen]->setStatusTip(tr("Open a game file from disk"));
     m_actions[ActionOpen]->setShortcut(Qt::CTRL | Qt::Key_O);
     m_actions[ActionSave] = new QAction(QIcon(":/res/document-save.png"), tr("&Save"), this);
-    m_actions[ActionSave]->setStatusTip(tr("Save the current map to the same file"));
+    m_actions[ActionSave]->setStatusTip(tr("Save the current document to the same file"));
     m_actions[ActionSave]->setShortcut(Qt::CTRL | Qt::Key_S);
     m_actions[ActionSave]->setEnabled(false);
     m_actions[ActionSaveAs] = new QAction(QIcon(":/res/document-save-as.png"), tr("Save &As..."), this);
-    m_actions[ActionSaveAs]->setStatusTip(tr("Save the current map to a new file or location"));
+    m_actions[ActionSaveAs]->setStatusTip(tr("Save the current document to a new file or location"));
     m_actions[ActionSaveAs]->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_S);
     m_actions[ActionSaveAs]->setEnabled(false);
-    m_actions[ActionClose] = new QAction(tr("&Close Map"), this);
-    m_actions[ActionClose]->setStatusTip(tr("Close the currently open map"));
+    m_actions[ActionClose] = new QAction(tr("&Close Script"), this);
+    m_actions[ActionClose]->setStatusTip(tr("Close the currently open game script"));
     m_actions[ActionClose]->setShortcut(Qt::CTRL | Qt::Key_W);
     m_actions[ActionClose]->setEnabled(false);
     m_actions[ActionGenReport] = new QAction(tr("Generate &Report"), this);
-    m_actions[ActionGenReport]->setStatusTip(tr("Generate an HTML report of the current map"));
+    m_actions[ActionGenReport]->setStatusTip(tr("Generate an HTML report of the current game script"));
     m_actions[ActionGenReport]->setEnabled(false);
     m_actions[ActionExit] = new QAction(QIcon(":/res/application-exit.png"), tr("E&xit"), this);
     m_actions[ActionExit]->setStatusTip(tr("Close CC2Edit"));
@@ -726,7 +726,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     connect(m_actions[ActionNewMap], &QAction::triggered, this, &CC2EditMain::createNewMap);
     connect(m_actions[ActionNewScript], &QAction::triggered, this, &CC2EditMain::createNewScript);
     connect(m_actions[ActionOpen], &QAction::triggered, this, &CC2EditMain::onOpenAction);
-    connect(m_actions[ActionClose], &QAction::triggered, this, &CC2EditMain::onCloseAction);
+    connect(m_actions[ActionClose], &QAction::triggered, this, &CC2EditMain::closeScript);
 
     connect(m_actions[ActionInspectTiles], &QAction::triggered, this, &CC2EditMain::onInspectToggled);
 
@@ -763,7 +763,9 @@ CC2EditMain::CC2EditMain(QWidget* parent)
 
     connect(toolDock, &QDockWidget::dockLocationChanged, this, &CC2EditMain::onDockChanged);
 
-    connect(m_editorTabs, &QTabWidget::tabCloseRequested, this, &CC2EditMain::onCloseTab);
+    connect(m_editorTabs, &QTabWidget::tabCloseRequested, this, [this](int index) {
+        m_editorTabs->widget(index)->deleteLater();
+    });
     connect(m_editorTabs, &QTabWidget::currentChanged, this, &CC2EditMain::onTabChanged);
 
     // Load window settings and defaults
@@ -806,7 +808,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
         QString tilesetFilename = settings.value("TilesetName").toString();
         bool foundTset = false;
         for (int i=0; i<m_tilesetGroup->actions().size(); ++i) {
-            CC2ETileset* tileset = m_tilesetGroup->actions()[i]->data().value<CC2ETileset*>();
+            auto tileset = m_tilesetGroup->actions()[i]->data().value<CC2ETileset*>();
             if (tileset->filename() == tilesetFilename) {
                 m_tilesetGroup->actions()[i]->setChecked(true);
                 loadTileset(tileset);
@@ -851,25 +853,11 @@ void CC2EditMain::createNewMap()
     map->mapData().resize(32, 32);
     addEditor(map, QString());
     map->unref();
-
-    m_actions[ActionSave]->setEnabled(true);
-    m_actions[ActionSaveAs]->setEnabled(true);
-    m_actions[ActionClose]->setEnabled(true);
-    m_actions[ActionGenReport]->setEnabled(true);
-    m_actions[ActionSelect]->setEnabled(true);
-    m_actions[ActionTest]->setEnabled(true);
 }
 
 void CC2EditMain::createNewScript()
 {
     addScriptEditor(QString());
-
-    m_actions[ActionSave]->setEnabled(true);
-    m_actions[ActionSaveAs]->setEnabled(true);
-    m_actions[ActionClose]->setEnabled(true);
-    m_actions[ActionGenReport]->setEnabled(false);
-    m_actions[ActionSelect]->setEnabled(false);
-    m_actions[ActionTest]->setEnabled(true);
 }
 
 void CC2EditMain::loadFile(const QString& filename)
@@ -913,19 +901,12 @@ void CC2EditMain::loadMap(const QString& filename)
         QMessageBox::critical(this, tr("Error loading map"), ex.what());
     }
     map->unref();
-
-    m_actions[ActionSave]->setEnabled(true);
-    m_actions[ActionSaveAs]->setEnabled(true);
-    m_actions[ActionClose]->setEnabled(true);
-    m_actions[ActionGenReport]->setEnabled(true);
-    m_actions[ActionSelect]->setEnabled(true);
-    m_actions[ActionTest]->setEnabled(true);
 }
 
 void CC2EditMain::loadScript(const QString& filename)
 {
-    m_gameMapList->clear();
-    m_gameName->setText(QString());
+    if (!closeScript())
+        return;
 
     ScriptMapLoader mapLoader;
     connect(&mapLoader, &ScriptMapLoader::gameName, m_gameName, &QLabel::setText);
@@ -941,8 +922,9 @@ void CC2EditMain::loadScript(const QString& filename)
                                               .arg(filename).arg(err.what()));
             }
         }
-        QString title = !map.title().empty() ? QString::fromStdString(map.title())
-                                             : QFileInfo(filename).fileName();
+        QString title = !map.title().empty()
+                            ? QString::fromLatin1(map.title().c_str())
+                            : QFileInfo(filename).fileName();
 
         QString name = tr("%1 - %2").arg(m_gameMapList->count() + 1).arg(title);
         auto item = new QListWidgetItem(name, m_gameMapList);
@@ -951,6 +933,8 @@ void CC2EditMain::loadScript(const QString& filename)
     if (mapLoader.loadScript(filename)) {
         m_currentGameScript = filename;
         m_gameProperties->setEnabled(true);
+        m_actions[ActionClose]->setEnabled(true);
+        m_actions[ActionGenReport]->setEnabled(true);
     }
 }
 
@@ -974,13 +958,17 @@ void CC2EditMain::editScript(const QString& filename)
     QString text = QString::fromLatin1(scriptFile.readAll());
     auto editor = addScriptEditor(filename);
     editor->setPlainText(text);
+}
 
-    m_actions[ActionSave]->setEnabled(true);
-    m_actions[ActionSaveAs]->setEnabled(true);
-    m_actions[ActionClose]->setEnabled(true);
+bool CC2EditMain::closeScript()
+{
+    m_gameMapList->clear();
+    m_gameName->setText(QString());
+    m_currentGameScript = QString();
+    m_gameProperties->setEnabled(false);
+    m_actions[ActionClose]->setEnabled(false);
     m_actions[ActionGenReport]->setEnabled(false);
-    m_actions[ActionSelect]->setEnabled(false);
-    m_actions[ActionTest]->setEnabled(true);
+    return true;
 }
 
 void CC2EditMain::registerTileset(const QString& filename)
@@ -1073,8 +1061,8 @@ CC2ScriptEditor* CC2EditMain::getScriptEditorAt(int idx)
 
 CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename)
 {
-    QScrollArea* scroll = new QScrollArea(m_editorTabs);
-    CC2EditorWidget* editor = new CC2EditorWidget(scroll);
+    auto scroll = new QScrollArea(m_editorTabs);
+    auto editor = new CC2EditorWidget(scroll);
     scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     scroll->setWidget(editor);
@@ -1146,16 +1134,9 @@ CC2ScriptEditor* CC2EditMain::addScriptEditor(const QString& filename)
 void CC2EditMain::closeAllTabs()
 {
     while (m_editorTabs->count() != 0) {
-        delete m_editorTabs->widget(0);
+        m_editorTabs->widget(0)->deleteLater();
         m_editorTabs->removeTab(0);
     }
-
-    m_actions[ActionSave]->setEnabled(false);
-    m_actions[ActionSaveAs]->setEnabled(false);
-    m_actions[ActionClose]->setEnabled(false);
-    m_actions[ActionGenReport]->setEnabled(false);
-    m_actions[ActionSelect]->setEnabled(false);
-    m_actions[ActionTest]->setEnabled(false);
 }
 
 void CC2EditMain::resizeEvent(QResizeEvent* event)
@@ -1188,12 +1169,6 @@ void CC2EditMain::onOpenAction()
         dir.cdUp();
         m_dialogDir = dir.absolutePath();
     }
-}
-
-void CC2EditMain::onCloseAction()
-{
-    if (m_editorTabs->count())
-        onCloseTab(m_editorTabs->currentIndex());
 }
 
 void CC2EditMain::onInspectToggled(bool mode)
@@ -1457,21 +1432,6 @@ void CC2EditMain::onDockChanged(Qt::DockWidgetArea area)
         m_toolTabs->setTabPosition(QTabWidget::West);
 }
 
-void CC2EditMain::onCloseTab(int index)
-{
-    const bool lastTab = m_editorTabs->count() == 1;
-    m_editorTabs->widget(index)->deleteLater();
-
-    if (lastTab) {
-        m_actions[ActionSave]->setEnabled(false);
-        m_actions[ActionSaveAs]->setEnabled(false);
-        m_actions[ActionClose]->setEnabled(false);
-        m_actions[ActionGenReport]->setEnabled(false);
-        m_actions[ActionSelect]->setEnabled(false);
-        m_actions[ActionTest]->setEnabled(false);
-    }
-}
-
 void CC2EditMain::onTabChanged(int index)
 {
     CC2EditorWidget* mapEditor = getEditorAt(index);
@@ -1492,51 +1452,74 @@ void CC2EditMain::onTabChanged(int index)
         m_clue->setPlainText(QString());
         m_note->setPlainText(QString());
         m_mapProperties->setEnabled(false);
-
-        CC2ScriptEditor* scriptEditor = getScriptEditorAt(index);
-        m_actions[ActionSelect]->setEnabled(scriptEditor == nullptr);
-        return;
     }
 
-    mapEditor->update();
-    //mapEditor->updateUndoStatus();
-
-    /*
-    bool hasSelection = editor->selection() != QRect(-1, -1, -1, -1);
-    m_actions[ActionCut]->setEnabled(hasSelection);
-    m_actions[ActionCopy]->setEnabled(hasSelection);
-    m_actions[ActionClear]->setEnabled(hasSelection);
-    */
-    m_actions[ActionSelect]->setEnabled(true);
-
-    // Update the map properties page
-    auto map = mapEditor->map();
-    m_mapProperties->setEnabled(true);
-    m_title->setText(QString::fromStdString(map->title()));
-    m_author->setText(QString::fromStdString(map->author()));
-    m_lockText->setText(QString::fromStdString(map->lock()));
-    m_editorVersion->setText(QString::fromStdString(map->editorVersion()));
-    m_mapSize->setText(tr("%1 x %2").arg(map->mapData().width())
-                                    .arg(map->mapData().height()));
-    m_chipCounter->setText(QString::number(map->mapData().countChips()));
-    const auto points = map->mapData().countPoints();
-    if (std::get<1>(points) != 1) {
-        m_pointCounter->setText(tr("%1 (x%2)").arg(std::get<0>(points))
-                                              .arg(std::get<1>(points)));
-    } else {
-        m_pointCounter->setText(QString::number(std::get<0>(points)));
+    if (index < 0) {
+        m_actions[ActionSave]->setEnabled(false);
+        m_actions[ActionSaveAs]->setEnabled(false);
+        m_actions[ActionUndo]->setEnabled(false);
+        m_actions[ActionRedo]->setEnabled(false);
+        m_actions[ActionSelect]->setEnabled(false);
+        m_actions[ActionCut]->setEnabled(false);
+        m_actions[ActionCopy]->setEnabled(false);
+        m_actions[ActionPaste]->setEnabled(false);
+        m_actions[ActionClear]->setEnabled(false);
+        m_actions[ActionTest]->setEnabled(false);
     }
-    m_timeLimit->setValue(map->option().timeLimit());
-    m_viewport->setCurrentIndex(static_cast<int>(map->option().view()));
-    m_blobPattern->setCurrentIndex(static_cast<int>(map->option().blobPattern()));
-    m_hideLogic->setChecked(map->option().hideLogic());
-    m_cc1Boots->setChecked(map->option().cc1Boots());
-    m_readOnly->setChecked(map->readOnly());
-    m_clue->setPlainText(QString::fromStdString(map->clue()));
-    m_note->setPlainText(QString::fromStdString(map->note()));
 
-    // Apply zoom
-    resizeEvent(nullptr);
+    CC2ScriptEditor* scriptEditor = getScriptEditorAt(index);
+    if (scriptEditor) {
+        m_actions[ActionSave]->setEnabled(true);
+        m_actions[ActionSaveAs]->setEnabled(true);
+        m_actions[ActionSelect]->setEnabled(false);
+        m_actions[ActionTest]->setEnabled(false);
+
+        // TODO
+    } else if (mapEditor) {
+        m_actions[ActionSave]->setEnabled(true);
+        m_actions[ActionSaveAs]->setEnabled(true);
+        m_actions[ActionSelect]->setEnabled(true);
+        m_actions[ActionTest]->setEnabled(true);
+
+        mapEditor->update();
+        //mapEditor->updateUndoStatus();
+
+        /*
+        bool hasSelection = editor->selection() != QRect(-1, -1, -1, -1);
+        m_actions[ActionCut]->setEnabled(hasSelection);
+        m_actions[ActionCopy]->setEnabled(hasSelection);
+        m_actions[ActionClear]->setEnabled(hasSelection);
+        */
+
+        // Update the map properties page
+        auto map = mapEditor->map();
+        m_mapProperties->setEnabled(true);
+        m_title->setText(QString::fromLatin1(map->title().c_str()));
+        m_author->setText(QString::fromLatin1(map->author().c_str()));
+        m_lockText->setText(QString::fromLatin1(map->lock().c_str()));
+        m_editorVersion->setText(QString::fromLatin1(map->editorVersion().c_str()));
+        m_mapSize->setText(tr("%1 x %2").arg(map->mapData().width())
+                                        .arg(map->mapData().height()));
+        m_chipCounter->setText(QString::number(map->mapData().countChips()));
+        const auto points = map->mapData().countPoints();
+        if (std::get<1>(points) != 1) {
+            m_pointCounter->setText(tr("%1 (x%2)").arg(std::get<0>(points))
+                                                  .arg(std::get<1>(points)));
+        } else {
+            m_pointCounter->setText(QString::number(std::get<0>(points)));
+        }
+        m_timeLimit->setValue(map->option().timeLimit());
+        m_viewport->setCurrentIndex(static_cast<int>(map->option().view()));
+        m_blobPattern->setCurrentIndex(static_cast<int>(map->option().blobPattern()));
+        m_hideLogic->setChecked(map->option().hideLogic());
+        m_cc1Boots->setChecked(map->option().cc1Boots());
+        m_readOnly->setChecked(map->readOnly());
+        m_clue->setPlainText(QString::fromLatin1(map->clue().c_str()));
+        m_note->setPlainText(QString::fromLatin1(map->note().c_str()));
+
+        // Apply zoom
+        resizeEvent(nullptr);
+    }
 }
 
 void CC2EditMain::setForeground(const cc2::Tile* tile)

@@ -609,7 +609,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionOpen], SIGNAL(triggered()), SLOT(onOpenAction()));
     connect(m_actions[ActionSave], SIGNAL(triggered()), SLOT(onSaveAction()));
     connect(m_actions[ActionSaveAs], SIGNAL(triggered()), SLOT(onSaveAsAction()));
-    connect(m_actions[ActionClose], SIGNAL(triggered()), SLOT(onCloseAction()));
+    connect(m_actions[ActionClose], &QAction::triggered, this, &CCEditMain::closeLevelset);
     connect(m_actions[ActionGenReport], SIGNAL(triggered()), SLOT(onReportAction()));
     connect(m_actions[ActionExit], SIGNAL(triggered()), SLOT(close()));
     connect(m_actions[ActionSelect], SIGNAL(toggled(bool)), SLOT(onSelectToggled(bool)));
@@ -1006,7 +1006,7 @@ void CCEditMain::resizeEvent(QResizeEvent* event)
 
 bool CCEditMain::closeLevelset()
 {
-    if (m_levelset == 0)
+    if (!m_levelset)
         return true;
 
     int reply = m_levelset->isDirty()

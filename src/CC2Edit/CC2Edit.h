@@ -40,7 +40,7 @@ class CC2EditMain : public QMainWindow {
     Q_OBJECT
 
 public:
-    CC2EditMain(QWidget* parent = nullptr);
+    explicit CC2EditMain(QWidget* parent = nullptr);
 
     void createNewMap();
     void createNewScript();
@@ -48,6 +48,8 @@ public:
     void loadMap(const QString& filename);
     void loadScript(const QString& filename);
     void editScript(const QString& filename);
+    bool closeScript();
+
     void findTilesets();
     void loadTileset(CC2ETileset* tileset);
 
@@ -67,7 +69,6 @@ protected:
 
 private Q_SLOTS:
     void onOpenAction();
-    void onCloseAction();
 
     void onInspectToggled(bool);
 
@@ -80,7 +81,6 @@ private Q_SLOTS:
     void onTestChips2();
 
     void onDockChanged(Qt::DockWidgetArea);
-    void onCloseTab(int);
     void onTabChanged(int);
 
     void setForeground(const cc2::Tile*);

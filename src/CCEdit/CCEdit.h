@@ -121,7 +121,6 @@ private slots:
     void onOpenAction();
     void onSaveAction();
     void onSaveAsAction();
-    void onCloseAction() { closeLevelset(); }
     void onReportAction();
     void onSelectToggled(bool);
     void onCutAction();
