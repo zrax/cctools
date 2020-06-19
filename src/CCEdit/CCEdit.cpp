@@ -39,9 +39,11 @@
 #include <QDesktopWidget>
 #include <QDir>
 #include <QMimeData>
+
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
+
 #include "LevelsetProps.h"
 #include "Organizer.h"
 #include "ExtWidgets.h"
@@ -670,7 +672,11 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionProperties], SIGNAL(triggered()), SLOT(onPropertiesAction()));
     connect(m_actions[ActionOrganize], SIGNAL(triggered()), SLOT(onOrganizeAction()));
 
-    connect(m_levelList, SIGNAL(currentRowChanged(int)), SLOT(onSelectLevel(int)));
+    connect(m_levelList, &QListWidget::currentRowChanged, this, &CCEditMain::onSelectLevel);
+    connect(m_levelList, &QListWidget::itemActivated, this, [this](QListWidgetItem* item) {
+        loadLevel(m_levelList->row(item));
+    });
+
     connect(m_nameEdit, SIGNAL(textChanged(QString)), SLOT(onNameChanged(QString)));
     connect(m_passwordEdit, SIGNAL(textChanged(QString)), SLOT(onPasswordChanged(QString)));
     connect(passwordButton, SIGNAL(clicked()), SLOT(onPasswordGenAction()));
@@ -681,9 +687,10 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(toolDock, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)), SLOT(onDockChanged(Qt::DockWidgetArea)));
     connect(qApp->clipboard(), SIGNAL(dataChanged()), SLOT(onClipboardDataChanged()));
 
-    connect(m_editorTabs, &QTabWidget::tabCloseRequested, this, &CCEditMain::onCloseTab);
+    connect(m_editorTabs, &QTabWidget::tabCloseRequested, this, [this](int index) {
+        m_editorTabs->widget(index)->deleteLater();
+    });
     connect(m_editorTabs, &QTabWidget::currentChanged, this, &CCEditMain::onTabChanged);
-    connect(m_editorTabs, &EditorTabWidget::newTabRequested, this, &CCEditMain::onNewTab);
 
     // Load window settings and defaults
     QSettings settings("CCTools", "CCEdit");
@@ -850,14 +857,7 @@ void CCEditMain::loadLevelset(QString filename)
     m_actions[ActionSaveAs]->setEnabled(true);
     m_actions[ActionClose]->setEnabled(true);
     m_actions[ActionGenReport]->setEnabled(true);
-    if (canRunMSCC())
-        m_actions[ActionTestChips]->setEnabled(true);
-    m_actions[ActionTestTWorldCC]->setEnabled(true);
-    m_actions[ActionTestTWorldLynx]->setEnabled(true);
-    m_actions[ActionTestTWorld2CC]->setEnabled(true);
-    m_actions[ActionTestTWorld2Lynx]->setEnabled(true);
     m_actions[ActionAddLevel]->setEnabled(true);
-    m_actions[ActionDelLevel]->setEnabled(m_levelset->levelCount() > 0);
     m_actions[ActionProperties]->setEnabled(true);
     m_actions[ActionOrganize]->setEnabled(true);
     m_actions[ActionCheckErrors]->setEnabled(true);
@@ -1026,23 +1026,15 @@ bool CCEditMain::closeLevelset()
 
     closeAllTabs();
     m_levelList->clear();
-    onSelectLevel(-1);
     delete m_levelset;
-    m_levelset = 0;
+    m_levelset = nullptr;
     setWindowTitle(CCEDIT_TITLE);
 
     m_actions[ActionSave]->setEnabled(false);
     m_actions[ActionSaveAs]->setEnabled(false);
     m_actions[ActionClose]->setEnabled(false);
     m_actions[ActionGenReport]->setEnabled(false);
-    if (canRunMSCC())
-        m_actions[ActionTestChips]->setEnabled(false);
-    m_actions[ActionTestTWorldCC]->setEnabled(false);
-    m_actions[ActionTestTWorldLynx]->setEnabled(false);
-    m_actions[ActionTestTWorld2CC]->setEnabled(false);
-    m_actions[ActionTestTWorld2Lynx]->setEnabled(false);
     m_actions[ActionAddLevel]->setEnabled(false);
-    m_actions[ActionDelLevel]->setEnabled(false);
     m_actions[ActionProperties]->setEnabled(false);
     m_actions[ActionOrganize]->setEnabled(false);
     m_actions[ActionCheckErrors]->setEnabled(false);
@@ -1114,27 +1106,53 @@ void CCEditMain::findTilesets()
     }
 }
 
-void CCEditMain::selectLevel(int level)
+void CCEditMain::loadLevel(int levelNum)
 {
-    if (level < m_levelList->count())
-        m_levelList->setCurrentRow(level - 1);
-    else
-        m_levelList->setCurrentRow(m_levelList->count() - 1);
+    if (!m_levelset)
+        return;
+    if (levelNum < 0 || levelNum >= m_levelset->levelCount())
+        return;
+
+    ccl::LevelData* level = m_levelset->level(levelNum);
+    for (int i = 0; i < m_editorTabs->count(); ++i) {
+        if (getEditorAt(i)->levelData() == level) {
+            m_editorTabs->setCurrentIndex(i);
+            return;
+        }
+    }
+    addEditor(level);
+}
+
+int CCEditMain::levelIndex(ccl::LevelData* level)
+{
+    if (!m_levelset || !level)
+        return -1;
+
+    for (int i = 0; i < m_levelset->levelCount(); ++i) {
+        if (m_levelset->level(i) == level)
+            return i;
+    }
+    return -1;
 }
 
 EditorWidget* CCEditMain::getEditorAt(int idx)
 {
     if (idx < 0 || idx >= m_editorTabs->count())
-        return 0;
+        return nullptr;
 
-    QScrollArea* scroll = (QScrollArea*)m_editorTabs->widget(idx);
-    return (EditorWidget*)scroll->widget();
+    auto scroll = qobject_cast<QScrollArea*>(m_editorTabs->widget(idx));
+    return qobject_cast<EditorWidget*>(scroll->widget());
+}
+
+EditorWidget* CCEditMain::currentEditor()
+{
+    return getEditorAt(m_editorTabs->currentIndex());
 }
 
 EditorWidget* CCEditMain::addEditor(ccl::LevelData* level)
 {
-    QScrollArea* scroll = new QScrollArea(m_editorTabs);
-    EditorWidget* editor = new EditorWidget(scroll);
+    auto scroll = new QScrollArea(m_editorTabs);
+    auto editor = new EditorWidget(scroll);
     scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     scroll->setWidget(editor);
@@ -1171,6 +1189,7 @@ EditorWidget* CCEditMain::addEditor(ccl::LevelData* level)
     connect(this, &CCEditMain::foregroundChanged, editor, &EditorWidget::setLeftTile);
     connect(this, &CCEditMain::backgroundChanged, editor, &EditorWidget::setRightTile);
 
+    m_editorTabs->setCurrentWidget(scroll);
     return editor;
 }
 
@@ -1196,14 +1215,7 @@ void CCEditMain::onNewAction()
     m_actions[ActionSaveAs]->setEnabled(true);
     m_actions[ActionClose]->setEnabled(true);
     m_actions[ActionGenReport]->setEnabled(true);
-    if (canRunMSCC())
-        m_actions[ActionTestChips]->setEnabled(true);
-    m_actions[ActionTestTWorldCC]->setEnabled(true);
-    m_actions[ActionTestTWorldLynx]->setEnabled(true);
-    m_actions[ActionTestTWorld2CC]->setEnabled(true);
-    m_actions[ActionTestTWorld2Lynx]->setEnabled(true);
     m_actions[ActionAddLevel]->setEnabled(true);
-    m_actions[ActionDelLevel]->setEnabled(true);
     m_actions[ActionProperties]->setEnabled(true);
     m_actions[ActionOrganize]->setEnabled(true);
     m_actions[ActionCheckErrors]->setEnabled(true);
@@ -1348,8 +1360,8 @@ void CCEditMain::onCutAction()
 
 void CCEditMain::onCopyAction()
 {
-    EditorWidget* editor = getEditorAt(m_editorTabs->currentIndex());
-    if (editor == 0 || editor->selection() == QRect(-1, -1, -1, -1))
+    EditorWidget* editor = currentEditor();
+    if (!editor || editor->selection() == QRect(-1, -1, -1, -1))
         return;
 
     ccl::LevelData* copyRegion = new ccl::LevelData();
@@ -1410,8 +1422,8 @@ void CCEditMain::onCopyAction()
 
 void CCEditMain::onPasteAction()
 {
-    EditorWidget* editor = getEditorAt(m_editorTabs->currentIndex());
-    if (editor == 0)
+    EditorWidget* editor = currentEditor();
+    if (!editor)
         return;
 
     const QMimeData* cbData = qApp->clipboard()->mimeData();
@@ -1489,8 +1501,8 @@ void CCEditMain::onPasteAction()
 
 void CCEditMain::onClearAction()
 {
-    EditorWidget* editor = getEditorAt(m_editorTabs->currentIndex());
-    if (editor == 0 || editor->selection() == QRect(-1, -1, -1, -1))
+    EditorWidget* editor = currentEditor();
+    if (!editor || editor->selection() == QRect(-1, -1, -1, -1))
         return;
 
     editor->beginEdit(CCEHistoryNode::HistClear);
@@ -1507,8 +1519,8 @@ void CCEditMain::onClearAction()
 
 void CCEditMain::onUndoAction()
 {
-    EditorWidget* editor = getEditorAt(m_editorTabs->currentIndex());
-    if (editor != 0) {
+    EditorWidget* editor = currentEditor();
+    if (editor) {
         editor->undo();
         m_levelset->makeDirty();
     }
@@ -1516,8 +1528,8 @@ void CCEditMain::onUndoAction()
 
 void CCEditMain::onRedoAction()
 {
-    EditorWidget* editor = getEditorAt(m_editorTabs->currentIndex());
-    if (editor != 0) {
+    EditorWidget* editor = currentEditor();
+    if (editor) {
         editor->redo();
         m_levelset->makeDirty();
     }
@@ -1601,8 +1613,8 @@ void CCEditMain::onConnectToggled(bool mode)
 
 void CCEditMain::onAdvancedMechAction()
 {
-    EditorWidget* editor = getEditorAt(m_editorTabs->currentIndex());
-    if (editor == 0)
+    EditorWidget* editor = currentEditor();
+    if (!editor)
         return;
 
     AdvancedMechanicsDialog mechDlg(this);
@@ -1619,8 +1631,8 @@ void CCEditMain::onAdvancedMechAction()
 
 void CCEditMain::onToggleWallsAction()
 {
-    EditorWidget* editor = getEditorAt(m_editorTabs->currentIndex());
-    if (editor == 0)
+    EditorWidget* editor = currentEditor();
+    if (!editor)
         return;
 
     editor->beginEdit(CCEHistoryNode::HistToggleWalls);
@@ -1742,10 +1754,14 @@ void CCEditMain::onTilesetMenu(QAction* which)
 
 void CCEditMain::onTestChips()
 {
-    if (m_levelset == 0 || m_levelList->currentRow() < 0)
+    EditorWidget* editor = currentEditor();
+    if (!editor)
+        return;
+    const int levelNum = levelIndex(editor->levelData());
+    if (levelNum < 0)
         return;
 
-    if (m_subProc != 0) {
+    if (m_subProc) {
         QMessageBox::critical(this, tr("Process already running"),
                 tr("A CCEdit test process is already running.  Please close the "
                    "running process before trying to start a new one"),
@@ -1856,9 +1872,9 @@ void CCEditMain::onTestChips()
         ccl::IniFile ini;
         ini.read(iniStream);
         ini.setSection("CCEdit Playtest");
-        ini.setInt("Current Level", m_levelList->currentRow() + 1);
-        ini.setString(QString("Level%1").arg(m_levelList->currentRow() + 1).toUtf8().data(),
-                      m_levelset->level(m_levelList->currentRow())->password());
+        ini.setInt("Current Level", levelNum + 1);
+        ini.setString(QString("Level%1").arg(levelNum + 1).toLatin1().constData(),
+                      editor->levelData()->password());
         ini.write(iniStream);
         fclose(iniStream);
     } catch (std::exception& e) {
@@ -1888,7 +1904,11 @@ void CCEditMain::onTestChips()
 
 void CCEditMain::onTestTWorld(unsigned int levelsetType, bool tworld2)
 {
-    if (m_levelset == 0 || m_levelList->currentRow() < 0)
+    EditorWidget* editor = currentEditor();
+    if (!editor)
+        return;
+    const int levelNum = levelIndex(editor->levelData());
+    if (levelNum < 0)
         return;
 
     if (m_subProc) {
@@ -1951,8 +1971,7 @@ void CCEditMain::onTestTWorld(unsigned int levelsetType, bool tworld2)
     m_subProcType = SubprocTWorld;
     connect(m_subProc, SIGNAL(finished(int)), SLOT(onProcessFinished(int)));
     connect(m_subProc, SIGNAL(error(QProcess::ProcessError)), SLOT(onProcessError(QProcess::ProcessError)));
-    m_subProc->start(tworldExe, QStringList() << "-pr" << m_tempDat
-                                << QString("%1").arg(m_levelList->currentRow() + 1));
+    m_subProc->start(tworldExe, QStringList{ "-pr", m_tempDat, QString::number(levelNum + 1) });
     QDir::setCurrent(cwd);
 }
 
@@ -1969,7 +1988,7 @@ void CCEditMain::onAddLevelAction()
 
 void CCEditMain::onDelLevelAction()
 {
-    if (m_levelset == 0 || m_levelList->currentRow() < 0)
+    if (!m_levelset || m_levelList->currentRow() < 0)
         return;
 
     int result = QMessageBox::question(this, tr("Delete Level"),
@@ -1984,7 +2003,7 @@ void CCEditMain::onDelLevelAction()
     ccl::LevelData* level = m_levelset->takeLevel(idx);
     for (int i=0; i<m_editorTabs->count(); ++i) {
         if (getEditorAt(i)->levelData() == level)
-            onCloseTab(i);
+            m_editorTabs->widget(i)->deleteLater();
     }
     doLevelsetLoad();
     m_levelset->makeDirty();
@@ -1998,7 +2017,7 @@ void CCEditMain::onDelLevelAction()
 
 void CCEditMain::onMoveUpAction()
 {
-    if (m_levelset == 0 || m_levelList->currentRow() < 0)
+    if (!m_levelset || m_levelList->currentRow() < 0)
         return;
 
     int idx = m_levelList->currentRow();
@@ -2013,7 +2032,7 @@ void CCEditMain::onMoveUpAction()
 
 void CCEditMain::onMoveDownAction()
 {
-    if (m_levelset == 0 || m_levelList->currentRow() < 0)
+    if (!m_levelset || m_levelList->currentRow() < 0)
         return;
 
     int idx = m_levelList->currentRow();
@@ -2063,7 +2082,7 @@ void CCEditMain::onPropertiesAction()
 
 void CCEditMain::onOrganizeAction()
 {
-    if (m_levelset == 0)
+    if (!m_levelset)
         return;
 
     OrganizerDialog dlg(this);
@@ -2073,74 +2092,45 @@ void CCEditMain::onOrganizeAction()
         doLevelsetLoad();
         for (int i=0; i<m_editorTabs->count(); ++i) {
             if (getEditorAt(i)->isOrphaned())
-                delete m_editorTabs->widget(i);
+                m_editorTabs->widget(i)->deleteLater();
         }
         m_levelset->makeDirty();
+
+        // Move the selection in the levelList if there's an open editor
+        EditorWidget* editor = currentEditor();
+        if (editor)
+            m_levelList->setCurrentRow(levelIndex(editor->levelData()));
     }
 }
 
 void CCEditMain::onSelectLevel(int idx)
 {
-    if (m_levelset == 0 || idx < 0) {
-        m_nameEdit->setEnabled(false);
-        m_passwordEdit->setEnabled(false);
-        m_chipEdit->setEnabled(false);
-        m_timeEdit->setEnabled(false);
-        m_hintEdit->setEnabled(false);
-        m_nameEdit->setText(QString());
-        m_passwordEdit->setText(QString());
-        m_chipEdit->setValue(0);
-        m_timeEdit->setValue(0);
-        m_hintEdit->setText(QString());
-        closeAllTabs();
-
+    if (!m_levelset || idx < 0) {
         m_actions[ActionMoveUp]->setEnabled(false);
         m_actions[ActionMoveDown]->setEnabled(false);
         m_actions[ActionDelLevel]->setEnabled(false);
-        m_actions[ActionAdvancedMech]->setEnabled(false);
-        m_actions[ActionToggleWalls]->setEnabled(false);
     } else {
-        ccl::LevelData* level = m_levelset->level(idx);
-        m_nameEdit->setEnabled(true);
-        m_passwordEdit->setEnabled(true);
-        m_chipEdit->setEnabled(true);
-        m_timeEdit->setEnabled(true);
-        m_hintEdit->setEnabled(true);
-        m_nameEdit->setText(QString::fromLatin1(level->name().c_str()));
-        m_passwordEdit->setText(QString::fromLatin1(level->password().c_str()));
-        m_chipEdit->setValue(level->chips());
-        m_timeEdit->setValue(level->timer());
-        m_hintEdit->setText(QString::fromLatin1(level->hint().c_str()));
-
-        EditorWidget* editor = getEditorAt(m_editorTabs->currentIndex());
-        if (editor == 0) {
-            editor = addEditor(level);
-        } else {
-            editor->setLevelData(level);
-            m_editorTabs->setTabText(m_editorTabs->currentIndex(), level->name().c_str());
-        }
-
         m_actions[ActionMoveUp]->setEnabled(idx > 0);
         m_actions[ActionMoveDown]->setEnabled(idx < m_levelList->count() - 1);
         m_actions[ActionDelLevel]->setEnabled(true);
-        m_actions[ActionAdvancedMech]->setEnabled(true);
-        m_actions[ActionToggleWalls]->setEnabled(true);
     }
 }
 
 void CCEditMain::onPasswordGenAction()
 {
-    if (m_levelList->currentRow() < 0)
+    if (!currentEditor())
         return;
     m_passwordEdit->setText(QString::fromLatin1(ccl::Levelset::RandomPassword().c_str()));
 }
 
 void CCEditMain::onChipCountAction()
 {
-    if (m_levelList->currentRow() < 0)
+    EditorWidget* editor = currentEditor();
+    if (!editor)
         return;
+
     int chips = 0;
-    const ccl::LevelMap& map = m_levelset->level(m_levelList->currentRow())->map();
+    const ccl::LevelMap& map = editor->levelData()->map();
 
     for (int x=0; x<32; ++x) {
         for (int y=0; y<32; ++y) {
@@ -2153,18 +2143,19 @@ void CCEditMain::onChipCountAction()
     m_chipEdit->setValue(chips);
 }
 
-void CCEditMain::onNameChanged(QString value)
+void CCEditMain::onNameChanged(const QString& value)
 {
-    if (m_levelList->currentRow() < 0)
+    EditorWidget* editor = currentEditor();
+    if (!editor)
         return;
 
-    ccl::LevelData* level = m_levelset->level(m_levelList->currentRow());
+    ccl::LevelData* level = editor->levelData();
     if (level->name() != value.toLatin1().data()) {
         level->setName(value.toLatin1().data());
         m_levelset->makeDirty();
     }
-    m_levelList->currentItem()->setText(QString("%1 - %2")
-                    .arg(m_levelList->currentRow() + 1).arg(value));
+    const int levelNum = levelIndex(editor->levelData());
+    m_levelList->item(levelNum)->setText(QString("%1 - %2").arg(levelNum + 1).arg(value));
 
     for (int i=0; i<m_editorTabs->count(); ++i) {
         if (getEditorAt(i)->levelData() == level)
@@ -2172,11 +2163,13 @@ void CCEditMain::onNameChanged(QString value)
     }
 }
 
-void CCEditMain::onPasswordChanged(QString value)
+void CCEditMain::onPasswordChanged(const QString& value)
 {
-    if (m_levelList->currentRow() < 0)
+    EditorWidget* editor = currentEditor();
+    if (!editor)
         return;
-    ccl::LevelData* level = m_levelset->level(m_levelList->currentRow());
+
+    ccl::LevelData* level = editor->levelData();
     if (level->password() != value.toLatin1().data()) {
         level->setPassword(value.toLatin1().data());
         m_levelset->makeDirty();
@@ -2185,9 +2178,11 @@ void CCEditMain::onPasswordChanged(QString value)
 
 void CCEditMain::onChipsChanged(int value)
 {
-    if (m_levelList->currentRow() < 0)
+    EditorWidget* editor = currentEditor();
+    if (!editor)
         return;
-    ccl::LevelData* level = m_levelset->level(m_levelList->currentRow());
+
+    ccl::LevelData* level = editor->levelData();
     if (level->chips() != value) {
         level->setChips(value);
         m_levelset->makeDirty();
@@ -2196,20 +2191,24 @@ void CCEditMain::onChipsChanged(int value)
 
 void CCEditMain::onTimerChanged(int value)
 {
-    if (m_levelList->currentRow() < 0)
+    EditorWidget* editor = currentEditor();
+    if (!editor)
         return;
-    ccl::LevelData* level = m_levelset->level(m_levelList->currentRow());
+
+    ccl::LevelData* level = editor->levelData();
     if (level->timer() != value) {
         level->setTimer(value);
         m_levelset->makeDirty();
     }
 }
 
-void CCEditMain::onHintChanged(QString value)
+void CCEditMain::onHintChanged(const QString& value)
 {
-    if (m_levelList->currentRow() < 0)
+    EditorWidget* editor = currentEditor();
+    if (!editor)
         return;
-    ccl::LevelData* level = m_levelset->level(m_levelList->currentRow());
+
+    ccl::LevelData* level = editor->levelData();
     if (level->hint() != value.toLatin1().data()) {
         level->setHint(value.toLatin1().data());
         m_levelset->makeDirty();
@@ -2228,34 +2227,62 @@ void CCEditMain::setBackground(tile_t tile)
     emit backgroundChanged(tile);
 }
 
+static bool haveClipboardData()
+{
+    const QMimeData* cbData = QApplication::clipboard()->mimeData();
+    return cbData->hasFormat("CHIPEDIT MAPSECT");
+}
+
 void CCEditMain::onClipboardDataChanged()
 {
-    const QMimeData* cbData = qApp->clipboard()->mimeData();
-    m_actions[ActionPaste]->setEnabled(cbData->hasFormat("CHIPEDIT MAPSECT"));
-}
-
-void CCEditMain::onNewTab()
-{
-    if (m_levelList->currentRow() >= 0) {
-        addEditor(m_levelset->level(m_levelList->currentRow()));
-        m_editorTabs->setCurrentIndex(m_editorTabs->count() - 1);
-    }
-}
-
-void CCEditMain::onCloseTab(int tabIdx)
-{
-    if (m_editorTabs->count() == 1)
-        return;
-    delete m_editorTabs->widget(tabIdx);
+    m_actions[ActionPaste]->setEnabled(currentEditor() && haveClipboardData());
 }
 
 void CCEditMain::onTabChanged(int tabIdx)
 {
-    if (tabIdx < 0)
-        return;
     EditorWidget* editor = getEditorAt(tabIdx);
+    if (!editor) {
+        m_nameEdit->setEnabled(false);
+        m_passwordEdit->setEnabled(false);
+        m_chipEdit->setEnabled(false);
+        m_timeEdit->setEnabled(false);
+        m_hintEdit->setEnabled(false);
+        m_nameEdit->setText(QString());
+        m_passwordEdit->setText(QString());
+        m_chipEdit->setValue(0);
+        m_timeEdit->setValue(0);
+        m_hintEdit->setText(QString());
 
-    //m_levelList->setCurrentRow();
+        m_actions[ActionUndo]->setEnabled(false);
+        m_actions[ActionRedo]->setEnabled(false);
+        m_actions[ActionCut]->setEnabled(false);
+        m_actions[ActionCopy]->setEnabled(false);
+        m_actions[ActionPaste]->setEnabled(false);
+        m_actions[ActionClear]->setEnabled(false);
+        m_actions[ActionAdvancedMech]->setEnabled(false);
+        m_actions[ActionToggleWalls]->setEnabled(false);
+        if (canRunMSCC())
+            m_actions[ActionTestChips]->setEnabled(false);
+        m_actions[ActionTestTWorldCC]->setEnabled(false);
+        m_actions[ActionTestTWorldLynx]->setEnabled(false);
+        m_actions[ActionTestTWorld2CC]->setEnabled(false);
+        m_actions[ActionTestTWorld2Lynx]->setEnabled(false);
+        return;
+    }
+
+    ccl::LevelData* level = editor->levelData();
+    m_levelList->setCurrentRow(levelIndex(level));
+    m_nameEdit->setEnabled(true);
+    m_passwordEdit->setEnabled(true);
+    m_chipEdit->setEnabled(true);
+    m_timeEdit->setEnabled(true);
+    m_hintEdit->setEnabled(true);
+    m_nameEdit->setText(QString::fromLatin1(level->name().c_str()));
+    m_passwordEdit->setText(QString::fromLatin1(level->password().c_str()));
+    m_chipEdit->setValue(level->chips());
+    m_timeEdit->setValue(level->timer());
+    m_hintEdit->setText(QString::fromLatin1(level->hint().c_str()));
+
     editor->dirtyBuffer();
     editor->update();
     editor->updateUndoStatus();
@@ -2263,7 +2290,16 @@ void CCEditMain::onTabChanged(int tabIdx)
     bool hasSelection = editor->selection() != QRect(-1, -1, -1, -1);
     m_actions[ActionCut]->setEnabled(hasSelection);
     m_actions[ActionCopy]->setEnabled(hasSelection);
+    m_actions[ActionPaste]->setEnabled(haveClipboardData());
     m_actions[ActionClear]->setEnabled(hasSelection);
+    m_actions[ActionAdvancedMech]->setEnabled(true);
+    m_actions[ActionToggleWalls]->setEnabled(true);
+    if (canRunMSCC())
+        m_actions[ActionTestChips]->setEnabled(true);
+    m_actions[ActionTestTWorldCC]->setEnabled(true);
+    m_actions[ActionTestTWorldLynx]->setEnabled(true);
+    m_actions[ActionTestTWorld2CC]->setEnabled(true);
+    m_actions[ActionTestTWorld2Lynx]->setEnabled(true);
 }
 
 void CCEditMain::onDockChanged(Qt::DockWidgetArea area)
@@ -2317,7 +2353,9 @@ int main(int argc, char* argv[])
     mainWin.show();
     if (argc > 1)
         mainWin.loadLevelset(argv[1]);
-    if (argc > 2)
-        mainWin.selectLevel((int)strtol(argv[2], NULL, 10));
+    if (argc > 2) {
+        int levelNum = (int)strtol(argv[2], nullptr, 10);
+        mainWin.loadLevel(levelNum - 1);
+    }
     return app.exec();
 }

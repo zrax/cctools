@@ -19,18 +19,19 @@
 #define _CCEDIT_H
 
 #include <QMainWindow>
-#include <QAction>
-#include <QMenu>
-#include <QListWidget>
-#include <QLineEdit>
-#include <QSpinBox>
-#include <QTabWidget>
-#include <QLabel>
 #include <QProcess>
 #include "EditorWidget.h"
 #include "libcc1/Levelset.h"
 #include "libcc1/DacFile.h"
 #include "libcc1/CCMetaData.h"
+
+class QMenu;
+class QAction;
+class QActionGroup;
+class QTabWidget;
+class QListWidget;
+class QLineEdit;
+class QSpinBox;
 
 class EditorTabWidget;
 
@@ -38,16 +39,17 @@ class CCEditMain : public QMainWindow {
     Q_OBJECT
 
 public:
-    CCEditMain(QWidget* parent = 0);
+    explicit CCEditMain(QWidget* parent = nullptr);
 
     void loadLevelset(QString filename);
     void saveLevelset(QString filename);
     bool closeLevelset();
     void loadTileset(CCETileset* tileset);
     void findTilesets();
-    void selectLevel(int level);
+    void loadLevel(int level);
 
     EditorWidget* getEditorAt(int idx);
+    EditorWidget* currentEditor();
     EditorWidget* addEditor(ccl::LevelData* level);
     void closeAllTabs();
 
@@ -105,6 +107,8 @@ private:
     SubprocType m_subProcType;
     QString m_tempExe, m_tempDat, m_tempIni;
 
+    int levelIndex(ccl::LevelData* level);
+
 protected:
     void registerTileset(QString filename);
     void doLevelsetLoad();
@@ -157,15 +161,13 @@ private slots:
     void onSelectLevel(int);
     void onPasswordGenAction();
     void onChipCountAction();
-    void onNameChanged(QString);
-    void onPasswordChanged(QString);
+    void onNameChanged(const QString&);
+    void onPasswordChanged(const QString&);
     void onChipsChanged(int);
     void onTimerChanged(int);
-    void onHintChanged(QString);
+    void onHintChanged(const QString&);
     void onClipboardDataChanged();
 
-    void onNewTab();
-    void onCloseTab(int);
     void onTabChanged(int);
     void onDockChanged(Qt::DockWidgetArea);
     void onMakeDirty() { m_levelset->makeDirty(); }

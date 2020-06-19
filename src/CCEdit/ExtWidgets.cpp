@@ -33,15 +33,6 @@ EditorTabWidget::EditorTabWidget(QWidget* parent)
     : QTabWidget(parent)
 {
     setTabBar(new MidClickClose_TabBar(this));
-
-    auto newTabButton = new QToolButton(this);
-    newTabButton->setIcon(QIcon(":/res/tab-new-sm.png"));
-    newTabButton->setStatusTip(tr("Open a new editor tab"));
-    newTabButton->setAutoRaise(true);
-    setCornerWidget(newTabButton, Qt::TopLeftCorner);
     setMovable(true);
     setTabsClosable(true);
-
-    connect(newTabButton, &QToolButton::clicked,
-            this, &EditorTabWidget::newTabRequested);
 }

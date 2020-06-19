@@ -36,9 +36,6 @@ class EditorTabWidget : public QTabWidget {
 
 public:
     EditorTabWidget(QWidget* parent = nullptr);
-
-Q_SIGNALS:
-    void newTabRequested();
 };
 
 #endif
