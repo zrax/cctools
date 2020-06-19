@@ -165,6 +165,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     drawModeGroup->addAction(m_actions[ActionDrawPencil]);
     drawModeGroup->addAction(m_actions[ActionDrawLine]);
     drawModeGroup->addAction(m_actions[ActionDrawFill]);
+    drawModeGroup->addAction(m_actions[ActionPathMaker]);
     m_actions[ActionDrawPencil]->setChecked(true);
 
     m_actions[ActionViewButtons] = new QAction(tr("Show &Button Connections"), this);

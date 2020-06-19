@@ -178,10 +178,11 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionCheckErrors]->setStatusTip(tr("Check for errors in the current levelset or a specific level"));
     m_actions[ActionCheckErrors]->setShortcut(Qt::CTRL | Qt::Key_E);
     m_actions[ActionCheckErrors]->setEnabled(false);
-    QActionGroup* drawModeGroup = new QActionGroup(this);
+    auto drawModeGroup = new QActionGroup(this);
     drawModeGroup->addAction(m_actions[ActionDrawPencil]);
     drawModeGroup->addAction(m_actions[ActionDrawLine]);
     drawModeGroup->addAction(m_actions[ActionDrawFill]);
+    drawModeGroup->addAction(m_actions[ActionPathMaker]);
     m_actions[ActionDrawPencil]->setChecked(true);
 
     m_actions[ActionViewButtons] = new QAction(tr("Show &Button Connections"), this);
@@ -1543,7 +1544,6 @@ void CCEditMain::onDrawPencilAction(bool checked)
     m_savedDrawMode = ActionDrawPencil;
     m_currentDrawMode = EditorWidget::DrawPencil;
     m_actions[ActionSelect]->setChecked(false);
-    m_actions[ActionPathMaker]->setChecked(false);
     m_actions[ActionConnect]->setChecked(false);
     for (int i=0; i<m_editorTabs->count(); ++i)
         getEditorAt(i)->setDrawMode(m_currentDrawMode);
@@ -1557,7 +1557,6 @@ void CCEditMain::onDrawLineAction(bool checked)
     m_savedDrawMode = ActionDrawLine;
     m_currentDrawMode = EditorWidget::DrawLine;
     m_actions[ActionSelect]->setChecked(false);
-    m_actions[ActionPathMaker]->setChecked(false);
     m_actions[ActionConnect]->setChecked(false);
     for (int i=0; i<m_editorTabs->count(); ++i)
         getEditorAt(i)->setDrawMode(m_currentDrawMode);
@@ -1571,27 +1570,22 @@ void CCEditMain::onDrawFillAction(bool checked)
     m_savedDrawMode = ActionDrawFill;
     m_currentDrawMode = EditorWidget::DrawFill;
     m_actions[ActionSelect]->setChecked(false);
-    m_actions[ActionPathMaker]->setChecked(false);
     m_actions[ActionConnect]->setChecked(false);
     for (int i=0; i<m_editorTabs->count(); ++i)
         getEditorAt(i)->setDrawMode(m_currentDrawMode);
 }
 
-void CCEditMain::onPathMakerToggled(bool mode)
+void CCEditMain::onPathMakerToggled(bool checked)
 {
-    if (!mode && m_currentDrawMode == EditorWidget::DrawPathMaker) {
-        m_actions[m_savedDrawMode]->setChecked(true);
-    } else if (mode) {
-        m_currentDrawMode = EditorWidget::DrawPathMaker;
-        m_actions[ActionSelect]->setChecked(false);
-        m_actions[ActionDrawPencil]->setChecked(false);
-        m_actions[ActionDrawLine]->setChecked(false);
-        m_actions[ActionDrawFill]->setChecked(false);
-        m_actions[ActionConnect]->setChecked(false);
+    if (!checked)
+        return;
 
-        for (int i=0; i<m_editorTabs->count(); ++i)
-            getEditorAt(i)->setDrawMode(m_currentDrawMode);
-    }
+    m_savedDrawMode = ActionPathMaker;
+    m_currentDrawMode = EditorWidget::DrawPathMaker;
+    m_actions[ActionSelect]->setChecked(false);
+    m_actions[ActionConnect]->setChecked(false);
+    for (int i=0; i<m_editorTabs->count(); ++i)
+        getEditorAt(i)->setDrawMode(m_currentDrawMode);
 }
 
 void CCEditMain::onConnectToggled(bool mode)
