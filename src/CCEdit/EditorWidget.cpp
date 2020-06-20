@@ -229,9 +229,6 @@ void EditorWidget::setLevelData(ccl::LevelData* level)
     dirtyBuffer();
     update();
 
-    m_history.clear();
-    emit canUndo(false);
-    emit canRedo(false);
     emit hasSelection(false);
 }
 
@@ -627,7 +624,7 @@ void EditorWidget::mousePressEvent(QMouseEvent* event)
     if ((m_cachedButton == Qt::LeftButton || m_cachedButton == Qt::RightButton)
         && (m_drawMode == DrawPencil || m_drawMode == DrawLine || m_drawMode == DrawFill
             || m_drawMode == DrawPathMaker))
-        beginEdit(CCEHistoryNode::HistDraw);
+        emit editingStarted();
 
     if (m_drawMode != DrawSelect && event->button() != Qt::MidButton) {
         m_selectRect = QRect(-1, -1, -1, -1);
@@ -639,7 +636,7 @@ void EditorWidget::mousePressEvent(QMouseEvent* event)
     } else if (m_drawMode == DrawButtonConnect) {
         if (m_cachedButton == Qt::RightButton) {
             bool madeChange = false;
-            beginEdit(CCEHistoryNode::HistDisconnect);
+            emit editingStarted();
             std::list<ccl::Trap>::iterator trap_iter = m_levelData->traps().begin();
             while (trap_iter != m_levelData->traps().end()) {
                 if ((trap_iter->button.X == posX && trap_iter->button.Y == posY)
@@ -662,11 +659,10 @@ void EditorWidget::mousePressEvent(QMouseEvent* event)
                 }
             }
             if (madeChange)
-                endEdit();
+                emit editingFinished();
             else
-                cancelEdit();
+                emit editingCancelled();
             m_origin = QPoint(-1, -1);
-            emit makeDirty();
         } else  if (m_origin == QPoint(-1, -1) && test_start_connect(m_levelData, QPoint(posX, posY))) {
             m_origin = QPoint(posX, posY);
         } else if (m_origin == m_current) {
@@ -717,28 +713,24 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
         if (m_origin != m_current) {
             switch (test_connect(m_levelData, m_origin, m_current)) {
             case ConnTrap:
-                beginEdit(CCEHistoryNode::HistConnect);
+                emit editingStarted();
                 m_levelData->trapConnect(m_origin.x(), m_origin.y(), m_current.x(), m_current.y());
-                endEdit();
-                emit makeDirty();
+                emit editingFinished();
                 break;
             case ConnTrapRev:
-                beginEdit(CCEHistoryNode::HistConnect);
+                emit editingStarted();
                 m_levelData->trapConnect(m_current.x(), m_current.y(), m_origin.x(), m_origin.y());
-                endEdit();
-                emit makeDirty();
+                emit editingFinished();
                 break;
             case ConnClone:
-                beginEdit(CCEHistoryNode::HistConnect);
+                emit editingStarted();
                 m_levelData->cloneConnect(m_origin.x(), m_origin.y(), m_current.x(), m_current.y());
-                endEdit();
-                emit makeDirty();
+                emit editingFinished();
                 break;
             case ConnCloneRev:
-                beginEdit(CCEHistoryNode::HistConnect);
+                emit editingStarted();
                 m_levelData->cloneConnect(m_current.x(), m_current.y(), m_origin.x(), m_origin.y());
-                endEdit();
-                emit makeDirty();
+                emit editingFinished();
                 break;
             default:
                 // Do nothing
@@ -754,7 +746,7 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
     if ((m_cachedButton == Qt::LeftButton || m_cachedButton == Qt::RightButton)
         && (m_drawMode == DrawPencil || m_drawMode == DrawLine || m_drawMode == DrawFill
             || m_drawMode == DrawPathMaker))
-        endEdit();
+        emit editingFinished();
 
     update();
     m_cachedButton = Qt::NoButton;
@@ -934,30 +926,6 @@ void EditorWidget::putTile(tile_t tile, int x, int y, DrawLayer layer)
     }
 
     dirtyBuffer();
-}
-
-void EditorWidget::undo()
-{
-    ccl::LevelData* data = m_history.undo();
-    m_levelData->map().copyFrom(data->map());
-    m_levelData->traps() = data->traps();
-    m_levelData->clones() = data->clones();
-    m_levelData->moveList() = data->moveList();
-    dirtyBuffer();
-    update();
-    updateUndoStatus();
-}
-
-void EditorWidget::redo()
-{
-    ccl::LevelData* data = m_history.redo();
-    m_levelData->map().copyFrom(data->map());
-    m_levelData->traps() = data->traps();
-    m_levelData->clones() = data->clones();
-    m_levelData->moveList() = data->moveList();
-    dirtyBuffer();
-    update();
-    updateUndoStatus();
 }
 
 void EditorWidget::setZoom(double factor)

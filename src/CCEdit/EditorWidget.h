@@ -20,7 +20,6 @@
 
 #include <QWidget>
 #include <QPainter>
-#include "History.h"
 #include "libcc1/Tileset.h"
 #include "libcc1/Levelset.h"
 
@@ -62,7 +61,6 @@ public:
 
     void setLevelData(ccl::LevelData* level);
     ccl::LevelData* levelData() const { return m_levelData; }
-    bool isOrphaned() const { return m_levelData->refs() == 1; }
 
     QSize sizeHint() const override
     {
@@ -93,26 +91,6 @@ public:
         update();
     }
 
-    void beginEdit(CCEHistoryNode::Type type)
-    {
-        m_history.beginEdit(type, m_levelData);
-    }
-
-    void endEdit()
-    {
-         m_history.endEdit(m_levelData);
-         updateUndoStatus();
-         dirtyBuffer();
-    }
-
-    void cancelEdit() { m_history.cancelEdit(); }
-
-    void updateUndoStatus()
-    {
-         emit canUndo(m_history.canUndo());
-         emit canRedo(m_history.canRedo());
-    }
-
     void renderTileBuffer();
     void dirtyBuffer() { m_cacheDirty = true; }
     double zoom() const { return m_zoomFactor; }
@@ -123,8 +101,6 @@ public:
 public slots:
     void viewTile(QPainter& painter, int x, int y);
     void putTile(tile_t tile, int x, int y, DrawLayer layer);
-    void undo();
-    void redo();
     void setZoom(double factor);
 
 protected:
@@ -144,7 +120,6 @@ private:
     QPixmap m_numbers, m_errmk;
     QPoint m_origin, m_current;
     ccl::Direction m_lastDir;
-    CCEHistory m_history;
     QRect m_selectRect;
 
     double m_zoomFactor;
@@ -185,10 +160,11 @@ private:
     }
 
 signals:
-    void mouseInfo(QString text);
-    void canUndo(bool);
-    void canRedo(bool);
+    void mouseInfo(const QString& text, int timeout = 0);
     void hasSelection(bool);
+    void editingStarted();
+    void editingFinished();
+    void editingCancelled();
     void makeDirty();
 };
 

@@ -107,16 +107,19 @@ ccl::Point ccl::LevelMap::findNext(int x, int y, tile_t tile) const
 }
 
 
-ccl::LevelData::LevelData()
-    : m_refs(1), m_levelNum(0), m_chips(0), m_timer(0)
-{ }
-
-ccl::LevelData::LevelData(const ccl::LevelData& init)
-    : m_refs(1), m_map(init.m_map), m_name(init.m_name), m_hint(init.m_hint),
-      m_password(init.m_password), m_levelNum(init.m_levelNum),
-      m_chips(init.m_chips), m_timer(init.m_timer), m_traps(init.m_traps),
-      m_clones(init.m_clones), m_moveList(init.m_moveList)
-{ }
+void ccl::LevelData::copyFrom(const ccl::LevelData* init)
+{
+    m_map = init->m_map;
+    m_name = init->m_name;
+    m_hint = init->m_hint;
+    m_password = init->m_password;
+    m_levelNum = init->m_levelNum;
+    m_chips = init->m_chips;
+    m_timer = init->m_timer;
+    m_traps = init->m_traps;
+    m_clones = init->m_clones;
+    m_moveList = init->m_moveList;
+}
 
 std::list<ccl::Point> ccl::LevelData::linkedTraps(int x, int y) const
 {
@@ -400,7 +403,6 @@ ccl::Levelset::Levelset(int levelCount)
     for (int i=0; i<levelCount; ++i) {
         snprintf(nameBuf, 32, "Level %d", i + 1);
         m_levels[i] = new ccl::LevelData();
-        //m_levels[i]->setLevelNum(i + 1);
         m_levels[i]->setName(nameBuf);
         m_levels[i]->setPassword(RandomPassword());
     }
@@ -410,8 +412,10 @@ ccl::Levelset::Levelset(const ccl::Levelset& init)
    : m_magic(init.m_magic), m_dirty(false)
 {
     m_levels.resize(init.m_levels.size());
-    for (size_t i=0; i<m_levels.size(); ++i)
-        m_levels[i] = new ccl::LevelData(*init.m_levels[i]);
+    for (size_t i=0; i<m_levels.size(); ++i) {
+        m_levels[i] = new ccl::LevelData;
+        m_levels[i]->copyFrom(init.m_levels[i]);
+    }
 }
 
 ccl::Levelset::~Levelset()
@@ -435,7 +439,6 @@ ccl::LevelData* ccl::Levelset::addLevel()
     ccl::LevelData* level = new ccl::LevelData();
     m_levels.push_back(level);
 
-    //level->setLevelNum((int)m_levels.size());
     snprintf(nameBuf, 32, "Level %d", (int)m_levels.size());
     level->setName(nameBuf);
     level->setPassword(RandomPassword());
@@ -483,12 +486,11 @@ void ccl::Levelset::write(ccl::Stream* stream) const
     stream->write32(m_magic);
     stream->write16((uint16_t)m_levels.size());
 
-    std::vector<ccl::LevelData*>::const_iterator it;
     int levelNum = 0;
-    for (it = m_levels.begin(); it != m_levels.end(); ++it) {
+    for (ccl::LevelData* level : m_levels) {
         // Re-set level number in case levels were re-ordered
-        (*it)->setLevelNum(++levelNum);
-        (*it)->write(stream);
+        level->setLevelNum(++levelNum);
+        level->write(stream);
     }
 }
 

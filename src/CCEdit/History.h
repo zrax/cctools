@@ -18,53 +18,36 @@
 #ifndef _CCEHISTORY_H
 #define _CCEHISTORY_H
 
-#include "libcc1/Levelset.h"
+#include <QUndoCommand>
 
-struct CCEHistoryNode {
+namespace ccl { class LevelData; }
+
+class EditorUndoCommand : public QUndoCommand {
+public:
     enum Type {
-        HistInit, HistDraw, HistClear, HistPaste, HistConnect, HistDisconnect,
-        HistEditMech, HistToggleWalls,
+        EditMap, EditName, EditPassword, EditChips, EditTimer, EditHint
     };
 
-    explicit CCEHistoryNode(Type type)
-        : m_type(type), m_before(), m_after(), m_prev(), m_next()
-    { }
+    explicit EditorUndoCommand(Type type, ccl::LevelData* before);
+    ~EditorUndoCommand() override;
 
-    ~CCEHistoryNode()
-    {
-        if (m_before)
-            m_before->unref();
-        if (m_after)
-            m_after->unref();
-    }
+    int id() const override { return m_type; }
+    bool mergeWith(const QUndoCommand* command) override;
 
-    Type m_type;
-    ccl::LevelData* m_before;
-    ccl::LevelData* m_after;
-    CCEHistoryNode* m_prev;
-    CCEHistoryNode* m_next;
-};
+    ccl::LevelData* levelPtr() const { return m_levelPtr; }
 
-class CCEHistory {
-public:
-    CCEHistory();
-    ~CCEHistory();
+    void enter() { ++m_enter; }
+    bool leave(ccl::LevelData* after);
 
-    void clear();
-    bool canUndo() const { return m_present->m_prev != nullptr; }
-    bool canRedo() const { return m_present->m_next != nullptr; }
-    ccl::LevelData* undo();
-    ccl::LevelData* redo();
-
-    void beginEdit(CCEHistoryNode::Type type, ccl::LevelData* before);
-    void endEdit(ccl::LevelData* after);
-    void cancelEdit();
+    void undo() override;
+    void redo() override;
 
 private:
-    CCEHistoryNode* m_history;
-    CCEHistoryNode* m_present;
-    CCEHistoryNode* m_temp;
-    int m_entryCount;
+    int m_enter;
+    int m_type;
+    ccl::LevelData* m_levelPtr;
+    ccl::LevelData* m_before;
+    ccl::LevelData* m_after;
 };
 
 #endif

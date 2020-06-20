@@ -21,6 +21,7 @@
 #include <QMainWindow>
 #include <QProcess>
 #include "EditorWidget.h"
+#include "History.h"
 #include "libcc1/Levelset.h"
 #include "libcc1/DacFile.h"
 #include "libcc1/CCMetaData.h"
@@ -32,6 +33,7 @@ class QTabWidget;
 class QListWidget;
 class QLineEdit;
 class QSpinBox;
+class QUndoStack;
 
 class EditorTabWidget;
 
@@ -46,7 +48,9 @@ public:
     bool closeLevelset();
     void loadTileset(CCETileset* tileset);
     void findTilesets();
+
     void loadLevel(int level);
+    void loadLevel(ccl::LevelData* levelPtr);
 
     EditorWidget* getEditorAt(int idx);
     EditorWidget* currentEditor();
@@ -79,6 +83,8 @@ private:
     QAction* m_actions[NUM_ACTIONS];
     QMenu* m_tilesetMenu;
     QActionGroup* m_tilesetGroup;
+    QUndoStack* m_undoStack;
+    EditorUndoCommand* m_undoCommand;
     CCETileset* m_currentTileset;
     ActionType m_savedDrawMode;
     EditorWidget::DrawMode m_currentDrawMode;
@@ -150,6 +156,10 @@ private slots:
     void onTestChips();
     void onTestTWorld(unsigned int levelsetType, bool tworld2);
 
+    void beginEdit(EditorUndoCommand::Type type);
+    void endEdit();
+    void cancelEdit();
+
     void onAddLevelAction();
     void onDelLevelAction();
     void onMoveUpAction();
@@ -169,7 +179,6 @@ private slots:
 
     void onTabChanged(int);
     void onDockChanged(Qt::DockWidgetArea);
-    void onMakeDirty() { m_levelset->makeDirty(); }
 
     void setForeground(tile_t);
     void setBackground(tile_t);

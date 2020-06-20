@@ -16,78 +16,65 @@
  ******************************************************************************/
 
 #include "History.h"
+#include "libcc1/Levelset.h"
 
-CCEHistory::CCEHistory() : m_temp(), m_entryCount()
+EditorUndoCommand::EditorUndoCommand(Type type, ccl::LevelData* before)
+    : m_enter(1), m_type(type), m_levelPtr(before),
+      m_before(new ccl::LevelData), m_after()
 {
-    m_history = new CCEHistoryNode(CCEHistoryNode::HistInit);
-    m_present = m_history;
+    m_levelPtr->ref();
+    m_before->copyFrom(before);
 }
 
-CCEHistory::~CCEHistory()
+EditorUndoCommand::~EditorUndoCommand()
 {
-    CCEHistoryNode* node = m_history;
-    while (node) {
-        CCEHistoryNode* next = node->m_next;
-        delete node;
-        node = next;
-    }
+    m_before->unref();
+    if (m_after)
+        m_after->unref();
+    m_levelPtr->unref();
 }
 
-void CCEHistory::clear()
+bool EditorUndoCommand::mergeWith(const QUndoCommand* command)
 {
-    CCEHistoryNode* node = m_history;
-    while (node) {
-        CCEHistoryNode* next = node->m_next;
-        delete node;
-        node = next;
-    }
+    if (command->id() != id() || m_type == EditMap)
+        return false;
 
-    m_history = new CCEHistoryNode(CCEHistoryNode::HistInit);
-    m_present = m_history;
+    auto editorCmd = dynamic_cast<const EditorUndoCommand*>(command);
+    Q_ASSERT(editorCmd);
+    m_after->copyFrom(editorCmd->m_after);
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 9, 0)
+    // Don't bother comparing map edits, since those are never merged
+    if (m_before->name() == m_after->name()
+            && m_before->password() == m_after->password()
+            && m_before->chips() == m_after->chips()
+            && m_before->timer() == m_after->chips()
+            && m_before->hint() == m_after->hint())
+        setObsolete(true);
+#endif
+
+    return true;
 }
 
-ccl::LevelData* CCEHistory::undo()
+bool EditorUndoCommand::leave(ccl::LevelData* after)
 {
-    CCEHistoryNode* node = m_present;
-    if (canUndo())
-        m_present = m_present->m_prev;
-    return node->m_before;
-}
-
-ccl::LevelData* CCEHistory::redo()
-{
-    if (canRedo())
-        m_present = m_present->m_next;
-    return m_present->m_after;
-}
-
-void CCEHistory::beginEdit(CCEHistoryNode::Type type, ccl::LevelData* before)
-{
-    if (++m_entryCount == 1) {
-        m_temp = new CCEHistoryNode(type);
-        m_temp->m_before = new ccl::LevelData(*before);
-    }
-}
-
-void CCEHistory::endEdit(ccl::LevelData* after)
-{
-    if (--m_entryCount == 0) {
-        m_temp->m_after = new ccl::LevelData(*after);
-
-        CCEHistoryNode* node = m_present->m_next;
-        while (node) {
-            CCEHistoryNode* next = node->m_next;
-            delete node;
-            node = next;
+    if (--m_enter == 0) {
+        Q_ASSERT(!m_after);
+        if (after) {
+            m_after = new ccl::LevelData;
+            m_after->copyFrom(after);
         }
-        m_temp->m_prev = m_present;
-        m_present->m_next = m_temp;
-        m_present = m_temp;
+        return true;
     }
+    return false;
 }
 
-void CCEHistory::cancelEdit()
+void EditorUndoCommand::undo()
 {
-    if (--m_entryCount == 0)
-        delete m_temp;
+    m_levelPtr->copyFrom(m_before);
+}
+
+void EditorUndoCommand::redo()
+{
+    m_levelPtr->copyFrom(m_after);
 }

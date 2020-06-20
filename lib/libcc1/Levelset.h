@@ -86,8 +86,11 @@ public:
     };
 
 public:
-    LevelData();
-    LevelData(const LevelData& init);
+    LevelData() : m_refs(1), m_levelNum(), m_chips(), m_timer() { }
+    LevelData(const LevelData&) = delete;
+    LevelData& operator=(const LevelData&) = delete;
+
+    void copyFrom(const LevelData* init);
 
     const ccl::LevelMap& map() const { return m_map; }
     ccl::LevelMap& map() { return m_map; }
@@ -95,7 +98,6 @@ public:
     std::string name() const { return m_name; }
     std::string hint() const { return m_hint; }
     std::string password() const { return m_password; }
-    unsigned short levelNum() const { return m_levelNum; }
     unsigned short chips() const { return m_chips; }
     unsigned short timer() const { return m_timer; }
     const std::list<ccl::Trap>& traps() const { return m_traps; }
@@ -139,7 +141,7 @@ public:
     int refs() const { return m_refs; }
 
 private:
-    ~LevelData() { }
+    ~LevelData() = default;
 
     int m_refs;
     ccl::LevelMap m_map;
