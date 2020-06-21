@@ -185,14 +185,9 @@ public:
     void read(Stream* stream);
     void write(Stream* stream) const;
 
-    bool isDirty() const { return m_dirty; }
-    void makeDirty() { m_dirty = true; }
-    void makeClean() { m_dirty = false; }
-
 private:
     std::vector<ccl::LevelData*> m_levels;
     unsigned int m_magic;
-    bool m_dirty;
 };
 
 enum LevelsetType { LevelsetError, LevelsetDac, LevelsetCcl };

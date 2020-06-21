@@ -56,13 +56,14 @@ class OrganizerDialog : public QDialog {
     Q_OBJECT
 
 public:
-    OrganizerDialog(QWidget* parent = 0);
+    explicit OrganizerDialog(QWidget* parent = nullptr);
 
     void loadLevelset(ccl::Levelset* levelset);
     void setTileset(CCETileset* tileset) { m_levels->setTileset(tileset); }
 
+    std::vector<ccl::LevelData*> getLevels() const;
+
 private slots:
-    void saveChanges();
     void updateActions();
     void onCutLevels();
     void onCopyLevels();
@@ -71,7 +72,6 @@ private slots:
     void onClipboardDataChanged();
 
 private:
-    ccl::Levelset* m_levelset;
     LevelListWidget* m_levels;
 
     enum ActionType {

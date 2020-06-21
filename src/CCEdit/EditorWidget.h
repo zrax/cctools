@@ -165,7 +165,6 @@ signals:
     void editingStarted();
     void editingFinished();
     void editingCancelled();
-    void makeDirty();
 };
 
 #endif

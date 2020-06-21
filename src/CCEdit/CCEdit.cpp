@@ -87,7 +87,7 @@ Q_DECLARE_METATYPE(CCETileset*)
 CCEditMain::CCEditMain(QWidget* parent)
     : QMainWindow(parent), m_undoCommand(), m_currentTileset(),
       m_savedDrawMode(ActionDrawPencil), m_currentDrawMode(EditorWidget::DrawPencil),
-      m_levelset(), m_useDac(), m_subProc()
+      m_levelset(), m_dirtyFlag(), m_useDac(), m_subProc()
 {
     setWindowTitle(CCEDIT_TITLE);
     setDockOptions(QMainWindow::AnimatedDocks);
@@ -291,6 +291,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_undoStack = new QUndoStack(this);
     connect(m_undoStack, &QUndoStack::canUndoChanged, m_actions[ActionUndo], &QAction::setEnabled);
     connect(m_undoStack, &QUndoStack::canRedoChanged, m_actions[ActionRedo], &QAction::setEnabled);
+    connect(m_undoStack, &QUndoStack::cleanChanged, this, &CCEditMain::onCleanChanged);
 
     // Control Toolbox
     QDockWidget* toolDock = new QDockWidget(this);
@@ -776,7 +777,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     onClipboardDataChanged();
 }
 
-void CCEditMain::loadLevelset(QString filename)
+void CCEditMain::loadLevelset(const QString& filename)
 {
     if (!closeLevelset())
         return;
@@ -851,7 +852,6 @@ void CCEditMain::loadLevelset(QString filename)
                               tr("Cannot determine file type for %1").arg(filename));
         return;
     }
-    m_levelset->makeClean();
 
     m_haveCcx = false;
     QString ccxName = filename.left(filename.lastIndexOf('.')) + ".ccx";
@@ -895,15 +895,18 @@ void CCEditMain::doLevelsetLoad()
     m_toolTabs->setCurrentIndex(0);
 }
 
-void CCEditMain::setLevelsetFilename(QString filename)
+void CCEditMain::setLevelsetFilename(const QString& filename)
 {
     m_levelsetFilename = filename;
     QString displayName = filename.isEmpty() ? "Untitled"
                         : QDir(filename).absolutePath().section(QChar('/'), -1);
-    setWindowTitle(CCEDIT_TITLE " - " + displayName);
+    if (m_dirtyFlag)
+        setWindowTitle(QStringLiteral(CCEDIT_TITLE " - ") + displayName + QStringLiteral(" *"));
+    else
+        setWindowTitle(QStringLiteral(CCEDIT_TITLE " - ") + displayName);
 }
 
-void CCEditMain::saveLevelset(QString filename)
+void CCEditMain::saveLevelset(const QString& filename)
 {
     if (m_levelset == 0)
         return;
@@ -963,7 +966,8 @@ void CCEditMain::saveLevelset(QString filename)
     }
     setLevelsetFilename(filename);
     m_checkSave = true;
-    m_levelset->makeClean();
+    m_undoStack->setClean();
+    m_dirtyFlag = 0;
 }
 
 void CCEditMain::closeEvent(QCloseEvent* event)
@@ -1014,7 +1018,7 @@ bool CCEditMain::closeLevelset()
     if (!m_levelset)
         return true;
 
-    int reply = m_levelset->isDirty()
+    int reply = m_dirtyFlag
               ? QMessageBox::question(this, tr("Close levelset"),
                         tr("Save changes to %1 before closing?")
                         .arg(m_levelsetFilename.isEmpty() ? "new levelset" : m_levelsetFilename),
@@ -1031,9 +1035,12 @@ bool CCEditMain::closeLevelset()
 
     closeAllTabs();
     m_undoStack->clear();
+    delete m_undoCommand;
+    m_undoCommand = nullptr;
     m_levelList->clear();
     delete m_levelset;
     m_levelset = nullptr;
+    m_dirtyFlag = 0;
     setWindowTitle(CCEDIT_TITLE);
 
     m_actions[ActionSave]->setEnabled(false);
@@ -1055,7 +1062,7 @@ void CCEditMain::loadTileset(CCETileset* tileset)
     resizeEvent(nullptr);
 }
 
-void CCEditMain::registerTileset(QString filename)
+void CCEditMain::registerTileset(const QString& filename)
 {
     CCETileset* tileset = new CCETileset(this);
     tileset->load(filename);
@@ -1198,9 +1205,8 @@ EditorWidget* CCEditMain::addEditor(ccl::LevelData* level)
     connect(editor, &EditorWidget::hasSelection, m_actions[ActionCut], &QAction::setEnabled);
     connect(editor, &EditorWidget::hasSelection, m_actions[ActionCopy], &QAction::setEnabled);
     connect(editor, &EditorWidget::hasSelection, m_actions[ActionClear], &QAction::setEnabled);
-    connect(editor, &EditorWidget::makeDirty, this, [this] { m_levelset->makeDirty(); });
     connect(editor, &EditorWidget::editingStarted, this, [this] {
-        beginEdit(EditorUndoCommand::EditMap);
+        beginEdit(CCEditHistory::EditMap);
     });
     connect(editor, &EditorWidget::editingFinished, this, &CCEditMain::endEdit);
     connect(editor, &EditorWidget::editingCancelled, this, &CCEditMain::cancelEdit);
@@ -1480,7 +1486,7 @@ void CCEditMain::onPasteAction()
         if (destY + height > CCL_HEIGHT)
             height = CCL_HEIGHT - destY;
 
-        beginEdit(EditorUndoCommand::EditMap);
+        beginEdit(CCEditHistory::EditMap);
         editor->selectRegion(destX, destY, width, height);
         onClearAction();
         editor->levelData()->map().copyFrom(copyRegion->map(),
@@ -1523,7 +1529,7 @@ void CCEditMain::onClearAction()
     if (!editor || editor->selection() == QRect(-1, -1, -1, -1))
         return;
 
-    beginEdit(EditorUndoCommand::EditMap);
+    beginEdit(CCEditHistory::EditMap);
     for (int y = editor->selection().top(); y <= editor->selection().bottom(); ++y) {
         for (int x = editor->selection().left(); x <= editor->selection().right(); ++x) {
             editor->putTile(ccl::TileFloor, x, y, EditorWidget::LayTop);
@@ -1537,39 +1543,32 @@ void CCEditMain::onClearAction()
 void CCEditMain::onUndoAction()
 {
     m_undoStack->undo();
-    auto command = dynamic_cast<const EditorUndoCommand*>(
-                        m_undoStack->command(m_undoStack->index()));
-
-    if (command) {
-        for (int i = 0; i < m_editorTabs->count(); ++i) {
-            auto editor = getEditorAt(i);
-            if (editor->levelData() == command->levelPtr()) {
-                editor->dirtyBuffer();
-                editor->update();
-            }
-        }
-        loadLevel(command->levelPtr());
-    }
-    m_levelset->makeDirty();
+    updateForUndoCommand(m_undoStack->command(m_undoStack->index()));
 }
 
 void CCEditMain::onRedoAction()
 {
-    auto command = dynamic_cast<const EditorUndoCommand*>(
-                        m_undoStack->command(m_undoStack->index()));
+    auto command = m_undoStack->command(m_undoStack->index());
     m_undoStack->redo();
+    updateForUndoCommand(command);
+}
 
-    if (command) {
+void CCEditMain::updateForUndoCommand(const QUndoCommand* command)
+{
+    auto editorCmd = dynamic_cast<const EditorUndoCommand*>(command);
+    if (editorCmd) {
         for (int i = 0; i < m_editorTabs->count(); ++i) {
             auto editor = getEditorAt(i);
-            if (editor->levelData() == command->levelPtr()) {
+            if (editor->levelData() == editorCmd->levelPtr()) {
                 editor->dirtyBuffer();
                 editor->update();
             }
         }
-        loadLevel(command->levelPtr());
+        loadLevel(editorCmd->levelPtr());
+    } else if (dynamic_cast<const LevelsetUndoCommand*>(command)) {
+        doLevelsetLoad();
+        m_levelList->setCurrentRow(-1);
     }
-    m_levelset->makeDirty();
 }
 
 void CCEditMain::onDrawPencilAction(bool checked)
@@ -1649,7 +1648,7 @@ void CCEditMain::onAdvancedMechAction()
 
     AdvancedMechanicsDialog mechDlg(this);
     mechDlg.setFrom(editor->levelData());
-    beginEdit(EditorUndoCommand::EditMap);
+    beginEdit(CCEditHistory::EditMap);
     if (mechDlg.exec() == QDialog::Accepted)
         endEdit();
     else
@@ -1663,7 +1662,7 @@ void CCEditMain::onToggleWallsAction()
     if (!editor)
         return;
 
-    beginEdit(EditorUndoCommand::EditMap);
+    beginEdit(CCEditHistory::EditMap);
     ccl::ToggleDoors(editor->levelData());
     endEdit();
     editor->update();
@@ -2002,7 +2001,7 @@ void CCEditMain::onTestTWorld(unsigned int levelsetType, bool tworld2)
     QDir::setCurrent(cwd);
 }
 
-void CCEditMain::beginEdit(EditorUndoCommand::Type type)
+void CCEditMain::beginEdit(CCEditHistory::Type type)
 {
     EditorWidget* editor = currentEditor();
     Q_ASSERT(editor);
@@ -2021,7 +2020,6 @@ void CCEditMain::endEdit()
     if (m_undoCommand->leave(editor->levelData())) {
         m_undoStack->push(m_undoCommand);
         m_undoCommand = nullptr;
-        m_levelset->makeDirty();
     }
 }
 
@@ -2035,15 +2033,26 @@ void CCEditMain::cancelEdit()
     }
 }
 
+void CCEditMain::onCleanChanged(bool clean)
+{
+    if (clean)
+        m_dirtyFlag &= ~1;
+    else
+        m_dirtyFlag |= 1;
+    setLevelsetFilename(m_levelsetFilename);
+}
+
 void CCEditMain::onAddLevelAction()
 {
     if (m_levelset == 0)
         return;
 
+    auto undoCommand = new LevelsetUndoCommand(m_levelset);
     m_levelset->addLevel();
+    undoCommand->captureLevelList(m_levelset);
+    m_undoStack->push(undoCommand);
     doLevelsetLoad();
     m_levelList->setCurrentRow(m_levelList->count() - 1);
-    m_levelset->makeDirty();
 }
 
 void CCEditMain::onDelLevelAction()
@@ -2051,22 +2060,17 @@ void CCEditMain::onDelLevelAction()
     if (!m_levelset || m_levelList->currentRow() < 0)
         return;
 
-    int result = QMessageBox::question(this, tr("Delete Level"),
-                    tr("Are you sure you want to delete this level?\n"
-                       "This action cannot be undone!"),
-                    QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-    if (result == QMessageBox::No)
-        return;
-
+    auto undoCommand = new LevelsetUndoCommand(m_levelset);
     int idx = m_levelList->currentRow();
     m_levelList->setCurrentRow(idx - 1);
     ccl::LevelData* level = m_levelset->takeLevel(idx);
-    for (int i=0; i<m_editorTabs->count(); ++i) {
+    for (int i = 0; i < m_editorTabs->count(); ++i) {
         if (getEditorAt(i)->levelData() == level)
             m_editorTabs->widget(i)->deleteLater();
     }
+    undoCommand->captureLevelList(m_levelset);
+    m_undoStack->push(undoCommand);
     doLevelsetLoad();
-    m_levelset->makeDirty();
 
     // Checked here for the case where the last level is deleted.
     // The selection changes before the item is removed, so we can have
@@ -2082,11 +2086,13 @@ void CCEditMain::onMoveUpAction()
 
     int idx = m_levelList->currentRow();
     if (idx > 0) {
+        auto undoCommand = new LevelsetUndoCommand(m_levelset);
         ccl::LevelData* level = m_levelset->takeLevel(idx);
         m_levelset->insertLevel(idx - 1, level);
+        undoCommand->captureLevelList(m_levelset);
+        m_undoStack->push(undoCommand);
         doLevelsetLoad();
         m_levelList->setCurrentRow(idx - 1);
-        m_levelset->makeDirty();
     }
 }
 
@@ -2097,11 +2103,13 @@ void CCEditMain::onMoveDownAction()
 
     int idx = m_levelList->currentRow();
     if (idx < (m_levelList->count() - 1)) {
+        auto undoCommand = new LevelsetUndoCommand(m_levelset);
         ccl::LevelData* level = m_levelset->takeLevel(idx);
         m_levelset->insertLevel(idx + 1, level);
+        undoCommand->captureLevelList(m_levelset);
+        m_undoStack->push(undoCommand);
         doLevelsetLoad();
         m_levelList->setCurrentRow(idx + 1);
-        m_levelset->makeDirty();
     }
 }
 
@@ -2114,14 +2122,15 @@ void CCEditMain::onPropertiesAction()
     props.setLevelset(m_levelset);
     props.setDacFile(m_useDac ? &m_dacInfo : 0);
     while (props.exec() == QDialog::Accepted) {
+        if (props.useDac() && props.dacFilename().isEmpty()) {
+            QMessageBox::critical(this, tr("Error"),
+                                  tr("You must specify a levelset filename when using a DAC file"),
+                                  QMessageBox::Ok);
+            continue;
+        }
+
         m_levelset->setType(props.levelsetType());
         if (props.useDac()) {
-            if (props.dacFilename().isEmpty()) {
-                QMessageBox::critical(this, tr("Error"),
-                        tr("You must specify a levelset filename when using a DAC file"),
-                        QMessageBox::Ok);
-                continue;
-            }
             m_dacInfo.m_filename = props.dacFilename().toUtf8().data();
             m_dacInfo.m_ruleset = props.dacRuleset();
             m_dacInfo.m_lastLevel = props.lastLevel();
@@ -2135,7 +2144,10 @@ void CCEditMain::onPropertiesAction()
             setLevelsetFilename(m_levelsetFilename);
         }
         m_useDac = props.useDac();
-        m_levelset->makeDirty();
+
+        // TODO: Make this an undo-able action
+        m_dirtyFlag |= 2;
+        onCleanChanged(false);
         break;
     }
 }
@@ -2149,12 +2161,14 @@ void CCEditMain::onOrganizeAction()
     dlg.setTileset(m_currentTileset);
     dlg.loadLevelset(m_levelset);
     if (dlg.exec() == QDialog::Accepted) {
+        auto undoCommand = new LevelsetUndoCommand(m_levelset);
+        undoCommand->levelList() = dlg.getLevels();
+        m_undoStack->push(undoCommand);
         doLevelsetLoad();
         for (int i = 0; i < m_editorTabs->count(); ++i) {
             if (levelIndex(getEditorAt(i)->levelData()) < 0)
                 m_editorTabs->widget(i)->deleteLater();
         }
-        m_levelset->makeDirty();
 
         // Move the selection in the levelList if there's an open editor
         EditorWidget* editor = currentEditor();
@@ -2211,7 +2225,7 @@ void CCEditMain::onNameChanged(const QString& value)
 
     ccl::LevelData* level = editor->levelData();
     if (level->name() != value.toLatin1().data()) {
-        beginEdit(EditorUndoCommand::EditName);
+        beginEdit(CCEditHistory::EditName);
         level->setName(value.toLatin1().data());
         endEdit();
     }
@@ -2234,7 +2248,7 @@ void CCEditMain::onPasswordChanged(const QString& value)
 
     ccl::LevelData* level = editor->levelData();
     if (level->password() != value.toLatin1().data()) {
-        beginEdit(EditorUndoCommand::EditPassword);
+        beginEdit(CCEditHistory::EditPassword);
         level->setPassword(value.toLatin1().data());
         endEdit();
     }
@@ -2248,7 +2262,7 @@ void CCEditMain::onChipsChanged(int value)
 
     ccl::LevelData* level = editor->levelData();
     if (level->chips() != value) {
-        beginEdit(EditorUndoCommand::EditChips);
+        beginEdit(CCEditHistory::EditChips);
         level->setChips(value);
         endEdit();
     }
@@ -2262,7 +2276,7 @@ void CCEditMain::onTimerChanged(int value)
 
     ccl::LevelData* level = editor->levelData();
     if (level->timer() != value) {
-        beginEdit(EditorUndoCommand::EditTimer);
+        beginEdit(CCEditHistory::EditTimer);
         level->setTimer(value);
         endEdit();
     }
@@ -2276,7 +2290,7 @@ void CCEditMain::onHintChanged(const QString& value)
 
     ccl::LevelData* level = editor->levelData();
     if (level->hint() != value.toLatin1().data()) {
-        beginEdit(EditorUndoCommand::EditHint);
+        beginEdit(CCEditHistory::EditHint);
         level->setHint(value.toLatin1().data());
         endEdit();
     }

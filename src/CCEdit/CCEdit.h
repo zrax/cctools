@@ -43,8 +43,8 @@ class CCEditMain : public QMainWindow {
 public:
     explicit CCEditMain(QWidget* parent = nullptr);
 
-    void loadLevelset(QString filename);
-    void saveLevelset(QString filename);
+    void loadLevelset(const QString& filename);
+    void saveLevelset(const QString& filename);
     bool closeLevelset();
     void loadTileset(CCETileset* tileset);
     void findTilesets();
@@ -101,6 +101,7 @@ private:
     tile_t m_foreground, m_background;
 
     ccl::Levelset* m_levelset;
+    unsigned int m_dirtyFlag;
     ccl::DacFile m_dacInfo;
     CCX::Levelset m_ccxFile;
     QString m_levelsetFilename;
@@ -114,11 +115,12 @@ private:
     QString m_tempExe, m_tempDat, m_tempIni;
 
     int levelIndex(ccl::LevelData* level);
+    void updateForUndoCommand(const QUndoCommand*);
 
 protected:
-    void registerTileset(QString filename);
+    void registerTileset(const QString& filename);
     void doLevelsetLoad();
-    void setLevelsetFilename(QString filename);
+    void setLevelsetFilename(const QString& filename);
     void closeEvent(QCloseEvent*) override;
     void resizeEvent(QResizeEvent*) override;
 
@@ -156,9 +158,10 @@ private slots:
     void onTestChips();
     void onTestTWorld(unsigned int levelsetType, bool tworld2);
 
-    void beginEdit(EditorUndoCommand::Type type);
+    void beginEdit(CCEditHistory::Type type);
     void endEdit();
     void cancelEdit();
+    void onCleanChanged(bool);
 
     void onAddLevelAction();
     void onDelLevelAction();

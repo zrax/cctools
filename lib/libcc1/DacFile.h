@@ -19,9 +19,11 @@
 #define _DACFILE_H
 
 #include <string>
-#include "Levelset.h"
+#include <cstdio>
 
 namespace ccl {
+
+class Levelset;
 
 struct DacFile {
     DacFile()

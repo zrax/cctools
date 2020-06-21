@@ -18,7 +18,7 @@
 #include "History.h"
 #include "libcc1/Levelset.h"
 
-EditorUndoCommand::EditorUndoCommand(Type type, ccl::LevelData* before)
+EditorUndoCommand::EditorUndoCommand(CCEditHistory::Type type, ccl::LevelData* before)
     : m_enter(1), m_type(type), m_levelPtr(before),
       m_before(new ccl::LevelData), m_after()
 {
@@ -36,7 +36,7 @@ EditorUndoCommand::~EditorUndoCommand()
 
 bool EditorUndoCommand::mergeWith(const QUndoCommand* command)
 {
-    if (command->id() != id() || m_type == EditMap)
+    if (command->id() != id() || m_type == CCEditHistory::EditMap)
         return false;
 
     auto editorCmd = dynamic_cast<const EditorUndoCommand*>(command);
@@ -77,4 +77,54 @@ void EditorUndoCommand::undo()
 void EditorUndoCommand::redo()
 {
     m_levelPtr->copyFrom(m_after);
+}
+
+
+LevelsetUndoCommand::LevelsetUndoCommand(ccl::Levelset* levelset)
+    : m_levelset(levelset)
+{
+    m_before.resize(m_levelset->levelCount());
+    for (int i = 0; i < m_levelset->levelCount(); ++i) {
+        m_before[i] = m_levelset->level(i);
+        m_before[i]->ref();
+    }
+}
+
+LevelsetUndoCommand::~LevelsetUndoCommand()
+{
+    for (ccl::LevelData* level : m_before)
+        level->unref();
+    for (ccl::LevelData* level : m_after)
+        level->unref();
+}
+
+void LevelsetUndoCommand::captureLevelList(ccl::Levelset* levelset)
+{
+    m_after.resize(levelset->levelCount());
+    for (int i = 0; i < levelset->levelCount(); ++i) {
+        m_after[i] = levelset->level(i);
+        m_after[i]->ref();
+    }
+}
+
+void LevelsetUndoCommand::undo()
+{
+    while (m_levelset->levelCount() > 0)
+        m_levelset->takeLevel(0)->unref();
+
+    for (ccl::LevelData* level : m_before) {
+        m_levelset->addLevel(level);
+        level->ref();
+    }
+}
+
+void LevelsetUndoCommand::redo()
+{
+    while (m_levelset->levelCount() > 0)
+        m_levelset->takeLevel(0)->unref();
+
+    for (ccl::LevelData* level : m_after) {
+        m_levelset->addLevel(level);
+        level->ref();
+    }
 }

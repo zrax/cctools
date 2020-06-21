@@ -19,16 +19,22 @@
 #define _CCEHISTORY_H
 
 #include <QUndoCommand>
+#include "libcc1/DacFile.h"
 
-namespace ccl { class LevelData; }
+namespace ccl {
+    class LevelData;
+    class Levelset;
+}
+
+namespace CCEditHistory {
+    enum Type {
+        EditMap, EditName, EditPassword, EditChips, EditTimer, EditHint,
+    };
+}
 
 class EditorUndoCommand : public QUndoCommand {
 public:
-    enum Type {
-        EditMap, EditName, EditPassword, EditChips, EditTimer, EditHint
-    };
-
-    explicit EditorUndoCommand(Type type, ccl::LevelData* before);
+    EditorUndoCommand(CCEditHistory::Type type, ccl::LevelData* before);
     ~EditorUndoCommand() override;
 
     int id() const override { return m_type; }
@@ -48,6 +54,37 @@ private:
     ccl::LevelData* m_levelPtr;
     ccl::LevelData* m_before;
     ccl::LevelData* m_after;
+};
+
+class LevelsetUndoCommand : public QUndoCommand {
+public:
+    explicit LevelsetUndoCommand(ccl::Levelset* levelset);
+    ~LevelsetUndoCommand() override;
+
+    std::vector<ccl::LevelData*>& levelList() { return m_after; }
+    void captureLevelList(ccl::Levelset* levelset);
+
+    void undo() override;
+    void redo() override;
+
+private:
+    ccl::Levelset* m_levelset;
+    std::vector<ccl::LevelData*> m_before;
+    std::vector<ccl::LevelData*> m_after;
+};
+
+class LevelsetPropsUndoCommand : public QUndoCommand {
+public:
+    LevelsetPropsUndoCommand(int levelsetType, ccl::DacFile* dacFile, bool useDacFile);
+
+    void undo() override;
+    void redo() override;
+
+private:
+    int m_levelsetType;
+    ccl::DacFile* m_dacFile;
+    ccl::DacFile m_dacBefore, m_dacAfter;
+    bool m_useDacFile;
 };
 
 #endif

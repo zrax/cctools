@@ -21,6 +21,7 @@
 #include <cstdlib>
 #include <errno.h>
 #include "Errors.h"
+#include "Levelset.h"
 
 #ifdef _WIN32
     #define strcasecmp  _stricmp

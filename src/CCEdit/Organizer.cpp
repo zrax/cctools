@@ -121,7 +121,7 @@ void LevelListWidget::loadLevelImage(int row)
 
 
 OrganizerDialog::OrganizerDialog(QWidget* parent)
-               : QDialog(parent)
+    : QDialog(parent)
 {
     setWindowTitle(tr("Level Organizer"));
 
@@ -139,17 +139,17 @@ OrganizerDialog::OrganizerDialog(QWidget* parent)
     m_actions[ActionDelete]->setEnabled(false);
 
     m_levels = new LevelListWidget(this);
-    QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel,
-                                                     Qt::Horizontal, this);
+    auto buttons = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel,
+                                        Qt::Horizontal, this);
 
-    QToolBar* tbar = new QToolBar(this);
+    auto tbar = new QToolBar(this);
     tbar->addAction(m_actions[ActionCut]);
     tbar->addAction(m_actions[ActionCopy]);
     tbar->addAction(m_actions[ActionPaste]);
     tbar->addSeparator();
     tbar->addAction(m_actions[ActionDelete]);
 
-    QGridLayout* layout = new QGridLayout(this);
+    auto layout = new QGridLayout(this);
     layout->setContentsMargins(4, 4, 4, 4);
     layout->setVerticalSpacing(4);
     layout->setHorizontalSpacing(4);
@@ -157,14 +157,15 @@ OrganizerDialog::OrganizerDialog(QWidget* parent)
     layout->addWidget(m_levels, 1, 0);
     layout->addWidget(buttons, 2, 0);
 
-    connect(m_actions[ActionCut], SIGNAL(triggered()), SLOT(onCutLevels()));
-    connect(m_actions[ActionCopy], SIGNAL(triggered()), SLOT(onCopyLevels()));
-    connect(m_actions[ActionPaste], SIGNAL(triggered()), SLOT(onPasteLevels()));
-    connect(m_actions[ActionDelete], SIGNAL(triggered()), SLOT(onDeleteLevels()));
-    connect(buttons, SIGNAL(accepted()), SLOT(saveChanges()));
-    connect(buttons, SIGNAL(rejected()), SLOT(reject()));
-    connect(m_levels, SIGNAL(itemSelectionChanged()), SLOT(updateActions()));
-    connect(qApp->clipboard(), SIGNAL(dataChanged()), SLOT(onClipboardDataChanged()));
+    connect(m_actions[ActionCut], &QAction::triggered, this, &OrganizerDialog::onCutLevels);
+    connect(m_actions[ActionCopy], &QAction::triggered, this, &OrganizerDialog::onCopyLevels);
+    connect(m_actions[ActionPaste], &QAction::triggered, this, &OrganizerDialog::onPasteLevels);
+    connect(m_actions[ActionDelete], &QAction::triggered, this, &OrganizerDialog::onDeleteLevels);
+    connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
+    connect(m_levels, &QListWidget::itemSelectionChanged, this, &OrganizerDialog::updateActions);
+    connect(QApplication::clipboard(), &QClipboard::dataChanged,
+            this, &OrganizerDialog::onClipboardDataChanged);
 
     resize(500, 400);
     onClipboardDataChanged();
@@ -172,25 +173,22 @@ OrganizerDialog::OrganizerDialog(QWidget* parent)
 
 void OrganizerDialog::loadLevelset(ccl::Levelset* levelset)
 {
-    m_levelset = levelset;
     m_levels->clear();
-
-    for (int i=0; i<levelset->levelCount(); ++i)
+    for (int i = 0; i < levelset->levelCount(); ++i)
         m_levels->addLevel(levelset->level(i));
 }
 
-void OrganizerDialog::saveChanges()
+std::vector<ccl::LevelData*> OrganizerDialog::getLevels() const
 {
-    while (m_levelset->levelCount() > 0)
-        m_levelset->takeLevel(0)->unref();
+    std::vector<ccl::LevelData*> levelOrder;
+    levelOrder.resize(m_levels->count());
 
-    for (int i=0; i<m_levels->count(); ++i) {
+    for (int i = 0; i < m_levels->count(); ++i) {
         ccl::LevelData* level = m_levels->level(i);
-        m_levelset->addLevel(level);
+        levelOrder[i] = level;
         level->ref();
     }
-
-    accept();
+    return levelOrder;
 }
 
 void OrganizerDialog::updateActions()
