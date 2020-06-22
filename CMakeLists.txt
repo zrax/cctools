@@ -41,6 +41,7 @@ set(CMAKE_AUTORCC ON)
 find_package(Qt5 5.4 REQUIRED COMPONENTS Core Gui Xml Widgets Sql)
 
 set(CCTools_Tilesets
+    ${CMAKE_CURRENT_SOURCE_DIR}/share/cctools/CC2.tis
     ${CMAKE_CURRENT_SOURCE_DIR}/share/cctools/TW32.tis
     ${CMAKE_CURRENT_SOURCE_DIR}/share/cctools/WEP.tis
 )
