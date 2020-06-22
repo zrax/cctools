@@ -107,7 +107,7 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile,
     case cc2::Tile::Floor:
         if (tile->modifier() != 0) {
             drawWires(painter, x, y, tile->modifier(), cc2::G_Floor);
-            if ((tile->modifier() & cc2::TileModifier::Wire4Way) == cc2::TileModifier::Wire4Way)
+            if ((tile->modifier() & cc2::TileModifier::WireMask) == cc2::TileModifier::WireMask)
                 painter.drawPixmap(x, y, m_gfx[cc2::G_Floor_Wire2]);
             else
                 painter.drawPixmap(x, y, m_gfx[cc2::G_Floor_Wire4]);
@@ -501,7 +501,7 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile,
     case cc2::Tile::SteelWall:
         if (tile->modifier() != 0) {
             drawWires(painter, x, y, tile->modifier(), cc2::G_SteelWall);
-            if ((tile->modifier() & cc2::TileModifier::Wire4Way) == cc2::TileModifier::Wire4Way)
+            if ((tile->modifier() & cc2::TileModifier::WireMask) == cc2::TileModifier::WireMask)
                 painter.drawPixmap(x, y, m_gfx[cc2::G_SteelWall_Wire2]);
             else
                 painter.drawPixmap(x, y, m_gfx[cc2::G_SteelWall_Wire4]);
@@ -1399,6 +1399,22 @@ QString CC2ETileset::getName(const cc2::Tile* tile)
     QString name = baseName(tile->type());
 
     switch (tile->type()) {
+    case cc2::Tile::Floor:
+        if (tile->modifier() & cc2::TileModifier::WireTunnelMask) {
+            name = tr("Wire Tunnel");
+            QStringList directions;
+            if (tile->modifier() & cc2::TileModifier::WireTunnelNorth)
+                directions << "North";
+            if (tile->modifier() & cc2::TileModifier::WireTunnelSouth)
+                directions << "South";
+            if (tile->modifier() & cc2::TileModifier::WireTunnelEast)
+                directions << "East";
+            if (tile->modifier() & cc2::TileModifier::WireTunnelWest)
+                directions << "West";
+            if (!directions.isEmpty())
+                name += QStringLiteral(" - ") + directions.join(QLatin1Char('/'));
+        }
+        break;
     case cc2::Tile::Cloner:
         if (tile->modifier() == cc2::TileModifier::CloneAllDirs) {
             name += tr(" - Any");

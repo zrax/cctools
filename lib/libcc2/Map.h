@@ -88,11 +88,12 @@ public:
         WireEast = 0x2,
         WireSouth = 0x4,
         WireWest = 0x8,
-        Wire4Way = 0xf,
+        WireMask = 0xf,
         WireTunnelNorth = 0x10,
         WireTunnelEast = 0x20,
         WireTunnelSouth = 0x40,
         WireTunnelWest = 0x80,
+        WireTunnelMask = 0xf0,
     };
 
     enum CloneDirection {
