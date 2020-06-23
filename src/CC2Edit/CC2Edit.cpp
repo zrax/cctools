@@ -862,7 +862,22 @@ void CC2EditMain::createNewMap()
 
 void CC2EditMain::createNewScript()
 {
-    addScriptEditor(QString());
+    auto editor = addScriptEditor(QString());
+    editor->setPlainText(
+                "game \"My CC2 Game\"\n"
+                "0 flags =\n"
+                "0 score =\n"
+                "0 hispeed =\n"
+                "1 level =\n");
+
+    // Select the game name for easy editing.
+    QTextCursor cursor = editor->textCursor();
+    cursor.movePosition(QTextCursor::Start);
+    cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::MoveAnchor, 6);
+    cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
+    cursor.movePosition(QTextCursor::PreviousCharacter, QTextCursor::KeepAnchor);
+    editor->setTextCursor(cursor);
+    editor->setFocus(Qt::OtherFocusReason);
 }
 
 void CC2EditMain::loadFile(const QString& filename)
