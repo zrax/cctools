@@ -979,10 +979,14 @@ bool CC2EditMain::closeScript()
 void CC2EditMain::registerTileset(const QString& filename)
 {
     auto tileset = new CC2ETileset(this);
+    bool valid = false;
     try {
-        tileset->load(filename);
-    } catch (const ccl::IOException&) {
-        // CC1 tileset or invalid file -- skip it
+        valid = tileset->load(filename);
+    } catch (const ccl::IOException& err) {
+        qDebug("Error registering tileset %s: %s", qPrintable(filename), err.what());
+        valid = false;
+    }
+    if (!valid) {
         delete tileset;
         return;
     }

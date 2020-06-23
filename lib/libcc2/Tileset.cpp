@@ -36,7 +36,7 @@ static quint32 read32(QFile& file)
     return SWAP32(value);
 }
 
-void CC2ETileset::load(const QString& filename)
+bool CC2ETileset::load(const QString& filename)
 {
     QFile file(filename);
     if (!file.open(QFile::ReadOnly))
@@ -45,7 +45,7 @@ void CC2ETileset::load(const QString& filename)
     char magic[8];
     if (file.read(magic, 8) != 8 || memcmp(magic, "CCTILE02", 8) != 0) {
         file.close();
-        throw ccl::IOException("Invalid Tileset format");
+        return false;
     }
 
     quint32 len;
@@ -89,6 +89,7 @@ void CC2ETileset::load(const QString& filename)
 
     file.close();
     m_filename = QFileInfo(filename).fileName();
+    return true;
 }
 
 void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile,

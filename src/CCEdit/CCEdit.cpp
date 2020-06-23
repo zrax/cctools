@@ -1064,8 +1064,19 @@ void CCEditMain::loadTileset(CCETileset* tileset)
 
 void CCEditMain::registerTileset(const QString& filename)
 {
-    CCETileset* tileset = new CCETileset(this);
-    tileset->load(filename);
+    auto tileset = new CCETileset(this);
+    bool valid = false;
+    try {
+        valid = tileset->load(filename);
+    } catch (std::runtime_error& err) {
+        qDebug("Error registering tileset %s: %s", qPrintable(filename), err.what());
+        valid = false;
+    }
+    if (!valid) {
+        delete tileset;
+        return;
+    }
+
     QAction* menuItem = m_tilesetMenu->addAction(tileset->name());
     menuItem->setCheckable(true);
     menuItem->setStatusTip(tileset->description());

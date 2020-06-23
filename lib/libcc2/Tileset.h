@@ -102,7 +102,7 @@ public:
     int size() const { return m_size; }
     QSize qsize() const { return QSize(m_size, m_size); }
 
-    void load(const QString& filename);
+    bool load(const QString& filename);
     QString filename() const { return m_filename; }
 
     void drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile,
