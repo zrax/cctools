@@ -26,6 +26,7 @@
 #include <QCheckBox>
 #include <QDialogButtonBox>
 #include <QGridLayout>
+#include <QMessageBox>
 
 // Simplified backport of QOverload
 #if (QT_VERSION < QT_VERSION_CHECK(5, 7, 0))
@@ -48,8 +49,13 @@ TileInspector::TileInspector(QWidget* parent)
     m_layers = new QListWidget(this);
 
     m_tileType = new QComboBox(this);
-    for (int i = 0; i < cc2::Tile::NUM_TILE_TYPES; ++i)
+    for (int i = 0; i < cc2::Tile::NUM_TILE_TYPES; ++i) {
+        if (i == cc2::Tile::Modifier8 || i == cc2::Tile::Modifier16
+                || i == cc2::Tile::Modifier32)
+            continue;
+
         m_tileType->addItem(CC2ETileset::baseName((cc2::Tile::Type)i), i);
+    }
     m_tileType->insertSeparator(cc2::Tile::NUM_TILE_TYPES);
     m_tileType->addItem(tr("Other:"));
     auto tileTypeLabel = new QLabel(tr("Base &Type:"), this);
@@ -120,7 +126,7 @@ TileInspector::TileInspector(QWidget* parent)
 
     auto buttons = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel,
                                         Qt::Horizontal, this);
-    connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::accepted, this, &TileInspector::tryAccept);
     connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
     auto layout = new QGridLayout(this);
@@ -159,6 +165,35 @@ void TileInspector::loadTile(cc2::Tile* tile)
     m_layers->clear();
     addLayers(tile);
     m_layers->setCurrentRow(0);
+}
+
+void TileInspector::tryAccept()
+{
+    int rangeTile = 0;
+    for (cc2::Tile* tp = &m_tile; tp; tp = tp->lower()) {
+        if (tp->type() == cc2::Tile::Modifier8 || tp->type() == cc2::Tile::Modifier16
+                || tp->type() == cc2::Tile::Modifier32) {
+            QMessageBox::critical(this, tr("Invalid Tile"),
+                    tr("Invalid tile type (%1).  Tile type must not be a modifier tile.")
+                    .arg(tp->type()));
+            return;
+        } else if (tp->type() >= cc2::Tile::NUM_TILE_TYPES) {
+            rangeTile = tp->type();
+        }
+    }
+
+    if (rangeTile) {
+        auto response = QMessageBox::question(this, tr("Tile out of range"),
+                            tr("Tile type (%1) is outside the range of known tile types. "
+                               "This may cause random and unexpected behavior, including "
+                               "crashes and possible data corruption, when loading the "
+                               "map in Chip's Challenge 2.").arg(rangeTile),
+                            QMessageBox::Ok | QMessageBox::Cancel);
+        if (response == QMessageBox::Cancel)
+            return;
+    }
+
+    accept();
 }
 
 void TileInspector::onChangeLayer(int layer)

@@ -40,6 +40,7 @@ public:
     const cc2::Tile& tile() const { return m_tile; }
 
 private Q_SLOTS:
+    void tryAccept();
     void onChangeLayer(int layer);
     void setTileType(int type);
     void setTileModifier(int modifier);
