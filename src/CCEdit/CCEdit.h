@@ -62,6 +62,9 @@ signals:
     void foregroundChanged(tile_t);
     void backgroundChanged(tile_t);
 
+public slots:
+    void createNewLevelset();
+
 private:
     enum ActionType {
         ActionNew, ActionOpen, ActionSave, ActionSaveAs, ActionClose,
@@ -125,7 +128,6 @@ protected:
     void resizeEvent(QResizeEvent*) override;
 
 private slots:
-    void onNewAction();
     void onOpenAction();
     void onSaveAction();
     void onSaveAsAction();

@@ -611,7 +611,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     // Show status bar
     statusBar();
 
-    connect(m_actions[ActionNew], SIGNAL(triggered()), SLOT(onNewAction()));
+    connect(m_actions[ActionNew], &QAction::triggered, this, &CCEditMain::createNewLevelset);
     connect(m_actions[ActionOpen], SIGNAL(triggered()), SLOT(onOpenAction()));
     connect(m_actions[ActionSave], SIGNAL(triggered()), SLOT(onSaveAction()));
     connect(m_actions[ActionSaveAs], SIGNAL(triggered()), SLOT(onSaveAsAction()));
@@ -1237,7 +1237,7 @@ void CCEditMain::closeAllTabs()
     }
 }
 
-void CCEditMain::onNewAction()
+void CCEditMain::createNewLevelset()
 {
     if (!closeLevelset())
         return;

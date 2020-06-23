@@ -45,10 +45,10 @@ public:
     void createNewMap();
     void createNewScript();
     void loadFile(const QString& filename);
-    void loadMap(const QString& filename);
-    void loadScript(const QString& filename);
+    bool loadMap(const QString& filename);
+    bool loadScript(const QString& filename);
     void editScript(const QString& filename);
-    bool closeScript();
+    void closeScript();
 
     void findTilesets();
     void loadTileset(CC2ETileset* tileset);
@@ -88,6 +88,8 @@ private Q_SLOTS:
 
     void onProcessError(QProcess::ProcessError err);
     void onProcessFinished(int result);
+
+    void setGameName(const QString& name);
 
 private:
     enum ActionType {

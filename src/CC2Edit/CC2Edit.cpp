@@ -850,6 +850,8 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     setForeground(&defTile);
     defTile.set(cc2::Tile::Floor);
     setBackground(&defTile);
+
+    setGameName(QString());
 }
 
 void CC2EditMain::createNewMap()
@@ -858,6 +860,8 @@ void CC2EditMain::createNewMap()
     map->mapData().resize(32, 32);
     addEditor(map, QString());
     map->unref();
+
+    m_toolTabs->setCurrentWidget(m_mapProperties);
 }
 
 void CC2EditMain::createNewScript()
@@ -884,25 +888,25 @@ void CC2EditMain::loadFile(const QString& filename)
 {
     QFileInfo info(filename);
     if (info.suffix().compare(QLatin1String("c2g"), Qt::CaseInsensitive) == 0) {
-        loadScript(filename);
-        m_toolTabs->setCurrentWidget(m_gameProperties);
+        if (loadScript(filename))
+            m_toolTabs->setCurrentWidget(m_gameProperties);
     } else if (info.suffix().compare(QLatin1String("c2m"), Qt::CaseInsensitive) == 0) {
-        loadMap(filename);
-        m_toolTabs->setCurrentWidget(m_mapProperties);
+        if (loadMap(filename))
+            m_toolTabs->setCurrentWidget(m_mapProperties);
     } else {
         QMessageBox::critical(this, tr("Invalid filename"),
                               tr("Unsupported file type for %1").arg(filename));
     }
 }
 
-void CC2EditMain::loadMap(const QString& filename)
+bool CC2EditMain::loadMap(const QString& filename)
 {
     QFileInfo info(filename);
     for (int i = 0; i < m_editorTabs->count(); ++i) {
         CC2EditorWidget* editor = getEditorAt(i);
         if (editor && editor->filename() == info.canonicalFilePath()) {
             m_editorTabs->setCurrentIndex(i);
-            return;
+            return true;
         }
     }
 
@@ -910,26 +914,29 @@ void CC2EditMain::loadMap(const QString& filename)
     if (!fs.open(filename.toLocal8Bit().constData(), "rb")) {
         QMessageBox::critical(this, tr("Error loading map"),
                 tr("Could not open %1 for reading.").arg(filename));
-        return;
+        return false;
     }
 
     auto map = new cc2::Map;
+    bool success = true;
     try {
         map->read(&fs);
         addEditor(map, filename);
     } catch (const std::exception& ex) {
         QMessageBox::critical(this, tr("Error loading map"), ex.what());
+        success = false;
     }
     map->unref();
+    return success;
 }
 
-void CC2EditMain::loadScript(const QString& filename)
+bool CC2EditMain::loadScript(const QString& filename)
 {
-    if (!closeScript())
-        return;
+    m_gameMapList->clear();
+    setGameName(tr("(Unknown)"));
 
     ScriptMapLoader mapLoader;
-    connect(&mapLoader, &ScriptMapLoader::gameName, m_gameName, &QLabel::setText);
+    connect(&mapLoader, &ScriptMapLoader::gameName, this, &CC2EditMain::setGameName);
     connect(&mapLoader, &ScriptMapLoader::mapAdded, this, [this](const QString &filename) {
         cc2::Map map;
         ccl::FileStream fs;
@@ -955,6 +962,10 @@ void CC2EditMain::loadScript(const QString& filename)
         m_gameProperties->setEnabled(true);
         m_actions[ActionClose]->setEnabled(true);
         m_actions[ActionGenReport]->setEnabled(true);
+        return true;
+    } else {
+        closeScript();
+        return false;
     }
 }
 
@@ -980,15 +991,14 @@ void CC2EditMain::editScript(const QString& filename)
     editor->setPlainText(text);
 }
 
-bool CC2EditMain::closeScript()
+void CC2EditMain::closeScript()
 {
     m_gameMapList->clear();
-    m_gameName->setText(QString());
     m_currentGameScript = QString();
+    setGameName(QString());
     m_gameProperties->setEnabled(false);
     m_actions[ActionClose]->setEnabled(false);
     m_actions[ActionGenReport]->setEnabled(false);
-    return true;
 }
 
 void CC2EditMain::registerTileset(const QString& filename)
@@ -1592,6 +1602,18 @@ void CC2EditMain::onProcessFinished(int)
     m_subProc->disconnect();
     m_subProc->deleteLater();
     m_subProc = nullptr;
+}
+
+void CC2EditMain::setGameName(const QString& name)
+{
+    if (name.isEmpty()) {
+        if (m_currentGameScript.isEmpty())
+            m_gameName->setText(tr("(No game script)"));
+        else
+            m_gameName->setText(tr("(Empty)"));
+    } else {
+        m_gameName->setText(name);
+    }
 }
 
 
