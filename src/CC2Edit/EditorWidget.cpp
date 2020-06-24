@@ -17,16 +17,25 @@
 
 #include "EditorWidget.h"
 
+#include <QUndoStack>
+#include <QPainter>
 #include <QPaintEvent>
 #include <QMouseEvent>
 
-
 CC2EditorWidget::CC2EditorWidget(QWidget* parent)
     : QWidget(parent), m_tileset(), m_map(), m_drawMode(DrawPencil),
-      m_paintFlags(), m_cachedButton(Qt::NoButton), m_zoomFactor(1.0)
+      m_paintFlags(), m_cachedButton(Qt::NoButton), m_undoCommand(),
+      m_zoomFactor(1.0)
 {
+    m_undoStack = new QUndoStack(this);
+    connect(m_undoStack, &QUndoStack::canUndoChanged, this, &CC2EditorWidget::canUndo);
+    connect(m_undoStack, &QUndoStack::canRedoChanged, this, &CC2EditorWidget::canRedo);
+    connect(m_undoStack, &QUndoStack::cleanChanged, this, &CC2EditorWidget::cleanChanged);
+
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     setMouseTracking(true);
+
+    m_selectRect = QRect(-1, -1, -1, -1);
 }
 
 void CC2EditorWidget::setTileset(CC2ETileset* tileset)
@@ -47,11 +56,11 @@ void CC2EditorWidget::setMap(cc2::Map* map)
     m_tileBuffer = QPixmap(m_map->mapData().width() * m_tileset->size(),
                            m_map->mapData().height() * m_tileset->size());
 
+    m_undoStack->clear();
     dirtyBuffer();
     update();
 
-    emit canUndo(false);
-    emit canRedo(false);
+    m_selectRect = QRect(-1, -1, -1, -1);
     emit hasSelection(false);
 }
 
@@ -62,6 +71,32 @@ void CC2EditorWidget::setDrawMode(DrawMode mode)
     m_selectRect = QRect(-1, -1, -1, -1);
     update();
     emit hasSelection(false);
+}
+
+void CC2EditorWidget::beginEdit(CC2EditHistory::Type type)
+{
+    if (m_undoCommand)
+        m_undoCommand->enter();
+    else
+        m_undoCommand = new MapUndoCommand(type, m_map);
+}
+
+void CC2EditorWidget::endEdit()
+{
+    if (m_undoCommand->leave(m_map)) {
+        m_undoStack->push(m_undoCommand);
+        m_undoCommand = nullptr;
+    }
+    dirtyBuffer();
+    update();
+}
+
+void CC2EditorWidget::cancelEdit()
+{
+    if (m_undoCommand->leave(nullptr)) {
+        delete m_undoCommand;
+        m_undoCommand = nullptr;
+    }
 }
 
 void CC2EditorWidget::renderTileBuffer()
@@ -184,5 +219,19 @@ void CC2EditorWidget::setZoom(double factor)
     m_zoomFactor = factor;
     dirtyBuffer();
     resize(sizeHint());
+    update();
+}
+
+void CC2EditorWidget::undo()
+{
+    m_undoStack->undo();
+    dirtyBuffer();
+    update();
+}
+
+void CC2EditorWidget::redo()
+{
+    m_undoStack->redo();
+    dirtyBuffer();
     update();
 }

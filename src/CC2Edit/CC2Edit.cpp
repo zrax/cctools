@@ -1156,14 +1156,27 @@ CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename)
     connect(editor, &CC2EditorWidget::hasSelection, m_actions[ActionCut], &QAction::setEnabled);
     connect(editor, &CC2EditorWidget::hasSelection, m_actions[ActionCopy], &QAction::setEnabled);
     connect(editor, &CC2EditorWidget::hasSelection, m_actions[ActionClear], &QAction::setEnabled);
-    //connect(editor, &CC2EditorWidget::makeDirty, this, [map] { map->makeDirty(); });
 
-    connect(editor, &CC2EditorWidget::inspectTile, this, [this](cc2::Tile* tile) {
+    connect(editor, &CC2EditorWidget::cleanChanged, this, [this, scroll](bool clean) {
+        const int index = m_editorTabs->indexOf(scroll);
+        if (index < 0)
+            return;
+
+        const QString tabText = m_editorTabs->tabText(index);
+        if (clean && tabText.endsWith(QStringLiteral(" *")))
+            m_editorTabs->setTabText(index, tabText.left(tabText.size() - 2));
+        else if (!clean && !tabText.endsWith(QStringLiteral(" *")))
+            m_editorTabs->setTabText(index, tabText + QStringLiteral(" *"));
+    });
+
+    connect(editor, &CC2EditorWidget::inspectTile, this, [this, editor](cc2::Tile* tile) {
         TileInspector inspector(this);
         inspector.setTileset(m_currentTileset);
         inspector.loadTile(tile);
         if (inspector.exec() == QDialog::Accepted) {
-            // TODO
+            editor->beginEdit(CC2EditHistory::EditMap);
+            *tile = inspector.tile();
+            editor->endEdit();
         }
     });
 
@@ -1210,6 +1223,18 @@ void CC2EditMain::closeAllTabs()
     while (m_editorTabs->count() != 0) {
         m_editorTabs->widget(0)->deleteLater();
         m_editorTabs->removeTab(0);
+    }
+}
+
+void CC2EditMain::closeEvent(QCloseEvent* event)
+{
+    // TODO: Check for modification first
+    closeAllTabs();
+
+    if (m_subProc != 0) {
+        // Don't handle events after we're exiting.
+        // Note that temp file cleanup will not take place if this happens!
+        m_subProc->disconnect();
     }
 }
 
@@ -1299,7 +1324,7 @@ void CC2EditMain::onUndoAction()
     auto scriptEditor = currentScriptEditor();
 
     if (mapEditor) {
-        // TODO
+        mapEditor->undo();
     } else if (scriptEditor) {
         scriptEditor->undo();
     }
@@ -1311,12 +1336,11 @@ void CC2EditMain::onRedoAction()
     auto scriptEditor = currentScriptEditor();
 
     if (mapEditor) {
-        // TODO
+        mapEditor->redo();
     } else if (scriptEditor) {
         scriptEditor->redo();
     }
 }
-
 
 void CC2EditMain::onInspectToggled(bool mode)
 {

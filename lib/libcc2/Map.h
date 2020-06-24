@@ -45,6 +45,9 @@ public:
           m_replayMD5(), m_replayValid(), m_hidden(), m_readOnly(),
           m_hideLogic(), m_cc1Boots() { }
 
+    MapOption(const MapOption&) = default;
+    MapOption& operator=(const MapOption&) = default;
+
     Viewport view() const { return m_view; }
     BlobPattern blobPattern() const { return m_blobPattern; }
     uint16_t timeLimit() const { return m_timeLimit; }
@@ -212,7 +215,9 @@ public:
         Canopy = 0x10,
     };
 
-    explicit Tile(int type = Floor, uint32_t modifier = 0)
+    Tile() : m_type(Floor), m_direction(), m_tileFlags(), m_modifier(), m_lower() { }
+
+    explicit Tile(int type, uint32_t modifier = 0)
         : m_type(type), m_direction(), m_tileFlags(), m_modifier(modifier),
           m_lower()
     {
@@ -308,6 +313,9 @@ public:
     MapData() : m_width(), m_height(), m_map() { }
     ~MapData() { delete[] m_map; }
 
+    MapData(const MapData& other);
+    MapData& operator=(const MapData& other);
+
     void read(ccl::Stream* stream, size_t size);
     void write(ccl::Stream* stream) const;
 
@@ -347,6 +355,12 @@ struct CC2FieldStorage
 class Map {
 public:
     Map() : m_refs(1), m_version("7"), m_key(), m_readOnly() { }
+    ~Map() = default;
+
+    Map(const Map&) = delete;
+    Map& operator=(const Map&) = delete;
+
+    void copyFrom(const cc2::Map* map);
 
     void read(ccl::Stream* stream);
     void write(ccl::Stream* stream) const;

@@ -67,6 +67,7 @@ Q_SIGNALS:
     void backgroundChanged(const cc2::Tile*);
 
 protected:
+    void closeEvent(QCloseEvent*) override;
     void resizeEvent(QResizeEvent*) override;
 
 private Q_SLOTS:

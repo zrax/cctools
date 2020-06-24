@@ -19,9 +19,12 @@
 #define _CC2_EDITORWIDGET_H
 
 #include <QWidget>
-#include <QPainter>
+#include "History.h"
 #include "libcc2/Tileset.h"
 #include "libcc2/Map.h"
+
+class QPainter;
+class QUndoStack;
 
 class CC2EditorWidget : public QWidget {
     Q_OBJECT
@@ -82,6 +85,10 @@ public:
         update();
     }
 
+    void beginEdit(CC2EditHistory::Type type);
+    void endEdit();
+    void cancelEdit();
+
     void renderTileBuffer();
     void dirtyBuffer() { m_cacheDirty = true; }
     double zoom() const { return m_zoomFactor; }
@@ -92,13 +99,15 @@ signals:
     void mouseInfo(const QString& text, int timeout = 0);
     void canUndo(bool);
     void canRedo(bool);
+    void cleanChanged(bool);
     void hasSelection(bool);
-    void makeDirty();
 
     void inspectTile(cc2::Tile* tile);
 
 public slots:
     void setZoom(double factor);
+    void undo();
+    void redo();
 
 protected:
     void paintEvent(QPaintEvent*) override;
@@ -115,6 +124,8 @@ private:
     uint32_t m_paintFlags;
     Qt::MouseButton m_cachedButton;
     QPoint m_origin, m_current;
+    QUndoStack* m_undoStack;
+    MapUndoCommand* m_undoCommand;
     QRect m_selectRect;
 
     double m_zoomFactor;

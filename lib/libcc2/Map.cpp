@@ -321,6 +321,31 @@ cc2::Tile* cc2::Tile::checkLower()
 }
 
 
+cc2::MapData::MapData(const MapData& other)
+    : m_width(other.m_width), m_height(other.m_height), m_map()
+{
+    if (other.m_map) {
+        m_map = new Tile[m_width * m_height];
+        for (size_t i = 0; i < m_width * m_height; ++i)
+            m_map[i] = other.m_map[i];
+    }
+}
+
+cc2::MapData& cc2::MapData::operator=(const MapData& other)
+{
+    delete[] m_map;
+    m_width = other.m_width;
+    m_height = other.m_height;
+    if (other.m_map) {
+        m_map = new Tile[m_width * m_height];
+        for (size_t i = 0; i < m_width * m_height; ++i)
+            m_map[i] = other.m_map[i];
+    } else {
+        m_map = nullptr;
+    }
+    return *this;
+}
+
 void cc2::MapData::read(ccl::Stream* stream, size_t size)
 {
     long start = stream->tell();
@@ -431,6 +456,23 @@ std::tuple<int, int> cc2::MapData::countPoints() const
     return points;
 }
 
+
+void cc2::Map::copyFrom(const cc2::Map* map)
+{
+    m_version = map->m_version;
+    m_lock = map->m_lock;
+    m_title = map->m_title;
+    m_author = map->m_author;
+    m_editorVersion = map->m_editorVersion;
+    m_clue = map->m_clue;
+    m_note = map->m_note;
+    m_option = map->m_option;
+    m_mapData = map->m_mapData;
+    memcpy(m_key, map->m_key, sizeof(m_key));
+    m_replay = map->m_replay;
+    m_readOnly = map->m_readOnly;
+    m_unknown = map->m_unknown;
+}
 
 static std::string toGenericLF(const std::string& text)
 {
