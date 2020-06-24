@@ -15,8 +15,8 @@
  * along with CCTools.  If not, see <http://www.gnu.org/licenses/>.           *
  ******************************************************************************/
 
-#ifndef _TILEWIDGETS_H
-#define _TILEWIDGETS_H
+#ifndef _CC2_TILEWIDGETS_H
+#define _CC2_TILEWIDGETS_H
 
 #include <QListWidget>
 #include "libcc2/Tileset.h"

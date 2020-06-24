@@ -24,10 +24,13 @@ class CC2ScriptEditor : public SyntaxTextEdit {
     Q_OBJECT
 
 public:
-    CC2ScriptEditor(QWidget* parent = nullptr);
+    explicit CC2ScriptEditor(QWidget* parent = nullptr);
 
     QString filename() const { return m_filename; }
     void setFilename(const QString& filename) { m_filename = filename; }
+
+    bool canUndo() const;
+    bool canRedo() const;
 
 private:
     QString m_filename;

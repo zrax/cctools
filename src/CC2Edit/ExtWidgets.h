@@ -15,8 +15,8 @@
  * along with CCTools.  If not, see <http://www.gnu.org/licenses/>.           *
  ******************************************************************************/
 
-#ifndef _EXTWIDGETS_H
-#define _EXTWIDGETS_H
+#ifndef _CC2_EXTWIDGETS_H
+#define _CC2_EXTWIDGETS_H
 
 #include <QTabWidget>
 #include <QTabBar>
@@ -25,7 +25,8 @@ class MidClickClose_TabBar : public QTabBar {
     Q_OBJECT
 
 public:
-    MidClickClose_TabBar(QWidget* parent = nullptr) : QTabBar(parent) { }
+    explicit MidClickClose_TabBar(QWidget* parent = nullptr)
+        : QTabBar(parent) { }
 
 protected:
     void mouseReleaseEvent(QMouseEvent* event) override;
@@ -35,7 +36,7 @@ class EditorTabWidget : public QTabWidget {
     Q_OBJECT
 
 public:
-    EditorTabWidget(QWidget* parent = nullptr);
+    explicit EditorTabWidget(QWidget* parent = nullptr);
 };
 
 #endif

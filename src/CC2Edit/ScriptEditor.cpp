@@ -63,3 +63,13 @@ CC2ScriptEditor::CC2ScriptEditor(QWidget* parent)
         qDebug("Warning: Could not find syntax defintion for .c2g files");
     setSyntax(syntaxDef);
 }
+
+bool CC2ScriptEditor::canUndo() const
+{
+    return document()->isUndoAvailable();
+}
+
+bool CC2ScriptEditor::canRedo() const
+{
+    return document()->isRedoAvailable();
+}

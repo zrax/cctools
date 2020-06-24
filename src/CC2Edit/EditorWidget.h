@@ -15,8 +15,8 @@
  * along with CCTools.  If not, see <http://www.gnu.org/licenses/>.           *
  ******************************************************************************/
 
-#ifndef _EDITORWIDGET_H
-#define _EDITORWIDGET_H
+#ifndef _CC2_EDITORWIDGET_H
+#define _CC2_EDITORWIDGET_H
 
 #include <QWidget>
 #include <QPainter>

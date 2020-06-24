@@ -54,8 +54,10 @@ public:
     void loadTileset(CC2ETileset* tileset);
 
     CC2EditorWidget* getEditorAt(int idx);
+    CC2EditorWidget* currentEditor();
     CC2EditorWidget* addEditor(cc2::Map* map, const QString& filename);
     CC2ScriptEditor* getScriptEditorAt(int idx);
+    CC2ScriptEditor* currentScriptEditor();
     CC2ScriptEditor* addScriptEditor(const QString& filename);
     void closeAllTabs();
 
@@ -69,6 +71,12 @@ protected:
 
 private Q_SLOTS:
     void onOpenAction();
+    void onCutAction();
+    void onCopyAction();
+    void onPasteAction();
+    void onClearAction();
+    void onUndoAction();
+    void onRedoAction();
 
     void onInspectToggled(bool);
 

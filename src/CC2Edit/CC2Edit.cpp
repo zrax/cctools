@@ -137,26 +137,32 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_actions[ActionDrawPencil]->setStatusTip(tr("Draw tiles with the pencil tool"));
     m_actions[ActionDrawPencil]->setShortcut(Qt::CTRL | Qt::Key_P);
     m_actions[ActionDrawPencil]->setCheckable(true);
+    m_actions[ActionDrawPencil]->setEnabled(false);
     m_actions[ActionDrawLine] = new QAction(QIcon(":/res/draw-line.png"), tr("&Line"), this);
     m_actions[ActionDrawLine]->setStatusTip(tr("Draw tiles with the line tool"));
     m_actions[ActionDrawLine]->setShortcut(Qt::CTRL | Qt::Key_L);
     m_actions[ActionDrawLine]->setCheckable(true);
+    m_actions[ActionDrawLine]->setEnabled(false);
     m_actions[ActionDrawFill] = new QAction(QIcon(":/res/draw-box.png"), tr("&Box"), this);
     m_actions[ActionDrawFill]->setStatusTip(tr("Draw tiles with the box fill tool"));
     m_actions[ActionDrawFill]->setShortcut(Qt::CTRL | Qt::Key_B);
     m_actions[ActionDrawFill]->setCheckable(true);
+    m_actions[ActionDrawFill]->setEnabled(false);
     m_actions[ActionPathMaker] = new QAction(QIcon(":/res/draw-path.png"), tr("Path &Maker"), this);
     m_actions[ActionPathMaker]->setStatusTip(tr("Draw a directional path of tiles"));
     m_actions[ActionPathMaker]->setShortcut(Qt::CTRL | Qt::Key_M);
     m_actions[ActionPathMaker]->setCheckable(true);
+    m_actions[ActionPathMaker]->setEnabled(false);
     m_actions[ActionDrawWire] = new QAction(QIcon(":/res/draw-wire.png"), tr("Draw &Wires"), this);
     m_actions[ActionDrawWire]->setStatusTip(tr("Draw logic wires"));
     m_actions[ActionDrawWire]->setShortcut(Qt::CTRL | Qt::Key_T);
     m_actions[ActionDrawWire]->setCheckable(true);
+    m_actions[ActionDrawWire]->setEnabled(false);
     m_actions[ActionInspectTiles] = new QAction(QIcon(":/res/draw-inspect.png"), tr("&Inspect Tiles"), this);
     m_actions[ActionInspectTiles]->setStatusTip(tr("Inspect tiles and make advanced modifications"));
     m_actions[ActionInspectTiles]->setShortcut(Qt::CTRL | Qt::Key_I);
     m_actions[ActionInspectTiles]->setCheckable(true);
+    m_actions[ActionInspectTiles]->setEnabled(false);
     m_actions[ActionToggleWalls] = new QAction(QIcon(":/res/cctools-gbutton.png"), tr("&Toggle Walls"), this);
     m_actions[ActionToggleWalls]->setStatusTip(tr("Toggle all toggle floors/walls in the current level"));
     m_actions[ActionToggleWalls]->setShortcut(Qt::CTRL | Qt::Key_G);
@@ -733,6 +739,13 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     connect(m_actions[ActionOpen], &QAction::triggered, this, &CC2EditMain::onOpenAction);
     connect(m_actions[ActionClose], &QAction::triggered, this, &CC2EditMain::closeScript);
 
+    connect(m_actions[ActionCut], &QAction::triggered, this, &CC2EditMain::onCutAction);
+    connect(m_actions[ActionCopy], &QAction::triggered, this, &CC2EditMain::onCopyAction);
+    connect(m_actions[ActionPaste], &QAction::triggered, this, &CC2EditMain::onPasteAction);
+    connect(m_actions[ActionClear], &QAction::triggered, this, &CC2EditMain::onClearAction);
+    connect(m_actions[ActionUndo], &QAction::triggered, this, &CC2EditMain::onUndoAction);
+    connect(m_actions[ActionRedo], &QAction::triggered, this, &CC2EditMain::onRedoAction);
+
     connect(m_actions[ActionInspectTiles], &QAction::triggered, this, &CC2EditMain::onInspectToggled);
 
     connect(m_actions[ActionViewViewport], &QAction::toggled, this, &CC2EditMain::onViewViewportToggled);
@@ -989,6 +1002,7 @@ void CC2EditMain::editScript(const QString& filename)
     QString text = QString::fromLatin1(scriptFile.readAll());
     auto editor = addScriptEditor(filename);
     editor->setPlainText(text);
+    editor->setFocus(Qt::OtherFocusReason);
 }
 
 void CC2EditMain::closeScript()
@@ -1086,11 +1100,21 @@ CC2EditorWidget* CC2EditMain::getEditorAt(int idx)
     return nullptr;
 }
 
+CC2EditorWidget* CC2EditMain::currentEditor()
+{
+    return getEditorAt(m_editorTabs->currentIndex());
+}
+
 CC2ScriptEditor* CC2EditMain::getScriptEditorAt(int idx)
 {
     if (idx < 0 || idx >= m_editorTabs->count())
         return nullptr;
     return qobject_cast<CC2ScriptEditor *>(m_editorTabs->widget(idx));
+}
+
+CC2ScriptEditor* CC2EditMain::currentScriptEditor()
+{
+    return getScriptEditorAt(m_editorTabs->currentIndex());
 }
 
 CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename)
@@ -1159,7 +1183,22 @@ CC2ScriptEditor* CC2EditMain::addScriptEditor(const QString& filename)
         m_editorTabs->addTab(editor, info.fileName());
     }
 
-    // TODO: Hook up signals
+    connect(editor, &QPlainTextEdit::copyAvailable, m_actions[ActionCut], &QAction::setEnabled);
+    connect(editor, &QPlainTextEdit::copyAvailable, m_actions[ActionCopy], &QAction::setEnabled);
+    connect(editor, &QPlainTextEdit::copyAvailable, m_actions[ActionClear], &QAction::setEnabled);
+    connect(editor, &QPlainTextEdit::undoAvailable, m_actions[ActionUndo], &QAction::setEnabled);
+    connect(editor, &QPlainTextEdit::redoAvailable, m_actions[ActionRedo], &QAction::setEnabled);
+    connect(editor, &QPlainTextEdit::modificationChanged, this, [this, editor](bool dirty) {
+        const int index = m_editorTabs->indexOf(editor);
+        if (index < 0)
+            return;
+
+        const QString tabText = m_editorTabs->tabText(index);
+        if (dirty && !tabText.endsWith(QStringLiteral(" *")))
+            m_editorTabs->setTabText(index, tabText + QStringLiteral(" *"));
+        else if (!dirty && tabText.endsWith(QStringLiteral(" *")))
+            m_editorTabs->setTabText(index, tabText.left(tabText.size() - 2));
+    });
 
     m_editorTabs->setCurrentWidget(editor);
     return editor;
@@ -1180,7 +1219,7 @@ void CC2EditMain::resizeEvent(QResizeEvent* event)
 
     if (m_zoomFactor == 0.0) {
         auto scroll = qobject_cast<QScrollArea*>(m_editorTabs->currentWidget());
-        auto editor = getEditorAt(m_editorTabs->currentIndex());
+        auto editor = currentEditor();
         if (scroll && editor) {
             const auto& map = editor->map();
             QSize zmax = scroll->maximumViewportSize();
@@ -1204,6 +1243,79 @@ void CC2EditMain::onOpenAction()
         m_dialogDir = dir.absolutePath();
     }
 }
+
+void CC2EditMain::onCutAction()
+{
+    auto mapEditor = currentEditor();
+    auto scriptEditor = currentScriptEditor();
+
+    if (mapEditor) {
+        // TODO
+    } else if (scriptEditor) {
+        scriptEditor->cut();
+    }
+}
+
+void CC2EditMain::onCopyAction()
+{
+    auto mapEditor = currentEditor();
+    auto scriptEditor = currentScriptEditor();
+
+    if (mapEditor) {
+        // TODO
+    } else if (scriptEditor) {
+        scriptEditor->copy();
+    }
+}
+
+void CC2EditMain::onPasteAction()
+{
+    auto mapEditor = currentEditor();
+    auto scriptEditor = currentScriptEditor();
+
+    if (mapEditor) {
+        // TODO
+    } else if (scriptEditor) {
+        scriptEditor->paste();
+    }
+}
+
+void CC2EditMain::onClearAction()
+{
+    auto mapEditor = currentEditor();
+    auto scriptEditor = currentScriptEditor();
+
+    if (mapEditor) {
+        // TODO
+    } else if (scriptEditor) {
+        scriptEditor->deleteSelection();
+    }
+}
+
+void CC2EditMain::onUndoAction()
+{
+    auto mapEditor = currentEditor();
+    auto scriptEditor = currentScriptEditor();
+
+    if (mapEditor) {
+        // TODO
+    } else if (scriptEditor) {
+        scriptEditor->undo();
+    }
+}
+
+void CC2EditMain::onRedoAction()
+{
+    auto mapEditor = currentEditor();
+    auto scriptEditor = currentScriptEditor();
+
+    if (mapEditor) {
+        // TODO
+    } else if (scriptEditor) {
+        scriptEditor->redo();
+    }
+}
+
 
 void CC2EditMain::onInspectToggled(bool mode)
 {
@@ -1278,7 +1390,7 @@ void CC2EditMain::onTilesetMenu(QAction* which)
 
 void CC2EditMain::onTestChips2()
 {
-    auto editor = getEditorAt(m_editorTabs->currentIndex());
+    auto editor = currentEditor();
     if (!editor)
         return;
 
@@ -1469,6 +1581,8 @@ void CC2EditMain::onDockChanged(Qt::DockWidgetArea area)
 void CC2EditMain::onTabChanged(int index)
 {
     CC2EditorWidget* mapEditor = getEditorAt(index);
+    CC2ScriptEditor* scriptEditor = getScriptEditorAt(index);
+
     if (!mapEditor) {
         m_title->setText(QString());
         m_author->setText(QString());
@@ -1488,32 +1602,36 @@ void CC2EditMain::onTabChanged(int index)
         m_mapProperties->setEnabled(false);
     }
 
-    if (index < 0) {
-        m_actions[ActionSave]->setEnabled(false);
-        m_actions[ActionSaveAs]->setEnabled(false);
-        m_actions[ActionUndo]->setEnabled(false);
-        m_actions[ActionRedo]->setEnabled(false);
-        m_actions[ActionSelect]->setEnabled(false);
-        m_actions[ActionCut]->setEnabled(false);
-        m_actions[ActionCopy]->setEnabled(false);
-        m_actions[ActionPaste]->setEnabled(false);
-        m_actions[ActionClear]->setEnabled(false);
-        m_actions[ActionTest]->setEnabled(false);
-    }
+    m_actions[ActionSave]->setEnabled(scriptEditor || mapEditor);
+    m_actions[ActionSaveAs]->setEnabled(scriptEditor || mapEditor);
+    m_actions[ActionUndo]->setEnabled(false);
+    m_actions[ActionRedo]->setEnabled(false);
+    m_actions[ActionSelect]->setEnabled(!!mapEditor);
+    m_actions[ActionCut]->setEnabled(false);
+    m_actions[ActionCopy]->setEnabled(false);
+    m_actions[ActionPaste]->setEnabled(false);
+    m_actions[ActionClear]->setEnabled(false);
+    m_actions[ActionDrawPencil]->setEnabled(!!mapEditor);
+    m_actions[ActionDrawLine]->setEnabled(!!mapEditor);
+    m_actions[ActionDrawFill]->setEnabled(!!mapEditor);
+    m_actions[ActionPathMaker]->setEnabled(!!mapEditor);
+    m_actions[ActionDrawWire]->setEnabled(!!mapEditor);
+    m_actions[ActionInspectTiles]->setEnabled(!!mapEditor);
+    m_actions[ActionToggleWalls]->setEnabled(!!mapEditor);
+    m_actions[ActionTest]->setEnabled(!!mapEditor);
 
-    CC2ScriptEditor* scriptEditor = getScriptEditorAt(index);
     if (scriptEditor) {
-        m_actions[ActionSave]->setEnabled(true);
-        m_actions[ActionSaveAs]->setEnabled(true);
-        m_actions[ActionSelect]->setEnabled(false);
-        m_actions[ActionTest]->setEnabled(false);
+        m_actions[ActionUndo]->setEnabled(scriptEditor->canUndo());
+        m_actions[ActionRedo]->setEnabled(scriptEditor->canRedo());
 
-        // TODO
+        QTextCursor cursor = scriptEditor->textCursor();
+        m_actions[ActionCut]->setEnabled(cursor.hasSelection());
+        m_actions[ActionCopy]->setEnabled(cursor.hasSelection());
+        m_actions[ActionPaste]->setEnabled(scriptEditor->canPaste());
+        m_actions[ActionClear]->setEnabled(cursor.hasSelection());
     } else if (mapEditor) {
-        m_actions[ActionSave]->setEnabled(true);
-        m_actions[ActionSaveAs]->setEnabled(true);
-        m_actions[ActionSelect]->setEnabled(true);
-        m_actions[ActionTest]->setEnabled(true);
+        //m_actions[ActionUndo]->setEnabled(mapEditor->canUndo());
+        //m_actions[ActionRedo]->setEnabled(mapEditor->canRedo());
 
         mapEditor->update();
         //mapEditor->updateUndoStatus();
@@ -1522,6 +1640,7 @@ void CC2EditMain::onTabChanged(int index)
         bool hasSelection = editor->selection() != QRect(-1, -1, -1, -1);
         m_actions[ActionCut]->setEnabled(hasSelection);
         m_actions[ActionCopy]->setEnabled(hasSelection);
+        m_actions[ActionPaste]->setEnabled(...);
         m_actions[ActionClear]->setEnabled(hasSelection);
         */
 
@@ -1632,8 +1751,6 @@ int main(int argc, char* argv[])
     QStringList qtArgs = app.arguments();
     if (qtArgs.size() > 1)
         win.loadFile(qtArgs.at(1));
-    else
-        win.createNewMap();
 
     return app.exec();
 }
