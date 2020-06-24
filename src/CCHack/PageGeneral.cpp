@@ -94,12 +94,12 @@ CCHack::PageGeneral::PageGeneral(QWidget* parent)
     layout->addWidget(m_defRealLastLevel, 12, 2);
     layout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding), 13, 0, 1, 3);
 
-    connect(m_cbTitle, SIGNAL(toggled(bool)), m_title, SLOT(setEnabled(bool)));
-    connect(m_cbIniFile, SIGNAL(toggled(bool)), m_iniFile, SLOT(setEnabled(bool)));
-    connect(m_cbIniEntry, SIGNAL(toggled(bool)), m_iniEntry, SLOT(setEnabled(bool)));
-    connect(m_cbDatFile, SIGNAL(toggled(bool)), m_datFile, SLOT(setEnabled(bool)));
-    connect(m_cbFakeLastLevel, SIGNAL(toggled(bool)), m_fakeLastLevel, SLOT(setEnabled(bool)));
-    connect(m_cbRealLastLevel, SIGNAL(toggled(bool)), m_realLastLevel, SLOT(setEnabled(bool)));
+    connect(m_cbTitle, &QCheckBox::toggled, m_title, &QWidget::setEnabled);
+    connect(m_cbIniFile, &QCheckBox::toggled, m_iniFile, &QWidget::setEnabled);
+    connect(m_cbIniEntry, &QCheckBox::toggled, m_iniEntry, &QWidget::setEnabled);
+    connect(m_cbDatFile, &QCheckBox::toggled, m_datFile, &QWidget::setEnabled);
+    connect(m_cbFakeLastLevel, &QCheckBox::toggled, m_fakeLastLevel, &QWidget::setEnabled);
+    connect(m_cbRealLastLevel, &QCheckBox::toggled, m_realLastLevel, &QWidget::setEnabled);
 }
 
 void CCHack::PageGeneral::setValues(HackSettings* settings)

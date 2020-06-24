@@ -266,20 +266,20 @@ SettingsDialog::SettingsDialog(QWidget* parent)
 #endif
     layout->addWidget(buttons, 2, 0);
 
-    connect(buttons, SIGNAL(rejected()), SLOT(reject()));
-    connect(buttons, SIGNAL(accepted()), SLOT(onSaveSettings()));
+    connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
+    connect(buttons, &QDialogButtonBox::accepted, this, &SettingsDialog::onSaveSettings);
 #ifndef Q_OS_WIN
-    connect(browseWine, SIGNAL(clicked()), SLOT(onBrowseWine()));
+    connect(browseWine, &QToolButton::clicked, this, &SettingsDialog::onBrowseWine);
 #endif
-    connect(browseChips, SIGNAL(clicked()), SLOT(onBrowseChips()));
-    connect(browseTWorld, SIGNAL(clicked()), SLOT(onBrowseTWorld()));
-    connect(browseTWorld2, SIGNAL(clicked()), SLOT(onBrowseTWorld2()));
-    connect(m_editorList, SIGNAL(currentRowChanged(int)), SLOT(onSelectEditor(int)));
-    connect(m_actions[ActionEditEditor], SIGNAL(triggered()), SLOT(onEditEditor()));
-    connect(m_actions[ActionAddEditor], SIGNAL(triggered()), SLOT(onAddEditor()));
-    connect(m_actions[ActionDelEditor], SIGNAL(triggered()), SLOT(onDelEditor()));
-    connect(m_actions[ActionEditorUp], SIGNAL(triggered()), SLOT(onEditorUp()));
-    connect(m_actions[ActionEditorDown], SIGNAL(triggered()), SLOT(onEditorDown()));
+    connect(browseChips, &QToolButton::clicked, this, &SettingsDialog::onBrowseChips);
+    connect(browseTWorld, &QToolButton::clicked, this, &SettingsDialog::onBrowseTWorld);
+    connect(browseTWorld2, &QToolButton::clicked, this, &SettingsDialog::onBrowseTWorld2);
+    connect(m_editorList, &QListWidget::currentRowChanged, this, &SettingsDialog::onSelectEditor);
+    connect(m_actions[ActionEditEditor], &QAction::triggered, this, &SettingsDialog::onEditEditor);
+    connect(m_actions[ActionAddEditor], &QAction::triggered, this, &SettingsDialog::onAddEditor);
+    connect(m_actions[ActionDelEditor], &QAction::triggered, this, &SettingsDialog::onDelEditor);
+    connect(m_actions[ActionEditorUp], &QAction::triggered, this, &SettingsDialog::onEditorUp);
+    connect(m_actions[ActionEditorDown], &QAction::triggered, this, &SettingsDialog::onEditorDown);
 }
 
 void SettingsDialog::refreshEditors()
@@ -497,9 +497,9 @@ ConfigEditorDialog::ConfigEditorDialog(QWidget* parent)
     layout->addWidget(buttons, 6, 0, 1, 4);
     resize(400, sizeHint().height());
 
-    connect(buttons, SIGNAL(accepted()), SLOT(accept()));
-    connect(buttons, SIGNAL(rejected()), SLOT(reject()));
-    connect(browseEditor, SIGNAL(clicked()), SLOT(onBrowseEditor()));
+    connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
+    connect(browseEditor, &QToolButton::clicked, this, &ConfigEditorDialog::onBrowseEditor);
 }
 
 void ConfigEditorDialog::setIcon(QString icon)

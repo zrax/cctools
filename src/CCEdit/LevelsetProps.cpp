@@ -98,8 +98,8 @@ LevelsetProps::LevelsetProps(QWidget* parent)
     layout->addWidget(m_dacGroup, 1, 0, 1, 2);
     layout->addWidget(buttons, 2, 0, 1, 2);
 
-    connect(buttons, SIGNAL(accepted()), SLOT(accept()));
-    connect(buttons, SIGNAL(rejected()), SLOT(reject()));
+    connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
 }
 
 void LevelsetProps::setLevelset(ccl::Levelset* levelset)

@@ -70,8 +70,8 @@ ErrorCheckDialog::ErrorCheckDialog(QWidget* parent)
     layout->addWidget(m_errors, 2, 0, 1, 2);
     layout->addWidget(checkAlign, 3, 0, 1, 2);
 
-    connect(btnClose, SIGNAL(clicked()), SLOT(accept()));
-    connect(btnCheck, SIGNAL(clicked()), SLOT(onCheck()));
+    connect(btnClose, &QPushButton::clicked, this, &QDialog::accept);
+    connect(btnCheck, &QPushButton::clicked, this, &ErrorCheckDialog::onCheck);
 }
 
 ErrorCheckDialog::~ErrorCheckDialog()

@@ -109,8 +109,7 @@ CCHackMain::CCHackMain(QWidget* parent)
     resize(800, 480);
     split->setSizes(QList<int>() << 200 << 600);
 
-    connect(pager, SIGNAL(currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)),
-            SLOT(onChangePage(QTreeWidgetItem*,QTreeWidgetItem*)));
+    connect(pager, &QTreeWidget::currentItemChanged, this, &CCHackMain::onChangePage);
     connect(acAbout, &QAction::triggered, this, [this] {
         AboutDialog about(this);
         about.exec();

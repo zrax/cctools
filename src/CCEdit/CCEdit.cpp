@@ -56,6 +56,7 @@
 #include "libcc1/IniFile.h"
 #include "libcc1/ChipsHax.h"
 #include "libcc1/GameLogic.h"
+#include "libcc1/QtHelpers.h"
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -294,7 +295,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_undoStack, &QUndoStack::cleanChanged, this, &CCEditMain::onCleanChanged);
 
     // Control Toolbox
-    QDockWidget* toolDock = new QDockWidget(this);
+    auto toolDock = new QDockWidget(this);
     toolDock->setObjectName("ToolDock");
     toolDock->setWindowTitle(tr("Toolbox"));
     toolDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
@@ -305,38 +306,38 @@ CCEditMain::CCEditMain(QWidget* parent)
     toolDock->setWidget(m_toolTabs);
     addDockWidget(Qt::LeftDockWidgetArea, toolDock);
 
-    QWidget* levelManWidget = new QWidget(toolDock);
+    auto levelManWidget = new QWidget(toolDock);
     m_levelList = new QListWidget(levelManWidget);
     m_nameEdit = new QLineEdit(levelManWidget);
-    QLabel* nameLabel = new QLabel(tr("&Name:"), levelManWidget);
+    auto nameLabel = new QLabel(tr("&Name:"), levelManWidget);
     nameLabel->setBuddy(m_nameEdit);
     m_nameEdit->setMaxLength(254);
     m_passwordEdit = new QLineEdit(levelManWidget);
-    QLabel* passLabel = new QLabel(tr("&Password:"), levelManWidget);
+    auto passLabel = new QLabel(tr("&Password:"), levelManWidget);
     passLabel->setBuddy(m_passwordEdit);
     m_passwordEdit->setMaxLength(9);
-    QToolButton* passwordButton = new QToolButton(levelManWidget);
+    auto passwordButton = new QToolButton(levelManWidget);
     passwordButton->setIcon(QIcon(":/res/view-refresh-sm.png"));
     passwordButton->setStatusTip(tr("Generate new random level password"));
     passwordButton->setAutoRaise(true);
     m_chipEdit = new QSpinBox(levelManWidget);
-    QLabel* chipLabel = new QLabel(tr("&Chips:"), levelManWidget);
+    auto chipLabel = new QLabel(tr("&Chips:"), levelManWidget);
     chipLabel->setBuddy(m_chipEdit);
     m_chipEdit->setRange(0, 32767);
-    QToolButton* chipsButton = new QToolButton(levelManWidget);
+    auto chipsButton = new QToolButton(levelManWidget);
     chipsButton->setIcon(QIcon(":/res/view-refresh-sm.png"));
     chipsButton->setStatusTip(tr("Count all chips in the selected level"));
     chipsButton->setAutoRaise(true);
     m_timeEdit = new QSpinBox(levelManWidget);
-    QLabel* timeLabel = new QLabel(tr("&Time:"), levelManWidget);
+    auto timeLabel = new QLabel(tr("&Time:"), levelManWidget);
     timeLabel->setBuddy(m_timeEdit);
     m_timeEdit->setRange(0, 32767);
     m_hintEdit = new QLineEdit(levelManWidget);
-    QLabel* hintLabel = new QLabel(tr("&Hint Text:"), levelManWidget);
+    auto hintLabel = new QLabel(tr("&Hint Text:"), levelManWidget);
     hintLabel->setBuddy(m_hintEdit);
     m_hintEdit->setMaxLength(254);
 
-    QToolBar* tbarLevelset = new QToolBar(levelManWidget);
+    auto tbarLevelset = new QToolBar(levelManWidget);
     tbarLevelset->addAction(m_actions[ActionAddLevel]);
     tbarLevelset->addAction(m_actions[ActionDelLevel]);
     tbarLevelset->addSeparator();
@@ -346,7 +347,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     tbarLevelset->addAction(m_actions[ActionProperties]);
     tbarLevelset->addAction(m_actions[ActionOrganize]);
 
-    QGridLayout* levelManLayout = new QGridLayout(levelManWidget);
+    auto levelManLayout = new QGridLayout(levelManWidget);
     levelManLayout->setContentsMargins(4, 4, 4, 4);
     levelManLayout->setVerticalSpacing(0);
     levelManLayout->setHorizontalSpacing(4);
@@ -369,68 +370,75 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_hintEdit->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum));
     m_toolTabs->addTab(levelManWidget, tr("Level &Manager"));
 
-    QWidget* tileWidget = new QWidget(toolDock);
-    QToolBox* tileBox = new QToolBox(tileWidget);
+    auto tileWidget = new QWidget(toolDock);
+    auto tileBox = new QToolBox(tileWidget);
     TileListWidget *tileLists[NUM_TILE_LISTS];
     tileLists[ListStandard] = new TileListWidget(tileBox);
-    tileLists[ListStandard]->addTiles(QList<tile_t>()
-        << ccl::TileFloor << ccl::TileWall << ccl::TileChip << ccl::TileSocket
-        << ccl::TileExit << ccl::TileHint << ccl::TileBarrier_N
-        << ccl::TileBarrier_W << ccl::TileBarrier_S << ccl::TileBarrier_E
-        << ccl::TileBarrier_SE << ccl::TileBlock << ccl::TileDirt
-        << ccl::TileGravel << ccl::TilePlayer_N << ccl::TilePlayer_W
-        << ccl::TilePlayer_S << ccl::TilePlayer_E);
+    tileLists[ListStandard]->addTiles(QVector<tile_t>{
+        ccl::TileFloor, ccl::TileWall, ccl::TileChip, ccl::TileSocket,
+        ccl::TileExit, ccl::TileHint, ccl::TileBarrier_N,
+        ccl::TileBarrier_W, ccl::TileBarrier_S, ccl::TileBarrier_E,
+        ccl::TileBarrier_SE, ccl::TileBlock, ccl::TileDirt,
+        ccl::TileGravel, ccl::TilePlayer_N, ccl::TilePlayer_W,
+        ccl::TilePlayer_S, ccl::TilePlayer_E
+    });
     tileBox->addItem(tileLists[ListStandard], tr("Standard"));
     tileLists[ListObstacles] = new TileListWidget(tileBox);
-    tileLists[ListObstacles]->addTiles(QList<tile_t>()
-        << ccl::TileWater << ccl::TileFire << ccl::TileBomb << ccl::TileForce_N
-        << ccl::TileForce_W << ccl::TileForce_S << ccl::TileForce_E
-        << ccl::TileForce_Rand << ccl::TileIce << ccl::TileIce_NW
-        << ccl::TileIce_NE << ccl::TileIce_SE << ccl::TileIce_SW
-        << ccl::TileTrap << ccl::TileTrapButton << ccl::TilePopUpWall
-        << ccl::TileAppearingWall << ccl::TileInvisWall);
+    tileLists[ListObstacles]->addTiles(QVector<tile_t>{
+        ccl::TileWater, ccl::TileFire, ccl::TileBomb, ccl::TileForce_N,
+        ccl::TileForce_W, ccl::TileForce_S, ccl::TileForce_E,
+        ccl::TileForce_Rand, ccl::TileIce, ccl::TileIce_NW,
+        ccl::TileIce_NE, ccl::TileIce_SE, ccl::TileIce_SW,
+        ccl::TileTrap, ccl::TileTrapButton, ccl::TilePopUpWall,
+        ccl::TileAppearingWall, ccl::TileInvisWall
+    });
     tileBox->addItem(tileLists[ListObstacles], tr("Obstacles"));
     tileLists[ListDoors] = new TileListWidget(tileBox);
-    tileLists[ListDoors]->addTiles(QList<tile_t>()
-        << ccl::TileDoor_Blue << ccl::TileDoor_Red << ccl::TileDoor_Green
-        << ccl::TileDoor_Yellow << ccl::TileToggleFloor << ccl::TileToggleWall
-        << ccl::TileToggleButton);
+    tileLists[ListDoors]->addTiles(QVector<tile_t>{
+        ccl::TileDoor_Blue, ccl::TileDoor_Red, ccl::TileDoor_Green,
+        ccl::TileDoor_Yellow, ccl::TileToggleFloor, ccl::TileToggleWall,
+        ccl::TileToggleButton
+    });
     tileBox->addItem(tileLists[ListDoors], tr("Doors"));
     tileLists[ListItems] = new TileListWidget(tileBox);
-    tileLists[ListItems]->addTiles(QList<tile_t>()
-        << ccl::TileKey_Blue << ccl::TileKey_Red << ccl::TileKey_Green
-        << ccl::TileKey_Yellow << ccl::TileFlippers << ccl::TileFireBoots
-        << ccl::TileIceSkates << ccl::TileForceBoots);
+    tileLists[ListItems]->addTiles(QVector<tile_t>{
+        ccl::TileKey_Blue, ccl::TileKey_Red, ccl::TileKey_Green,
+        ccl::TileKey_Yellow, ccl::TileFlippers, ccl::TileFireBoots,
+        ccl::TileIceSkates, ccl::TileForceBoots
+    });
     tileBox->addItem(tileLists[ListItems], tr("Items"));
     tileLists[ListMonsters] = new TileListWidget(tileBox);
-    tileLists[ListMonsters]->addTiles(QList<tile_t>()
-        << ccl::TileBug_N << ccl::TileBug_W << ccl::TileBug_S << ccl::TileBug_E
-        << ccl::TileFireball_N << ccl::TileFireball_W << ccl::TileFireball_S
-        << ccl::TileFireball_E << ccl::TileBall_N << ccl::TileBall_W
-        << ccl::TileBall_S << ccl::TileBall_E << ccl::TileTank_N
-        << ccl::TileTank_W << ccl::TileTank_S << ccl::TileTank_E
-        << ccl::TileTankButton << ccl::TileGlider_N << ccl::TileGlider_W
-        << ccl::TileGlider_S << ccl::TileGlider_E << ccl::TileTeeth_N
-        << ccl::TileTeeth_W << ccl::TileTeeth_S << ccl::TileTeeth_E
-        << ccl::TileWalker_N << ccl::TileWalker_W << ccl::TileWalker_S
-        << ccl::TileWalker_E << ccl::TileBlob_N << ccl::TileBlob_W
-        << ccl::TileBlob_S << ccl::TileBlob_E << ccl::TileCrawler_N
-        << ccl::TileCrawler_W << ccl::TileCrawler_S << ccl::TileCrawler_E);
+    tileLists[ListMonsters]->addTiles(QVector<tile_t>{
+        ccl::TileBug_N, ccl::TileBug_W, ccl::TileBug_S, ccl::TileBug_E,
+        ccl::TileFireball_N, ccl::TileFireball_W, ccl::TileFireball_S,
+        ccl::TileFireball_E, ccl::TileBall_N, ccl::TileBall_W,
+        ccl::TileBall_S, ccl::TileBall_E, ccl::TileTank_N,
+        ccl::TileTank_W, ccl::TileTank_S, ccl::TileTank_E,
+        ccl::TileTankButton, ccl::TileGlider_N, ccl::TileGlider_W,
+        ccl::TileGlider_S, ccl::TileGlider_E, ccl::TileTeeth_N,
+        ccl::TileTeeth_W, ccl::TileTeeth_S, ccl::TileTeeth_E,
+        ccl::TileWalker_N, ccl::TileWalker_W, ccl::TileWalker_S,
+        ccl::TileWalker_E, ccl::TileBlob_N, ccl::TileBlob_W,
+        ccl::TileBlob_S, ccl::TileBlob_E, ccl::TileCrawler_N,
+        ccl::TileCrawler_W, ccl::TileCrawler_S, ccl::TileCrawler_E
+    });
     tileBox->addItem(tileLists[ListMonsters], tr("Monsters"));
     tileLists[ListMisc] = new TileListWidget(tileBox);
-    tileLists[ListMisc]->addTiles(QList<tile_t>()
-        << ccl::TileThief << ccl::TileBlueWall << ccl::TileBlueFloor
-        << ccl::TileTeleport << ccl::TileCloner << ccl::TileCloneButton
-        << ccl::TileBlock_N << ccl::TileBlock_W << ccl::TileBlock_S
-        << ccl::TileBlock_E);
+    tileLists[ListMisc]->addTiles(QVector<tile_t>{
+        ccl::TileThief, ccl::TileBlueWall, ccl::TileBlueFloor,
+        ccl::TileTeleport, ccl::TileCloner, ccl::TileCloneButton,
+        ccl::TileBlock_N, ccl::TileBlock_W, ccl::TileBlock_S,
+        ccl::TileBlock_E
+    });
     tileBox->addItem(tileLists[ListMisc], tr("Miscellaneous"));
     tileLists[ListSpecial] = new TileListWidget(tileBox);
-    tileLists[ListSpecial]->addTiles(QList<tile_t>()
-        << ccl::TileIceBlock << ccl::TilePlayerSplash << ccl::TilePlayerFire
-        << ccl::TilePlayerBurnt << ccl::TilePlayerExit << ccl::TileExitAnim2
-        << ccl::TileExitAnim3 << ccl::TilePlayerSwim_N << ccl::TilePlayerSwim_W
-        << ccl::TilePlayerSwim_S << ccl::TilePlayerSwim_E << ccl::Tile_UNUSED_20
-        << ccl::Tile_UNUSED_36 << ccl::Tile_UNUSED_37);
+    tileLists[ListSpecial]->addTiles(QVector<tile_t>{
+        ccl::TileIceBlock, ccl::TilePlayerSplash, ccl::TilePlayerFire,
+        ccl::TilePlayerBurnt, ccl::TilePlayerExit, ccl::TileExitAnim2,
+        ccl::TileExitAnim3, ccl::TilePlayerSwim_N, ccl::TilePlayerSwim_W,
+        ccl::TilePlayerSwim_S, ccl::TilePlayerSwim_E, ccl::Tile_UNUSED_20,
+        ccl::Tile_UNUSED_36, ccl::Tile_UNUSED_37
+    });
     tileBox->addItem(tileLists[ListSpecial], tr("Special (Advanced)"));
 
     for (auto listWidget : tileLists) {
@@ -612,34 +620,34 @@ CCEditMain::CCEditMain(QWidget* parent)
     statusBar();
 
     connect(m_actions[ActionNew], &QAction::triggered, this, &CCEditMain::createNewLevelset);
-    connect(m_actions[ActionOpen], SIGNAL(triggered()), SLOT(onOpenAction()));
-    connect(m_actions[ActionSave], SIGNAL(triggered()), SLOT(onSaveAction()));
-    connect(m_actions[ActionSaveAs], SIGNAL(triggered()), SLOT(onSaveAsAction()));
+    connect(m_actions[ActionOpen], &QAction::triggered, this, &CCEditMain::onOpenAction);
+    connect(m_actions[ActionSave], &QAction::triggered, this, &CCEditMain::onSaveAction);
+    connect(m_actions[ActionSaveAs], &QAction::triggered, this, &CCEditMain::onSaveAsAction);
     connect(m_actions[ActionClose], &QAction::triggered, this, &CCEditMain::closeLevelset);
-    connect(m_actions[ActionGenReport], SIGNAL(triggered()), SLOT(onReportAction()));
-    connect(m_actions[ActionExit], SIGNAL(triggered()), SLOT(close()));
-    connect(m_actions[ActionSelect], SIGNAL(toggled(bool)), SLOT(onSelectToggled(bool)));
-    connect(m_actions[ActionCut], SIGNAL(triggered()), SLOT(onCutAction()));
-    connect(m_actions[ActionCopy], SIGNAL(triggered()), SLOT(onCopyAction()));
-    connect(m_actions[ActionPaste], SIGNAL(triggered()), SLOT(onPasteAction()));
-    connect(m_actions[ActionClear], SIGNAL(triggered()), SLOT(onClearAction()));
-    connect(m_actions[ActionUndo], SIGNAL(triggered()), SLOT(onUndoAction()));
-    connect(m_actions[ActionRedo], SIGNAL(triggered()), SLOT(onRedoAction()));
-    connect(m_actions[ActionDrawPencil], SIGNAL(toggled(bool)), SLOT(onDrawPencilAction(bool)));
-    connect(m_actions[ActionDrawLine], SIGNAL(toggled(bool)), SLOT(onDrawLineAction(bool)));
-    connect(m_actions[ActionDrawFill], SIGNAL(toggled(bool)), SLOT(onDrawFillAction(bool)));
-    connect(m_actions[ActionPathMaker], SIGNAL(toggled(bool)), SLOT(onPathMakerToggled(bool)));
-    connect(m_actions[ActionConnect], SIGNAL(toggled(bool)), SLOT(onConnectToggled(bool)));
-    connect(m_actions[ActionAdvancedMech], SIGNAL(triggered()), SLOT(onAdvancedMechAction()));
-    connect(m_actions[ActionToggleWalls], SIGNAL(triggered()), SLOT(onToggleWallsAction()));
-    connect(m_actions[ActionCheckErrors], SIGNAL(triggered()), SLOT(onCheckErrorsAction()));
-    connect(m_actions[ActionViewButtons], SIGNAL(toggled(bool)), SLOT(onViewButtonsToggled(bool)));
-    connect(m_actions[ActionViewMovers], SIGNAL(toggled(bool)), SLOT(onViewMoversToggled(bool)));
-    connect(m_actions[ActionViewActivePlayer], SIGNAL(toggled(bool)), SLOT(onViewActivePlayerToggled(bool)));
-    connect(m_actions[ActionViewViewport], SIGNAL(toggled(bool)), SLOT(onViewViewportToggled(bool)));
-    connect(m_actions[ActionViewMonsterPaths], SIGNAL(toggled(bool)), SLOT(onViewMonsterPathsToggled(bool)));
-    connect(m_actions[ActionViewErrors], SIGNAL(toggled(bool)), SLOT(onViewErrorsToggled(bool)));
-    connect(m_tilesetGroup, SIGNAL(triggered(QAction*)), SLOT(onTilesetMenu(QAction*)));
+    connect(m_actions[ActionGenReport], &QAction::triggered, this, &CCEditMain::onReportAction);
+    connect(m_actions[ActionExit], &QAction::triggered, this, &CCEditMain::close);
+    connect(m_actions[ActionSelect], &QAction::toggled, this, &CCEditMain::onSelectToggled);
+    connect(m_actions[ActionCut], &QAction::triggered, this, &CCEditMain::onCutAction);
+    connect(m_actions[ActionCopy], &QAction::triggered, this, &CCEditMain::onCopyAction);
+    connect(m_actions[ActionPaste], &QAction::triggered, this, &CCEditMain::onPasteAction);
+    connect(m_actions[ActionClear], &QAction::triggered, this, &CCEditMain::onClearAction);
+    connect(m_actions[ActionUndo], &QAction::triggered, this, &CCEditMain::onUndoAction);
+    connect(m_actions[ActionRedo], &QAction::triggered, this, &CCEditMain::onRedoAction);
+    connect(m_actions[ActionDrawPencil], &QAction::toggled, this, &CCEditMain::onDrawPencilAction);
+    connect(m_actions[ActionDrawLine], &QAction::toggled, this, &CCEditMain::onDrawLineAction);
+    connect(m_actions[ActionDrawFill], &QAction::toggled, this, &CCEditMain::onDrawFillAction);
+    connect(m_actions[ActionPathMaker], &QAction::toggled, this, &CCEditMain::onPathMakerToggled);
+    connect(m_actions[ActionConnect], &QAction::toggled, this, &CCEditMain::onConnectToggled);
+    connect(m_actions[ActionAdvancedMech], &QAction::triggered, this, &CCEditMain::onAdvancedMechAction);
+    connect(m_actions[ActionToggleWalls], &QAction::triggered, this, &CCEditMain::onToggleWallsAction);
+    connect(m_actions[ActionCheckErrors], &QAction::triggered, this, &CCEditMain::onCheckErrorsAction);
+    connect(m_actions[ActionViewButtons], &QAction::toggled, this, &CCEditMain::onViewButtonsToggled);
+    connect(m_actions[ActionViewMovers], &QAction::toggled, this, &CCEditMain::onViewMoversToggled);
+    connect(m_actions[ActionViewActivePlayer], &QAction::toggled, this, &CCEditMain::onViewActivePlayerToggled);
+    connect(m_actions[ActionViewViewport], &QAction::toggled, this, &CCEditMain::onViewViewportToggled);
+    connect(m_actions[ActionViewMonsterPaths], &QAction::toggled, this, &CCEditMain::onViewMonsterPathsToggled);
+    connect(m_actions[ActionViewErrors], &QAction::toggled, this, &CCEditMain::onViewErrorsToggled);
+    connect(m_tilesetGroup, &QActionGroup::triggered, this, &CCEditMain::onTilesetMenu);
     connect(m_actions[ActionZoom100], &QAction::triggered, this, [this] { setZoomFactor(1.0); });
     connect(m_actions[ActionZoom75], &QAction::triggered, this, [this] { setZoomFactor(0.75); });
     connect(m_actions[ActionZoom50], &QAction::triggered, this, [this] { setZoomFactor(0.5); });
@@ -671,27 +679,30 @@ CCEditMain::CCEditMain(QWidget* parent)
         about.exec();
     });
 
-    connect(m_actions[ActionAddLevel], SIGNAL(triggered()), SLOT(onAddLevelAction()));
-    connect(m_actions[ActionDelLevel], SIGNAL(triggered()), SLOT(onDelLevelAction()));
-    connect(m_actions[ActionMoveUp], SIGNAL(triggered()), SLOT(onMoveUpAction()));
-    connect(m_actions[ActionMoveDown], SIGNAL(triggered()), SLOT(onMoveDownAction()));
-    connect(m_actions[ActionProperties], SIGNAL(triggered()), SLOT(onPropertiesAction()));
-    connect(m_actions[ActionOrganize], SIGNAL(triggered()), SLOT(onOrganizeAction()));
+    connect(m_actions[ActionAddLevel], &QAction::triggered, this, &CCEditMain::onAddLevelAction);
+    connect(m_actions[ActionDelLevel], &QAction::triggered, this, &CCEditMain::onDelLevelAction);
+    connect(m_actions[ActionMoveUp], &QAction::triggered, this, &CCEditMain::onMoveUpAction);
+    connect(m_actions[ActionMoveDown], &QAction::triggered, this, &CCEditMain::onMoveDownAction);
+    connect(m_actions[ActionProperties], &QAction::triggered, this, &CCEditMain::onPropertiesAction);
+    connect(m_actions[ActionOrganize], &QAction::triggered, this, &CCEditMain::onOrganizeAction);
 
     connect(m_levelList, &QListWidget::currentRowChanged, this, &CCEditMain::onSelectLevel);
     connect(m_levelList, &QListWidget::itemActivated, this, [this](QListWidgetItem* item) {
         loadLevel(m_levelList->row(item));
     });
 
-    connect(m_nameEdit, SIGNAL(textChanged(QString)), SLOT(onNameChanged(QString)));
-    connect(m_passwordEdit, SIGNAL(textChanged(QString)), SLOT(onPasswordChanged(QString)));
-    connect(passwordButton, SIGNAL(clicked()), SLOT(onPasswordGenAction()));
-    connect(m_chipEdit, SIGNAL(valueChanged(int)), SLOT(onChipsChanged(int)));
-    connect(chipsButton, SIGNAL(clicked()), SLOT(onChipCountAction()));
-    connect(m_timeEdit, SIGNAL(valueChanged(int)), SLOT(onTimerChanged(int)));
-    connect(m_hintEdit, SIGNAL(textChanged(QString)), SLOT(onHintChanged(QString)));
-    connect(toolDock, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)), SLOT(onDockChanged(Qt::DockWidgetArea)));
-    connect(qApp->clipboard(), SIGNAL(dataChanged()), SLOT(onClipboardDataChanged()));
+    connect(m_nameEdit, &QLineEdit::textChanged, this, &CCEditMain::onNameChanged);
+    connect(m_passwordEdit, &QLineEdit::textChanged, this, &CCEditMain::onPasswordChanged);
+    connect(passwordButton, &QToolButton::clicked, this, &CCEditMain::onPasswordGenAction);
+    connect(m_chipEdit, QOverload<int>::of(&QSpinBox::valueChanged),
+            this, &CCEditMain::onChipsChanged);
+    connect(chipsButton, &QToolButton::clicked, this, &CCEditMain::onChipCountAction);
+    connect(m_timeEdit, QOverload<int>::of(&QSpinBox::valueChanged),
+            this, &CCEditMain::onTimerChanged);
+    connect(m_hintEdit, &QLineEdit::textChanged, this, &CCEditMain::onHintChanged);
+    connect(toolDock, &QDockWidget::dockLocationChanged, this, &CCEditMain::onDockChanged);
+    connect(QApplication::clipboard(), &QClipboard::dataChanged,
+            this, &CCEditMain::onClipboardDataChanged);
 
     connect(m_editorTabs, &QTabWidget::tabCloseRequested, this, [this](int index) {
         m_editorTabs->widget(index)->deleteLater();
@@ -1927,14 +1938,16 @@ void CCEditMain::onTestChips()
     QDir::setCurrent(exePath.absolutePath());
     m_subProc = new QProcess(this);
     m_subProcType = SubprocMSCC;
-    connect(m_subProc, SIGNAL(finished(int)), SLOT(onProcessFinished(int)));
-    connect(m_subProc, SIGNAL(error(QProcess::ProcessError)), SLOT(onProcessError(QProcess::ProcessError)));
+    connect(m_subProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+            this, &CCEditMain::onProcessFinished);
+    connect(m_subProc, QOverload<QProcess::ProcessError>::of(&QProcess::error),
+            this, &CCEditMain::onProcessError);
 #ifdef Q_OS_WIN
     // Native execution
     m_subProc->start(m_tempExe, QStringList());
 #else
     // Try to use WINE
-    m_subProc->start(winePath, QStringList() << m_tempExe);
+    m_subProc->start(winePath, QStringList{ m_tempExe });
 #endif
     QDir::setCurrent(cwd);
 }
@@ -2006,8 +2019,10 @@ void CCEditMain::onTestTWorld(unsigned int levelsetType, bool tworld2)
     QDir::setCurrent(exePath.absolutePath());
     m_subProc = new QProcess(this);
     m_subProcType = SubprocTWorld;
-    connect(m_subProc, SIGNAL(finished(int)), SLOT(onProcessFinished(int)));
-    connect(m_subProc, SIGNAL(error(QProcess::ProcessError)), SLOT(onProcessError(QProcess::ProcessError)));
+    connect(m_subProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+            this, &CCEditMain::onProcessFinished);
+    connect(m_subProc, QOverload<QProcess::ProcessError>::of(&QProcess::error),
+            this, &CCEditMain::onProcessError);
     m_subProc->start(tworldExe, QStringList{ "-pr", m_tempDat, QString::number(levelNum + 1) });
     QDir::setCurrent(cwd);
 }
@@ -2396,7 +2411,7 @@ void CCEditMain::onDockChanged(Qt::DockWidgetArea area)
         m_toolTabs->setTabPosition(QTabWidget::West);
 }
 
-void CCEditMain::onProcessFinished(int)
+void CCEditMain::onProcessFinished(int, QProcess::ExitStatus)
 {
     // Remove temp files
     if (m_subProcType == SubprocMSCC) {
@@ -2408,7 +2423,7 @@ void CCEditMain::onProcessFinished(int)
     // Clean up subproc
     m_subProc->disconnect();
     m_subProc->deleteLater();
-    m_subProc = 0;
+    m_subProc = nullptr;
 }
 
 void CCEditMain::onProcessError(QProcess::ProcessError err)
@@ -2418,7 +2433,7 @@ void CCEditMain::onProcessError(QProcess::ProcessError err)
                 tr("Error starting test process.  Please check your settings "
                    "and try again"), QMessageBox::Ok);
     }
-    onProcessFinished(-1);
+    onProcessFinished(-1, QProcess::NormalExit);
 }
 
 

@@ -25,14 +25,14 @@ class TileListWidget : public QListWidget {
     Q_OBJECT
 
 public:
-    TileListWidget(QWidget* parent = nullptr) : QListWidget(parent) { }
-    void addTiles(const QList<tile_t>& tiles);
+    explicit TileListWidget(QWidget* parent = nullptr) : QListWidget(parent) { }
+    void addTiles(const QVector<tile_t>& tiles);
 
 public slots:
     void setTileImages(CCETileset* tileset);
 
 protected:
-    virtual void mousePressEvent(QMouseEvent*);
+    void mousePressEvent(QMouseEvent*) override;
 
 signals:
     void itemSelectedLeft(tile_t);
@@ -44,10 +44,10 @@ class BigTileWiget : public QWidget {
     Q_OBJECT
 
 public:
-    BigTileWiget(QWidget* parent = 0);
+    explicit BigTileWiget(QWidget* parent = nullptr);
     void setTileset(CCETileset* tileset);
 
-    virtual QSize sizeHint() const
+    QSize sizeHint() const override
     {
         int tsetSize = (m_tileset != 0) ? m_tileset->size() : 32;
         return QSize(tsetSize * 7, tsetSize * 16);
@@ -57,9 +57,9 @@ private:
     CCETileset* m_tileset;
 
 protected:
-    virtual void paintEvent(QPaintEvent*);
-    virtual void mousePressEvent(QMouseEvent*);
-    virtual void mouseMoveEvent(QMouseEvent*);
+    void paintEvent(QPaintEvent*) override;
+    void mousePressEvent(QMouseEvent*) override;
+    void mouseMoveEvent(QMouseEvent*) override;
 
 signals:
     void itemSelectedLeft(tile_t);

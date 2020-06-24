@@ -17,6 +17,7 @@
 
 #include "TileInspector.h"
 #include "libcc2/Tileset.h"
+#include "libcc1/QtHelpers.h"
 
 #include <QListWidget>
 #include <QLabel>
@@ -27,18 +28,6 @@
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QMessageBox>
-
-// Simplified backport of QOverload
-#if (QT_VERSION < QT_VERSION_CHECK(5, 7, 0))
-template <typename... Args>
-struct QOverload {
-    template <typename R, typename T>
-    static Q_DECL_CONSTEXPR auto of(R(T::*ptr)(Args...)) Q_DECL_NOTHROW -> decltype(ptr)
-    {
-        return ptr;
-    }
-};
-#endif
 
 TileInspector::TileInspector(QWidget* parent)
     : QDialog(parent), m_tileset(), m_paging(false)

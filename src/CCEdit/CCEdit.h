@@ -188,7 +188,7 @@ private slots:
     void setForeground(tile_t);
     void setBackground(tile_t);
 
-    void onProcessFinished(int);
+    void onProcessFinished(int, QProcess::ExitStatus);
     void onProcessError(QProcess::ProcessError);
 };
 

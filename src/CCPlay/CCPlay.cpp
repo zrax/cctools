@@ -251,15 +251,15 @@ CCPlayMain::CCPlayMain(QWidget* parent)
             [this]() { this->onPlayTWorld(false); });
     connect(m_actions[ActionPlayTWorld2], &QAction::triggered,
             [this]() { this->onPlayTWorld(true); });
-    connect(m_actions[ActionEdit], SIGNAL(triggered()), SLOT(onEditDefault()));
-    connect(m_editButton->menu(), SIGNAL(triggered(QAction*)), SLOT(onEditor(QAction*)));
-    connect(m_actions[ActionSetup], SIGNAL(triggered()), SLOT(onSetup()));
-    connect(m_actions[ActionExit], SIGNAL(triggered()), SLOT(close()));
-    connect(btnRefresh, SIGNAL(clicked()), SLOT(onRefreshLevelsets()));
-    connect(btnOpenPath, SIGNAL(clicked()), SLOT(onBrowseLevelsetPath()));
-    connect(m_levelsetPath, SIGNAL(textChanged(QString)), SLOT(onPathChanged(QString)));
-    connect(m_levelsetList, SIGNAL(currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)),
-            SLOT(onLevelsetChanged(QTreeWidgetItem*,QTreeWidgetItem*)));
+    connect(m_actions[ActionEdit], &QAction::triggered, this, &CCPlayMain::onEditDefault);
+    connect(m_editButton->menu(), &QMenu::triggered, this, &CCPlayMain::onEditor);
+    connect(m_actions[ActionSetup], &QAction::triggered, this, &CCPlayMain::onSetup);
+    connect(m_actions[ActionExit], &QAction::triggered, this, &CCPlayMain::close);
+    connect(btnRefresh, &QToolButton::clicked, this, &CCPlayMain::onRefreshLevelsets);
+    connect(btnOpenPath, &QToolButton::clicked, this, &CCPlayMain::onBrowseLevelsetPath);
+    connect(m_levelsetPath, &QLineEdit::textChanged, this, &CCPlayMain::onPathChanged);
+    connect(m_levelsetList, &QTreeWidget::currentItemChanged,
+            this, &CCPlayMain::onLevelsetChanged);
 
     QSettings settings("CCTools", "CCPlay");
     resize(settings.value("WindowSize", QSize(520, 400)).toSize());

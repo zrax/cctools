@@ -22,6 +22,7 @@
 #include "ScriptTools.h"
 #include "TestSetup.h"
 #include "About.h"
+#include "libcc1/QtHelpers.h"
 
 #include <QApplication>
 #include <QSettings>
@@ -1563,9 +1564,10 @@ void CC2EditMain::onTestChips2()
 
     QDir::setCurrent(chips2Dir.absolutePath());
     m_subProc = new QProcess(this);
-    connect(m_subProc, SIGNAL(finished(int)), this, SLOT(onProcessFinished(int)));
-    connect(m_subProc, SIGNAL(error(QProcess::ProcessError)),
-            this, SLOT(onProcessError(QProcess::ProcessError)));
+    connect(m_subProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+            this, &CC2EditMain::onProcessFinished);
+    connect(m_subProc, QOverload<QProcess::ProcessError>::of(&QProcess::error),
+            this, &CC2EditMain::onProcessError);
     m_subProc->start(chips2Exe, QStringList());
     QDir::setCurrent(cwd);
 }
@@ -1694,10 +1696,10 @@ void CC2EditMain::onProcessError(QProcess::ProcessError err)
                 tr("Error starting test process.  Please check your settings "
                    "and try again"), QMessageBox::Ok);
     }
-    onProcessFinished(-1);
+    onProcessFinished(-1, QProcess::NormalExit);
 }
 
-void CC2EditMain::onProcessFinished(int)
+void CC2EditMain::onProcessFinished(int, QProcess::ExitStatus)
 {
     // Clean up temporary files
     QDir chips2Dir(m_testGameDir);

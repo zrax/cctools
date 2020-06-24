@@ -21,9 +21,9 @@
 #include <QMouseEvent>
 #include <QPainter>
 
-void TileListWidget::addTiles(const QList<tile_t>& tiles)
+void TileListWidget::addTiles(const QVector<tile_t>& tiles)
 {
-    foreach (tile_t tile, tiles) {
+    for (tile_t tile : tiles) {
         QListWidgetItem* item = new QListWidgetItem(CCETileset::TileName(tile), this);
         item->setData(Qt::UserRole, (int)tile);
     }
@@ -51,7 +51,7 @@ void TileListWidget::mousePressEvent(QMouseEvent* event)
 
 
 BigTileWiget::BigTileWiget(QWidget* parent)
-            : QWidget(parent), m_tileset(0)
+    : QWidget(parent), m_tileset()
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     setMouseTracking(true);

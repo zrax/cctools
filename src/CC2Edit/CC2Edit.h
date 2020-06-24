@@ -95,7 +95,7 @@ private Q_SLOTS:
     void setBackground(const cc2::Tile*);
 
     void onProcessError(QProcess::ProcessError err);
-    void onProcessFinished(int result);
+    void onProcessFinished(int result, QProcess::ExitStatus status);
 
     void setGameName(const QString& name);
 

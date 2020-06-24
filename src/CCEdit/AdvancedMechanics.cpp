@@ -35,11 +35,11 @@ public:
         m_x->setRange(-128, 127);
         m_y = new QSpinBox(this);
         m_y->setRange(-128, 127);
-        QDialogButtonBox* buttons = new QDialogButtonBox(
+        auto buttons = new QDialogButtonBox(
                 QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
                 Qt::Horizontal, this);
 
-        QGridLayout* layout = new QGridLayout(this);
+        auto layout = new QGridLayout(this);
         layout->setContentsMargins(8, 8, 8, 8);
         layout->setVerticalSpacing(8);
         layout->setHorizontalSpacing(8);
@@ -48,8 +48,8 @@ public:
         layout->addWidget(m_y, 0, 2);
         layout->addWidget(buttons, 1, 0, 1, 3);
 
-        connect(buttons, SIGNAL(accepted()), SLOT(accept()));
-        connect(buttons, SIGNAL(rejected()), SLOT(reject()));
+        connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
+        connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
     }
 
     void set(const ccl::Point& point)
@@ -86,11 +86,11 @@ public:
         m_x[1]->setRange(-32768, 32767);
         m_y[1] = new QSpinBox(this);
         m_y[1]->setRange(-32768, 32767);
-        QDialogButtonBox* buttons = new QDialogButtonBox(
+        auto buttons = new QDialogButtonBox(
                 QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
                 Qt::Horizontal, this);
 
-        QGridLayout* layout = new QGridLayout(this);
+        auto layout = new QGridLayout(this);
         layout->setContentsMargins(8, 8, 8, 8);
         layout->setVerticalSpacing(8);
         layout->setHorizontalSpacing(8);
@@ -102,8 +102,8 @@ public:
         layout->addWidget(m_y[1], 1, 2);
         layout->addWidget(buttons, 2, 0, 1, 3);
 
-        connect(buttons, SIGNAL(accepted()), SLOT(accept()));
-        connect(buttons, SIGNAL(rejected()), SLOT(reject()));
+        connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
+        connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
     }
 
     void set(const ccl::Point& p1, const ccl::Point& p2)
@@ -148,7 +148,7 @@ static bool isValidPoint(const ccl::Point& point)
 
 
 AdvancedMechanicsDialog::AdvancedMechanicsDialog(QWidget* parent)
-                       : QDialog(parent)
+    : QDialog(parent)
 {
     setWindowTitle(tr("Advanced Level Mechanics"));
 
@@ -225,10 +225,10 @@ AdvancedMechanicsDialog::AdvancedMechanicsDialog(QWidget* parent)
     layMovers->addWidget(tbarMovers, 1, 0);
     tabs->addTab(tabMovers, tr("&Move Order"));
 
-    QDialogButtonBox* buttons = new QDialogButtonBox(
+    auto buttons = new QDialogButtonBox(
             QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
             Qt::Horizontal, this);
-    QGridLayout* layout = new QGridLayout(this);
+    auto layout = new QGridLayout(this);
     layout->setContentsMargins(4, 4, 4, 4);
     layout->setVerticalSpacing(8);
     layout->addWidget(tabs, 0, 0);
@@ -246,26 +246,38 @@ AdvancedMechanicsDialog::AdvancedMechanicsDialog(QWidget* parent)
     m_moveOrderList->setColumnWidth(0, numWidth);
     m_moveOrderList->setColumnWidth(1, pointWidth);
 
-    connect(buttons, SIGNAL(accepted()), SLOT(onAccept()));
-    connect(buttons, SIGNAL(rejected()), SLOT(reject()));
-    connect(m_trapList, SIGNAL(currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)),
-            SLOT(onTrapSelect(QTreeWidgetItem*,QTreeWidgetItem*)));
-    connect(m_cloneList, SIGNAL(currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)),
-            SLOT(onCloneSelect(QTreeWidgetItem*,QTreeWidgetItem*)));
-    connect(m_moveOrderList, SIGNAL(currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)),
-            SLOT(onMoverSelect(QTreeWidgetItem*,QTreeWidgetItem*)));
-    connect(m_actions[ActionAddTrap], SIGNAL(triggered()), SLOT(onTrapAdd()));
-    connect(m_actions[ActionDelTrap], SIGNAL(triggered()), SLOT(onTrapDel()));
-    connect(m_actions[ActionTrapUp], SIGNAL(triggered()), SLOT(onTrapUp()));
-    connect(m_actions[ActionTrapDown], SIGNAL(triggered()), SLOT(onTrapDown()));
-    connect(m_actions[ActionAddClone], SIGNAL(triggered()), SLOT(onCloneAdd()));
-    connect(m_actions[ActionDelClone], SIGNAL(triggered()), SLOT(onCloneDel()));
-    connect(m_actions[ActionCloneUp], SIGNAL(triggered()), SLOT(onCloneUp()));
-    connect(m_actions[ActionCloneDown], SIGNAL(triggered()), SLOT(onCloneDown()));
-    connect(m_actions[ActionAddMove], SIGNAL(triggered()), SLOT(onMoverAdd()));
-    connect(m_actions[ActionDelMove], SIGNAL(triggered()), SLOT(onMoverDel()));
-    connect(m_actions[ActionMoveUp], SIGNAL(triggered()), SLOT(onMoverUp()));
-    connect(m_actions[ActionMoveDown], SIGNAL(triggered()), SLOT(onMoverDown()));
+    connect(buttons, &QDialogButtonBox::accepted, this, &AdvancedMechanicsDialog::onAccept);
+    connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
+    connect(m_trapList, &QTreeWidget::currentItemChanged,
+            this, &AdvancedMechanicsDialog::onTrapSelect);
+    connect(m_cloneList, &QTreeWidget::currentItemChanged,
+            this, &AdvancedMechanicsDialog::onCloneSelect);
+    connect(m_moveOrderList, &QTreeWidget::currentItemChanged,
+            this, &AdvancedMechanicsDialog::onMoverSelect);
+    connect(m_actions[ActionAddTrap], &QAction::triggered,
+            this, &AdvancedMechanicsDialog::onTrapAdd);
+    connect(m_actions[ActionDelTrap], &QAction::triggered,
+            this, &AdvancedMechanicsDialog::onTrapDel);
+    connect(m_actions[ActionTrapUp], &QAction::triggered,
+            this, &AdvancedMechanicsDialog::onTrapUp);
+    connect(m_actions[ActionTrapDown], &QAction::triggered,
+            this, &AdvancedMechanicsDialog::onTrapDown);
+    connect(m_actions[ActionAddClone], &QAction::triggered,
+            this, &AdvancedMechanicsDialog::onCloneAdd);
+    connect(m_actions[ActionDelClone], &QAction::triggered,
+            this, &AdvancedMechanicsDialog::onCloneDel);
+    connect(m_actions[ActionCloneUp], &QAction::triggered,
+            this, &AdvancedMechanicsDialog::onCloneUp);
+    connect(m_actions[ActionCloneDown], &QAction::triggered,
+            this, &AdvancedMechanicsDialog::onCloneDown);
+    connect(m_actions[ActionAddMove], &QAction::triggered,
+            this, &AdvancedMechanicsDialog::onMoverAdd);
+    connect(m_actions[ActionDelMove], &QAction::triggered,
+            this, &AdvancedMechanicsDialog::onMoverDel);
+    connect(m_actions[ActionMoveUp], &QAction::triggered,
+            this, &AdvancedMechanicsDialog::onMoverUp);
+    connect(m_actions[ActionMoveDown], &QAction::triggered,
+            this, &AdvancedMechanicsDialog::onMoverDown);
 }
 
 QTreeWidgetItem* AdvancedMechanicsDialog::addTrapItem(const ccl::Trap& trap)
