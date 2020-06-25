@@ -306,7 +306,8 @@ bool cc2::Tile::needArrows() const
     case DirtBlock:
     case IceBlock:
     case DirBlock:
-        return m_lower->type() == CC1_Cloner;
+        return (m_lower->type() == CC1_Cloner)
+            || (m_lower->type() == Cloner);
     default:
         return haveDirection();
     }

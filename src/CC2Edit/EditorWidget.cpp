@@ -164,6 +164,114 @@ void CC2EditorWidget::renderTo(QPainter& painter)
         painter.drawRect(calcTileRect(hi.x(), hi.y()));
 }
 
+static bool haveTile(const cc2::Tile* tile, cc2::Tile::Type type)
+{
+    if (tile->type() == type)
+        return true;
+    if (tile->haveLower())
+        return haveTile(tile->lower(), type);
+    return false;
+}
+
+static QPoint scanForR(cc2::Tile::Type type, int x, int y, const cc2::MapData& map)
+{
+    int sx = x, sy = y;
+    do {
+        if (--sx < 0) {
+            sx = map.width() - 1;
+            if (--sy < 0)
+                sy = map.height() - 1;
+        }
+        if (sx == x && sy == y) {
+            // We've wrapped around to our starting location
+            return QPoint(-1, -1);
+        }
+    } while (!haveTile(map.tile(sx, sy), type));
+
+    return QPoint(sx, sy);
+}
+
+static QPoint scanForF(cc2::Tile::Type type, int x, int y, const cc2::MapData& map)
+{
+    int sx = x, sy = y;
+    do {
+        if (++sx >= map.width()) {
+            sx = 0;
+            if (++sy >= map.height())
+                sy = 0;
+        }
+        if (sx == x && sy == y) {
+            // We've wrapped around to our starting location
+            return QPoint(-1, -1);
+        }
+    } while (!haveTile(map.tile(sx, sy), type));
+
+    return QPoint(sx, sy);
+}
+
+static QList<QPoint> scanForAll(cc2::Tile::Type type, const cc2::MapData& map)
+{
+    QList<QPoint> matches;
+    for (int sy = 0; sy < map.height(); ++sy) {
+        for (int sx = 0; sx < map.width(); ++sx) {
+            if (haveTile(map.tile(sx, sy), type))
+                matches << QPoint(sx, sy);
+        }
+    }
+    return matches;
+}
+
+static QPoint scanForControl(const QVector<cc2::Tile::Type>& controlTypes,
+                             int x, int y, const cc2::MapData& map)
+{
+    int sx = x, sy = y;
+    for ( ;; ) {
+        if (++sx >= map.width()) {
+            sx = 0;
+            if (++sy >= map.height())
+                sy = 0;
+        }
+        for (cc2::Tile::Type type : controlTypes) {
+            if (haveTile(map.tile(sx, sy), type))
+                return QPoint(sx, sy);
+        }
+        if (sx == x && sy == y) {
+            // We've wrapped around to our starting location
+            return QPoint(-1, -1);
+        }
+    }
+
+    Q_UNREACHABLE();
+}
+
+static QList<QPoint> scanForButtons(cc2::Tile::Type buttonType,
+                                    const QVector<cc2::Tile::Type>& controlTypes,
+                                    int x, int y, const cc2::MapData& map)
+{
+    QList<QPoint> matches;
+
+    int sx = x, sy = y;
+    for ( ;; ) {
+        if (--sx < 0) {
+            sx = map.width() - 1;
+            if (--sy < 0)
+                sy = map.height() - 1;
+        }
+        if (haveTile(map.tile(sx, sy), buttonType))
+            matches << QPoint(sx, sy);
+        for (cc2::Tile::Type type : controlTypes) {
+            if (haveTile(map.tile(sx, sy), type))
+                return matches;
+        }
+        if (sx == x && sy == y) {
+            // We've wrapped around to our starting location
+            return matches;
+        }
+    }
+
+    Q_UNREACHABLE();
+}
+
 void CC2EditorWidget::mouseMoveEvent(QMouseEvent* event)
 {
     if (!m_tileset || !m_map || !rect().contains(event->pos()))
@@ -183,6 +291,111 @@ void CC2EditorWidget::mouseMoveEvent(QMouseEvent* event)
     }
     emit mouseInfo(info);
 
+    QString tipText;
+    m_hilights.clear();
+    if (haveTile(tile, cc2::Tile::Teleport_Blue)) {
+        // TODO: Handle wires
+        QPoint nextTeleport = scanForR(cc2::Tile::Teleport_Blue, posX, posY, m_map->mapData());
+        if (nextTeleport != QPoint(-1, -1)) {
+            m_hilights << nextTeleport;
+            if (!tipText.isEmpty())
+                tipText += "\n";
+            tipText += tr("Teleport to: (%1, %2)").arg(nextTeleport.x()).arg(nextTeleport.y());
+        }
+    }
+    if (haveTile(tile, cc2::Tile::Teleport_Red)) {
+        QPoint nextTeleport = scanForF(cc2::Tile::Teleport_Red, posX, posY, m_map->mapData());
+        if (nextTeleport != QPoint(-1, -1)) {
+            m_hilights << nextTeleport;
+            if (!tipText.isEmpty())
+                tipText += "\n";
+            tipText += tr("Teleport to: (%1, %2)").arg(nextTeleport.x()).arg(nextTeleport.y());
+        }
+    }
+    if (haveTile(tile, cc2::Tile::Teleport_Green)) {
+        QList<QPoint> teleports = scanForAll(cc2::Tile::Teleport_Green, m_map->mapData());
+        for (const QPoint& teleport : teleports) {
+            // Exclude the teleport under the cursor from the highlight list
+            if (teleport.x() == posX && teleport.y() == posY)
+                continue;
+            m_hilights << teleport;
+        }
+    }
+    if (haveTile(tile, cc2::Tile::Teleport_Yellow)) {
+        QPoint nextTeleport = scanForR(cc2::Tile::Teleport_Yellow, posX, posY, m_map->mapData());
+        if (nextTeleport != QPoint(-1, -1)) {
+            m_hilights << nextTeleport;
+            if (!tipText.isEmpty())
+                tipText += "\n";
+            tipText += tr("Teleport to: (%1, %2)").arg(nextTeleport.x()).arg(nextTeleport.y());
+        }
+    }
+
+    if (haveTile(tile, cc2::Tile::CloneButton)) {
+        QPoint cloner = scanForControl({cc2::Tile::Cloner, cc2::Tile::CC1_Cloner},
+                                       posX, posY, m_map->mapData());
+        if (cloner != QPoint(-1, -1)) {
+            m_hilights << cloner;
+            if (!tipText.isEmpty())
+                tipText += "\n";
+            tipText += tr("Cloner: (%1, %2)").arg(cloner.x()).arg(cloner.y());
+        }
+    }
+    if (haveTile(tile, cc2::Tile::Cloner) || haveTile(tile, cc2::Tile::CC1_Cloner)) {
+        QList<QPoint> buttons = scanForButtons(cc2::Tile::CloneButton,
+                                       {cc2::Tile::Cloner, cc2::Tile::CC1_Cloner},
+                                       posX, posY, m_map->mapData());
+        for (const QPoint& button : buttons) {
+            m_hilights << button;
+            if (!tipText.isEmpty())
+                tipText += "\n";
+            tipText += tr("Button: (%1, %2)").arg(button.x()).arg(button.y());
+        }
+    }
+    if (haveTile(tile, cc2::Tile::TrapButton)) {
+        QPoint trap = scanForControl({cc2::Tile::Trap},
+                                       posX, posY, m_map->mapData());
+        if (trap != QPoint(-1, -1)) {
+            m_hilights << trap;
+            if (!tipText.isEmpty())
+                tipText += "\n";
+            tipText += tr("Trap: (%1, %2)").arg(trap.x()).arg(trap.y());
+        }
+    }
+    if (haveTile(tile, cc2::Tile::Trap)) {
+        QList<QPoint> buttons = scanForButtons(cc2::Tile::TrapButton, {cc2::Tile::Trap},
+                                               posX, posY, m_map->mapData());
+        for (const QPoint& button : buttons) {
+            m_hilights << button;
+            if (!tipText.isEmpty())
+                tipText += "\n";
+            tipText += tr("Button: (%1, %2)").arg(button.x()).arg(button.y());
+        }
+    }
+    if (haveTile(tile, cc2::Tile::FlameJetButton)) {
+        /* TODO
+        QPoint jet = ...;
+        if (jet != QPoint(-1, -1)) {
+            m_hilights << jet;
+            if (!tipText.isEmpty())
+                tipText += "\n";
+            tipText += tr("Flame Jet: (%1, %2)").arg(jet.x()).arg(jet.y());
+        }
+        */
+    }
+    if (haveTile(tile, cc2::Tile::FlameJet_Off) || haveTile(tile, cc2::Tile::FlameJet_On)) {
+        /* TODO
+        QList<QPoint> buttons = ...;
+        for (const QPoint& button : buttons) {
+            m_hilights << button;
+            if (!tipText.isEmpty())
+                tipText += "\n";
+            tipText += tr("Button: (%1, %2)").arg(button.x()).arg(button.y());
+        }
+        */
+    }
+
+    setToolTip(tipText);
     update();
 }
 
