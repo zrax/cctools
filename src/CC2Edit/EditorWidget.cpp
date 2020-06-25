@@ -272,6 +272,42 @@ static QList<QPoint> scanForButtons(cc2::Tile::Type buttonType,
     Q_UNREACHABLE();
 }
 
+static QPoint diamondClosest(const QVector<cc2::Tile::Type>& controlTypes,
+                             int x, int y, const cc2::MapData& map)
+{
+    int sx = x + 1, sy = y;
+    int dx = -1, dy = -1;
+    int scannedTiles = 1;
+    const int allTiles = map.width() * map.height();
+
+    // TODO:  The actual game will give up in certain conditions, but I don't
+    // yet know what those conditions are.  This version will keep looking
+    // until the entire board has been searched.
+    while (scannedTiles < allTiles) {
+        if (sx >= 0 && sy >= 0 && sx < map.width() && sy < map.height()) {
+            for (cc2::Tile::Type type : controlTypes) {
+                if (haveTile(map.tile(sx, sy), type))
+                    return QPoint(sx, sy);
+            }
+            ++scannedTiles;
+        }
+
+        // TODO: This could probably be optimized to eliminate the need for
+        //   the range check above...
+        sx += dx;
+        sy += dy;
+        if (sx == x)
+            dy = -dy;
+        if (sy == y) {
+            dx = -dx;
+            if (sx > x)
+                sx += 1;
+        }
+    }
+
+    return QPoint(-1, -1);
+}
+
 void CC2EditorWidget::mouseMoveEvent(QMouseEvent* event)
 {
     if (!m_tileset || !m_map || !rect().contains(event->pos()))
@@ -373,26 +409,14 @@ void CC2EditorWidget::mouseMoveEvent(QMouseEvent* event)
         }
     }
     if (haveTile(tile, cc2::Tile::FlameJetButton)) {
-        /* TODO
-        QPoint jet = ...;
+        QPoint jet = diamondClosest({cc2::Tile::FlameJet_Off, cc2::Tile::FlameJet_On},
+                                    posX, posY, m_map->mapData());
         if (jet != QPoint(-1, -1)) {
             m_hilights << jet;
             if (!tipText.isEmpty())
                 tipText += "\n";
             tipText += tr("Flame Jet: (%1, %2)").arg(jet.x()).arg(jet.y());
         }
-        */
-    }
-    if (haveTile(tile, cc2::Tile::FlameJet_Off) || haveTile(tile, cc2::Tile::FlameJet_On)) {
-        /* TODO
-        QList<QPoint> buttons = ...;
-        for (const QPoint& button : buttons) {
-            m_hilights << button;
-            if (!tipText.isEmpty())
-                tipText += "\n";
-            tipText += tr("Button: (%1, %2)").arg(button.x()).arg(button.y());
-        }
-        */
     }
 
     setToolTip(tipText);
