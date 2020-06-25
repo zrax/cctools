@@ -92,9 +92,23 @@ private slots:
 
     void onDockChanged(Qt::DockWidgetArea);
     void onTabChanged(int);
+    void updateMapProperties(cc2::Map* map);
 
     void setForeground(const cc2::Tile*);
     void setBackground(const cc2::Tile*);
+
+    void onTitleChanged(const QString&);
+    void onAuthorChanged(const QString&);
+    void onLockChanged(const QString&);
+    void onEditorVersionChanged(const QString&);
+    void onTimeLimitChanged(int);
+    void onViewportChanged();
+    void onBlobPatternChanged();
+    void onHideLogicChanged();
+    void onCC1BootsChanged();
+    void onReadOnlyChanged();
+    void onClueChanged();
+    void onNoteChanged();
 
     void onProcessError(QProcess::ProcessError err);
     void onProcessFinished(int result, QProcess::ExitStatus status);

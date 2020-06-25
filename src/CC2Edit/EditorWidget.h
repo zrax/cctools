@@ -89,6 +89,8 @@ public:
     void endEdit();
     void cancelEdit();
 
+    bool canUndo() const { return m_undoStack->canUndo(); }
+    bool canRedo() const { return m_undoStack->canRedo(); }
     void resetClean();
 
     void renderTileBuffer();
@@ -99,8 +101,8 @@ public:
 
 signals:
     void mouseInfo(const QString& text, int timeout = 0);
-    void canUndo(bool);
-    void canRedo(bool);
+    void canUndoChanged(bool);
+    void canRedoChanged(bool);
     void cleanChanged(bool);
     void hasSelection(bool);
 

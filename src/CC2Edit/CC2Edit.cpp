@@ -320,15 +320,15 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     auto timeLabel = new QLabel(tr("Ti&me:"), m_mapProperties);
     timeLabel->setBuddy(m_timeLimit);
     m_viewport = new QComboBox(m_mapProperties);
-    m_viewport->addItem(tr("10 x 10"), cc2::MapOption::View10x10);
-    m_viewport->addItem(tr("9 x 9"), cc2::MapOption::View9x9);
-    m_viewport->addItem(tr("Split"), cc2::MapOption::ViewSplit);
+    m_viewport->addItem(tr("10 x 10"), (int)cc2::MapOption::View10x10);
+    m_viewport->addItem(tr("9 x 9"), (int)cc2::MapOption::View9x9);
+    m_viewport->addItem(tr("Split"), (int)cc2::MapOption::ViewSplit);
     auto viewLabel = new QLabel(tr("Vie&w:"), m_mapProperties);
     viewLabel->setBuddy(m_viewport);
     m_blobPattern = new QComboBox(m_mapProperties);
-    m_blobPattern->addItem(tr("Deterministic"), cc2::MapOption::BlobsDeterministic);
-    m_blobPattern->addItem(tr("4 Patterns"), cc2::MapOption::Blobs4Pattern);
-    m_blobPattern->addItem(tr("Extra Random"), cc2::MapOption::BlobsExtraRandom);
+    m_blobPattern->addItem(tr("Deterministic"), (int)cc2::MapOption::BlobsDeterministic);
+    m_blobPattern->addItem(tr("4 Patterns"), (int)cc2::MapOption::Blobs4Pattern);
+    m_blobPattern->addItem(tr("Extra Random"), (int)cc2::MapOption::BlobsExtraRandom);
     auto blobPatternLabel = new QLabel(tr("&Blobs:"), m_mapProperties);
     blobPatternLabel->setBuddy(m_blobPattern);
     m_hideLogic = new QCheckBox(tr("&Hide Logic"), m_mapProperties);
@@ -385,6 +385,22 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     mapPropsLayout->addWidget(m_note, row, 1, 1, 2);
     m_toolTabs->addTab(m_mapProperties, tr("Map &Properties"));
     m_mapProperties->setEnabled(false);
+
+    connect(m_title, &QLineEdit::textChanged, this, &CC2EditMain::onTitleChanged);
+    connect(m_author, &QLineEdit::textChanged, this, &CC2EditMain::onAuthorChanged);
+    connect(m_lockText, &QLineEdit::textChanged, this, &CC2EditMain::onLockChanged);
+    connect(m_editorVersion, &QLineEdit::textChanged, this, &CC2EditMain::onEditorVersionChanged);
+    connect(m_timeLimit, QOverload<int>::of(&QSpinBox::valueChanged),
+            this, &CC2EditMain::onTimeLimitChanged);
+    connect(m_viewport, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &CC2EditMain::onViewportChanged);
+    connect(m_blobPattern, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &CC2EditMain::onBlobPatternChanged);
+    connect(m_hideLogic, &QCheckBox::toggled, this, &CC2EditMain::onHideLogicChanged);
+    connect(m_cc1Boots, &QCheckBox::toggled, this, &CC2EditMain::onCC1BootsChanged);
+    connect(m_readOnly, &QCheckBox::toggled, this, &CC2EditMain::onReadOnlyChanged);
+    connect(m_clue, &QPlainTextEdit::textChanged, this, &CC2EditMain::onClueChanged);
+    connect(m_note, &QPlainTextEdit::textChanged, this, &CC2EditMain::onNoteChanged);
 
     auto sortedTiles = new QWidget(toolDock);
     auto tileBox = new QToolBox(sortedTiles);
@@ -1156,8 +1172,8 @@ CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename)
     resizeEvent(nullptr);
 
     connect(editor, &CC2EditorWidget::mouseInfo, statusBar(), &QStatusBar::showMessage);
-    connect(editor, &CC2EditorWidget::canUndo, m_actions[ActionUndo], &QAction::setEnabled);
-    connect(editor, &CC2EditorWidget::canRedo, m_actions[ActionRedo], &QAction::setEnabled);
+    connect(editor, &CC2EditorWidget::canUndoChanged, m_actions[ActionUndo], &QAction::setEnabled);
+    connect(editor, &CC2EditorWidget::canRedoChanged, m_actions[ActionRedo], &QAction::setEnabled);
     connect(editor, &CC2EditorWidget::hasSelection, m_actions[ActionCut], &QAction::setEnabled);
     connect(editor, &CC2EditorWidget::hasSelection, m_actions[ActionCopy], &QAction::setEnabled);
     connect(editor, &CC2EditorWidget::hasSelection, m_actions[ActionClear], &QAction::setEnabled);
@@ -1354,6 +1370,7 @@ void CC2EditMain::onUndoAction()
 
     if (mapEditor) {
         mapEditor->undo();
+        updateMapProperties(mapEditor->map());
     } else if (scriptEditor) {
         scriptEditor->undo();
     }
@@ -1366,6 +1383,7 @@ void CC2EditMain::onRedoAction()
 
     if (mapEditor) {
         mapEditor->redo();
+        updateMapProperties(mapEditor->map());
     } else if (scriptEditor) {
         scriptEditor->redo();
     }
@@ -1684,11 +1702,9 @@ void CC2EditMain::onTabChanged(int index)
         m_actions[ActionPaste]->setEnabled(scriptEditor->canPaste());
         m_actions[ActionClear]->setEnabled(cursor.hasSelection());
     } else if (mapEditor) {
-        //m_actions[ActionUndo]->setEnabled(mapEditor->canUndo());
-        //m_actions[ActionRedo]->setEnabled(mapEditor->canRedo());
-
+        m_actions[ActionUndo]->setEnabled(mapEditor->canUndo());
+        m_actions[ActionRedo]->setEnabled(mapEditor->canRedo());
         mapEditor->update();
-        //mapEditor->updateUndoStatus();
 
         /*
         bool hasSelection = editor->selection() != QRect(-1, -1, -1, -1);
@@ -1700,33 +1716,38 @@ void CC2EditMain::onTabChanged(int index)
 
         // Update the map properties page
         auto map = mapEditor->map();
+        updateMapProperties(map);
         m_mapProperties->setEnabled(true);
-        m_title->setText(QString::fromLatin1(map->title().c_str()));
-        m_author->setText(QString::fromLatin1(map->author().c_str()));
-        m_lockText->setText(QString::fromLatin1(map->lock().c_str()));
-        m_editorVersion->setText(QString::fromLatin1(map->editorVersion().c_str()));
-        m_mapSize->setText(tr("%1 x %2").arg(map->mapData().width())
-                                        .arg(map->mapData().height()));
-        m_chipCounter->setText(QString::number(map->mapData().countChips()));
-        const auto points = map->mapData().countPoints();
-        if (std::get<1>(points) != 1) {
-            m_pointCounter->setText(tr("%1 (x%2)").arg(std::get<0>(points))
-                                                  .arg(std::get<1>(points)));
-        } else {
-            m_pointCounter->setText(QString::number(std::get<0>(points)));
-        }
-        m_timeLimit->setValue(map->option().timeLimit());
-        m_viewport->setCurrentIndex(static_cast<int>(map->option().view()));
-        m_blobPattern->setCurrentIndex(static_cast<int>(map->option().blobPattern()));
-        m_hideLogic->setChecked(map->option().hideLogic());
-        m_cc1Boots->setChecked(map->option().cc1Boots());
-        m_readOnly->setChecked(map->readOnly());
-        m_clue->setPlainText(QString::fromLatin1(map->clue().c_str()));
-        m_note->setPlainText(QString::fromLatin1(map->note().c_str()));
 
         // Apply zoom
         resizeEvent(nullptr);
     }
+}
+
+void CC2EditMain::updateMapProperties(cc2::Map* map)
+{
+    m_title->setText(QString::fromLatin1(map->title().c_str()));
+    m_author->setText(QString::fromLatin1(map->author().c_str()));
+    m_lockText->setText(QString::fromLatin1(map->lock().c_str()));
+    m_editorVersion->setText(QString::fromLatin1(map->editorVersion().c_str()));
+    m_mapSize->setText(tr("%1 x %2").arg(map->mapData().width())
+                                    .arg(map->mapData().height()));
+    m_chipCounter->setText(QString::number(map->mapData().countChips()));
+    const auto points = map->mapData().countPoints();
+    if (std::get<1>(points) != 1) {
+        m_pointCounter->setText(tr("%1 (x%2)").arg(std::get<0>(points))
+                                                .arg(std::get<1>(points)));
+    } else {
+        m_pointCounter->setText(QString::number(std::get<0>(points)));
+    }
+    m_timeLimit->setValue(map->option().timeLimit());
+    m_viewport->setCurrentIndex(static_cast<int>(map->option().view()));
+    m_blobPattern->setCurrentIndex(static_cast<int>(map->option().blobPattern()));
+    m_hideLogic->setChecked(map->option().hideLogic());
+    m_cc1Boots->setChecked(map->option().cc1Boots());
+    m_readOnly->setChecked(map->readOnly());
+    m_clue->setPlainText(QString::fromLatin1(map->clue().c_str()));
+    m_note->setPlainText(QString::fromLatin1(map->note().c_str()));
 }
 
 void CC2EditMain::setForeground(const cc2::Tile* tile)
@@ -1739,6 +1760,181 @@ void CC2EditMain::setBackground(const cc2::Tile* tile)
 {
     m_background = *tile;
     emit backgroundChanged(tile);
+}
+
+void CC2EditMain::onTitleChanged(const QString& value)
+{
+    CC2EditorWidget* editor = currentEditor();
+    if (!editor)
+        return;
+
+    cc2::Map* map = editor->map();
+    if (map->title() != value.toLatin1().constData()) {
+        editor->beginEdit(CC2EditHistory::EditTitle);
+        map->setTitle(value.toLatin1().constData());
+        editor->endEdit();
+    }
+}
+
+void CC2EditMain::onAuthorChanged(const QString& value)
+{
+    CC2EditorWidget* editor = currentEditor();
+    if (!editor)
+        return;
+
+    cc2::Map* map = editor->map();
+    if (map->author() != value.toLatin1().constData()) {
+        editor->beginEdit(CC2EditHistory::EditAuthor);
+        map->setAuthor(value.toLatin1().constData());
+        editor->endEdit();
+    }
+}
+
+void CC2EditMain::onLockChanged(const QString& value)
+{
+    CC2EditorWidget* editor = currentEditor();
+    if (!editor)
+        return;
+
+    cc2::Map* map = editor->map();
+    if (map->lock() != value.toLatin1().constData()) {
+        editor->beginEdit(CC2EditHistory::EditLock);
+        map->setLock(value.toLatin1().constData());
+        editor->endEdit();
+    }
+}
+
+void CC2EditMain::onEditorVersionChanged(const QString& value)
+{
+    CC2EditorWidget* editor = currentEditor();
+    if (!editor)
+        return;
+
+    cc2::Map* map = editor->map();
+    if (map->editorVersion() != value.toLatin1().constData()) {
+        editor->beginEdit(CC2EditHistory::EditVersion);
+        map->setVersion(value.toLatin1().constData());
+        editor->endEdit();
+    }
+}
+
+void CC2EditMain::onTimeLimitChanged(int value)
+{
+    CC2EditorWidget* editor = currentEditor();
+    if (!editor)
+        return;
+
+    cc2::Map* map = editor->map();
+    if (map->option().timeLimit() != value) {
+        editor->beginEdit(CC2EditHistory::EditTime);
+        map->option().setTimeLimit(value);
+        editor->endEdit();
+    }
+}
+
+void CC2EditMain::onViewportChanged()
+{
+    CC2EditorWidget* editor = currentEditor();
+    if (!editor)
+        return;
+
+    cc2::Map* map = editor->map();
+    auto value = static_cast<cc2::MapOption::Viewport>(m_viewport->currentData().toInt());
+    if (map->option().view() != value) {
+        editor->beginEdit(CC2EditHistory::EditOptions);
+        map->option().setView(value);
+        editor->endEdit();
+    }
+}
+
+void CC2EditMain::onBlobPatternChanged()
+{
+    CC2EditorWidget* editor = currentEditor();
+    if (!editor)
+        return;
+
+    cc2::Map* map = editor->map();
+    auto value = static_cast<cc2::MapOption::BlobPattern>(m_blobPattern->currentData().toInt());
+    if (map->option().blobPattern() != value) {
+        editor->beginEdit(CC2EditHistory::EditOptions);
+        map->option().setBlobPattern(value);
+        editor->endEdit();
+    }
+}
+
+void CC2EditMain::onHideLogicChanged()
+{
+    CC2EditorWidget* editor = currentEditor();
+    if (!editor)
+        return;
+
+    cc2::Map* map = editor->map();
+    bool value = m_hideLogic->isChecked();
+    if (map->option().hideLogic() != value) {
+        editor->beginEdit(CC2EditHistory::EditOptions);
+        map->option().setHideLogic(value);
+        editor->endEdit();
+    }
+}
+
+void CC2EditMain::onCC1BootsChanged()
+{
+    CC2EditorWidget* editor = currentEditor();
+    if (!editor)
+        return;
+
+    cc2::Map* map = editor->map();
+    bool value = m_cc1Boots->isChecked();
+    if (map->option().cc1Boots() != value) {
+        editor->beginEdit(CC2EditHistory::EditOptions);
+        map->option().setCc1Boots(value);
+        editor->endEdit();
+    }
+}
+
+void CC2EditMain::onReadOnlyChanged()
+{
+    CC2EditorWidget* editor = currentEditor();
+    if (!editor)
+        return;
+
+    cc2::Map* map = editor->map();
+    bool value = m_readOnly->isChecked();
+    if (map->readOnly() != value) {
+        editor->beginEdit(CC2EditHistory::EditOptions);
+        map->setReadOnly(value);
+        editor->endEdit();
+    }
+}
+
+void CC2EditMain::onClueChanged()
+{
+    CC2EditorWidget* editor = currentEditor();
+    if (!editor)
+        return;
+
+    cc2::Map* map = editor->map();
+    const QString value = m_clue->toPlainText();
+    if (map->clue() != value.toLatin1().constData()) {
+        editor->beginEdit(CC2EditHistory::EditClue);
+        map->setClue(value.toLatin1().constData());
+        editor->endEdit();
+    }
+}
+
+void CC2EditMain::onNoteChanged()
+{
+    CC2EditorWidget* editor = currentEditor();
+    if (!editor)
+        return;
+
+    cc2::Map* map = editor->map();
+    const QString value = m_note->toPlainText();
+    if (map->note() != value.toLatin1().constData()) {
+        editor->beginEdit(CC2EditHistory::EditNotes);
+        map->setNote(value.toLatin1().constData());
+        editor->endEdit();
+    }
 }
 
 void CC2EditMain::onProcessError(QProcess::ProcessError err)

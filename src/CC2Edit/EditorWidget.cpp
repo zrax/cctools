@@ -28,8 +28,8 @@ CC2EditorWidget::CC2EditorWidget(QWidget* parent)
       m_zoomFactor(1.0)
 {
     m_undoStack = new QUndoStack(this);
-    connect(m_undoStack, &QUndoStack::canUndoChanged, this, &CC2EditorWidget::canUndo);
-    connect(m_undoStack, &QUndoStack::canRedoChanged, this, &CC2EditorWidget::canRedo);
+    connect(m_undoStack, &QUndoStack::canUndoChanged, this, &CC2EditorWidget::canUndoChanged);
+    connect(m_undoStack, &QUndoStack::canRedoChanged, this, &CC2EditorWidget::canRedoChanged);
     connect(m_undoStack, &QUndoStack::cleanChanged, this, &CC2EditorWidget::cleanChanged);
 
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
