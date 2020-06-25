@@ -46,15 +46,15 @@ void SettingsDialog::CheckEditors(QSettings& settings)
 
     // Add default CCEdit entry
 #if defined(Q_OS_WIN)
-    QString cceditPath = QDir(qApp->applicationDirPath()).absoluteFilePath("CCEdit.exe");
+    QString cceditPath = QDir(QApplication::applicationDirPath()).absoluteFilePath("CCEdit.exe");
 #elif defined(Q_OS_MAC)
-    QDir appPath(qApp->applicationDirPath());
+    QDir appPath(QApplication::applicationDirPath());
     appPath.cdUp();     // <bundle>.app/Contents/MacOS/<executable>
     appPath.cdUp();
     appPath.cdUp();
     QString cceditPath = QDir().absoluteFilePath("CCEdit.app/Contents/MacOS/CCEdit");
 #else
-    QString cceditPath = QDir(qApp->applicationDirPath()).absoluteFilePath("CCEdit");
+    QString cceditPath = QDir(QApplication::applicationDirPath()).absoluteFilePath("CCEdit");
 #endif
     settings.setValue("EditorNames", QStringList() << "CCEdit");
     settings.setValue("EditorPaths", QStringList() << cceditPath + "|%F %L");

@@ -77,6 +77,8 @@ static bool canRunMSCC()
 
 #define CCEDIT_TITLE "CCEdit 2.1"
 
+static const QString s_clipboardFormat = QStringLiteral("CHIPEDIT MAPSECT");
+
 enum TileListId {
     ListStandard, ListObstacles, ListDoors, ListItems, ListMonsters,
     ListMisc, ListSpecial, NUM_TILE_LISTS
@@ -727,14 +729,15 @@ CCEditMain::CCEditMain(QWidget* parent)
     // Make sure the toolbox is visible
     if (toolDock->isFloating()) {
         QPoint dockPos = toolDock->pos();
-        if ((dockPos.x() + toolDock->width() - 10) < qApp->desktop()->contentsRect().left())
-            dockPos.setX(qApp->desktop()->contentsRect().left());
-        if (dockPos.x() + 10 > qApp->desktop()->contentsRect().right())
-            dockPos.setX(qApp->desktop()->contentsRect().right() - toolDock->width());
-        if (dockPos.y() < qApp->desktop()->contentsRect().top())
-            dockPos.setY(qApp->desktop()->contentsRect().top());
-        if (dockPos.y() + 10 > qApp->desktop()->contentsRect().bottom())
-            dockPos.setY(qApp->desktop()->contentsRect().bottom() - toolDock->height());
+        const QRect desktopRect = QApplication::desktop()->contentsRect();
+        if ((dockPos.x() + toolDock->width() - 10) < desktopRect.left())
+            dockPos.setX(desktopRect.left());
+        if (dockPos.x() + 10 > desktopRect.right())
+            dockPos.setX(desktopRect.right() - toolDock->width());
+        if (dockPos.y() < desktopRect.top())
+            dockPos.setY(desktopRect.top());
+        if (dockPos.y() + 10 > desktopRect.bottom())
+            dockPos.setY(desktopRect.bottom() - toolDock->height());
         toolDock->move(dockPos);
         toolDock->show();
     }
@@ -1102,13 +1105,13 @@ void CCEditMain::findTilesets()
     QStringList tilesets;
 #if defined(Q_OS_WIN)
     // Search app directory
-    path.setPath(qApp->applicationDirPath());
+    path.setPath(QApplication::applicationDirPath());
     tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
     foreach (QString file, tilesets)
         registerTileset(path.absoluteFilePath(file));
 #else
     // Search install path
-    path.setPath(qApp->applicationDirPath());
+    path.setPath(QApplication::applicationDirPath());
     path.cdUp();
     path.cd("share/cctools");
     tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
@@ -1455,9 +1458,9 @@ void CCEditMain::onCopyAction()
         cbStream.write16(cbStream.size() - 14); // Size of data buffer
         QByteArray buffer((const char*)cbStream.buffer(), cbStream.size());
 
-        QMimeData* copyData = new QMimeData();
-        copyData->setData("CHIPEDIT MAPSECT", buffer);
-        qApp->clipboard()->setMimeData(copyData);
+        auto copyData = new QMimeData;
+        copyData->setData(s_clipboardFormat, buffer);
+        QApplication::clipboard()->setMimeData(copyData);
     } catch (std::exception& e) {
         QMessageBox::critical(this, tr("Error"),
                 tr("Error saving clipboard data: %1").arg(e.what()),
@@ -1472,14 +1475,14 @@ void CCEditMain::onPasteAction()
     if (!editor)
         return;
 
-    const QMimeData* cbData = qApp->clipboard()->mimeData();
-    if (cbData->hasFormat("CHIPEDIT MAPSECT")) {
-        QByteArray buffer = cbData->data("CHIPEDIT MAPSECT");
+    const QMimeData* cbData = QApplication::clipboard()->mimeData();
+    if (cbData->hasFormat(s_clipboardFormat)) {
+        QByteArray buffer = cbData->data(s_clipboardFormat);
         ccl::BufferStream cbStream;
         cbStream.setFrom(buffer.data(), buffer.size());
 
         int width, height;
-        ccl::LevelData* copyRegion = new ccl::LevelData();
+        auto copyRegion = new ccl::LevelData;
         try {
             width = cbStream.read32();
             height = cbStream.read32();
@@ -2334,7 +2337,7 @@ void CCEditMain::setBackground(tile_t tile)
 static bool haveClipboardData()
 {
     const QMimeData* cbData = QApplication::clipboard()->mimeData();
-    return cbData->hasFormat("CHIPEDIT MAPSECT");
+    return cbData->hasFormat(s_clipboardFormat);
 }
 
 void CCEditMain::onClipboardDataChanged()

@@ -26,6 +26,8 @@
 #include <QMimeData>
 #include <QMessageBox>
 
+static const QString s_clipboardFormat = QStringLiteral("CHIPEDIT LEVELS");
+
 static QDataStream& operator<<(QDataStream& out, const ccl::LevelData *data)
 {
     (void)data;
@@ -236,8 +238,8 @@ void OrganizerDialog::onCopyLevels()
         QByteArray buffer((const char*)cbStream.buffer(), cbStream.size());
 
         QMimeData* copyData = new QMimeData();
-        copyData->setData("CHIPEDIT LEVELS", buffer);
-        qApp->clipboard()->setMimeData(copyData);
+        copyData->setData(s_clipboardFormat, buffer);
+        QApplication::clipboard()->setMimeData(copyData);
     } catch (std::exception& e) {
         QMessageBox::critical(this, tr("Error"),
                 tr("Error saving clipboard data: %1").arg(e.what()),
@@ -247,9 +249,9 @@ void OrganizerDialog::onCopyLevels()
 
 void OrganizerDialog::onPasteLevels()
 {
-    const QMimeData* cbData = qApp->clipboard()->mimeData();
-    if (cbData->hasFormat("CHIPEDIT LEVELS")) {
-        QByteArray buffer = cbData->data("CHIPEDIT LEVELS");
+    const QMimeData* cbData = QApplication::clipboard()->mimeData();
+    if (cbData->hasFormat(s_clipboardFormat)) {
+        QByteArray buffer = cbData->data(s_clipboardFormat);
         ccl::BufferStream cbStream;
         cbStream.setFrom(buffer.data(), buffer.size());
 
@@ -291,6 +293,6 @@ void OrganizerDialog::onDeleteLevels()
 
 void OrganizerDialog::onClipboardDataChanged()
 {
-    const QMimeData* cbData = qApp->clipboard()->mimeData();
-    m_actions[ActionPaste]->setEnabled(cbData->hasFormat("CHIPEDIT LEVELS"));
+    const QMimeData* cbData = QApplication::clipboard()->mimeData();
+    m_actions[ActionPaste]->setEnabled(cbData->hasFormat(s_clipboardFormat));
 }
