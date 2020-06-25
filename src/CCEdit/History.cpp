@@ -43,7 +43,6 @@ bool EditorUndoCommand::mergeWith(const QUndoCommand* command)
     Q_ASSERT(editorCmd);
     m_after->copyFrom(editorCmd->m_after);
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 9, 0)
     // Don't bother comparing map edits, since those are never merged
     if (m_before->name() == m_after->name()
             && m_before->password() == m_after->password()
@@ -51,7 +50,6 @@ bool EditorUndoCommand::mergeWith(const QUndoCommand* command)
             && m_before->timer() == m_after->chips()
             && m_before->hint() == m_after->hint())
         setObsolete(true);
-#endif
 
     return true;
 }

@@ -89,6 +89,8 @@ public:
     void endEdit();
     void cancelEdit();
 
+    void resetClean();
+
     void renderTileBuffer();
     void dirtyBuffer() { m_cacheDirty = true; }
     double zoom() const { return m_zoomFactor; }

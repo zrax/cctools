@@ -17,7 +17,6 @@
 
 #include "TileInspector.h"
 #include "libcc2/Tileset.h"
-#include "libcc1/QtHelpers.h"
 
 #include <QListWidget>
 #include <QLabel>

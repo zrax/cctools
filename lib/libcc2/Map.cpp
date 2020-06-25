@@ -16,6 +16,7 @@
  ******************************************************************************/
 
 #include "Map.h"
+#include "libcc1/Levelset.h"
 
 #include <QtGlobal>
 #include <algorithm>
@@ -325,8 +326,9 @@ cc2::MapData::MapData(const MapData& other)
     : m_width(other.m_width), m_height(other.m_height), m_map()
 {
     if (other.m_map) {
-        m_map = new Tile[m_width * m_height];
-        for (size_t i = 0; i < m_width * m_height; ++i)
+        const size_t mapSize = m_width * m_height;
+        m_map = new Tile[mapSize];
+        for (size_t i = 0; i < mapSize; ++i)
             m_map[i] = other.m_map[i];
     }
 }
@@ -337,8 +339,9 @@ cc2::MapData& cc2::MapData::operator=(const MapData& other)
     m_width = other.m_width;
     m_height = other.m_height;
     if (other.m_map) {
-        m_map = new Tile[m_width * m_height];
-        for (size_t i = 0; i < m_width * m_height; ++i)
+        const size_t mapSize = m_width * m_height;
+        m_map = new Tile[mapSize];
+        for (size_t i = 0; i < mapSize; ++i)
             m_map[i] = other.m_map[i];
     } else {
         m_map = nullptr;
@@ -353,8 +356,9 @@ void cc2::MapData::read(ccl::Stream* stream, size_t size)
     delete[] m_map;
     m_width = stream->read8();
     m_height = stream->read8();
-    m_map = new Tile[m_width * m_height];
-    for (size_t i = 0; i < (size_t)(m_width * m_height); ++i)
+    const size_t mapSize = m_width * m_height;
+    m_map = new Tile[mapSize];
+    for (size_t i = 0; i < mapSize; ++i)
         m_map[i].read(stream);
 
     if (start + (long)size != stream->tell())
@@ -472,6 +476,248 @@ void cc2::Map::copyFrom(const cc2::Map* map)
     m_replay = map->m_replay;
     m_readOnly = map->m_readOnly;
     m_unknown = map->m_unknown;
+}
+
+static cc2::Tile mapCC1Tile(tile_t type)
+{
+    using namespace cc2;
+
+    switch (type) {
+    case ccl::TileFloor:
+        return Tile(Tile::Floor);
+    case ccl::TileWall:
+        return Tile(Tile::Wall);
+    case ccl::TileChip:
+        return Tile(Tile::Chip);
+    case ccl::TileWater:
+        return Tile(Tile::Water);
+    case ccl::TileFire:
+        return Tile(Tile::Fire);
+    case ccl::TileInvisWall:
+        return Tile(Tile::InvisWall);
+    case ccl::TileBarrier_N:
+        return Tile::panelTile(Tile::PanelNorth);
+    case ccl::TileBarrier_W:
+        return Tile::panelTile(Tile::PanelWest);
+    case ccl::TileBarrier_S:
+        return Tile::panelTile(Tile::PanelSouth);
+    case ccl::TileBarrier_E:
+        return Tile::panelTile(Tile::PanelEast);
+    case ccl::TileBlock:
+        return Tile(Tile::DirtBlock);
+    case ccl::TileDirt:
+        return Tile(Tile::Dirt);
+    case ccl::TileIce:
+        return Tile(Tile::Ice);
+    case ccl::TileForce_S:
+        return Tile(Tile::Force_S);
+    case ccl::TileBlock_N:
+        return Tile(Tile::DirtBlock, Tile::North, 0);
+    case ccl::TileBlock_W:
+        return Tile(Tile::DirtBlock, Tile::West, 0);
+    case ccl::TileBlock_S:
+        return Tile(Tile::DirtBlock, Tile::South, 0);
+    case ccl::TileBlock_E:
+        return Tile(Tile::DirtBlock, Tile::East, 0);
+    case ccl::TileForce_N:
+        return Tile(Tile::Force_N);
+    case ccl::TileForce_E:
+        return Tile(Tile::Force_E);
+    case ccl::TileForce_W:
+        return Tile(Tile::Force_W);
+    case ccl::TileExit:
+        return Tile(Tile::Exit);
+    case ccl::TileDoor_Blue:
+        return Tile(Tile::Door_Blue);
+    case ccl::TileDoor_Red:
+        return Tile(Tile::Door_Red);
+    case ccl::TileDoor_Green:
+        return Tile(Tile::Door_Green);
+    case ccl::TileDoor_Yellow:
+        return Tile(Tile::Door_Yellow);
+    case ccl::TileIce_SE:
+        return Tile(Tile::Ice_SE);
+    case ccl::TileIce_SW:
+        return Tile(Tile::Ice_SW);
+    case ccl::TileIce_NW:
+        return Tile(Tile::Ice_NW);
+    case ccl::TileIce_NE:
+        return Tile(Tile::Ice_NE);
+    case ccl::TileBlueFloor:
+        return Tile(Tile::BlueFloor);
+    case ccl::TileBlueWall:
+        return Tile(Tile::BlueWall);
+    case ccl::TileThief:
+        return Tile(Tile::ToolThief);
+    case ccl::TileSocket:
+        return Tile(Tile::Socket);
+    case ccl::TileToggleButton:
+        return Tile(Tile::ToggleButton);
+    case ccl::TileCloneButton:
+        return Tile(Tile::CloneButton);
+    case ccl::TileToggleWall:
+        return Tile(Tile::ToggleWall);
+    case ccl::TileToggleFloor:
+        return Tile(Tile::ToggleFloor);
+    case ccl::TileTrapButton:
+        return Tile(Tile::TrapButton);
+    case ccl::TileTankButton:
+        return Tile(Tile::TankButton);
+    case ccl::TileTeleport:
+        return Tile(Tile::Teleport_Blue);
+    case ccl::TileBomb:
+        return Tile(Tile::RedBomb);
+    case ccl::TileTrap:
+        return Tile(Tile::Trap);
+    case ccl::TileAppearingWall:
+        return Tile(Tile::AppearingWall);
+    case ccl::TileGravel:
+        return Tile(Tile::Gravel);
+    case ccl::TilePopUpWall:
+        return Tile(Tile::PopUpWall);
+    case ccl::TileHint:
+        return Tile(Tile::Clue);
+    case ccl::TileBarrier_SE:
+        return Tile::panelTile(Tile::PanelSouth | Tile::PanelEast);
+    case ccl::TileCloner:
+        // Needs to be the CC1 variant to use the direction of the
+        // monster or block tile above...
+        return Tile(Tile::CC1_Cloner);
+    case ccl::TileForce_Rand:
+        return Tile(Tile::Force_Rand);
+    case ccl::TileIceBlock:
+        return Tile(Tile::IceBlock);
+    case ccl::TileBug_N:
+        return Tile(Tile::Ant, Tile::North, 0);
+    case ccl::TileBug_W:
+        return Tile(Tile::Ant, Tile::West, 0);
+    case ccl::TileBug_S:
+        return Tile(Tile::Ant, Tile::South, 0);
+    case ccl::TileBug_E:
+        return Tile(Tile::Ant, Tile::East, 0);
+    case ccl::TileFireball_N:
+        return Tile(Tile::FireBox, Tile::North, 0);
+    case ccl::TileFireball_W:
+        return Tile(Tile::FireBox, Tile::West, 0);
+    case ccl::TileFireball_S:
+        return Tile(Tile::FireBox, Tile::South, 0);
+    case ccl::TileFireball_E:
+        return Tile(Tile::FireBox, Tile::East, 0);
+    case ccl::TileBall_N:
+        return Tile(Tile::Ball, Tile::North, 0);
+    case ccl::TileBall_W:
+        return Tile(Tile::Ball, Tile::West, 0);
+    case ccl::TileBall_S:
+        return Tile(Tile::Ball, Tile::South, 0);
+    case ccl::TileBall_E:
+        return Tile(Tile::Ball, Tile::East, 0);
+    case ccl::TileTank_N:
+        return Tile(Tile::BlueTank, Tile::North, 0);
+    case ccl::TileTank_W:
+        return Tile(Tile::BlueTank, Tile::West, 0);
+    case ccl::TileTank_S:
+        return Tile(Tile::BlueTank, Tile::South, 0);
+    case ccl::TileTank_E:
+        return Tile(Tile::BlueTank, Tile::East, 0);
+    case ccl::TileGlider_N:
+        return Tile(Tile::Ship, Tile::North, 0);
+    case ccl::TileGlider_W:
+        return Tile(Tile::Ship, Tile::West, 0);
+    case ccl::TileGlider_S:
+        return Tile(Tile::Ship, Tile::South, 0);
+    case ccl::TileGlider_E:
+        return Tile(Tile::Ship, Tile::East, 0);
+    case ccl::TileTeeth_N:
+        return Tile(Tile::AngryTeeth, Tile::North, 0);
+    case ccl::TileTeeth_W:
+        return Tile(Tile::AngryTeeth, Tile::West, 0);
+    case ccl::TileTeeth_S:
+        return Tile(Tile::AngryTeeth, Tile::South, 0);
+    case ccl::TileTeeth_E:
+        return Tile(Tile::AngryTeeth, Tile::East, 0);
+    case ccl::TileWalker_N:
+        return Tile(Tile::Walker, Tile::North, 0);
+    case ccl::TileWalker_W:
+        return Tile(Tile::Walker, Tile::West, 0);
+    case ccl::TileWalker_S:
+        return Tile(Tile::Walker, Tile::South, 0);
+    case ccl::TileWalker_E:
+        return Tile(Tile::Walker, Tile::East, 0);
+    case ccl::TileBlob_N:
+        return Tile(Tile::Blob, Tile::North, 0);
+    case ccl::TileBlob_W:
+        return Tile(Tile::Blob, Tile::West, 0);
+    case ccl::TileBlob_S:
+        return Tile(Tile::Blob, Tile::South, 0);
+    case ccl::TileBlob_E:
+        return Tile(Tile::Blob, Tile::East, 0);
+    case ccl::TileCrawler_N:
+        return Tile(Tile::Centipede, Tile::North, 0);
+    case ccl::TileCrawler_W:
+        return Tile(Tile::Centipede, Tile::West, 0);
+    case ccl::TileCrawler_S:
+        return Tile(Tile::Centipede, Tile::South, 0);
+    case ccl::TileCrawler_E:
+        return Tile(Tile::Centipede, Tile::East, 0);
+    case ccl::TileKey_Blue:
+        return Tile(Tile::Key_Blue);
+    case ccl::TileKey_Red:
+        return Tile(Tile::Key_Red);
+    case ccl::TileKey_Green:
+        return Tile(Tile::Key_Green);
+    case ccl::TileKey_Yellow:
+        return Tile(Tile::Key_Yellow);
+    case ccl::TileFlippers:
+        return Tile(Tile::Flippers);
+    case ccl::TileFireBoots:
+        return Tile(Tile::FireShoes);
+    case ccl::TileIceSkates:
+        return Tile(Tile::IceCleats);
+    case ccl::TileForceBoots:
+        return Tile(Tile::MagnoShoes);
+    case ccl::TilePlayer_N:
+        return Tile(Tile::Player, Tile::North, 0);
+    case ccl::TilePlayer_W:
+        return Tile(Tile::Player, Tile::West, 0);
+    case ccl::TilePlayer_S:
+        return Tile(Tile::Player, Tile::South, 0);
+    case ccl::TilePlayer_E:
+        return Tile(Tile::Player, Tile::East, 0);
+    default:
+        return Tile(Tile::Invalid);
+    }
+}
+
+void cc2::Map::importFrom(const ccl::LevelData* level)
+{
+    m_version = "7";
+    m_lock = std::string();
+    m_title = level->name();
+    m_author = std::string();
+    m_editorVersion = std::string();
+    m_clue = level->hint();     // TODO: Apply word wrap
+    m_note = "Imported by CCTools 3.0";
+    m_option.setView(MapOption::View9x9);
+    m_option.setBlobPattern(MapOption::BlobsDeterministic);
+    m_option.setTimeLimit(level->timer());
+    m_option.setHidden(false);
+    m_option.setReadOnly(false);
+    m_option.setHideLogic(false);
+    m_option.setCc1Boots(true);
+    discardReplay();
+
+    // Note:  This does not preserve non-standard button connections, monster
+    //   order, or invalid tile upper/lower combinations, since cc2 maps don't
+    //   support those features.
+    m_mapData.resize(32, 32);
+    for (int y = 0; y < 32; ++y) {
+        for (int x = 0; x < 32; ++x) {
+            Tile* upper = m_mapData.tile(x, y);
+            *upper = mapCC1Tile(level->map().getFG(x, y));
+            if (upper->haveLower())
+                *upper->lower() = mapCC1Tile(level->map().getBG(x, y));
+        }
+    }
 }
 
 static std::string toGenericLF(const std::string& text)

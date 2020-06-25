@@ -44,7 +44,6 @@ bool MapUndoCommand::mergeWith(const QUndoCommand* command)
     Q_ASSERT(mapCommand);
     m_after->copyFrom(mapCommand->m_after);
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 9, 0)
     // Don't bother comparing map edits, since those are never merged
     if (m_before->version() == m_after->version()
             && m_before->lock() == m_after->lock()
@@ -55,7 +54,6 @@ bool MapUndoCommand::mergeWith(const QUndoCommand* command)
             && m_before->note() == m_after->note()
             && m_before->option().timeLimit() == m_after->option().timeLimit())
         setObsolete(true);
-#endif
 
     return true;
 }

@@ -22,6 +22,7 @@ set(CC2Edit_HEADERS
     EditorWidget.h
     ExtWidgets.h
     History.h
+    ImportDialog.h
     ScriptEditor.h
     ScriptTools.h
     TestSetup.h
@@ -34,6 +35,7 @@ set(CC2Edit_SOURCES
     EditorWidget.cpp
     ExtWidgets.cpp
     History.cpp
+    ImportDialog.cpp
     ScriptEditor.cpp
     ScriptTools.cpp
     TestSetup.cpp

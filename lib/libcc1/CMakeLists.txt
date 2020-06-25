@@ -23,7 +23,6 @@ set(libcc1_HEADERS
     GameLogic.h
     CCMetaData.h
     Tileset.h
-    QtHelpers.h
 )
 
 set(libcc1_SOURCES

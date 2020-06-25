@@ -75,7 +75,7 @@ public:
 
 class FileStream : public Stream {
 public:
-    FileStream() : m_file(0) { }
+    FileStream() : m_file() { }
     virtual ~FileStream() { close(); }
 
     bool open(const char* filename, const char* mode);

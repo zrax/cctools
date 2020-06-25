@@ -38,7 +38,8 @@ endif()
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
-find_package(Qt5 5.4 REQUIRED COMPONENTS Core Gui Xml Widgets Sql)
+# 5.9 needed for certain features of QUndoStack
+find_package(Qt5 5.9 REQUIRED COMPONENTS Core Gui Xml Widgets Sql)
 
 set(CCTools_Tilesets
     ${CMAKE_CURRENT_SOURCE_DIR}/share/cctools/CC2.tis

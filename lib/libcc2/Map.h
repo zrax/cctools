@@ -24,6 +24,8 @@
 #include <tuple>
 #include <stdexcept>
 
+namespace ccl { class LevelData; }
+
 namespace cc2 {
 
 class MapOption {
@@ -361,6 +363,7 @@ public:
     Map& operator=(const Map&) = delete;
 
     void copyFrom(const cc2::Map* map);
+    void importFrom(const ccl::LevelData* level);
 
     void read(ccl::Stream* stream);
     void write(ccl::Stream* stream) const;
@@ -396,6 +399,8 @@ public:
     {
         m_replay.clear();
         m_option.setReplayValid(false);
+        static const uint8_t zero_md5[16] = { 0 };
+        m_option.setReplayMD5(zero_md5);
     }
 
     void ref()

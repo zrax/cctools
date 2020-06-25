@@ -21,8 +21,8 @@
 #include "TileInspector.h"
 #include "ScriptTools.h"
 #include "TestSetup.h"
+#include "ImportDialog.h"
 #include "About.h"
-#include "libcc1/QtHelpers.h"
 
 #include <QApplication>
 #include <QSettings>
@@ -86,6 +86,9 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_actions[ActionOpen] = new QAction(QIcon(":/res/document-open.png"), tr("&Open..."), this);
     m_actions[ActionOpen]->setStatusTip(tr("Open a game file from disk"));
     m_actions[ActionOpen]->setShortcut(Qt::CTRL | Qt::Key_O);
+    m_actions[ActionImportCC1] = new QAction(QIcon(":/res/document-open.png"), tr("&Import CC1 Map..."), this);
+    m_actions[ActionImportCC1]->setStatusTip(tr("Import a map from a CC1 levelset"));
+    m_actions[ActionImportCC1]->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_O);
     m_actions[ActionSave] = new QAction(QIcon(":/res/document-save.png"), tr("&Save"), this);
     m_actions[ActionSave]->setStatusTip(tr("Save the current document to the same file"));
     m_actions[ActionSave]->setShortcut(Qt::CTRL | Qt::Key_S);
@@ -649,6 +652,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     fileMenu->addAction(m_actions[ActionNewScript]);
     fileMenu->addSeparator();
     fileMenu->addAction(m_actions[ActionOpen]);
+    fileMenu->addAction(m_actions[ActionImportCC1]);
     fileMenu->addAction(m_actions[ActionSave]);
     fileMenu->addAction(m_actions[ActionSaveAs]);
     fileMenu->addAction(m_actions[ActionClose]);
@@ -738,6 +742,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     connect(m_actions[ActionNewMap], &QAction::triggered, this, &CC2EditMain::createNewMap);
     connect(m_actions[ActionNewScript], &QAction::triggered, this, &CC2EditMain::createNewScript);
     connect(m_actions[ActionOpen], &QAction::triggered, this, &CC2EditMain::onOpenAction);
+    connect(m_actions[ActionImportCC1], &QAction::triggered, this, &CC2EditMain::onImportCC1Action);
     connect(m_actions[ActionClose], &QAction::triggered, this, &CC2EditMain::closeScript);
 
     connect(m_actions[ActionCut], &QAction::triggered, this, &CC2EditMain::onCutAction);
@@ -1267,6 +1272,30 @@ void CC2EditMain::onOpenAction()
         QDir dir(filename);
         dir.cdUp();
         m_dialogDir = dir.absolutePath();
+    }
+}
+
+void CC2EditMain::onImportCC1Action()
+{
+    QString filename = QFileDialog::getOpenFileName(this, tr("Import Map..."),
+                            m_dialogDir, tr("CC1 Levelsets (*.ccl *.dat)"));
+    if (!filename.isEmpty()) {
+        ImportDialog dialog(this);
+        dialog.loadLevelset(filename);
+        if (dialog.exec() != QDialog::Accepted)
+            return;
+
+        int levelNum = 0;
+        cc2::Map* map = dialog.importMap(&levelNum);
+        if (!map)
+            return;
+
+        QFileInfo info(filename);
+        QString tempName = QStringLiteral("%1-%2.c2m").arg(info.baseName())
+                                .arg(levelNum + 1, 3, 10, QLatin1Char('0'));
+        CC2EditorWidget* editor = addEditor(map, tempName);
+        editor->resetClean();
+        m_toolTabs->setCurrentWidget(m_mapProperties);
     }
 }
 

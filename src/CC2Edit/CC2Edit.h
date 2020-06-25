@@ -61,7 +61,7 @@ public:
     CC2ScriptEditor* addScriptEditor(const QString& filename);
     void closeAllTabs();
 
-Q_SIGNALS:
+signals:
     void tilesetChanged(CC2ETileset*);
     void foregroundChanged(const cc2::Tile*);
     void backgroundChanged(const cc2::Tile*);
@@ -70,8 +70,9 @@ protected:
     void closeEvent(QCloseEvent*) override;
     void resizeEvent(QResizeEvent*) override;
 
-private Q_SLOTS:
+private slots:
     void onOpenAction();
+    void onImportCC1Action();
     void onCutAction();
     void onCopyAction();
     void onPasteAction();
@@ -102,11 +103,11 @@ private Q_SLOTS:
 
 private:
     enum ActionType {
-        ActionNewMap, ActionNewScript, ActionOpen, ActionSave, ActionSaveAs, ActionClose,
-        ActionGenReport, ActionExit, ActionSelect, ActionCut, ActionCopy,
-        ActionPaste, ActionClear, ActionUndo, ActionRedo, ActionDrawPencil,
-        ActionDrawLine, ActionDrawFill, ActionPathMaker, ActionDrawWire,
-        ActionInspectTiles,
+        ActionNewMap, ActionNewScript, ActionOpen, ActionImportCC1, ActionSave,
+        ActionSaveAs, ActionClose, ActionGenReport, ActionExit,
+        ActionSelect, ActionCut, ActionCopy, ActionPaste, ActionClear,
+        ActionUndo, ActionRedo, ActionDrawPencil, ActionDrawLine, ActionDrawFill,
+        ActionPathMaker, ActionDrawWire, ActionInspectTiles,
         ActionToggleWalls, ActionViewButtons, ActionViewActivePlayer,
         ActionViewViewport, ActionViewMonsterPaths,
         ActionZoom100, ActionZoom75, ActionZoom50, ActionZoom25, ActionZoom125,

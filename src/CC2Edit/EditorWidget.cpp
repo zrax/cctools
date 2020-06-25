@@ -99,6 +99,11 @@ void CC2EditorWidget::cancelEdit()
     }
 }
 
+void CC2EditorWidget::resetClean()
+{
+    m_undoStack->resetClean();
+}
+
 void CC2EditorWidget::renderTileBuffer()
 {
     if (!m_map)

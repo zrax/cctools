@@ -56,7 +56,6 @@
 #include "libcc1/IniFile.h"
 #include "libcc1/ChipsHax.h"
 #include "libcc1/GameLogic.h"
-#include "libcc1/QtHelpers.h"
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
