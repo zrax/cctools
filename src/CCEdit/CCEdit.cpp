@@ -1939,8 +1939,7 @@ void CCEditMain::onTestChips()
     m_subProcType = SubprocMSCC;
     connect(m_subProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, &CCEditMain::onProcessFinished);
-    connect(m_subProc, QOverload<QProcess::ProcessError>::of(&QProcess::error),
-            this, &CCEditMain::onProcessError);
+    connect(m_subProc, &QProcess::errorOccurred, this, &CCEditMain::onProcessError);
 #ifdef Q_OS_WIN
     // Native execution
     m_subProc->start(m_tempExe, QStringList());
@@ -2020,8 +2019,7 @@ void CCEditMain::onTestTWorld(unsigned int levelsetType, bool tworld2)
     m_subProcType = SubprocTWorld;
     connect(m_subProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, &CCEditMain::onProcessFinished);
-    connect(m_subProc, QOverload<QProcess::ProcessError>::of(&QProcess::error),
-            this, &CCEditMain::onProcessError);
+    connect(m_subProc, &QProcess::errorOccurred, this, &CCEditMain::onProcessError);
     m_subProc->start(tworldExe, QStringList{ "-pr", m_tempDat, QString::number(levelNum + 1) });
     QDir::setCurrent(cwd);
 }

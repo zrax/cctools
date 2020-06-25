@@ -1619,8 +1619,7 @@ void CC2EditMain::onTestChips2()
     m_subProc = new QProcess(this);
     connect(m_subProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, &CC2EditMain::onProcessFinished);
-    connect(m_subProc, QOverload<QProcess::ProcessError>::of(&QProcess::error),
-            this, &CC2EditMain::onProcessError);
+    connect(m_subProc, &QProcess::errorOccurred, this, &CC2EditMain::onProcessError);
     m_subProc->start(chips2Exe, QStringList());
     QDir::setCurrent(cwd);
 }
