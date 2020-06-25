@@ -24,7 +24,7 @@
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QGridLayout>
-#include <QmessageBox>
+#include <QMessageBox>
 
 ImportDialog::ImportDialog(QWidget* parent)
     : QDialog(parent), m_levelset()
