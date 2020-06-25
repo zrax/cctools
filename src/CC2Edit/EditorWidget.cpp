@@ -55,6 +55,7 @@ void CC2EditorWidget::setMap(cc2::Map* map)
 
     m_tileBuffer = QPixmap(m_map->mapData().width() * m_tileset->size(),
                            m_map->mapData().height() * m_tileset->size());
+    resize(sizeHint());
 
     m_undoStack->clear();
     dirtyBuffer();
@@ -62,6 +63,17 @@ void CC2EditorWidget::setMap(cc2::Map* map)
 
     m_selectRect = QRect(-1, -1, -1, -1);
     emit hasSelection(false);
+}
+
+void CC2EditorWidget::resizeMap(const QSize& newSize)
+{
+    beginEdit(CC2EditHistory::EditResizeMap);
+    m_map->mapData().resize(newSize.width(), newSize.height());
+    endEdit();
+
+    m_tileBuffer = QPixmap(newSize.width() * m_tileset->size(),
+                           newSize.height() * m_tileset->size());
+    resize(sizeHint());
 }
 
 void CC2EditorWidget::setDrawMode(DrawMode mode)
@@ -115,8 +127,6 @@ void CC2EditorWidget::renderTileBuffer()
         for (int x = 0; x < mapData.width(); ++x)
             m_tileset->draw(tilePainter, x, y, mapData.tile(x, y), true);
     }
-
-    dirtyBuffer();
 }
 
 void CC2EditorWidget::paintEvent(QPaintEvent*)
@@ -467,13 +477,27 @@ void CC2EditorWidget::setZoom(double factor)
 void CC2EditorWidget::undo()
 {
     m_undoStack->undo();
-    dirtyBuffer();
-    update();
+    updateForUndoCommand(m_undoStack->command(m_undoStack->index()));
 }
 
 void CC2EditorWidget::redo()
 {
+    auto command = m_undoStack->command(m_undoStack->index());
     m_undoStack->redo();
-    dirtyBuffer();
-    update();
+    updateForUndoCommand(command);
+}
+
+void CC2EditorWidget::updateForUndoCommand(const QUndoCommand* command)
+{
+    auto mapCommand = dynamic_cast<const MapUndoCommand*>(command);
+    if (mapCommand) {
+        if (mapCommand->id() == CC2EditHistory::EditResizeMap) {
+            m_tileBuffer = QPixmap(m_map->mapData().width() * m_tileset->size(),
+                                   m_map->mapData().height() * m_tileset->size());
+            resize(sizeHint());
+        }
+
+        dirtyBuffer();
+        update();
+    }
 }

@@ -259,8 +259,6 @@ void EditorWidget::renderTileBuffer()
         plot_line(this, m_origin, m_current, PlotPreview, &tilePainter);
     else if (m_drawMode == DrawFill && (m_paintFlags & PaintOverlayMask) != 0)
         plot_box(this, m_origin, m_current, PlotPreview, &tilePainter);
-
-    dirtyBuffer();
 }
 
 void EditorWidget::paintEvent(QPaintEvent*)

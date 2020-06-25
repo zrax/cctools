@@ -109,6 +109,7 @@ private slots:
     void onReadOnlyChanged();
     void onClueChanged();
     void onNoteChanged();
+    void onResizeMap();
 
     void onProcessError(QProcess::ProcessError err);
     void onProcessFinished(int result, QProcess::ExitStatus status);

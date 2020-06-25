@@ -37,7 +37,8 @@ MapUndoCommand::~MapUndoCommand()
 bool MapUndoCommand::mergeWith(const QUndoCommand* command)
 {
     if (command->id() != id() || m_type == CC2EditHistory::EditMap
-            || m_type == CC2EditHistory::EditOptions)
+            || m_type == CC2EditHistory::EditOptions
+            || m_type == CC2EditHistory::EditResizeMap)
         return false;
 
     auto mapCommand = dynamic_cast<const MapUndoCommand*>(command);

@@ -15,43 +15,22 @@
  * along with CCTools.  If not, see <http://www.gnu.org/licenses/>.           *
  ******************************************************************************/
 
-#ifndef _CC2_HISTORY_H
-#define _CC2_HISTORY_H
+#ifndef _CC2_RESIZEDLG_H
+#define _CC2_RESIZEDLG_H
 
-#include <QUndoCommand>
+#include <QDialog>
 
-namespace cc2
-{
-    class Map;
-}
+class QSpinBox;
 
-namespace CC2EditHistory {
-    enum Type {
-        EditMap, EditTitle, EditAuthor, EditLock, EditVersion, EditTime,
-        EditOptions, EditClue, EditNotes, EditResizeMap,
-    };
-}
-
-class MapUndoCommand : public QUndoCommand {
+class ResizeDialog : public QDialog {
 public:
-    MapUndoCommand(CC2EditHistory::Type type, cc2::Map* before);
-    ~MapUndoCommand() override;
+    explicit ResizeDialog(const QSize& curSize, QWidget* parent = nullptr);
 
-    int id() const override { return m_type; }
-    bool mergeWith(const QUndoCommand* command) override;
-
-    void enter() { ++m_enter; }
-    bool leave(cc2::Map* after);
-
-    void undo() override;
-    void redo() override;
+    QSize requestedSize() const;
 
 private:
-    int m_enter;
-    int m_type;
-    cc2::Map* m_targetMap;
-    cc2::Map* m_before;
-    cc2::Map* m_after;
+    QSpinBox* m_width;
+    QSpinBox* m_height;
 };
 
 #endif

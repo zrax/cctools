@@ -57,7 +57,7 @@ public:
 
     void setMap(cc2::Map* map);
     cc2::Map* map() const { return m_map; }
-    bool isOrphaned() const { return m_map->refs() == 1; }
+    void resizeMap(const QSize& size);
 
     void setFilename(const QString& filename) { m_filename = filename; }
     QString filename() const { return m_filename; }
@@ -164,6 +164,8 @@ private:
         return QSize(m_map->mapData().width() * m_tileset->size() * m_zoomFactor,
                      m_map->mapData().height() * m_tileset->size() * m_zoomFactor);
     }
+
+    void updateForUndoCommand(const QUndoCommand* command);
 };
 
 #endif

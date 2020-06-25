@@ -74,7 +74,7 @@ private:
 
 class TwoPointDialog : public QDialog {
 public:
-    TwoPointDialog(QString type, QWidget* parent) : QDialog(parent)
+    TwoPointDialog(const QString& type, QWidget* parent) : QDialog(parent)
     {
         setWindowTitle(tr("%1 Connection").arg(type));
 

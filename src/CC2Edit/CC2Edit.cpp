@@ -22,6 +22,7 @@
 #include "ScriptTools.h"
 #include "TestSetup.h"
 #include "ImportDialog.h"
+#include "ResizeDialog.h"
 #include "About.h"
 
 #include <QApplication>
@@ -401,6 +402,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     connect(m_readOnly, &QCheckBox::toggled, this, &CC2EditMain::onReadOnlyChanged);
     connect(m_clue, &QPlainTextEdit::textChanged, this, &CC2EditMain::onClueChanged);
     connect(m_note, &QPlainTextEdit::textChanged, this, &CC2EditMain::onNoteChanged);
+    connect(resizeButton, &QPushButton::clicked, this, &CC2EditMain::onResizeMap);
 
     auto sortedTiles = new QWidget(toolDock);
     auto tileBox = new QToolBox(sortedTiles);
@@ -1934,6 +1936,20 @@ void CC2EditMain::onNoteChanged()
         editor->beginEdit(CC2EditHistory::EditNotes);
         map->setNote(value.toLatin1().constData());
         editor->endEdit();
+    }
+}
+
+void CC2EditMain::onResizeMap()
+{
+    CC2EditorWidget* editor = currentEditor();
+    if (!editor)
+        return;
+
+    cc2::MapData& mapData = editor->map()->mapData();
+    ResizeDialog dialog(QSize(mapData.width(), mapData.height()), this);
+    if (dialog.exec() == QDialog::Accepted) {
+        editor->resizeMap(dialog.requestedSize());
+        updateMapProperties(editor->map());
     }
 }
 
