@@ -478,7 +478,7 @@ void cc2::Map::copyFrom(const cc2::Map* map)
     m_unknown = map->m_unknown;
 }
 
-static cc2::Tile mapCC1Tile(tile_t type)
+static cc2::Tile mapCC1Tile(tile_t type, int& chipsLeft)
 {
     using namespace cc2;
 
@@ -488,7 +488,10 @@ static cc2::Tile mapCC1Tile(tile_t type)
     case ccl::TileWall:
         return Tile(Tile::Wall);
     case ccl::TileChip:
-        return Tile(Tile::Chip);
+        if (--chipsLeft >= 0)
+            return Tile(Tile::Chip);
+        else
+            return Tile(Tile::ExtraChip);
     case ccl::TileWater:
         return Tile(Tile::Water);
     case ccl::TileFire:
@@ -710,12 +713,13 @@ void cc2::Map::importFrom(const ccl::LevelData* level)
     //   order, or invalid tile upper/lower combinations, since cc2 maps don't
     //   support those features.
     m_mapData.resize(32, 32);
+    int chipsLeft = level->chips();
     for (int y = 0; y < 32; ++y) {
         for (int x = 0; x < 32; ++x) {
             Tile* upper = m_mapData.tile(x, y);
-            *upper = mapCC1Tile(level->map().getFG(x, y));
+            *upper = mapCC1Tile(level->map().getFG(x, y), chipsLeft);
             if (upper->haveLower())
-                *upper->lower() = mapCC1Tile(level->map().getBG(x, y));
+                *upper->lower() = mapCC1Tile(level->map().getBG(x, y), chipsLeft);
         }
     }
 }
