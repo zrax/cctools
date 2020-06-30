@@ -461,6 +461,20 @@ std::tuple<int, int> cc2::MapData::countPoints() const
     return points;
 }
 
+static bool _haveTile(const cc2::Tile* tile, cc2::Tile::Type type)
+{
+    if (tile->type() == type)
+        return true;
+    if (tile->haveLower())
+        return _haveTile(tile->lower(), type);
+    return false;
+}
+
+bool cc2::MapData::haveTile(int x, int y, Tile::Type type) const
+{
+    return _haveTile(tile(x, y), type);
+}
+
 
 void cc2::Map::copyFrom(const cc2::Map* map)
 {
@@ -913,6 +927,96 @@ void cc2::Map::write(ccl::Stream* stream) const
 
     // End of tagged data
     writeTaggedBlock<0>(stream, "END ");
+}
+
+std::string cc2::Map::clueForTile(int x, int y)
+{
+    if (!m_mapData.haveTile(x, y, Tile::Clue))
+        return std::string();
+
+    size_t start = 0;
+    for (int sy = 0; sy < m_mapData.height(); ++sy) {
+        for (int sx = 0; sx < m_mapData.width(); ++sx) {
+            if (!m_mapData.haveTile(sx, sy, Tile::Clue))
+                continue;
+
+            // Scan the NOTE for the next [CLUE] tag
+            start = m_note.find("[CLUE]", start);
+            if (start == std::string::npos)
+                return m_clue;
+
+            // Find the newline...  CC2 discards anything else on the same
+            // line as the [CLUE] tag.
+            start = m_note.find('\n', start);
+            if (start == std::string::npos)
+                return m_clue;
+            ++start;
+
+            if (sx == x && sy == y) {
+                size_t next = m_note.find("[CLUE]", start);
+                if (next == std::string::npos)
+                    return m_clue;
+                return m_note.substr(start, next - start);
+            }
+        }
+    }
+
+    Q_UNREACHABLE();
+}
+
+void cc2::Map::setClueForTile(int x, int y, const std::string& clue)
+{
+    if (!m_mapData.haveTile(x, y, Tile::Clue))
+        return;
+
+    // This function always assumes we want to directly update the tile-specific
+    // clue, rather than the global one in m_clue.  If there aren't enough
+    // clue fields in the NOTE, we will add tags as necessary.
+
+    size_t start = 0;
+    for (int sy = 0; sy < m_mapData.height(); ++sy) {
+        for (int sx = 0; sx < m_mapData.width(); ++sx) {
+            if (!m_mapData.haveTile(sx, sy, Tile::Clue))
+                continue;
+
+            // Scan the NOTE for the next [CLUE] tag
+            start = m_note.find("[CLUE]", start);
+            if (start == std::string::npos) {
+                if (!m_note.empty() && m_note.back() != '\n')
+                    m_note += "\n";
+                m_note += "[CLUE]\n";
+                start = m_note.size();
+            } else {
+                // Find the newline...  CC2 discards anything else on the same
+                // line as the [CLUE] tag.
+                start = m_note.find('\n', start);
+                if (start == std::string::npos) {
+                    m_note += "\n";
+                    start = m_note.size();
+                } else {
+                    ++start;
+                }
+            }
+
+            if (sx == x && sy == y) {
+                size_t next = m_note.find("[CLUE]", start);
+                if (next == std::string::npos) {
+                    m_note += clue;
+                    if (!m_note.empty() && m_note.back() != '\n')
+                        m_note += "\n";
+                    m_note += "[CLUE]\n";
+                } else {
+                    if (!clue.empty() && clue.back() != '\n')
+                        m_note.replace(start, next - start, clue + "\n");
+                    else
+                        m_note.replace(start, next - start, clue);
+                }
+                return;
+            }
+        }
+    }
+
+    Q_UNREACHABLE();
 }
 
 

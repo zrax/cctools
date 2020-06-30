@@ -343,6 +343,8 @@ public:
         return &m_map[(y * m_width) + x];
     }
 
+    bool haveTile(int x, int y, Tile::Type type) const;
+
 private:
     uint8_t m_width, m_height;
     Tile* m_map;
@@ -402,6 +404,9 @@ public:
         static const uint8_t zero_md5[16] = { 0 };
         m_option.setReplayMD5(zero_md5);
     }
+
+    std::string clueForTile(int x, int y);
+    void setClueForTile(int x, int y, const std::string& clue);
 
     void ref()
     {

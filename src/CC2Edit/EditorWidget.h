@@ -32,7 +32,7 @@ class CC2EditorWidget : public QWidget {
 public:
     enum DrawMode {
         DrawPencil, DrawLine, DrawFill, DrawSelect, DrawPathMaker,
-        DrawInspectTile,
+        DrawInspectTile, DrawInspectHint,
     };
 
     enum PaintFlags {
@@ -106,7 +106,7 @@ signals:
     void cleanChanged(bool);
     void hasSelection(bool);
 
-    void inspectTile(cc2::Tile* tile);
+    void tilePicked(int x, int y);
 
 public slots:
     void setZoom(double factor);

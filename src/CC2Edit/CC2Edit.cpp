@@ -163,6 +163,11 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_actions[ActionDrawWire]->setShortcut(Qt::CTRL | Qt::Key_T);
     m_actions[ActionDrawWire]->setCheckable(true);
     m_actions[ActionDrawWire]->setEnabled(false);
+    m_actions[ActionInspectHints] = new QAction(QIcon(":/res/draw-hints.png"), tr("Edit &Hints"), this);
+    m_actions[ActionInspectHints]->setStatusTip(tr("Directly edit hint tiles"));
+    m_actions[ActionInspectHints]->setShortcut(Qt::CTRL | Qt::Key_H);
+    m_actions[ActionInspectHints]->setCheckable(true);
+    m_actions[ActionInspectHints]->setEnabled(false);
     m_actions[ActionInspectTiles] = new QAction(QIcon(":/res/draw-inspect.png"), tr("&Inspect Tiles"), this);
     m_actions[ActionInspectTiles]->setStatusTip(tr("Inspect tiles and make advanced modifications"));
     m_actions[ActionInspectTiles]->setShortcut(Qt::CTRL | Qt::Key_I);
@@ -695,7 +700,9 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     toolsMenu->addAction(m_actions[ActionDrawLine]);
     toolsMenu->addAction(m_actions[ActionDrawFill]);
     toolsMenu->addAction(m_actions[ActionPathMaker]);
+    toolsMenu->addSeparator();
     toolsMenu->addAction(m_actions[ActionDrawWire]);
+    toolsMenu->addAction(m_actions[ActionInspectHints]);
     toolsMenu->addSeparator();
     toolsMenu->addAction(m_actions[ActionInspectTiles]);
     toolsMenu->addSeparator();
@@ -748,7 +755,9 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     tbarTools->addAction(m_actions[ActionDrawLine]);
     tbarTools->addAction(m_actions[ActionDrawFill]);
     tbarTools->addAction(m_actions[ActionPathMaker]);
+    tbarTools->addSeparator();
     tbarTools->addAction(m_actions[ActionDrawWire]);
+    tbarTools->addAction(m_actions[ActionInspectHints]);
     tbarTools->addSeparator();
     tbarTools->addAction(m_actions[ActionInspectTiles]);
     tbarTools->addSeparator();
@@ -770,7 +779,8 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     connect(m_actions[ActionUndo], &QAction::triggered, this, &CC2EditMain::onUndoAction);
     connect(m_actions[ActionRedo], &QAction::triggered, this, &CC2EditMain::onRedoAction);
 
-    connect(m_actions[ActionInspectTiles], &QAction::triggered, this, &CC2EditMain::onInspectToggled);
+    connect(m_actions[ActionInspectHints], &QAction::triggered, this, &CC2EditMain::onInspectHints);
+    connect(m_actions[ActionInspectTiles], &QAction::triggered, this, &CC2EditMain::onInspectTiles);
 
     connect(m_actions[ActionViewViewport], &QAction::toggled, this, &CC2EditMain::onViewViewportToggled);
 
@@ -1159,7 +1169,6 @@ CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename)
     //if (m_actions[ActionViewErrors]->isChecked())
     //    editor->setPaintFlag(CC2EditorWidget::ShowErrors);
     editor->setTileset(m_currentTileset);
-    editor->setDrawMode(m_currentDrawMode);
     editor->setMap(map);
     if (m_zoomFactor != 0.0)
         editor->setZoom(m_zoomFactor);
@@ -1179,6 +1188,7 @@ CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename)
     connect(editor, &CC2EditorWidget::hasSelection, m_actions[ActionCut], &QAction::setEnabled);
     connect(editor, &CC2EditorWidget::hasSelection, m_actions[ActionCopy], &QAction::setEnabled);
     connect(editor, &CC2EditorWidget::hasSelection, m_actions[ActionClear], &QAction::setEnabled);
+    connect(editor, &CC2EditorWidget::tilePicked, this, &CC2EditMain::onTilePicked);
 
     connect(editor, &CC2EditorWidget::cleanChanged, this, [this, scroll](bool clean) {
         const int index = m_editorTabs->indexOf(scroll);
@@ -1190,17 +1200,6 @@ CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename)
             m_editorTabs->setTabText(index, tabText.left(tabText.size() - 2));
         else if (!clean && !tabText.endsWith(QStringLiteral(" *")))
             m_editorTabs->setTabText(index, tabText + QStringLiteral(" *"));
-    });
-
-    connect(editor, &CC2EditorWidget::inspectTile, this, [this, editor](cc2::Tile* tile) {
-        TileInspector inspector(this);
-        inspector.setTileset(m_currentTileset);
-        inspector.loadTile(tile);
-        if (inspector.exec() == QDialog::Accepted) {
-            editor->beginEdit(CC2EditHistory::EditMap);
-            *tile = inspector.tile();
-            editor->endEdit();
-        }
     });
 
     connect(this, &CC2EditMain::tilesetChanged, editor, &CC2EditorWidget::setTileset);
@@ -1391,7 +1390,27 @@ void CC2EditMain::onRedoAction()
     }
 }
 
-void CC2EditMain::onInspectToggled(bool mode)
+void CC2EditMain::onInspectHints(bool mode)
+{
+    if (!mode && m_currentDrawMode == CC2EditorWidget::DrawInspectHint) {
+        m_actions[m_savedDrawMode]->setChecked(true);
+    } else if (mode) {
+        m_currentDrawMode = CC2EditorWidget::DrawInspectHint;
+        m_actions[ActionSelect]->setChecked(false);
+        m_actions[ActionDrawPencil]->setChecked(false);
+        m_actions[ActionDrawLine]->setChecked(false);
+        m_actions[ActionDrawFill]->setChecked(false);
+        m_actions[ActionPathMaker]->setChecked(false);
+        m_actions[ActionDrawWire]->setChecked(false);
+        m_actions[ActionInspectTiles]->setChecked(false);
+
+        CC2EditorWidget* editor = currentEditor();
+        if (editor)
+            editor->setDrawMode(m_currentDrawMode);
+    }
+}
+
+void CC2EditMain::onInspectTiles(bool mode)
 {
     if (!mode && m_currentDrawMode == CC2EditorWidget::DrawInspectTile) {
         m_actions[m_savedDrawMode]->setChecked(true);
@@ -1403,9 +1422,11 @@ void CC2EditMain::onInspectToggled(bool mode)
         m_actions[ActionDrawFill]->setChecked(false);
         m_actions[ActionPathMaker]->setChecked(false);
         m_actions[ActionDrawWire]->setChecked(false);
+        m_actions[ActionInspectHints]->setChecked(false);
 
-        for (int i = 0; i < m_editorTabs->count(); ++i)
-            getEditorAt(i)->setDrawMode(m_currentDrawMode);
+        CC2EditorWidget* editor = currentEditor();
+        if (editor)
+            editor->setDrawMode(m_currentDrawMode);
     }
 }
 
@@ -1418,6 +1439,39 @@ void CC2EditMain::onViewViewportToggled(bool view)
                 editor->setPaintFlag(CC2EditorWidget::ShowViewBox);
             else
                 editor->clearPaintFlag(CC2EditorWidget::ShowViewBox);
+        }
+    }
+}
+
+void CC2EditMain::onTilePicked(int x, int y)
+{
+    CC2EditorWidget* editor = currentEditor();
+    Q_ASSERT(editor);
+
+    if (m_currentDrawMode == CC2EditorWidget::DrawInspectTile) {
+        TileInspector inspector(this);
+        inspector.setTileset(m_currentTileset);
+        cc2::Tile* tile = editor->map()->mapData().tile(x, y);
+        inspector.loadTile(tile);
+        if (inspector.exec() == QDialog::Accepted) {
+            editor->beginEdit(CC2EditHistory::EditMap);
+            *tile = inspector.tile();
+            editor->endEdit();
+        }
+    } else if (m_currentDrawMode == CC2EditorWidget::DrawInspectHint) {
+        if (!editor->map()->mapData().haveTile(x, y, cc2::Tile::Clue))
+            return;
+
+        std::string clue = editor->map()->clueForTile(x, y);
+        bool ok = false;
+        QString clueText = QInputDialog::getMultiLineText(this, tr("Edit Hint Text"),
+                                tr("Hint text for (%1, %2):").arg(x).arg(y),
+                                QString::fromLatin1(clue.c_str()), &ok);
+        if (ok) {
+            editor->beginEdit(CC2EditHistory::EditMap);
+            editor->map()->setClueForTile(x, y, clueText.toLatin1().constData());
+            editor->endEdit();
+            updateMapProperties(editor->map());
         }
     }
 }
@@ -1690,6 +1744,7 @@ void CC2EditMain::onTabChanged(int index)
     m_actions[ActionDrawFill]->setEnabled(!!mapEditor);
     m_actions[ActionPathMaker]->setEnabled(!!mapEditor);
     m_actions[ActionDrawWire]->setEnabled(!!mapEditor);
+    m_actions[ActionInspectHints]->setEnabled(!!mapEditor);
     m_actions[ActionInspectTiles]->setEnabled(!!mapEditor);
     m_actions[ActionToggleWalls]->setEnabled(!!mapEditor);
     m_actions[ActionTest]->setEnabled(!!mapEditor);
@@ -1707,6 +1762,7 @@ void CC2EditMain::onTabChanged(int index)
         m_actions[ActionUndo]->setEnabled(mapEditor->canUndo());
         m_actions[ActionRedo]->setEnabled(mapEditor->canRedo());
         mapEditor->update();
+        mapEditor->setDrawMode(m_currentDrawMode);
 
         /*
         bool hasSelection = editor->selection() != QRect(-1, -1, -1, -1);

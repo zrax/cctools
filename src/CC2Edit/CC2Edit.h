@@ -80,9 +80,12 @@ private slots:
     void onUndoAction();
     void onRedoAction();
 
-    void onInspectToggled(bool);
+    void onInspectHints(bool);
+    void onInspectTiles(bool);
 
     void onViewViewportToggled(bool);
+
+    void onTilePicked(int x, int y);
 
     void setZoomFactor(double);
     void onZoomCust();
@@ -122,7 +125,7 @@ private:
         ActionSaveAs, ActionClose, ActionGenReport, ActionExit,
         ActionSelect, ActionCut, ActionCopy, ActionPaste, ActionClear,
         ActionUndo, ActionRedo, ActionDrawPencil, ActionDrawLine, ActionDrawFill,
-        ActionPathMaker, ActionDrawWire, ActionInspectTiles,
+        ActionPathMaker, ActionDrawWire, ActionInspectHints, ActionInspectTiles,
         ActionToggleWalls, ActionViewButtons, ActionViewActivePlayer,
         ActionViewViewport, ActionViewMonsterPaths,
         ActionZoom100, ActionZoom75, ActionZoom50, ActionZoom25, ActionZoom125,

@@ -520,7 +520,7 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
             if (isValidPoint(trap_iter.trap))
                 m_hilights << QPoint(trap_iter.trap.X, trap_iter.trap.Y);
             if (!tipText.isEmpty())
-                tipText += "\n";
+                tipText += QLatin1Char('\n');
             tipText += tr("Trap: (%1, %2)")
                        .arg(trap_iter.trap.X).arg(trap_iter.trap.Y);
         }
@@ -528,7 +528,7 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
             if (isValidPoint(trap_iter.button))
                 m_hilights << QPoint(trap_iter.button.X, trap_iter.button.Y);
             if (!tipText.isEmpty())
-                tipText += "\n";
+                tipText += QLatin1Char('\n');
             tipText += tr("Button: (%1, %2)")
                        .arg(trap_iter.button.X).arg(trap_iter.button.Y);
         }
@@ -538,7 +538,7 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
             if (isValidPoint(clone_iter.clone))
                 m_hilights << QPoint(clone_iter.clone.X, clone_iter.clone.Y);
             if (!tipText.isEmpty())
-                tipText += "\n";
+                tipText += QLatin1Char('\n');
             tipText += tr("Cloner: (%1, %2)")
                        .arg(clone_iter.clone.X).arg(clone_iter.clone.Y);
         }
@@ -546,7 +546,7 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
             if (isValidPoint(clone_iter.button))
                 m_hilights << QPoint(clone_iter.button.X, clone_iter.button.Y);
             if (!tipText.isEmpty())
-                tipText += "\n";
+                tipText += QLatin1Char('\n');
             tipText += tr("Button: (%1, %2)")
                        .arg(clone_iter.button.X).arg(clone_iter.button.Y);
         }
@@ -576,7 +576,7 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
         m_hilights << QPoint(posX, posY);
 
         if (!tipText.isEmpty())
-            tipText += "\n";
+            tipText += QLatin1Char('\n');
         tipText += tr("Teleport to: (%1, %2)").arg(posX).arg(posY);
     }
 
@@ -587,16 +587,23 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
             ++moveIdx;
             if (move_iter.X == posX && move_iter.Y == posY) {
                 if (!tipText.isEmpty())
-                    tipText += "\n";
+                    tipText += QLatin1Char('\n');
                 tipText += tr("Move order: %1").arg(moveIdx);
                 canMove = true;
             }
         }
         if (!canMove) {
             if (!tipText.isEmpty())
-                tipText += "\n";
+                tipText += QLatin1Char('\n');
             tipText += tr("Monster DOES NOT MOVE");
         }
+    }
+
+    if (m_levelData->map().getFG(posX, posY) == ccl::TileHint
+            || m_levelData->map().getBG(posX, posY) == ccl::TileHint) {
+        if (!tipText.isEmpty())
+            tipText += QLatin1Char('\n');
+        tipText += QString::fromLatin1(m_levelData->hint().c_str());
     }
 
     setToolTip(tipText);

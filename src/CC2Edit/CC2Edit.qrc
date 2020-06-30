@@ -29,6 +29,7 @@
     <file>res/draw-box.png</file>
     <file>res/draw-path.png</file>
     <file>res/draw-wire.png</file>
+    <file>res/draw-hints.png</file>
     <file>res/draw-inspect.png</file>
     <file>res/cctools-gbutton.png</file>
 
