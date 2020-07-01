@@ -24,6 +24,7 @@
 #include "ImportDialog.h"
 #include "ResizeDialog.h"
 #include "About.h"
+#include "libcc2/GameLogic.h"
 
 #include <QApplication>
 #include <QSettings>
@@ -173,10 +174,10 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_actions[ActionInspectTiles]->setShortcut(Qt::CTRL | Qt::Key_I);
     m_actions[ActionInspectTiles]->setCheckable(true);
     m_actions[ActionInspectTiles]->setEnabled(false);
-    m_actions[ActionToggleWalls] = new QAction(QIcon(":/res/cctools-gbutton.png"), tr("&Toggle Walls"), this);
-    m_actions[ActionToggleWalls]->setStatusTip(tr("Toggle all toggle floors/walls in the current level"));
-    m_actions[ActionToggleWalls]->setShortcut(Qt::CTRL | Qt::Key_G);
-    m_actions[ActionToggleWalls]->setEnabled(false);
+    m_actions[ActionToggleGreens] = new QAction(QIcon(":/res/cctools-gbutton.png"), tr("&Toggle "), this);
+    m_actions[ActionToggleGreens]->setStatusTip(tr("Toggle all toggle doors and chips in the current level"));
+    m_actions[ActionToggleGreens]->setShortcut(Qt::CTRL | Qt::Key_G);
+    m_actions[ActionToggleGreens]->setEnabled(false);
     auto drawModeGroup = new QActionGroup(this);
     drawModeGroup->addAction(m_actions[ActionDrawPencil]);
     drawModeGroup->addAction(m_actions[ActionDrawLine]);
@@ -761,7 +762,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     toolsMenu->addSeparator();
     toolsMenu->addAction(m_actions[ActionInspectTiles]);
     toolsMenu->addSeparator();
-    toolsMenu->addAction(m_actions[ActionToggleWalls]);
+    toolsMenu->addAction(m_actions[ActionToggleGreens]);
 
     QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(m_actions[ActionViewButtons]);
@@ -816,7 +817,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     tbarTools->addSeparator();
     tbarTools->addAction(m_actions[ActionInspectTiles]);
     tbarTools->addSeparator();
-    tbarTools->addAction(m_actions[ActionToggleWalls]);
+    tbarTools->addAction(m_actions[ActionToggleGreens]);
 
     // Show status bar
     statusBar();
@@ -836,6 +837,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
 
     connect(m_actions[ActionInspectHints], &QAction::triggered, this, &CC2EditMain::onInspectHints);
     connect(m_actions[ActionInspectTiles], &QAction::triggered, this, &CC2EditMain::onInspectTiles);
+    connect(m_actions[ActionToggleGreens], &QAction::triggered, this, &CC2EditMain::onToggleGreensAction);
 
     connect(m_actions[ActionViewViewport], &QAction::toggled, this, &CC2EditMain::onViewViewportToggled);
 
@@ -1485,6 +1487,17 @@ void CC2EditMain::onInspectTiles(bool mode)
     }
 }
 
+void CC2EditMain::onToggleGreensAction()
+{
+    CC2EditorWidget* editor = currentEditor();
+    if (!editor)
+        return;
+
+    editor->beginEdit(CC2EditHistory::EditMap);
+    cc2::ToggleGreens(editor->map());
+    editor->endEdit();
+}
+
 void CC2EditMain::onViewViewportToggled(bool view)
 {
     for (int i = 0; i < m_editorTabs->count(); ++i) {
@@ -1801,7 +1814,7 @@ void CC2EditMain::onTabChanged(int index)
     m_actions[ActionDrawWire]->setEnabled(!!mapEditor);
     m_actions[ActionInspectHints]->setEnabled(!!mapEditor);
     m_actions[ActionInspectTiles]->setEnabled(!!mapEditor);
-    m_actions[ActionToggleWalls]->setEnabled(!!mapEditor);
+    m_actions[ActionToggleGreens]->setEnabled(!!mapEditor);
     m_actions[ActionTest]->setEnabled(!!mapEditor);
 
     if (scriptEditor) {

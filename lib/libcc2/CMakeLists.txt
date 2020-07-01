@@ -16,12 +16,14 @@
 include_directories(${CCTools_SOURCE_DIR}/lib)
 
 set(libcc2_HEADERS
+    GameLogic.h
     GameScript.h
     Map.h
     Tileset.h
 )
 
 set(libcc2_SOURCES
+    GameLogic.cpp
     GameScript.cpp
     Map.cpp
     Tileset.cpp

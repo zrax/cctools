@@ -82,6 +82,7 @@ private slots:
 
     void onInspectHints(bool);
     void onInspectTiles(bool);
+    void onToggleGreensAction();
 
     void onViewViewportToggled(bool);
 
@@ -126,7 +127,7 @@ private:
         ActionSelect, ActionCut, ActionCopy, ActionPaste, ActionClear,
         ActionUndo, ActionRedo, ActionDrawPencil, ActionDrawLine, ActionDrawFill,
         ActionPathMaker, ActionDrawWire, ActionInspectHints, ActionInspectTiles,
-        ActionToggleWalls, ActionViewButtons, ActionViewActivePlayer,
+        ActionToggleGreens, ActionViewButtons, ActionViewActivePlayer,
         ActionViewViewport, ActionViewMonsterPaths,
         ActionZoom100, ActionZoom75, ActionZoom50, ActionZoom25, ActionZoom125,
         ActionZoomCust, ActionZoomFit, ActionTest, ActionTestSetup, ActionAbout,
