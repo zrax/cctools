@@ -63,8 +63,8 @@ public:
 
 signals:
     void tilesetChanged(CC2ETileset*);
-    void foregroundChanged(const cc2::Tile*);
-    void backgroundChanged(const cc2::Tile*);
+    void leftTileChanged(const cc2::Tile*);
+    void rightTileChanged(const cc2::Tile*);
 
 protected:
     void closeEvent(QCloseEvent*) override;
@@ -97,8 +97,8 @@ private slots:
     void onTabChanged(int);
     void updateMapProperties(cc2::Map* map);
 
-    void setForeground(const cc2::Tile*);
-    void setBackground(const cc2::Tile*);
+    void setLeftTile(const cc2::Tile*);
+    void setRightTile(const cc2::Tile*);
 
     void onTitleChanged(const QString&);
     void onAuthorChanged(const QString&);
@@ -168,7 +168,7 @@ private:
     QPlainTextEdit* m_clue;
     QPlainTextEdit* m_note;
 
-    cc2::Tile m_foreground, m_background;
+    cc2::Tile m_leftTile, m_rightTile;
 
     EditorTabWidget* m_editorTabs;
 

@@ -92,8 +92,8 @@ void TileListWidget::mousePressEvent(QMouseEvent* event)
         return;
 
     if (event->button() == Qt::LeftButton)
-        emit itemSelectedLeft(currentItem()->data(Qt::UserRole).value<cc2::Tile*>());
+        emit tileSelectedLeft(currentItem()->data(Qt::UserRole).value<cc2::Tile*>());
     else if (event->button() == Qt::RightButton)
-        emit itemSelectedRight(currentItem()->data(Qt::UserRole).value<cc2::Tile*>());
+        emit tileSelectedRight(currentItem()->data(Qt::UserRole).value<cc2::Tile*>());
     setCurrentItem(nullptr);
 }

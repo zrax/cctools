@@ -66,8 +66,8 @@ protected:
     void mousePressEvent(QMouseEvent*) override;
 
 signals:
-    void itemSelectedLeft(const cc2::Tile*);
-    void itemSelectedRight(const cc2::Tile*);
+    void tileSelectedLeft(const cc2::Tile*);
+    void tileSelectedRight(const cc2::Tile*);
 
 private:
     std::vector<cc2::Tile> m_tiles;

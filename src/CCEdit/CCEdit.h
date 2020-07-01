@@ -59,8 +59,8 @@ public:
 
 signals:
     void tilesetChanged(CCETileset*);
-    void foregroundChanged(tile_t);
-    void backgroundChanged(tile_t);
+    void leftTileChanged(tile_t);
+    void rightTileChanged(tile_t);
 
 public slots:
     void createNewLevelset();
@@ -101,7 +101,7 @@ private:
     QSpinBox* m_chipEdit;
     QSpinBox* m_timeEdit;
     QLineEdit* m_hintEdit;
-    tile_t m_foreground, m_background;
+    tile_t m_leftTile, m_rightTile;
 
     ccl::Levelset* m_levelset;
     unsigned int m_dirtyFlag;
@@ -185,8 +185,8 @@ private slots:
     void onTabChanged(int);
     void onDockChanged(Qt::DockWidgetArea);
 
-    void setForeground(tile_t);
-    void setBackground(tile_t);
+    void setLeftTile(tile_t);
+    void setRightTile(tile_t);
 
     void onProcessFinished(int, QProcess::ExitStatus);
     void onProcessError(QProcess::ProcessError);

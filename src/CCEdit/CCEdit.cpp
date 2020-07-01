@@ -444,75 +444,75 @@ CCEditMain::CCEditMain(QWidget* parent)
 
     for (auto listWidget : tileLists) {
         connect(this, &CCEditMain::tilesetChanged, listWidget, &TileListWidget::setTileImages);
-        connect(listWidget, &TileListWidget::itemSelectedLeft, this, &CCEditMain::setForeground);
-        connect(listWidget, &TileListWidget::itemSelectedRight, this, &CCEditMain::setBackground);
+        connect(listWidget, &TileListWidget::itemSelectedLeft, this, &CCEditMain::setLeftTile);
+        connect(listWidget, &TileListWidget::itemSelectedRight, this, &CCEditMain::setRightTile);
     }
 
     auto layerWidget = new LayerWidget(tileWidget);
-    auto foreLabel = new QLabel(tr("Foreground: "), tileWidget);
-    auto backLabel = new QLabel(tr("Background: "), tileWidget);
-    auto foreTileLabel = new QLabel(tileWidget);
-    auto backTileLabel = new QLabel(tileWidget);
-    foreTileLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-    backTileLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+    auto leftLabel = new QLabel(tr("Left Button: "), tileWidget);
+    auto rightLabel = new QLabel(tr("Right Button: "), tileWidget);
+    auto leftTileLabel = new QLabel(tileWidget);
+    auto rightTileLabel = new QLabel(tileWidget);
+    leftTileLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+    rightTileLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
 
     connect(this, &CCEditMain::tilesetChanged, layerWidget, &LayerWidget::setTileset);
-    connect(this, &CCEditMain::foregroundChanged, layerWidget, &LayerWidget::setUpper);
-    connect(this, &CCEditMain::backgroundChanged, layerWidget, &LayerWidget::setLower);
-    connect(this, &CCEditMain::foregroundChanged, this, [foreTileLabel](tile_t tile) {
-        foreTileLabel->setText(CCETileset::TileName(tile));
+    connect(this, &CCEditMain::leftTileChanged, layerWidget, &LayerWidget::setUpper);
+    connect(this, &CCEditMain::rightTileChanged, layerWidget, &LayerWidget::setLower);
+    connect(this, &CCEditMain::leftTileChanged, this, [leftTileLabel](tile_t tile) {
+        leftTileLabel->setText(CCETileset::TileName(tile));
     });
-    connect(this, &CCEditMain::backgroundChanged, this, [backTileLabel](tile_t tile) {
-        backTileLabel->setText(CCETileset::TileName(tile));
+    connect(this, &CCEditMain::rightTileChanged, this, [rightTileLabel](tile_t tile) {
+        rightTileLabel->setText(CCETileset::TileName(tile));
     });
 
     QGridLayout* tileLayout = new QGridLayout(tileWidget);
     tileLayout->setContentsMargins(4, 4, 4, 4);
     tileLayout->setVerticalSpacing(4);
     tileLayout->addWidget(tileBox, 0, 0, 1, 3);
-    tileLayout->addWidget(foreLabel, 1, 0);
-    tileLayout->addWidget(foreTileLabel, 1, 1);
-    tileLayout->addWidget(backLabel, 2, 0);
-    tileLayout->addWidget(backTileLabel, 2, 1);
+    tileLayout->addWidget(leftLabel, 1, 0);
+    tileLayout->addWidget(leftTileLabel, 1, 1);
+    tileLayout->addWidget(rightLabel, 2, 0);
+    tileLayout->addWidget(rightTileLabel, 2, 1);
     tileLayout->addWidget(layerWidget, 1, 2, 2, 1);
     m_toolTabs->addTab(tileWidget, tr("&Tiles - Sorted"));
 
     auto allTileWidget = new QWidget(toolDock);
     auto allTileScroll = new QScrollArea(allTileWidget);
-    auto allTiles = new BigTileWiget(allTileScroll);
+    auto allTiles = new BigTileWidget(allTileScroll);
     allTileScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     allTileScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     allTileScroll->setWidget(allTiles);
 
     layerWidget = new LayerWidget(allTileWidget);
-    foreLabel = new QLabel(tr("Foreground: "), allTileWidget);
-    backLabel = new QLabel(tr("Background: "), allTileWidget);
-    foreTileLabel = new QLabel(allTileWidget);
-    backTileLabel = new QLabel(allTileWidget);
-    foreTileLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-    backTileLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+    leftLabel = new QLabel(tr("Left Button: "), allTileWidget);
+    rightLabel = new QLabel(tr("Right Button: "), allTileWidget);
+    leftTileLabel = new QLabel(allTileWidget);
+    rightTileLabel = new QLabel(allTileWidget);
+    leftTileLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+    rightTileLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
 
-    connect(this, &CCEditMain::tilesetChanged, allTiles, &BigTileWiget::setTileset);
-    connect(allTiles, &BigTileWiget::itemSelectedLeft, this, &CCEditMain::setForeground);
-    connect(allTiles, &BigTileWiget::itemSelectedRight, this, &CCEditMain::setBackground);
+    connect(this, &CCEditMain::tilesetChanged, allTiles, &BigTileWidget::setTileset);
+    connect(allTiles, &BigTileWidget::itemSelectedLeft, this, &CCEditMain::setLeftTile);
+    connect(allTiles, &BigTileWidget::itemSelectedRight, this, &CCEditMain::setRightTile);
     connect(this, &CCEditMain::tilesetChanged, layerWidget, &LayerWidget::setTileset);
-    connect(this, &CCEditMain::foregroundChanged, layerWidget, &LayerWidget::setUpper);
-    connect(this, &CCEditMain::backgroundChanged, layerWidget, &LayerWidget::setLower);
-    connect(this, &CCEditMain::foregroundChanged, this, [foreTileLabel](tile_t tile) {
-        foreTileLabel->setText(CCETileset::TileName(tile));
+    connect(this, &CCEditMain::leftTileChanged, layerWidget, &LayerWidget::setUpper);
+    connect(this, &CCEditMain::rightTileChanged, layerWidget, &LayerWidget::setLower);
+    connect(this, &CCEditMain::leftTileChanged, this, [leftTileLabel](tile_t tile) {
+        leftTileLabel->setText(CCETileset::TileName(tile));
     });
-    connect(this, &CCEditMain::backgroundChanged, this, [backTileLabel](tile_t tile) {
-        backTileLabel->setText(CCETileset::TileName(tile));
+    connect(this, &CCEditMain::rightTileChanged, this, [rightTileLabel](tile_t tile) {
+        rightTileLabel->setText(CCETileset::TileName(tile));
     });
 
     QGridLayout* allTileLayout = new QGridLayout(allTileWidget);
     allTileLayout->setContentsMargins(4, 4, 4, 4);
     allTileLayout->setVerticalSpacing(4);
     allTileLayout->addWidget(allTileScroll, 0, 0, 1, 3);
-    allTileLayout->addWidget(foreLabel, 1, 0);
-    allTileLayout->addWidget(foreTileLabel, 1, 1);
-    allTileLayout->addWidget(backLabel, 2, 0);
-    allTileLayout->addWidget(backTileLabel, 2, 1);
+    allTileLayout->addWidget(leftLabel, 1, 0);
+    allTileLayout->addWidget(leftTileLabel, 1, 1);
+    allTileLayout->addWidget(rightLabel, 2, 0);
+    allTileLayout->addWidget(rightTileLabel, 2, 1);
     allTileLayout->addWidget(layerWidget, 1, 2, 2, 1);
     m_toolTabs->addTab(allTileWidget, tr("&All Tiles"));
 
@@ -784,8 +784,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     else
         m_actions[ActionZoomCust]->setChecked(true);
 
-    setForeground(ccl::TileWall);
-    setBackground(ccl::TileFloor);
+    setLeftTile(ccl::TileWall);
+    setRightTile(ccl::TileFloor);
     onSelectLevel(-1);
     onClipboardDataChanged();
 }
@@ -1218,8 +1218,8 @@ EditorWidget* CCEditMain::addEditor(ccl::LevelData* level)
     editor->setDrawMode(m_currentDrawMode);
     editor->setTileset(m_currentTileset);
     editor->setLevelData(level);
-    editor->setLeftTile(m_foreground);
-    editor->setRightTile(m_background);
+    editor->setLeftTile(m_leftTile);
+    editor->setRightTile(m_rightTile);
     if (m_zoomFactor != 0.0)
         editor->setZoom(m_zoomFactor);
     m_editorTabs->addTab(scroll, level->name().c_str());
@@ -1235,8 +1235,8 @@ EditorWidget* CCEditMain::addEditor(ccl::LevelData* level)
     connect(editor, &EditorWidget::editingFinished, this, &CCEditMain::endEdit);
     connect(editor, &EditorWidget::editingCancelled, this, &CCEditMain::cancelEdit);
     connect(this, &CCEditMain::tilesetChanged, editor, &EditorWidget::setTileset);
-    connect(this, &CCEditMain::foregroundChanged, editor, &EditorWidget::setLeftTile);
-    connect(this, &CCEditMain::backgroundChanged, editor, &EditorWidget::setRightTile);
+    connect(this, &CCEditMain::leftTileChanged, editor, &EditorWidget::setLeftTile);
+    connect(this, &CCEditMain::rightTileChanged, editor, &EditorWidget::setRightTile);
 
     m_editorTabs->setCurrentWidget(scroll);
     return editor;
@@ -2322,16 +2322,16 @@ void CCEditMain::onHintChanged(const QString& value)
     }
 }
 
-void CCEditMain::setForeground(tile_t tile)
+void CCEditMain::setLeftTile(tile_t tile)
 {
-    m_foreground = tile;
-    emit foregroundChanged(tile);
+    m_leftTile = tile;
+    emit leftTileChanged(tile);
 }
 
-void CCEditMain::setBackground(tile_t tile)
+void CCEditMain::setRightTile(tile_t tile)
 {
-    m_background = tile;
-    emit backgroundChanged(tile);
+    m_rightTile = tile;
+    emit rightTileChanged(tile);
 }
 
 static bool haveClipboardData()

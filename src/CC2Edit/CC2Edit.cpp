@@ -631,37 +631,37 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     tileBox->addItem(tileLists[ListMisc], tr("Miscellaneous"));
 
     for (auto listWidget : tileLists) {
-        connect(listWidget, &TileListWidget::itemSelectedLeft, this, &CC2EditMain::setForeground);
-        connect(listWidget, &TileListWidget::itemSelectedRight, this, &CC2EditMain::setBackground);
+        connect(listWidget, &TileListWidget::tileSelectedLeft, this, &CC2EditMain::setLeftTile);
+        connect(listWidget, &TileListWidget::tileSelectedRight, this, &CC2EditMain::setRightTile);
         connect(this, &CC2EditMain::tilesetChanged, listWidget, &TileListWidget::setTileImages);
     }
 
     auto layerWidget = new LayerWidget(sortedTiles);
-    auto foreLabel = new QLabel(tr("Foreground: "), sortedTiles);
-    auto foreTileLabel = new QLabel(sortedTiles);
-    auto backLabel = new QLabel(tr("Background: "), sortedTiles);
-    auto backTileLabel = new QLabel(sortedTiles);
-    foreTileLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-    backTileLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+    auto leftLabel = new QLabel(tr("Left Button: "), sortedTiles);
+    auto leftTileLabel = new QLabel(sortedTiles);
+    auto rightLabel = new QLabel(tr("Right Button: "), sortedTiles);
+    auto rightTileLabel = new QLabel(sortedTiles);
+    leftTileLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+    rightTileLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
 
     connect(this, &CC2EditMain::tilesetChanged, layerWidget, &LayerWidget::setTileset);
-    connect(this, &CC2EditMain::foregroundChanged, layerWidget, &LayerWidget::setUpper);
-    connect(this, &CC2EditMain::backgroundChanged, layerWidget, &LayerWidget::setLower);
-    connect(this, &CC2EditMain::foregroundChanged, this, [foreTileLabel](const cc2::Tile* tile) {
-        foreTileLabel->setText(CC2ETileset::getName(tile));
+    connect(this, &CC2EditMain::leftTileChanged, layerWidget, &LayerWidget::setUpper);
+    connect(this, &CC2EditMain::rightTileChanged, layerWidget, &LayerWidget::setLower);
+    connect(this, &CC2EditMain::leftTileChanged, this, [leftTileLabel](const cc2::Tile* tile) {
+        leftTileLabel->setText(CC2ETileset::getName(tile));
     });
-    connect(this, &CC2EditMain::backgroundChanged, this, [backTileLabel](const cc2::Tile* tile) {
-        backTileLabel->setText(CC2ETileset::getName(tile));
+    connect(this, &CC2EditMain::rightTileChanged, this, [rightTileLabel](const cc2::Tile* tile) {
+        rightTileLabel->setText(CC2ETileset::getName(tile));
     });
 
     auto tileLayout = new QGridLayout(sortedTiles);
     tileLayout->setContentsMargins(4, 4, 4, 4);
     tileLayout->setVerticalSpacing(4);
     tileLayout->addWidget(tileBox, 0, 0, 1, 3);
-    tileLayout->addWidget(foreLabel, 1, 0);
-    tileLayout->addWidget(foreTileLabel, 1, 1);
-    tileLayout->addWidget(backLabel, 2, 0);
-    tileLayout->addWidget(backTileLabel, 2, 1);
+    tileLayout->addWidget(leftLabel, 1, 0);
+    tileLayout->addWidget(leftTileLabel, 1, 1);
+    tileLayout->addWidget(rightLabel, 2, 0);
+    tileLayout->addWidget(rightTileLabel, 2, 1);
     tileLayout->addWidget(layerWidget, 1, 2, 2, 1);
     m_toolTabs->addTab(sortedTiles, tr("&Tiles - Sorted"));
 
@@ -894,9 +894,9 @@ CC2EditMain::CC2EditMain(QWidget* parent)
 
     // Set default editor tiles
     cc2::Tile defTile(cc2::Tile::Wall);
-    setForeground(&defTile);
+    setLeftTile(&defTile);
     defTile.set(cc2::Tile::Floor);
-    setBackground(&defTile);
+    setRightTile(&defTile);
 
     setGameName(QString());
 }
@@ -1808,16 +1808,16 @@ void CC2EditMain::updateMapProperties(cc2::Map* map)
     m_note->setPlainText(QString::fromLatin1(map->note().c_str()));
 }
 
-void CC2EditMain::setForeground(const cc2::Tile* tile)
+void CC2EditMain::setLeftTile(const cc2::Tile* tile)
 {
-    m_foreground = *tile;
-    emit foregroundChanged(tile);
+    m_leftTile = *tile;
+    emit leftTileChanged(tile);
 }
 
-void CC2EditMain::setBackground(const cc2::Tile* tile)
+void CC2EditMain::setRightTile(const cc2::Tile* tile)
 {
-    m_background = *tile;
-    emit backgroundChanged(tile);
+    m_rightTile = *tile;
+    emit rightTileChanged(tile);
 }
 
 void CC2EditMain::onTitleChanged(const QString& value)
