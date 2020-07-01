@@ -40,11 +40,11 @@ signals:
 };
 
 
-class BigTileWiget : public QWidget {
+class BigTileWidget : public QWidget {
     Q_OBJECT
 
 public:
-    explicit BigTileWiget(QWidget* parent = nullptr);
+    explicit BigTileWidget(QWidget* parent = nullptr);
     void setTileset(CCETileset* tileset);
 
     QSize sizeHint() const override

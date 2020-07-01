@@ -32,6 +32,9 @@
     <file>res/draw-hints.png</file>
     <file>res/draw-inspect.png</file>
     <file>res/cctools-gbutton.png</file>
+    <file>res/object-rotate-left-lg.png</file>
+    <file>res/object-rotate-right-lg.png</file>
+    <file>res/tile-glyph-lg.png</file>
 
     <file>icons/boot-16.png</file>
     <file>icons/boot-24.png</file>

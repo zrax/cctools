@@ -665,6 +665,61 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     tileLayout->addWidget(layerWidget, 1, 2, 2, 1);
     m_toolTabs->addTab(sortedTiles, tr("&Tiles - Sorted"));
 
+    auto allTileWidget = new QWidget(toolDock);
+    auto allTileTbar = new QToolBar(toolDock);
+    auto allTileScroll = new QScrollArea(allTileWidget);
+    auto allTiles = new BigTileWidget(allTileScroll);
+    allTileScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    allTileScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    allTileScroll->setWidget(allTiles);
+
+    allTileTbar->setIconSize(QSize(32, 32));
+    auto glyphAction = allTileTbar->addAction(QIcon(":res/tile-glyph-lg.png"), tr("Show Glyph Tiles"));
+    glyphAction->setCheckable(true);
+    allTileTbar->addSeparator();
+    auto rolAction = allTileTbar->addAction(QIcon(":res/object-rotate-left-lg.png"), tr("Rotate Left"));
+    auto rorAction = allTileTbar->addAction(QIcon(":res/object-rotate-right-lg.png"), tr("Rotate Right"));
+
+    connect(rolAction, &QAction::triggered, allTiles, &BigTileWidget::rotateLeft);
+    connect(rorAction, &QAction::triggered, allTiles, &BigTileWidget::rotateRight);
+    connect(glyphAction, &QAction::toggled, this, [allTiles](bool checked) {
+        allTiles->setView(checked ? BigTileWidget::ViewGlyphs
+                                  : BigTileWidget::ViewTiles);
+    });
+
+    layerWidget = new LayerWidget(allTileWidget);
+    leftLabel = new QLabel(tr("Left Button: "), allTileWidget);
+    rightLabel = new QLabel(tr("Right Button: "), allTileWidget);
+    leftTileLabel = new QLabel(allTileWidget);
+    rightTileLabel = new QLabel(allTileWidget);
+    leftTileLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+    rightTileLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+    connect(this, &CC2EditMain::tilesetChanged, allTiles, &BigTileWidget::setTileset);
+    connect(allTiles, &BigTileWidget::tileSelectedLeft, this, &CC2EditMain::setLeftTile);
+    connect(allTiles, &BigTileWidget::tileSelectedRight, this, &CC2EditMain::setRightTile);
+    connect(this, &CC2EditMain::tilesetChanged, layerWidget, &LayerWidget::setTileset);
+    connect(this, &CC2EditMain::leftTileChanged, layerWidget, &LayerWidget::setUpper);
+    connect(this, &CC2EditMain::rightTileChanged, layerWidget, &LayerWidget::setLower);
+    connect(this, &CC2EditMain::leftTileChanged, this, [leftTileLabel](const cc2::Tile* tile) {
+        leftTileLabel->setText(CC2ETileset::getName(tile));
+    });
+    connect(this, &CC2EditMain::rightTileChanged, this, [rightTileLabel](const cc2::Tile* tile) {
+        rightTileLabel->setText(CC2ETileset::getName(tile));
+    });
+
+    QGridLayout* allTileLayout = new QGridLayout(allTileWidget);
+    allTileLayout->setContentsMargins(4, 4, 4, 4);
+    allTileLayout->setVerticalSpacing(4);
+    allTileLayout->addWidget(allTileTbar, 0, 0, 1, 3);
+    allTileLayout->addWidget(allTileScroll, 1, 0, 1, 3);
+    allTileLayout->addWidget(leftLabel, 2, 0);
+    allTileLayout->addWidget(leftTileLabel, 2, 1);
+    allTileLayout->addWidget(rightLabel, 3, 0);
+    allTileLayout->addWidget(rightTileLabel, 3, 1);
+    allTileLayout->addWidget(layerWidget, 2, 2, 2, 1);
+    m_toolTabs->addTab(allTileWidget, tr("&All Tiles"));
+
     // Editor area
     m_editorTabs = new EditorTabWidget(this);
     setCentralWidget(m_editorTabs);

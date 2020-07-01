@@ -73,4 +73,49 @@ private:
     std::vector<cc2::Tile> m_tiles;
 };
 
+class BigTileWidget : public QWidget {
+    Q_OBJECT
+
+public:
+    explicit BigTileWidget(QWidget* parent = nullptr);
+
+    void setTileset(CC2ETileset* tileset);
+    CC2ETileset* tileset() const { return m_tileset; }
+
+    enum ViewType { ViewTiles, ViewGlyphs };
+    void setView(ViewType type);
+
+    QSize sizeHint() const override
+    {
+        int tsetSize = m_tileset ? m_tileset->size() : 32;
+        return QSize(tsetSize * 9, tsetSize * 15);
+    }
+
+signals:
+    void tileSelectedLeft(const cc2::Tile*);
+    void tileSelectedRight(const cc2::Tile*);
+
+public slots:
+    void rotateLeft();
+    void rotateRight();
+
+protected:
+    void paintEvent(QPaintEvent*) override;
+    void mousePressEvent(QMouseEvent*) override;
+    void mouseMoveEvent(QMouseEvent*) override;
+
+private:
+    CC2ETileset* m_tileset;
+    std::vector<cc2::Tile> m_tiles;
+    std::vector<cc2::Tile> m_glyphs;
+    ViewType m_view;
+
+    std::vector<cc2::Tile>& tileList()
+    {
+        if (m_view == ViewGlyphs)
+            return m_glyphs;
+        return m_tiles;
+    }
+};
+
 #endif

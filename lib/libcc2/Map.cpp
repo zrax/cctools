@@ -119,6 +119,24 @@ cc2::Tile& cc2::Tile::operator=(const Tile& copy)
     return *this;
 }
 
+cc2::Tile::Tile(Tile&& move)
+    : m_type(move.m_type), m_direction(move.m_direction),
+      m_tileFlags(move.m_tileFlags), m_modifier(move.m_modifier),
+      m_lower(move.m_lower)
+{
+    move.m_lower = nullptr;
+}
+
+cc2::Tile& cc2::Tile::operator=(Tile&& move)
+{
+    m_type = move.m_type;
+    m_direction = move.m_direction;
+    m_tileFlags = move.m_tileFlags;
+    m_modifier = move.m_modifier;
+    std::swap(m_lower, move.m_lower);
+    return *this;
+}
+
 void cc2::Tile::read(ccl::Stream* stream)
 {
     m_type = stream->read8();

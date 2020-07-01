@@ -50,21 +50,21 @@ void TileListWidget::mousePressEvent(QMouseEvent* event)
 }
 
 
-BigTileWiget::BigTileWiget(QWidget* parent)
+BigTileWidget::BigTileWidget(QWidget* parent)
     : QWidget(parent), m_tileset()
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     setMouseTracking(true);
 }
 
-void BigTileWiget::setTileset(CCETileset* tileset)
+void BigTileWidget::setTileset(CCETileset* tileset)
 {
     m_tileset = tileset;
     resize(sizeHint());
     update();
 }
 
-void BigTileWiget::paintEvent(QPaintEvent*)
+void BigTileWidget::paintEvent(QPaintEvent*)
 {
     if (m_tileset == 0)
         return;
@@ -78,12 +78,12 @@ void BigTileWiget::paintEvent(QPaintEvent*)
     }
 }
 
-void BigTileWiget::mousePressEvent(QMouseEvent* event)
+void BigTileWidget::mousePressEvent(QMouseEvent* event)
 {
-    if (m_tileset == 0)
+    if (!m_tileset || event->x() >= (m_tileset->size() * 7)
+            || event->y() >= (m_tileset->size() * 16)) {
         return;
-    if (event->x() >= (m_tileset->size() * 7) || event->y() >= (m_tileset->size() * 16))
-        return;
+    }
 
     tile_t tileid = ((event->x() / m_tileset->size()) * 16)
                   + (event->y() / m_tileset->size());
@@ -93,11 +93,11 @@ void BigTileWiget::mousePressEvent(QMouseEvent* event)
         emit itemSelectedRight(tileid);
 }
 
-void BigTileWiget::mouseMoveEvent(QMouseEvent* event)
+void BigTileWidget::mouseMoveEvent(QMouseEvent* event)
 {
     QWidget::mouseMoveEvent(event);
-    if (m_tileset == 0 || event->x() >= (m_tileset->size() * 7) ||
-        event->y() >= (m_tileset->size() * 16)) {
+    if (!m_tileset || event->x() >= (m_tileset->size() * 7)
+            || event->y() >= (m_tileset->size() * 16)) {
         setToolTip(QString());
         return;
     }

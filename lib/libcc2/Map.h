@@ -252,6 +252,9 @@ public:
     Tile(const Tile& copy);
     Tile& operator=(const Tile& copy);
 
+    Tile(Tile&& move);
+    Tile& operator=(Tile&& move);
+
     Type type() const { return (Type)m_type; }
     Direction direction() const { return (Direction)m_direction; }
 
