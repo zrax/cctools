@@ -286,7 +286,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
 
     m_gamePropsDock = new QDockWidget(this);
     m_gamePropsDock->setObjectName("GameDock");
-    m_gamePropsDock->setWindowTitle(tr("&Game"));
+    m_gamePropsDock->setWindowTitle(tr("Game"));
     m_gamePropsDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     m_gamePropsDock->setWidget(m_gameProperties);
     addDockWidget(Qt::LeftDockWidgetArea, m_gamePropsDock);
@@ -392,7 +392,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
 
     m_mapPropsDock = new QDockWidget(this);
     m_mapPropsDock->setObjectName("MapPropsDock");
-    m_mapPropsDock->setWindowTitle(tr("Map &Properties"));
+    m_mapPropsDock->setWindowTitle(tr("Map Properties"));
     m_mapPropsDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     m_mapPropsDock->setWidget(m_mapProperties);
     tabifyDockWidget(m_gamePropsDock, m_mapPropsDock);
@@ -671,7 +671,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
 
     auto sortedTilesDock = new QDockWidget(this);
     sortedTilesDock->setObjectName("SortedTilesDock");
-    sortedTilesDock->setWindowTitle(tr("Ti&les - Sorted"));
+    sortedTilesDock->setWindowTitle(tr("Tiles - Sorted"));
     sortedTilesDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     sortedTilesDock->setWidget(sortedTiles);
     tabifyDockWidget(m_gamePropsDock, sortedTilesDock);
@@ -732,7 +732,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
 
     auto allTilesDock = new QDockWidget(this);
     allTilesDock->setObjectName("AllTilesDock");
-    allTilesDock->setWindowTitle(tr("&All Tiles"));
+    allTilesDock->setWindowTitle(tr("All Tiles"));
     allTilesDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     allTilesDock->setWidget(allTileWidget);
     tabifyDockWidget(m_gamePropsDock, allTilesDock);

@@ -364,7 +364,7 @@ CCEditMain::CCEditMain(QWidget* parent)
 
     m_levelManDock = new QDockWidget(this);
     m_levelManDock->setObjectName("LevelManagerDock");
-    m_levelManDock->setWindowTitle(tr("Level &Manager"));
+    m_levelManDock->setWindowTitle(tr("Level Manager"));
     m_levelManDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     m_levelManDock->setWidget(levelManWidget);
     addDockWidget(Qt::LeftDockWidgetArea, m_levelManDock);
@@ -476,7 +476,7 @@ CCEditMain::CCEditMain(QWidget* parent)
 
     auto sortedTilesDock = new QDockWidget(this);
     sortedTilesDock->setObjectName("SortedTilesDock");
-    sortedTilesDock->setWindowTitle(tr("Ti&les - Sorted"));
+    sortedTilesDock->setWindowTitle(tr("Tiles - Sorted"));
     sortedTilesDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     sortedTilesDock->setWidget(tileWidget);
     tabifyDockWidget(m_levelManDock, sortedTilesDock);
@@ -521,7 +521,7 @@ CCEditMain::CCEditMain(QWidget* parent)
 
     auto allTilesDock = new QDockWidget(this);
     allTilesDock->setObjectName("AllTilesDock");
-    allTilesDock->setWindowTitle(tr("&All Tiles"));
+    allTilesDock->setWindowTitle(tr("All Tiles"));
     allTilesDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     allTilesDock->setWidget(allTileWidget);
     tabifyDockWidget(m_levelManDock, allTilesDock);
