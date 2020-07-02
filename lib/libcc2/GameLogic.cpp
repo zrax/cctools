@@ -21,7 +21,7 @@ static void toggleTile(cc2::Tile* tile)
 {
     if (tile->haveLower())
         toggleTile(tile->lower());
-    
+
     switch (tile->type()) {
     case cc2::Tile::ToggleWall:
         tile->set(cc2::Tile::ToggleFloor);
@@ -34,6 +34,8 @@ static void toggleTile(cc2::Tile* tile)
         break;
     case cc2::Tile::GreenChip:
         tile->set(cc2::Tile::GreenBomb);
+        break;
+    default:
         break;
     }
 }
