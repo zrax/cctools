@@ -62,7 +62,7 @@ static ccl::Levelset* load_levelset(QString filename, QWidget* self,
     ccl::Levelset* levelset = 0;
     if (type == ccl::LevelsetCcl) {
         try {
-            if (!stream.open(filename.toUtf8().data(), "rb")) {
+            if (!stream.open(filename.toLocal8Bit().data(), "rb")) {
                 QMessageBox::critical(self, self->tr("Error Reading Levelset"),
                         self->tr("Error Opening levelset file %1").arg(filename));
                 return 0;
@@ -71,6 +71,7 @@ static ccl::Levelset* load_levelset(QString filename, QWidget* self,
             levelset->read(&stream);
             stream.close();
         } catch (std::exception& e) {
+            qDebug("Error trying to load %s: %s", qPrintable(filename), e.what());
             QMessageBox::critical(self, self->tr("Error Reading Levelset"),
                     self->tr("Error Reading levelset file: %1").arg(e.what()));
             delete levelset;
@@ -80,7 +81,7 @@ static ccl::Levelset* load_levelset(QString filename, QWidget* self,
             *dacLastLevel = (levelset->levelCount() == 149) ? 144 : levelset->levelCount();
         return levelset;
     } else if (type == ccl::LevelsetDac) {
-        FILE* dac = fopen(filename.toUtf8().data(), "rt");
+        FILE* dac = fopen(filename.toLocal8Bit().data(), "rt");
         if (dac == 0) {
             QMessageBox::critical(self, self->tr("Error reading levelset"),
                                   self->tr("Could not open file: %1")
@@ -91,7 +92,14 @@ static ccl::Levelset* load_levelset(QString filename, QWidget* self,
         try {
             dacInfo.read(dac);
             fclose(dac);
+        } catch (ccl::FormatException&) {
+            // Tried to read an invalid levelset file (probably not really
+            // a levelset -- e.g. "unins000.dat")
+            qDebug("Format error trying to load %s", qPrintable(filename));
+            fclose(dac);
+            return 0;
         } catch (ccl::Exception& e) {
+            qDebug("Error trying to load %s: %s", qPrintable(filename), e.what());
             QMessageBox::critical(self, self->tr("Error reading levelset"),
                                   self->tr("Error loading levelset descriptor: %1")
                                   .arg(e.what()));
@@ -101,12 +109,13 @@ static ccl::Levelset* load_levelset(QString filename, QWidget* self,
 
         QDir searchPath(filename);
         searchPath.cdUp();
-        if (stream.open(searchPath.absoluteFilePath(dacInfo.m_filename.c_str()).toUtf8().data(), "rb")) {
+        if (stream.open(searchPath.absoluteFilePath(dacInfo.m_filename.c_str()).toLocal8Bit().data(), "rb")) {
             try {
                 levelset = new ccl::Levelset();
                 levelset->read(&stream);
                 stream.close();
             } catch (std::exception& e) {
+                qDebug("Error trying to load %s: %s", qPrintable(filename), e.what());
                 QMessageBox::critical(self, self->tr("Error reading levelset"),
                                       self->tr("Error loading levelset: %1").arg(e.what()));
                 stream.close();
