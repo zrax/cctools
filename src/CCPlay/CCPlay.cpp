@@ -30,6 +30,7 @@
 #include <QFileDialog>
 #include <QSqlQuery>
 #include <QProcess>
+#include <memory>
 #include "PlaySettings.h"
 #include "libcc1/Levelset.h"
 #include "libcc1/DacFile.h"
@@ -54,39 +55,38 @@ static bool canRunMSCC()
 }
 #endif
 
-static ccl::Levelset* load_levelset(QString filename, QWidget* self,
-                                    int* dacLastLevel = 0)
+static std::unique_ptr<ccl::Levelset>
+load_levelset(QString filename, QWidget* self, int* dacLastLevel = nullptr)
 {
-    ccl::LevelsetType type = ccl::DetermineLevelsetType(filename.toUtf8().data());
+    ccl::LevelsetType type = ccl::DetermineLevelsetType(filename.toLocal8Bit().constData());
     ccl::FileStream stream;
-    ccl::Levelset* levelset = 0;
+    std::unique_ptr<ccl::Levelset> levelset;
     if (type == ccl::LevelsetCcl) {
         try {
-            if (!stream.open(filename.toLocal8Bit().data(), "rb")) {
+            if (!stream.open(filename.toLocal8Bit().constData(), "rb")) {
                 QMessageBox::critical(self, self->tr("Error Reading Levelset"),
                         self->tr("Error Opening levelset file %1").arg(filename));
                 return 0;
             }
-            levelset = new ccl::Levelset();
+            levelset = std::make_unique<ccl::Levelset>();
             levelset->read(&stream);
             stream.close();
         } catch (std::exception& e) {
             qDebug("Error trying to load %s: %s", qPrintable(filename), e.what());
             QMessageBox::critical(self, self->tr("Error Reading Levelset"),
                     self->tr("Error Reading levelset file: %1").arg(e.what()));
-            delete levelset;
-            return 0;
+            return {};
         }
         if (dacLastLevel != 0)
             *dacLastLevel = (levelset->levelCount() == 149) ? 144 : levelset->levelCount();
         return levelset;
     } else if (type == ccl::LevelsetDac) {
-        FILE* dac = fopen(filename.toLocal8Bit().data(), "rt");
-        if (dac == 0) {
+        FILE* dac = fopen(filename.toLocal8Bit().constData(), "rt");
+        if (!dac) {
             QMessageBox::critical(self, self->tr("Error reading levelset"),
                                   self->tr("Could not open file: %1")
                                   .arg(filename));
-            return 0;
+            return {};
         }
         ccl::DacFile dacInfo;
         try {
@@ -97,21 +97,21 @@ static ccl::Levelset* load_levelset(QString filename, QWidget* self,
             // a levelset -- e.g. "unins000.dat")
             qDebug("Format error trying to load %s", qPrintable(filename));
             fclose(dac);
-            return 0;
+            return {};
         } catch (ccl::Exception& e) {
             qDebug("Error trying to load %s: %s", qPrintable(filename), e.what());
             QMessageBox::critical(self, self->tr("Error reading levelset"),
                                   self->tr("Error loading levelset descriptor: %1")
                                   .arg(e.what()));
             fclose(dac);
-            return 0;
+            return {};
         }
 
         QDir searchPath(filename);
         searchPath.cdUp();
-        if (stream.open(searchPath.absoluteFilePath(dacInfo.m_filename.c_str()).toLocal8Bit().data(), "rb")) {
+        if (stream.open(searchPath.absoluteFilePath(dacInfo.m_filename.c_str()).toLocal8Bit().constData(), "rb")) {
             try {
-                levelset = new ccl::Levelset();
+                levelset = std::make_unique<ccl::Levelset>();
                 levelset->read(&stream);
                 stream.close();
             } catch (std::exception& e) {
@@ -119,8 +119,7 @@ static ccl::Levelset* load_levelset(QString filename, QWidget* self,
                 QMessageBox::critical(self, self->tr("Error reading levelset"),
                                       self->tr("Error loading levelset: %1").arg(e.what()));
                 stream.close();
-                delete levelset;
-                return 0;
+                return {};
             }
             if (dacLastLevel != 0)
                 *dacLastLevel = (dacInfo.m_lastLevel == 0) ? levelset->levelCount() : dacInfo.m_lastLevel;
@@ -129,12 +128,12 @@ static ccl::Levelset* load_levelset(QString filename, QWidget* self,
             QMessageBox::critical(self, self->tr("Error opening levelset"),
                                   self->tr("Error: could not open file %1")
                                   .arg(dacInfo.m_filename.c_str()));
-            return 0;
+            return {};
         }
     } else {
         QMessageBox::critical(self, self->tr("Error reading levelset"),
                               self->tr("Cannot determine file type for %1").arg(filename));
-        return 0;
+        return {};
     }
 }
 
@@ -288,7 +287,7 @@ bool CCPlayMain::initDatabase()
 
     if (!m_scoredb.isDriverAvailable("QSQLITE")) {
         QMessageBox::critical(this, tr("SQLite Error"),
-                tr("Error: Could not find Qt4 SQLite driver"));
+                tr("Error: Could not find Qt SQLite driver"));
         return false;
     }
     m_scoredb = QSqlDatabase::addDatabase("QSQLITE");
@@ -441,14 +440,12 @@ void CCPlayMain::onPlayMSCC()
     // Save the levelset to temp file, and extract useful information
     ccl::FileStream stream;
     int dacLastLevel;
-    ccl::Levelset* levelset = load_levelset(filename, this, &dacLastLevel);
-    if (levelset == 0)
+    auto levelset = load_levelset(filename, this, &dacLastLevel);
+    if (!levelset)
         return;
-    if (!stream.open(tempDat.toUtf8().data(), "wb")) {
+    if (!stream.open(tempDat.toLocal8Bit().constData(), "wb")) {
         QMessageBox::critical(this, tr("Error writing data file"),
                 tr("Error opening CCRun.dat for writing"));
-        stream.close();
-        delete levelset;
         return;
     }
     try {
@@ -458,7 +455,6 @@ void CCPlayMain::onPlayMSCC()
                 tr("Error writing data file: %1").arg(e.what()));
         stream.close();
         QFile::remove(tempDat);
-        delete levelset;
         return;
     }
     stream.close();
@@ -469,15 +465,13 @@ void CCPlayMain::onPlayMSCC()
         QMessageBox::critical(this, tr("Error creating temp EXE"),
                 tr("Error copying %1 to temp path").arg(chipsExe));
         QFile::remove(tempDat);
-        delete levelset;
         return;
     }
-    if (!stream.open(tempExe.toUtf8().data(), "r+b")) {
+    if (!stream.open(tempExe.toLocal8Bit().constData(), "r+b")) {
         QMessageBox::critical(this, tr("Error creating temp EXE"),
                 tr("Error opening %1 for writing").arg(tempExe));
         QFile::remove(tempExe);
         QFile::remove(tempDat);
-        delete levelset;
         return;
     }
 
@@ -516,15 +510,14 @@ void CCPlayMain::onPlayMSCC()
     }
 
     QString tempIni = exePath.absoluteFilePath("CCRun.ini");
-    FILE* iniStream = fopen(tempIni.toUtf8().data(), "r+t");
+    FILE* iniStream = fopen(tempIni.toLocal8Bit().constData(), "r+t");
     if (iniStream == 0)
-        iniStream = fopen(tempIni.toUtf8().data(), "w+t");
+        iniStream = fopen(tempIni.toLocal8Bit().constData(), "w+t");
     if (iniStream == 0) {
         QMessageBox::critical(this, tr("Error Creating CCRun.ini"),
                 tr("Error: Could not open or create CCRun.ini file"));
         QFile::remove(tempExe);
         QFile::remove(tempDat);
-        delete levelset;
         return;
     }
     try {
@@ -541,17 +534,17 @@ void CCPlayMain::onPlayMSCC()
                                    .arg(setid).arg(i + 1));
                 if (!query.first())
                     continue;
-                ini.setString(QString("Level%1").arg(i + 1).toUtf8().data(),
+                ini.setString(QString("Level%1").arg(i + 1).toLatin1().constData(),
                               QString("%1,%2,%3").arg(levelset->level(i)->password().c_str())
                                                  .arg(query.value(0).toInt())
                                                  .arg(query.value(1).toInt())
-                                                 .toUtf8().data());
+                                                 .toLatin1().constData());
                 if (i + 1 == curLevel)
                     haveCurLevel = true;
             }
         }
         if (!haveCurLevel) {
-            ini.setString(QString("Level%1").arg(curLevel).toUtf8().data(),
+            ini.setString(QString("Level%1").arg(curLevel).toLatin1().constData(),
                           levelset->level(curLevel - 1)->password());
         }
         ini.write(iniStream);
@@ -563,7 +556,6 @@ void CCPlayMain::onPlayMSCC()
         QFile::remove(tempExe);
         QFile::remove(tempDat);
         QFile::remove(tempIni);
-        delete levelset;
         return;
     }
 
@@ -578,14 +570,13 @@ void CCPlayMain::onPlayMSCC()
     QDir::setCurrent(cwd);
 
 
-    iniStream = fopen(tempIni.toUtf8().data(), "rt");
+    iniStream = fopen(tempIni.toLocal8Bit().constData(), "rt");
     if (iniStream == 0) {
         QMessageBox::critical(this, tr("Error Reading CCRun.ini"),
                 tr("Error: Could not open CCRun.ini file for reading"));
         QFile::remove(tempExe);
         QFile::remove(tempDat);
         QFile::remove(tempIni);
-        delete levelset;
         return;
     }
     try {
@@ -607,7 +598,7 @@ void CCPlayMain::onPlayMSCC()
         }
 
         for (int i=0; i<levelset->levelCount(); ++i) {
-            QString levelData = ini.getString(QString("Level%1").arg(i + 1).toUtf8().data()).c_str();
+            QString levelData = ini.getString(QString("Level%1").arg(i + 1).toLatin1().constData()).c_str();
             if (levelData.isEmpty())
                 continue;
 
@@ -634,7 +625,7 @@ void CCPlayMain::onPlayMSCC()
                     }
                 }
             } else {
-                qDebug("Error parsing score: %s", levelData.toUtf8().data());
+                qDebug("Error parsing score: %s", qPrintable(levelData));
                 continue;
             }
         }
@@ -645,7 +636,6 @@ void CCPlayMain::onPlayMSCC()
         QFile::remove(tempExe);
         QFile::remove(tempDat);
         QFile::remove(tempIni);
-        delete levelset;
         return;
     }
 
@@ -653,7 +643,6 @@ void CCPlayMain::onPlayMSCC()
     QFile::remove(tempExe);
     QFile::remove(tempDat);
     QFile::remove(tempIni);
-    delete levelset;
 
     refreshScores();
 }
@@ -720,7 +709,7 @@ void CCPlayMain::onPlayTWorld(bool tworld2)
     // Parse the TWS file and extract score data
     ccl::FileStream tws;
     QString twsName = QDir::toNativeSeparators(QDir::homePath() + "/.cctools/" + setName + ".tws");
-    if (!tws.open(twsName.toUtf8().data(), "rb")) {
+    if (!tws.open(twsName.toLocal8Bit().constData(), "rb")) {
         QMessageBox::critical(this, tr("Error parsing score data"),
                 tr("Error: Could not open %1 for reading").arg(twsName));
         tws.close();
@@ -739,8 +728,8 @@ void CCPlayMain::onPlayTWorld(bool tworld2)
     size_t extraBytes = tws.read8();
     tws.seek(extraBytes, SEEK_CUR);
 
-    ccl::Levelset* levelset = load_levelset(filename, this);
-    if (levelset == 0) {
+    auto levelset = load_levelset(filename, this);
+    if (!levelset) {
         tws.close();
         return;
     }
@@ -812,7 +801,6 @@ void CCPlayMain::onPlayTWorld(bool tworld2)
                        .arg(timeScore).arg(bestScore));
         }
     }
-    delete levelset;
 
     // TWorld does not store highest and last level separately, so store
     // the highest level into both fields
@@ -885,8 +873,8 @@ void CCPlayMain::onPathChanged(QString path)
     QStringList setList = levelsetDir.entryList(setExts, QDir::Files, QDir::Name);
     foreach (QString set, setList) {
         QString filename = levelsetDir.absoluteFilePath(set);
-        ccl::Levelset* levelset = load_levelset(filename, this);
-        if (levelset == 0)
+        auto levelset = load_levelset(filename, this);
+        if (!levelset)
             continue;
 
         QString fileid = QDir(filename).absolutePath().section(QChar('/'), -1);
@@ -912,19 +900,18 @@ void CCPlayMain::onPathChanged(QString path)
         item->setText(3, curLevel == 0 ? "---" : QString("%1").arg(curLevel));
         item->setText(4, totScore == 0 ? "---" : QString("%1").arg(totScore));
         item->setData(0, Qt::UserRole, levelsetDir.absoluteFilePath(set));
-        delete levelset;
     }
 }
 
 void CCPlayMain::onLevelsetChanged(QTreeWidgetItem* item, QTreeWidgetItem*)
 {
     m_levelList->clear();
-    if (item == 0)
+    if (!item)
         return;
 
     QString filename = item->data(0, Qt::UserRole).toString();
-    ccl::Levelset* levelset = load_levelset(filename, this);
-    if (levelset == 0)
+    auto levelset = load_levelset(filename, this);
+    if (!levelset)
         return;
 
     CCX::Levelset ccx;
@@ -964,7 +951,6 @@ void CCPlayMain::onLevelsetChanged(QTreeWidgetItem* item, QTreeWidgetItem*)
         item->setText(4, myTime == 0 ? "---" : QString("%1").arg(myTime));
         item->setText(5, myScore == 0 ? "---" : QString("%1").arg(myScore));
     }
-    delete levelset;
 
     if (curLevel < m_levelList->topLevelItemCount())
         m_levelList->setCurrentItem(m_levelList->topLevelItem(curLevel));
