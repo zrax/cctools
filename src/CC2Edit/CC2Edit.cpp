@@ -76,7 +76,6 @@ CC2EditMain::CC2EditMain(QWidget* parent)
       m_currentDrawMode(CC2EditorWidget::DrawPencil), m_subProc()
 {
     setWindowTitle(CC2EDIT_TITLE);
-    setDockOptions(QMainWindow::AnimatedDocks);
 
     // Actions
     m_actions[ActionNewMap] = new QAction(QIcon(":/res/document-new.png"), tr("&New Map..."), this);
@@ -253,18 +252,11 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_actions[ActionEditScript]->setStatusTip(tr("Open the current game script for editing"));
 
     // Control Toolbox
-    auto toolDock = new QDockWidget(this);
-    toolDock->setObjectName("ToolDock");
-    toolDock->setWindowTitle(tr("Toolbox"));
-    toolDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
-    toolDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-    m_toolTabs = new QTabWidget(toolDock);
-    m_toolTabs->setObjectName("ToolTabs");
-    m_toolTabs->setTabPosition(QTabWidget::West);
-    toolDock->setWidget(m_toolTabs);
-    addDockWidget(Qt::LeftDockWidgetArea, toolDock);
+    setDockOptions(QMainWindow::AnimatedDocks | QMainWindow::AllowTabbedDocks);
+    setTabPosition(Qt::LeftDockWidgetArea, QTabWidget::West);
+    setTabPosition(Qt::RightDockWidgetArea, QTabWidget::East);
 
-    m_gameProperties = new QWidget(toolDock);
+    m_gameProperties = new QWidget(this);
     m_gameName = new QLabel(m_gameProperties);
     m_gameName->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
     auto gameNameFont = m_gameName->font();
@@ -290,10 +282,16 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     gamePropsLayout->setHorizontalSpacing(4);
     gamePropsLayout->addWidget(tbarGameScript, 0, 0);
     gamePropsLayout->addWidget(m_gameMapList, 1, 0);
-    m_toolTabs->addTab(m_gameProperties, tr("&Game"));
     m_gameProperties->setEnabled(false);
 
-    m_mapProperties = new QWidget(toolDock);
+    m_gamePropsDock = new QDockWidget(this);
+    m_gamePropsDock->setObjectName("GameDock");
+    m_gamePropsDock->setWindowTitle(tr("&Game"));
+    m_gamePropsDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    m_gamePropsDock->setWidget(m_gameProperties);
+    addDockWidget(Qt::LeftDockWidgetArea, m_gamePropsDock);
+
+    m_mapProperties = new QWidget(this);
     m_title = new QLineEdit(m_mapProperties);
     auto titleLabel = new QLabel(tr("&Title:"), m_mapProperties);
     titleLabel->setBuddy(m_title);
@@ -390,8 +388,14 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     mapPropsLayout->addWidget(m_clue, row, 1, 1, 2);
     mapPropsLayout->addWidget(noteLabel, ++row, 0, Qt::AlignTop);
     mapPropsLayout->addWidget(m_note, row, 1, 1, 2);
-    m_toolTabs->addTab(m_mapProperties, tr("Map &Properties"));
     m_mapProperties->setEnabled(false);
+
+    m_mapPropsDock = new QDockWidget(this);
+    m_mapPropsDock->setObjectName("MapPropsDock");
+    m_mapPropsDock->setWindowTitle(tr("Map &Properties"));
+    m_mapPropsDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    m_mapPropsDock->setWidget(m_mapProperties);
+    tabifyDockWidget(m_gamePropsDock, m_mapPropsDock);
 
     connect(m_title, &QLineEdit::textChanged, this, &CC2EditMain::onTitleChanged);
     connect(m_author, &QLineEdit::textChanged, this, &CC2EditMain::onAuthorChanged);
@@ -410,7 +414,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     connect(m_note, &QPlainTextEdit::textChanged, this, &CC2EditMain::onNoteChanged);
     connect(resizeButton, &QPushButton::clicked, this, &CC2EditMain::onResizeMap);
 
-    auto sortedTiles = new QWidget(toolDock);
+    auto sortedTiles = new QWidget(this);
     auto tileBox = new QToolBox(sortedTiles);
     TileListWidget* tileLists[NUM_TILE_LISTS];
     tileLists[ListStandard] = new TileListWidget(tileBox);
@@ -664,10 +668,16 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     tileLayout->addWidget(rightLabel, 2, 0);
     tileLayout->addWidget(rightTileLabel, 2, 1);
     tileLayout->addWidget(layerWidget, 1, 2, 2, 1);
-    m_toolTabs->addTab(sortedTiles, tr("&Tiles - Sorted"));
 
-    auto allTileWidget = new QWidget(toolDock);
-    auto allTileTbar = new QToolBar(toolDock);
+    auto sortedTilesDock = new QDockWidget(this);
+    sortedTilesDock->setObjectName("SortedTilesDock");
+    sortedTilesDock->setWindowTitle(tr("Ti&les - Sorted"));
+    sortedTilesDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    sortedTilesDock->setWidget(sortedTiles);
+    tabifyDockWidget(m_gamePropsDock, sortedTilesDock);
+
+    auto allTileWidget = new QWidget(this);
+    auto allTileTbar = new QToolBar(allTileWidget);
     auto allTileScroll = new QScrollArea(allTileWidget);
     auto allTiles = new BigTileWidget(allTileScroll);
     allTileScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
@@ -719,7 +729,13 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     allTileLayout->addWidget(rightLabel, 3, 0);
     allTileLayout->addWidget(rightTileLabel, 3, 1);
     allTileLayout->addWidget(layerWidget, 2, 2, 2, 1);
-    m_toolTabs->addTab(allTileWidget, tr("&All Tiles"));
+
+    auto allTilesDock = new QDockWidget(this);
+    allTilesDock->setObjectName("AllTilesDock");
+    allTilesDock->setWindowTitle(tr("&All Tiles"));
+    allTilesDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    allTilesDock->setWidget(allTileWidget);
+    tabifyDockWidget(m_gamePropsDock, allTilesDock);
 
     // Editor area
     m_editorTabs = new EditorTabWidget(this);
@@ -769,6 +785,12 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     viewMenu->addAction(m_actions[ActionViewActivePlayer]);
     viewMenu->addAction(m_actions[ActionViewViewport]);
     viewMenu->addAction(m_actions[ActionViewMonsterPaths]);
+    viewMenu->addSeparator();
+    QMenu* dockMenu = viewMenu->addMenu(tr("&Toolbox"));
+    dockMenu->addAction(m_gamePropsDock->toggleViewAction());
+    dockMenu->addAction(m_mapPropsDock->toggleViewAction());
+    dockMenu->addAction(sortedTilesDock->toggleViewAction());
+    dockMenu->addAction(allTilesDock->toggleViewAction());
     viewMenu->addSeparator();
     m_tilesetMenu = viewMenu->addMenu(tr("Tile&set"));
     m_tilesetGroup = new QActionGroup(this);
@@ -870,8 +892,6 @@ CC2EditMain::CC2EditMain(QWidget* parent)
             editScript(m_currentGameScript);
     });
 
-    connect(toolDock, &QDockWidget::dockLocationChanged, this, &CC2EditMain::onDockChanged);
-
     connect(m_editorTabs, &QTabWidget::tabCloseRequested, this, [this](int index) {
         m_editorTabs->widget(index)->deleteLater();
     });
@@ -891,21 +911,25 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_actions[ActionViewMonsterPaths]->setChecked(settings.value("ViewMonsterPaths", false).toBool());
     m_dialogDir = settings.value("DialogDir").toString();
 
-    // Make sure the toolbox is visible
-    if (toolDock->isFloating()) {
-        QPoint dockPos = toolDock->pos();
-        QDesktopWidget* desktop = QApplication::desktop();
-        if ((dockPos.x() + toolDock->width() - 10) < desktop->contentsRect().left())
-            dockPos.setX(desktop->contentsRect().left());
-        if (dockPos.x() + 10 > desktop->contentsRect().right())
-            dockPos.setX(desktop->contentsRect().right() - toolDock->width());
-        if (dockPos.y() < desktop->contentsRect().top())
-            dockPos.setY(desktop->contentsRect().top());
-        if (dockPos.y() + 10 > desktop->contentsRect().bottom())
-            dockPos.setY(desktop->contentsRect().bottom() - toolDock->height());
-        toolDock->move(dockPos);
-        toolDock->show();
+    // Make sure the toolbox docks are visible
+    QDockWidget* docks[] = {m_gamePropsDock, m_mapPropsDock, sortedTilesDock, allTilesDock};
+    for (QDockWidget* dock : docks) {
+        if (dock->isFloating()) {
+            QPoint dockPos = dock->pos();
+            QDesktopWidget* desktop = QApplication::desktop();
+            if ((dockPos.x() + dock->width() - 10) < desktop->contentsRect().left())
+                dockPos.setX(desktop->contentsRect().left());
+            if (dockPos.x() + 10 > desktop->contentsRect().right())
+                dockPos.setX(desktop->contentsRect().right() - dock->width());
+            if (dockPos.y() < desktop->contentsRect().top())
+                dockPos.setY(desktop->contentsRect().top());
+            if (dockPos.y() + 10 > desktop->contentsRect().bottom())
+                dockPos.setY(desktop->contentsRect().bottom() - dock->height());
+            dock->move(dockPos);
+            dock->show();
+        }
     }
+    m_gamePropsDock->raise();
 
     findTilesets();
     if (m_tilesetGroup->actions().size() == 0) {
@@ -965,7 +989,7 @@ void CC2EditMain::createNewMap()
     addEditor(map, QString());
     map->unref();
 
-    m_toolTabs->setCurrentWidget(m_mapProperties);
+    m_mapPropsDock->raise();
 }
 
 void CC2EditMain::createNewScript()
@@ -993,10 +1017,10 @@ void CC2EditMain::loadFile(const QString& filename)
     QFileInfo info(filename);
     if (info.suffix().compare(QLatin1String("c2g"), Qt::CaseInsensitive) == 0) {
         if (loadScript(filename))
-            m_toolTabs->setCurrentWidget(m_gameProperties);
+            m_gamePropsDock->raise();
     } else if (info.suffix().compare(QLatin1String("c2m"), Qt::CaseInsensitive) == 0) {
         if (loadMap(filename))
-            m_toolTabs->setCurrentWidget(m_mapProperties);
+            m_mapPropsDock->raise();
     } else {
         QMessageBox::critical(this, tr("Invalid filename"),
                               tr("Unsupported file type for %1").arg(filename));
@@ -1369,7 +1393,7 @@ void CC2EditMain::onImportCC1Action()
                                 .arg(levelNum + 1, 3, 10, QLatin1Char('0'));
         CC2EditorWidget* editor = addEditor(map, tempName);
         editor->resetClean();
-        m_toolTabs->setCurrentWidget(m_mapProperties);
+        m_mapPropsDock->raise();
     }
 }
 
@@ -1764,14 +1788,6 @@ void CC2EditMain::onTestChips2()
     connect(m_subProc, &QProcess::errorOccurred, this, &CC2EditMain::onProcessError);
     m_subProc->start(chips2Exe, QStringList());
     QDir::setCurrent(cwd);
-}
-
-void CC2EditMain::onDockChanged(Qt::DockWidgetArea area)
-{
-    if (area == Qt::RightDockWidgetArea)
-        m_toolTabs->setTabPosition(QTabWidget::East);
-    else
-        m_toolTabs->setTabPosition(QTabWidget::West);
 }
 
 void CC2EditMain::onTabChanged(int index)

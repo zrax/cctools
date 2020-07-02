@@ -92,7 +92,6 @@ CCEditMain::CCEditMain(QWidget* parent)
       m_levelset(), m_dirtyFlag(), m_useDac(), m_subProc()
 {
     setWindowTitle(CCEDIT_TITLE);
-    setDockOptions(QMainWindow::AnimatedDocks);
 
     // Actions
     m_actions[ActionNew] = new QAction(QIcon(":/res/document-new.png"), tr("&New Levelset..."), this);
@@ -296,18 +295,11 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_undoStack, &QUndoStack::cleanChanged, this, &CCEditMain::onCleanChanged);
 
     // Control Toolbox
-    auto toolDock = new QDockWidget(this);
-    toolDock->setObjectName("ToolDock");
-    toolDock->setWindowTitle(tr("Toolbox"));
-    toolDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
-    toolDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-    m_toolTabs = new QTabWidget(toolDock);
-    m_toolTabs->setObjectName("ToolTabs");
-    m_toolTabs->setTabPosition(QTabWidget::West);
-    toolDock->setWidget(m_toolTabs);
-    addDockWidget(Qt::LeftDockWidgetArea, toolDock);
+    setDockOptions(QMainWindow::AnimatedDocks | QMainWindow::AllowTabbedDocks);
+    setTabPosition(Qt::LeftDockWidgetArea, QTabWidget::West);
+    setTabPosition(Qt::RightDockWidgetArea, QTabWidget::East);
 
-    auto levelManWidget = new QWidget(toolDock);
+    auto levelManWidget = new QWidget(this);
     m_levelList = new QListWidget(levelManWidget);
     m_nameEdit = new QLineEdit(levelManWidget);
     auto nameLabel = new QLabel(tr("&Name:"), levelManWidget);
@@ -369,9 +361,15 @@ CCEditMain::CCEditMain(QWidget* parent)
     levelManLayout->addWidget(hintLabel, 8, 0);
     levelManLayout->addWidget(m_hintEdit, 8, 1, 1, 2);
     m_hintEdit->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum));
-    m_toolTabs->addTab(levelManWidget, tr("Level &Manager"));
 
-    auto tileWidget = new QWidget(toolDock);
+    m_levelManDock = new QDockWidget(this);
+    m_levelManDock->setObjectName("LevelManagerDock");
+    m_levelManDock->setWindowTitle(tr("Level &Manager"));
+    m_levelManDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    m_levelManDock->setWidget(levelManWidget);
+    addDockWidget(Qt::LeftDockWidgetArea, m_levelManDock);
+
+    auto tileWidget = new QWidget(this);
     auto tileBox = new QToolBox(tileWidget);
     TileListWidget *tileLists[NUM_TILE_LISTS];
     tileLists[ListStandard] = new TileListWidget(tileBox);
@@ -475,9 +473,15 @@ CCEditMain::CCEditMain(QWidget* parent)
     tileLayout->addWidget(rightLabel, 2, 0);
     tileLayout->addWidget(rightTileLabel, 2, 1);
     tileLayout->addWidget(layerWidget, 1, 2, 2, 1);
-    m_toolTabs->addTab(tileWidget, tr("&Tiles - Sorted"));
 
-    auto allTileWidget = new QWidget(toolDock);
+    auto sortedTilesDock = new QDockWidget(this);
+    sortedTilesDock->setObjectName("SortedTilesDock");
+    sortedTilesDock->setWindowTitle(tr("Ti&les - Sorted"));
+    sortedTilesDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    sortedTilesDock->setWidget(tileWidget);
+    tabifyDockWidget(m_levelManDock, sortedTilesDock);
+
+    auto allTileWidget = new QWidget(this);
     auto allTileScroll = new QScrollArea(allTileWidget);
     auto allTiles = new BigTileWidget(allTileScroll);
     allTileScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
@@ -514,7 +518,13 @@ CCEditMain::CCEditMain(QWidget* parent)
     allTileLayout->addWidget(rightLabel, 2, 0);
     allTileLayout->addWidget(rightTileLabel, 2, 1);
     allTileLayout->addWidget(layerWidget, 1, 2, 2, 1);
-    m_toolTabs->addTab(allTileWidget, tr("&All Tiles"));
+
+    auto allTilesDock = new QDockWidget(this);
+    allTilesDock->setObjectName("AllTilesDock");
+    allTilesDock->setWindowTitle(tr("&All Tiles"));
+    allTilesDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    allTilesDock->setWidget(allTileWidget);
+    tabifyDockWidget(m_levelManDock, allTilesDock);
 
     // Editor area
     m_editorTabs = new EditorTabWidget(this);
@@ -564,6 +574,11 @@ CCEditMain::CCEditMain(QWidget* parent)
     viewMenu->addAction(m_actions[ActionViewViewport]);
     viewMenu->addAction(m_actions[ActionViewMonsterPaths]);
     viewMenu->addAction(m_actions[ActionViewErrors]);
+    viewMenu->addSeparator();
+    QMenu* dockMenu = viewMenu->addMenu(tr("&Toolbox"));
+    dockMenu->addAction(m_levelManDock->toggleViewAction());
+    dockMenu->addAction(sortedTilesDock->toggleViewAction());
+    dockMenu->addAction(allTilesDock->toggleViewAction());
     viewMenu->addSeparator();
     m_tilesetMenu = viewMenu->addMenu(tr("Tile&set"));
     m_tilesetGroup = new QActionGroup(this);
@@ -701,7 +716,6 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_timeEdit, QOverload<int>::of(&QSpinBox::valueChanged),
             this, &CCEditMain::onTimerChanged);
     connect(m_hintEdit, &QLineEdit::textChanged, this, &CCEditMain::onHintChanged);
-    connect(toolDock, &QDockWidget::dockLocationChanged, this, &CCEditMain::onDockChanged);
     connect(QApplication::clipboard(), &QClipboard::dataChanged,
             this, &CCEditMain::onClipboardDataChanged);
 
@@ -715,8 +729,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     resize(settings.value("WindowSize", QSize(1024, 768)).toSize());
     if (settings.value("WindowMaximized", false).toBool())
         showMaximized();
-    if (settings.contains("WindowState"))
-        restoreState(settings.value("WindowState").toByteArray());
+    if (settings.contains("WindowState2"))
+        restoreState(settings.value("WindowState2").toByteArray());
     m_zoomFactor = settings.value("ZoomFactor", 1.0).toDouble();
     m_actions[ActionViewButtons]->setChecked(settings.value("ViewButtons", true).toBool());
     m_actions[ActionViewMovers]->setChecked(settings.value("ViewMovers", true).toBool());
@@ -726,21 +740,25 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionViewErrors]->setChecked(settings.value("ViewErrors", true).toBool());
     m_dialogDir = settings.value("DialogDir").toString();
 
-    // Make sure the toolbox is visible
-    if (toolDock->isFloating()) {
-        QPoint dockPos = toolDock->pos();
-        const QRect desktopRect = QApplication::desktop()->contentsRect();
-        if ((dockPos.x() + toolDock->width() - 10) < desktopRect.left())
-            dockPos.setX(desktopRect.left());
-        if (dockPos.x() + 10 > desktopRect.right())
-            dockPos.setX(desktopRect.right() - toolDock->width());
-        if (dockPos.y() < desktopRect.top())
-            dockPos.setY(desktopRect.top());
-        if (dockPos.y() + 10 > desktopRect.bottom())
-            dockPos.setY(desktopRect.bottom() - toolDock->height());
-        toolDock->move(dockPos);
-        toolDock->show();
+    // Make sure the toolbox docks are visible
+    QDockWidget* docks[] = {m_levelManDock, sortedTilesDock, allTilesDock};
+    for (QDockWidget* dock : docks) {
+        if (dock->isFloating()) {
+            QPoint dockPos = dock->pos();
+            const QRect desktopRect = QApplication::desktop()->contentsRect();
+            if ((dockPos.x() + dock->width() - 10) < desktopRect.left())
+                dockPos.setX(desktopRect.left());
+            if (dockPos.x() + 10 > desktopRect.right())
+                dockPos.setX(desktopRect.right() - dock->width());
+            if (dockPos.y() < desktopRect.top())
+                dockPos.setY(desktopRect.top());
+            if (dockPos.y() + 10 > desktopRect.bottom())
+                dockPos.setY(desktopRect.bottom() - dock->height());
+            dock->move(dockPos);
+            dock->show();
+        }
     }
+    m_levelManDock->raise();
 
     findTilesets();
     if (m_tilesetGroup->actions().size() == 0) {
@@ -905,7 +923,7 @@ void CCEditMain::doLevelsetLoad()
     }
     if (m_levelList->currentItem() == 0 && m_levelset->levelCount() > 0)
         m_levelList->setCurrentRow(0);
-    m_toolTabs->setCurrentIndex(0);
+    m_levelManDock->raise();
 }
 
 void CCEditMain::setLevelsetFilename(const QString& filename)
@@ -1000,7 +1018,7 @@ void CCEditMain::closeEvent(QCloseEvent* event)
     settings.setValue("WindowMaximized", (windowState() & Qt::WindowMaximized) != 0);
     showNormal();
     settings.setValue("WindowSize", size());
-    settings.setValue("WindowState", saveState());
+    settings.setValue("WindowState2", saveState());
     settings.setValue("ZoomFactor", m_zoomFactor);
     settings.setValue("ViewButtons", m_actions[ActionViewButtons]->isChecked());
     settings.setValue("ViewMovers", m_actions[ActionViewMovers]->isChecked());
@@ -2401,14 +2419,6 @@ void CCEditMain::onTabChanged(int tabIdx)
     m_actions[ActionTestTWorldLynx]->setEnabled(true);
     m_actions[ActionTestTWorld2CC]->setEnabled(true);
     m_actions[ActionTestTWorld2Lynx]->setEnabled(true);
-}
-
-void CCEditMain::onDockChanged(Qt::DockWidgetArea area)
-{
-    if (area == Qt::RightDockWidgetArea)
-        m_toolTabs->setTabPosition(QTabWidget::East);
-    else
-        m_toolTabs->setTabPosition(QTabWidget::West);
 }
 
 void CCEditMain::onProcessFinished(int, QProcess::ExitStatus)

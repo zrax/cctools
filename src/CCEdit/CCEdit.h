@@ -93,8 +93,8 @@ private:
     EditorWidget::DrawMode m_currentDrawMode;
     double m_zoomFactor;
 
+    QDockWidget* m_levelManDock;
     EditorTabWidget* m_editorTabs;
-    QTabWidget* m_toolTabs;
     QListWidget* m_levelList;
     QLineEdit* m_nameEdit;
     QLineEdit* m_passwordEdit;
@@ -183,7 +183,6 @@ private slots:
     void onClipboardDataChanged();
 
     void onTabChanged(int);
-    void onDockChanged(Qt::DockWidgetArea);
 
     void setLeftTile(tile_t);
     void setRightTile(tile_t);

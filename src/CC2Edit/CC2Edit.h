@@ -94,7 +94,6 @@ private slots:
     void onTilesetMenu(QAction*);
     void onTestChips2();
 
-    void onDockChanged(Qt::DockWidgetArea);
     void onTabChanged(int);
     void updateMapProperties(cc2::Map* map);
 
@@ -143,7 +142,8 @@ private:
     CC2EditorWidget::DrawMode m_currentDrawMode;
     double m_zoomFactor;
 
-    QTabWidget* m_toolTabs;
+    QDockWidget* m_gamePropsDock;
+    QDockWidget* m_mapPropsDock;
 
     // Game (c2g) properties
     QWidget* m_gameProperties;
