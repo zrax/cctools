@@ -30,8 +30,8 @@ class PageGeneral : public HackPage {
 
 public:
     PageGeneral(QWidget* parent);
-    virtual void setValues(HackSettings* settings);
-    virtual void setDefaults(HackSettings* settings);
+    void setValues(HackSettings* settings) override;
+    void setDefaults(HackSettings* settings) override;
 
 private:
     QCheckBox* m_cbTitle;

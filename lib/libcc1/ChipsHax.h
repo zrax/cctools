@@ -62,7 +62,7 @@ enum CCPatchState { CCPatchOriginal, CCPatchPatched, CCPatchOther };
 
 class ChipsHax {
 public:
-    ChipsHax() : m_stream(0) { }
+    ChipsHax() : m_stream() { }
     void open(ccl::Stream* stream) { m_stream = stream; }
 
     /* Enter all available hacks here */

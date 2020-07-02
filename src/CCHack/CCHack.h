@@ -19,14 +19,17 @@
 #define _CCHACK_H
 
 #include <QMainWindow>
-#include <QTreeWidget>
 #include "HackSettings.h"
+
+class QTreeWidget;
+class QTreeWidgetItem;
+class QStackedWidget;
 
 class CCHackMain : public QMainWindow {
     Q_OBJECT
 
 public:
-    CCHackMain(QWidget* parent = 0);
+    CCHackMain(QWidget* parent = nullptr);
 
     void loadFile(const QString& filename);
 
@@ -34,10 +37,17 @@ private slots:
     void onChangePage(QTreeWidgetItem* page, QTreeWidgetItem*);
 
 private:
-    QWidget* m_container;
-    HackPage* m_page;
+    QStackedWidget* m_container;
 
     HackSettings m_defaults, m_settings;
+
+    enum PageType {
+        PageNothing, PageGeneral, PageSound,
+        PageMenus, PageStory, PageEndLevel, PageEndGame, PageMisc,
+        PageVGATS, PageEGATS, PageMonoTS, PageBackground, PageEndGfx, PageDigits,
+        Pages_COUNT
+    };
+    HackPage* m_pages[Pages_COUNT];
 };
 
 #endif

@@ -19,7 +19,7 @@
 #define _HACK_SETTINGS_H
 
 #include <string>
-#include <QObject>
+#include <QWidget>
 #include "libcc1/Stream.h"
 
 #define MAKE_SETTING(type, name) \
@@ -27,10 +27,21 @@
         bool m_##name##_set; \
         type m_##name##_value; \
     public: \
-        bool isset_##name() const { return m_##name##_set; } \
+        bool have_##name() const { return m_##name##_set; } \
         type get_##name() const { return m_##name##_value; } \
-        void set_##name(type value, bool isset = true) \
-        { m_##name##_value = value; m_##name##_set = isset; }
+        void set_##name(type value) { m_##name##_value = value; m_##name##_set = true; } \
+        void clear_##name() { m_##name##_value = type(); m_##name##_set = false; }
+
+#define MAKE_SETTING_STR(name) \
+    private: \
+        bool m_##name##_set; \
+        std::string m_##name##_value; \
+    public: \
+        bool have_##name() const { return m_##name##_set; } \
+        const std::string& get_##name() const { return m_##name##_value; } \
+        void set_##name(const std::string& value) \
+            { m_##name##_value = value; m_##name##_set = true; } \
+        void clear_##name() { m_##name##_value.clear(); m_##name##_set = false; }
 
 class HackSettings {
 public:
@@ -45,21 +56,20 @@ public:
     bool writeToPatch(const char* filename);
 
     // General settings
-    MAKE_SETTING(std::string, title);
-    MAKE_SETTING(std::string, iniFile);
-    MAKE_SETTING(std::string, iniEntry);
-    MAKE_SETTING(std::string, datFile);
-    MAKE_SETTING(bool,        alwaysFirstTry);
-    MAKE_SETTING(bool,        ccPatch);
-    MAKE_SETTING(bool,        pgChips);
-    MAKE_SETTING(int,         fakeLastLevel);
-    MAKE_SETTING(int,         realLastLevel);
+    MAKE_SETTING_STR(title);
+    MAKE_SETTING_STR(iniFile);
+    MAKE_SETTING_STR(iniEntry);
+    MAKE_SETTING_STR(datFile);
+    MAKE_SETTING(bool,  alwaysFirstTry);
+    MAKE_SETTING(bool,  ccPatch);
+    MAKE_SETTING(bool,  pgChips);
+    MAKE_SETTING(int,   fakeLastLevel);
+    MAKE_SETTING(int,   realLastLevel);
 };
 
-class HackPage : public QObject {
+class HackPage : public QWidget {
 public:
-    HackPage(QObject* parent = 0) : QObject(parent) { }
-    virtual ~HackPage() { }
+    HackPage(QWidget* parent = nullptr) : QWidget(parent) { }
     virtual void setValues(HackSettings* settings) = 0;
     virtual void setDefaults(HackSettings* settings) = 0;
 };

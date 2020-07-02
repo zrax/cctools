@@ -33,15 +33,15 @@ void HackSettings::setKnownDefaults()
 
 void HackSettings::clearAll()
 {
-    set_title(std::string(), false);
-    set_iniFile(std::string(), false);
-    set_iniEntry(std::string(), false);
-    set_datFile(std::string(), false);
-    set_alwaysFirstTry(false, false);
-    set_ccPatch(false, false);
-    set_pgChips(false, false);
-    set_fakeLastLevel(0, false);
-    set_realLastLevel(0, false);
+    clear_title();
+    clear_iniFile();
+    clear_iniEntry();
+    clear_datFile();
+    clear_alwaysFirstTry();
+    clear_ccPatch();
+    clear_pgChips();
+    clear_fakeLastLevel();
+    clear_realLastLevel();
 }
 
 bool HackSettings::loadFromExe(const char* filename)
@@ -84,33 +84,33 @@ bool HackSettings::writeToExe(const char* filename)
     hax.open(&exeStream);
 
     // Do these first as a way to check if the EXE is sane
-    if (isset_ccPatch()) {
+    if (have_ccPatch()) {
         if (hax.get_CCPatch() == ccl::CCPatchOther)
             return false;
         hax.set_CCPatch(get_ccPatch() ? ccl::CCPatchPatched : ccl::CCPatchOriginal);
     }
-    if (isset_pgChips()) {
+    if (have_pgChips()) {
         if (hax.get_PGChips() == ccl::CCPatchOther)
             return false;
         hax.set_PGChips(get_pgChips() ? ccl::CCPatchPatched : ccl::CCPatchOriginal);
     }
 
     // General settings
-    if (isset_title()) {
+    if (have_title()) {
         hax.set_WindowTitle(get_title());
         hax.set_DialogTitle(get_title());
     }
-    if (isset_iniFile())
+    if (have_iniFile())
         hax.set_IniFilename(get_iniFile());
-    if (isset_iniEntry())
+    if (have_iniEntry())
         hax.set_IniEntryName(get_iniEntry());
-    if (isset_datFile())
+    if (have_datFile())
         hax.set_DataFilename(get_datFile());
-    if (isset_alwaysFirstTry())
+    if (have_alwaysFirstTry())
         hax.set_AlwaysFirstTry(get_alwaysFirstTry());
-    if (isset_fakeLastLevel())
+    if (have_fakeLastLevel())
         hax.set_FakeLastLevel(get_fakeLastLevel());
-    if (isset_realLastLevel())
+    if (have_realLastLevel())
         hax.set_LastLevel(get_realLastLevel());
 
     exeStream.close();

@@ -18,49 +18,51 @@
 #include "CCHack.h"
 
 #include <QApplication>
+#include <QTreeWidget>
+#include <QStackedWidget>
 #include <QSplitter>
 #include <QToolBar>
 #include <QAction>
 #include <QGridLayout>
+#include <QTimer>
 #include "PageGeneral.h"
 #include "About.h"
 
-enum PageType {
-    PageNothing = 0,
-    PageGeneral = QTreeWidgetItem::UserType, PageSound,
-    PageMenus, PageStory, PageEndLevel, PageEndGame, PageMisc,
-    PageVGATS, PageEGATS, PageMonoTS, PageBackground, PageEndGfx, PageDigits,
-};
+static void addPageWithType(QTreeWidgetItem* parent, const QString& name, int type)
+{
+    auto item = new QTreeWidgetItem(parent, QStringList{name});
+    item->setData(0, Qt::UserRole, type);
+}
 
 CCHackMain::CCHackMain(QWidget* parent)
-    : QMainWindow(parent), m_page()
+    : QMainWindow(parent), m_pages()
 {
     setWindowTitle("CCHack 2.1");
 
-    QSplitter* split = new QSplitter(this);
-    QTreeWidget* pager = new QTreeWidget(split);
+    auto split = new QSplitter(this);
+    auto pager = new QTreeWidget(split);
     pager->setHeaderHidden(true);
     pager->setRootIsDecorated(false);
     pager->setSelectionMode(QAbstractItemView::SingleSelection);
     pager->setItemsExpandable(false);
 
-    // TODO: page graphics
-    QTreeWidgetItem* tiGeneral = new QTreeWidgetItem(pager, QStringList(tr("General")), PageNothing);
-    new QTreeWidgetItem(tiGeneral, QStringList(tr("General")), PageGeneral);
-    new QTreeWidgetItem(tiGeneral, QStringList(tr("Sounds & Music")), PageSound);
-    QTreeWidgetItem* tiStrings = new QTreeWidgetItem(pager, QStringList(tr("Strings")), PageNothing);
-    new QTreeWidgetItem(tiStrings, QStringList(tr("Menus")), PageMenus);
-    new QTreeWidgetItem(tiStrings, QStringList(tr("Storyline")), PageStory);
-    new QTreeWidgetItem(tiStrings, QStringList(tr("After Level")), PageEndLevel);
-    new QTreeWidgetItem(tiStrings, QStringList(tr("End Game")), PageEndGame);
-    new QTreeWidgetItem(tiStrings, QStringList(tr("Miscellaneous")), PageMisc);
-    QTreeWidgetItem* tiGraphics = new QTreeWidgetItem(pager, QStringList(tr("Graphics")), PageNothing);
-    new QTreeWidgetItem(tiGraphics, QStringList(tr("VGA Tileset")), PageVGATS);
-    new QTreeWidgetItem(tiGraphics, QStringList(tr("EGA Tileset")), PageEGATS);
-    new QTreeWidgetItem(tiGraphics, QStringList(tr("Mono Tileset")), PageMonoTS);
-    new QTreeWidgetItem(tiGraphics, QStringList(tr("Background")), PageBackground);
-    new QTreeWidgetItem(tiGraphics, QStringList(tr("Endgame")), PageEndGfx);
-    new QTreeWidgetItem(tiGraphics, QStringList(tr("Digits")), PageDigits);
+    // TODO: page graphics (?)
+    auto tiGeneral = new QTreeWidgetItem(pager, QStringList{tr("General")});
+    addPageWithType(tiGeneral, tr("General"), PageGeneral);
+    addPageWithType(tiGeneral, tr("Sounds & Music"), PageSound);
+    auto tiStrings = new QTreeWidgetItem(pager, QStringList{tr("Strings")});
+    addPageWithType(tiStrings, tr("Menus"), PageMenus);
+    addPageWithType(tiStrings, tr("Storyline"), PageStory);
+    addPageWithType(tiStrings, tr("After Level"), PageEndLevel);
+    addPageWithType(tiStrings, tr("End Game"), PageEndGame);
+    addPageWithType(tiStrings, tr("Miscellaneous"), PageMisc);
+    auto tiGraphics = new QTreeWidgetItem(pager, QStringList{tr("Graphics")});
+    addPageWithType(tiGraphics, tr("VGA Tileset"), PageVGATS);
+    addPageWithType(tiGraphics, tr("EGA Tileset"), PageEGATS);
+    addPageWithType(tiGraphics, tr("Mono Tileset"), PageMonoTS);
+    addPageWithType(tiGraphics, tr("Background"), PageBackground);
+    addPageWithType(tiGraphics, tr("Endgame"), PageEndGfx);
+    addPageWithType(tiGraphics, tr("Digits"), PageDigits);
     pager->expandAll();
 
     QFont tiFont = tiGeneral->font(0);
@@ -70,19 +72,18 @@ CCHackMain::CCHackMain(QWidget* parent)
     tiStrings->setFont(0, tiFont);
     tiGraphics->setFont(0, tiFont);
 
-    QWidget* right = new QWidget(split);
-    m_container = new QWidget(right);
+    auto right = new QWidget(split);
+    m_container = new QStackedWidget(right);
     m_container->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     m_container->setContentsMargins(0, 0, 0, 0);
-    new QGridLayout(m_container);
 
-    QAction* acSave = new QAction(QIcon(":/res/document-save.png"), tr("&Save Patch"), this);
-    QAction* acLoad = new QAction(QIcon(":/res/document-open.png"), tr("&Load Patch"), this);
-    QAction* acWriteExe = new QAction(QIcon(":/res/document-save-as.png"), tr("&Write EXE"), this);
-    QAction* acReadExe = new QAction(QIcon(":/res/document-open.png"), tr("&Read EXE"), this);
-    QAction* acAbout = new QAction(QIcon(":/res/help-about.png"), tr("&About"), this);
+    auto acSave = new QAction(QIcon(":/res/document-save.png"), tr("&Save Patch"), this);
+    auto acLoad = new QAction(QIcon(":/res/document-open.png"), tr("&Load Patch"), this);
+    auto acWriteExe = new QAction(QIcon(":/res/document-save-as.png"), tr("&Write EXE"), this);
+    auto acReadExe = new QAction(QIcon(":/res/document-open.png"), tr("&Read EXE"), this);
+    auto acAbout = new QAction(QIcon(":/res/help-about.png"), tr("&About"), this);
 
-    QToolBar* tools = new QToolBar(right);
+    auto tools = new QToolBar(right);
     tools->setIconSize(QSize(22, 22));
     tools->setMovable(false);
     tools->setFloatable(false);
@@ -92,12 +93,12 @@ CCHackMain::CCHackMain(QWidget* parent)
     tools->addSeparator();
     tools->addAction(acWriteExe);
     tools->addAction(acReadExe);
-    QWidget* tbSpacer = new QWidget(right);
+    auto tbSpacer = new QWidget(right);
     tbSpacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     tools->addWidget(tbSpacer);
     tools->addAction(acAbout);
 
-    QGridLayout* rightLayout = new QGridLayout(right);
+    auto rightLayout = new QGridLayout(right);
     rightLayout->setContentsMargins(0, 0, 0, 0);
     rightLayout->addWidget(m_container, 0, 0);
     rightLayout->addWidget(tools, 1, 0);
@@ -117,6 +118,20 @@ CCHackMain::CCHackMain(QWidget* parent)
 
     m_defaults.setKnownDefaults();
     m_settings.clearAll();
+
+    auto blankPage = new QWidget(this);
+    m_container->addWidget(blankPage);
+
+    m_pages[PageGeneral] = new CCHack::PageGeneral(this);
+    m_container->addWidget(m_pages[PageGeneral]);
+
+    for (HackPage* page : m_pages) {
+        if (!page)
+            continue;
+
+        page->setDefaults(&m_defaults);
+        page->setValues(&m_settings);
+    }
 }
 
 void CCHackMain::loadFile(const QString& filename)
@@ -126,31 +141,17 @@ void CCHackMain::loadFile(const QString& filename)
 
 void CCHackMain::onChangePage(QTreeWidgetItem* page, QTreeWidgetItem*)
 {
-    if (page->type() == PageNothing) {
-        //TODO: Actually show the selection correctly...  If Qt will let us
-        page = page->child(0);
+    if (page->childCount() > 0) {
+        // Focus the first child item instead of this category item.
+        QTreeWidget* tree = page->treeWidget();
+        QTimer::singleShot(0, [page] {
+            page->treeWidget()->setCurrentItem(page->child(0));
+        });
+        return;
     }
 
-    // Remove the old page contents
-    QGridLayout* layout = (QGridLayout*)m_container->layout();
-    while (QLayoutItem* item = layout->takeAt(0)) {
-        delete item->widget();
-        delete item;
-    }
-    delete m_page;
-
-    switch (page->type()) {
-    case PageGeneral:
-        m_page = new CCHack::PageGeneral(m_container);
-        break;
-    default:
-        m_page = 0;
-    }
-
-    if (m_page) {
-        m_page->setDefaults(&m_defaults);
-        m_page->setValues(&m_settings);
-    }
+    const int pageType = page->data(0, Qt::UserRole).toInt();
+    m_container->setCurrentIndex(pageType < m_container->count() ? pageType : 0);
 }
 
 

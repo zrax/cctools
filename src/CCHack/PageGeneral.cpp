@@ -24,50 +24,50 @@
 CCHack::PageGeneral::PageGeneral(QWidget* parent)
     : HackPage(parent)
 {
-    QGridLayout* layout = (QGridLayout*)parent->layout();
+    auto layout = new QGridLayout(this);
 
-    m_cbTitle = new QCheckBox(tr("Game Title:"), parent);
-    m_title = new QLineEdit(parent);
+    m_cbTitle = new QCheckBox(tr("Game Title:"), this);
+    m_title = new QLineEdit(this);
     m_title->setEnabled(false);
-    m_defTitle = new QLineEdit(parent);
+    m_defTitle = new QLineEdit(this);
     m_defTitle->setEnabled(false);
 
-    m_cbIniFile = new QCheckBox(tr("INI Filename:"), parent);
-    m_iniFile = new QLineEdit(parent);
+    m_cbIniFile = new QCheckBox(tr("INI Filename:"), this);
+    m_iniFile = new QLineEdit(this);
     m_iniFile->setEnabled(false);
-    m_defIniFile = new QLineEdit(parent);
+    m_defIniFile = new QLineEdit(this);
     m_defIniFile->setEnabled(false);
 
-    m_cbIniEntry = new QCheckBox(tr("INI Entry:"), parent);
-    m_iniEntry = new QLineEdit(parent);
+    m_cbIniEntry = new QCheckBox(tr("INI Entry:"), this);
+    m_iniEntry = new QLineEdit(this);
     m_iniEntry->setEnabled(false);
-    m_defIniEntry = new QLineEdit(parent);
+    m_defIniEntry = new QLineEdit(this);
     m_defIniEntry->setEnabled(false);
 
-    m_cbDatFile = new QCheckBox(tr("Data File:"), parent);
-    m_datFile = new QLineEdit(parent);
+    m_cbDatFile = new QCheckBox(tr("Data File:"), this);
+    m_datFile = new QLineEdit(this);
     m_datFile->setEnabled(false);
-    m_defDatFile = new QLineEdit(parent);
+    m_defDatFile = new QLineEdit(this);
     m_defDatFile->setEnabled(false);
 
-    m_alwaysFirstTry = new QCheckBox(tr("Always grant \"First Try\" bonus"), parent);
-    m_ccPatch = new QCheckBox(tr("CCPatch (fixes crash while walking over squares with two masked tiles)"), parent);
-    m_pgChips = new QCheckBox(tr("PGChips (adds Ice Block support to the game)"), parent);
+    m_alwaysFirstTry = new QCheckBox(tr("Always grant \"First Try\" bonus"), this);
+    m_ccPatch = new QCheckBox(tr("CCPatch (fixes crash while walking over squares with two masked tiles)"), this);
+    m_pgChips = new QCheckBox(tr("PGChips (adds Ice Block support to the game)"), this);
 
-    m_cbFakeLastLevel = new QCheckBox(tr("\"Fake\" Last Level:"), parent);
-    m_fakeLastLevel = new QSpinBox(parent);
+    m_cbFakeLastLevel = new QCheckBox(tr("\"Fake\" Last Level:"), this);
+    m_fakeLastLevel = new QSpinBox(this);
     m_fakeLastLevel->setEnabled(false);
-    m_defFakeLastLevel = new QLineEdit(parent);
+    m_defFakeLastLevel = new QLineEdit(this);
     m_defFakeLastLevel->setEnabled(false);
 
-    m_cbRealLastLevel = new QCheckBox(tr("Actual Last Level:"), parent);
-    m_realLastLevel = new QSpinBox(parent);
+    m_cbRealLastLevel = new QCheckBox(tr("Actual Last Level:"), this);
+    m_realLastLevel = new QSpinBox(this);
     m_realLastLevel->setEnabled(false);
-    m_defRealLastLevel = new QLineEdit(parent);
+    m_defRealLastLevel = new QLineEdit(this);
     m_defRealLastLevel->setEnabled(false);
 
-    layout->addWidget(new QLabel(tr("Override"), parent), 0, 1);
-    layout->addWidget(new QLabel(tr("Default"), parent), 0, 2);
+    layout->addWidget(new QLabel(tr("Override"), this), 0, 1);
+    layout->addWidget(new QLabel(tr("Default"), this), 0, 2);
     layout->addWidget(m_cbTitle, 1, 0);
     layout->addWidget(m_title, 1, 1);
     layout->addWidget(m_defTitle, 1, 2);
@@ -81,7 +81,7 @@ CCHack::PageGeneral::PageGeneral(QWidget* parent)
     layout->addWidget(m_datFile, 4, 1);
     layout->addWidget(m_defDatFile, 4, 2);
     layout->addItem(new QSpacerItem(0, 20, QSizePolicy::Maximum, QSizePolicy::Fixed), 5, 0, 1, 3);
-    layout->addWidget(new QLabel(tr("Code Patches:"), parent), 6, 0, 1, 3);
+    layout->addWidget(new QLabel(tr("Code Patches:"), this), 6, 0, 1, 3);
     layout->addWidget(m_alwaysFirstTry, 7, 0, 1, 3);
     layout->addWidget(m_ccPatch, 8, 0, 1, 3);
     layout->addWidget(m_pgChips, 9, 0, 1, 3);
@@ -104,20 +104,20 @@ CCHack::PageGeneral::PageGeneral(QWidget* parent)
 
 void CCHack::PageGeneral::setValues(HackSettings* settings)
 {
-    m_cbTitle->setChecked(settings->isset_title());
+    m_cbTitle->setChecked(settings->have_title());
     m_title->setText(QString::fromLatin1(settings->get_title().c_str()));
-    m_cbIniFile->setChecked(settings->isset_iniFile());
+    m_cbIniFile->setChecked(settings->have_iniFile());
     m_iniFile->setText(QString::fromLatin1(settings->get_iniFile().c_str()));
-    m_cbIniEntry->setChecked(settings->isset_iniEntry());
+    m_cbIniEntry->setChecked(settings->have_iniEntry());
     m_iniEntry->setText(QString::fromLatin1(settings->get_iniEntry().c_str()));
-    m_cbDatFile->setChecked(settings->isset_datFile());
+    m_cbDatFile->setChecked(settings->have_datFile());
     m_datFile->setText(QString::fromLatin1(settings->get_datFile().c_str()));
     m_alwaysFirstTry->setChecked(settings->get_alwaysFirstTry());
     m_ccPatch->setChecked(settings->get_ccPatch());
     m_pgChips->setChecked(settings->get_pgChips());
-    m_cbFakeLastLevel->setChecked(settings->isset_fakeLastLevel());
+    m_cbFakeLastLevel->setChecked(settings->have_fakeLastLevel());
     m_fakeLastLevel->setValue(settings->get_fakeLastLevel());
-    m_cbRealLastLevel->setChecked(settings->isset_realLastLevel());
+    m_cbRealLastLevel->setChecked(settings->have_realLastLevel());
     m_realLastLevel->setValue(settings->get_realLastLevel());
 }
 

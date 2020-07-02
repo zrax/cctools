@@ -35,7 +35,7 @@ public:
     const cc2::Tile* upper() const { return &m_upper; }
     const cc2::Tile* lower() const { return &m_lower; }
 
-    virtual void paintEvent(QPaintEvent*);
+    void paintEvent(QPaintEvent*) override;
 
     QSize sizeHint() const override
     {
