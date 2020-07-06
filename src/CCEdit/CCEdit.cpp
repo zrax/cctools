@@ -1350,7 +1350,8 @@ void CCEditMain::onReportAction()
                 tr("Error creating report: Could not write HTML report"));
         return;
     }
-    const QString filebase = QFileInfo(m_levelsetFilename).fileName();
+    const QString filebase = m_levelsetFilename.isEmpty() ? tr("Untitled.ccl")
+                             : QFileInfo(m_levelsetFilename).fileName();
     report.write("<html>\n<head><title>Levelset Report for ");
     report.write(filebase.toUtf8().constData());
     report.write("</title></head>\n\n");
