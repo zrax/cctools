@@ -39,6 +39,7 @@
 #include <QDesktopWidget>
 #include <QDir>
 #include <QMimeData>
+#include <QElapsedTimer>
 
 #include <cstdio>
 #include <cstdlib>
@@ -1339,6 +1340,9 @@ void CCEditMain::onReportAction()
     proDlg.setMinimumDuration(2000);
     proDlg.setLabelText(tr("Generating HTML report.  Please be patient..."));
 
+    QElapsedTimer timer;
+    timer.start();
+
     // Generate HTML output
     QFile report(filename);
     if (!report.open(QIODevice::Truncate | QIODevice::WriteOnly)) {
@@ -1346,60 +1350,62 @@ void CCEditMain::onReportAction()
                 tr("Error creating report: Could not write HTML report"));
         return;
     }
-    QString filebase = QDir(filename).dirName();
-    filebase = filebase.left(filebase.lastIndexOf('.')) + ".ccl";
-    report.write("<html>\n<head><title>Levelset Report: ");
-    report.write(filebase.toUtf8().data());
+    const QString filebase = QFileInfo(m_levelsetFilename).fileName();
+    report.write("<html>\n<head><title>Levelset Report for ");
+    report.write(filebase.toUtf8().constData());
     report.write("</title></head>\n\n");
-
-    report.write("<body>\n<h1 align=\"center\">Levelset Report:");
-    report.write(filebase.toUtf8().data());
+    report.write("<body>\n<h1 align=\"center\">Levelset Report for ");
+    report.write(filebase.toUtf8().constData());
     report.write("</h1>\n");
 
-    QString dirbase = filebase.left(filebase.lastIndexOf('.')) + "_levimg";
-    for (int i=0; i<m_levelset->levelCount(); ++i) {
+    const QString dirbase = QFileInfo(filename).baseName() + "_levimg";
+    const QString imgdir = QFileInfo(filename).path() + QDir::separator() + dirbase;
+    QDir dir;
+    dir.mkdir(imgdir);
+    if (!dir.cd(imgdir)) {
+        QMessageBox::critical(this, tr("Error creating report"),
+                              tr("Error creating report: Could not create level image folder"));
+        return;
+    }
+
+    for (int i = 0; i < m_levelset->levelCount(); ++i) {
         ccl::LevelData* level = m_levelset->level(i);
         report.write("<hr />\n<h2>Level ");
-        report.write(QString("%1").arg(i + 1).toUtf8().data());
+        report.write(QString::number(i + 1).toUtf8().constData());
         report.write("</h2>\n<pre>\n");
         report.write("<b>Title:</b>    ");
         report.write(level->name().c_str());
         report.write("\n<b>Chips:</b>    ");
-        report.write(QString("%1").arg(level->chips()).toUtf8().data());
+        report.write(QString::number(level->chips()).toUtf8().constData());
         report.write("\n<b>Time:</b>     ");
-        report.write(QString("%1").arg(level->timer()).toUtf8().data());
+        report.write(QString::number(level->timer()).toUtf8().constData());
         report.write("\n<b>Password:</b> ");
         report.write(level->password().c_str());
         report.write("\n<b>Hint:</b>     ");
         report.write(level->hint().c_str());
         report.write("\n</pre>\n<img src=\"");
-        report.write(QString("%1/level%2.png").arg(dirbase).arg(i + 1).toUtf8().data());
+        report.write(QStringLiteral("%1/level%2.png").arg(dirbase).arg(i + 1).toUtf8().constData());
         report.write("\" />\n");
-    }
-    report.write("</html>\n");
-    proDlg.setValue(1);
-    if (proDlg.wasCanceled())
-        return;
+        report.write("<p style=\"page-break-after: always;\">&nbsp;</p>\n");
 
-    // Generate level images
-    dirbase = filename.left(filename.lastIndexOf('.')) + "_levimg";
-    QDir dir;
-    dir.mkdir(dirbase);
-    if (!dir.cd(dirbase)) {
-        QMessageBox::critical(this, tr("Error creating report"),
-                tr("Error creating report: Could not create level image folder"));
-        return;
-    }
-    {
+        // Write the level image
         EditorWidget reportDummy;
         reportDummy.setVisible(false);
         reportDummy.setTileset(m_currentTileset);
-        for (int i=0; !proDlg.wasCanceled() && i<m_levelset->levelCount(); ++i) {
-            reportDummy.setLevelData(m_levelset->level(i));
-            reportDummy.renderReport().save(dirbase + QString("/level%1.png").arg(i+1));
-            proDlg.setValue(i+2);
-        }
+        reportDummy.setLevelData(level);
+        QPixmap levelImage = reportDummy.renderReport();
+        levelImage.save(QStringLiteral("%1/level%2.png").arg(imgdir).arg(i + 1), "PNG");
+
+        proDlg.setValue(i + 1);
+        QApplication::processEvents();
+        if (proDlg.wasCanceled())
+            return;
     }
+    report.write("</body>\n</html>\n");
+
+    QMessageBox::information(this, tr("Report Complete"),
+            tr("Generated report in %1 sec")
+            .arg(timer.elapsed() / 1000., 0, 'f', 2));
 }
 
 void CCEditMain::onSelectToggled(bool mode)

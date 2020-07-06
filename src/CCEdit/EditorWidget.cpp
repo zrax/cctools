@@ -389,7 +389,7 @@ void EditorWidget::renderTo(QPainter& painter)
 
     // Highlight context-sensitive objects
     painter.setPen(QColor(255, 0, 0));
-    foreach (QPoint hi, m_hilights)
+    for (const QPoint& hi : m_hilights)
         painter.drawRect(calcTileRect(hi));
 }
 
