@@ -927,8 +927,8 @@ void CCEditMain::doLevelsetLoad()
 void CCEditMain::setLevelsetFilename(const QString& filename)
 {
     m_levelsetFilename = filename;
-    QString displayName = filename.isEmpty() ? "Untitled"
-                        : QDir(filename).absolutePath().section(QChar('/'), -1);
+    QString displayName = filename.isEmpty() ? tr("Untitled")
+                        : QFileInfo(filename).fileName();
     if (m_dirtyFlag)
         setWindowTitle(QStringLiteral(CCEDIT_TITLE " - ") + displayName + QStringLiteral(" *"));
     else
@@ -1123,7 +1123,7 @@ void CCEditMain::findTilesets()
     // Search app directory
     path.setPath(QApplication::applicationDirPath());
     tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
-    foreach (QString file, tilesets)
+    for (const QString& file : tilesets)
         registerTileset(path.absoluteFilePath(file));
 #else
     // Search install path
@@ -1131,20 +1131,20 @@ void CCEditMain::findTilesets()
     path.cdUp();
     path.cd("share/cctools");
     tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
-    foreach (QString file, tilesets)
+    for (const QString& file : tilesets)
         registerTileset(path.absoluteFilePath(file));
 
     // Search standard directories
     path.setPath("/usr/share/cctools");
     if (path.exists()) {
         tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
-        foreach (QString file, tilesets)
+        for (const QString& file : tilesets)
             registerTileset(path.absoluteFilePath(file));
     }
     path.setPath("/usr/local/share/cctools");
     if (path.exists()) {
         tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
-        foreach (QString file, tilesets)
+        for (const QString& file : tilesets)
             registerTileset(path.absoluteFilePath(file));
     }
 #endif
@@ -1154,7 +1154,7 @@ void CCEditMain::findTilesets()
     path.cd(".cctools");
     if (path.exists()) {
         tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
-        foreach (QString file, tilesets)
+        for (const QString& file : tilesets)
             registerTileset(path.absoluteFilePath(file));
     }
 }
@@ -1292,9 +1292,7 @@ void CCEditMain::onOpenAction()
                             m_dialogDir, "All Levelsets (*.dat *.dac *.ccl)");
     if (!filename.isEmpty()) {
         loadLevelset(filename);
-        QDir dir(filename);
-        dir.cdUp();
-        m_dialogDir = dir.absolutePath();
+        m_dialogDir = QFileInfo(filename).dir().absolutePath();
     }
 }
 
@@ -1317,9 +1315,7 @@ void CCEditMain::onSaveAsAction()
                                                     m_levelsetFilename, filter);
     if (!filename.isEmpty()) {
         saveLevelset(filename);
-        QDir dir(filename);
-        dir.cdUp();
-        m_dialogDir = dir.absolutePath();
+        m_dialogDir = QFileInfo(filename).dir().absolutePath();
     }
 }
 
