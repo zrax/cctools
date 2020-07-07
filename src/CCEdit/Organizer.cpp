@@ -28,6 +28,8 @@
 
 static const QString s_clipboardFormat = QStringLiteral("CHIPEDIT LEVELS");
 
+#define LEVEL_PREVIEW_SIZE (96)
+
 static QDataStream& operator<<(QDataStream& out, const ccl::LevelData *data)
 {
     (void)data;
@@ -41,9 +43,9 @@ static QDataStream& operator>>(QDataStream& in, ccl::LevelData *data)
 }
 
 LevelListWidget::LevelListWidget(QWidget* parent)
-               : QListWidget(parent), m_tileset(0)
+    : QListWidget(parent), m_tileset()
 {
-    setIconSize(QSize(128, 128));
+    setIconSize(QSize(LEVEL_PREVIEW_SIZE, LEVEL_PREVIEW_SIZE));
     setSpacing(2);
     setDragDropMode(InternalMove);
     setSelectionMode(ExtendedSelection);
@@ -65,7 +67,7 @@ void LevelListWidget::addLevel(ccl::LevelData* level)
 {
     level->ref();
 
-    QListWidgetItem* item = new QListWidgetItem(this);
+    auto item = new QListWidgetItem(this);
     item->setData(Qt::UserRole, QVariant::fromValue(level));
     QString infoText = tr("%1\nPassword: %2\nChips: %3\nTime: %4\n%5")
                        .arg(level->name().c_str()).arg(level->password().c_str())
@@ -77,7 +79,7 @@ void LevelListWidget::insertLevel(int row, ccl::LevelData* level)
 {
     level->ref();
 
-    QListWidgetItem* item = new QListWidgetItem();
+    auto item = new QListWidgetItem();
     item->setData(Qt::UserRole, QVariant::fromValue(level));
     QString infoText = tr("%1\nPassword: %2\nChips: %3\nTime: %4\n%5")
                        .arg(level->name().c_str()).arg(level->password().c_str())
@@ -97,9 +99,9 @@ void LevelListWidget::paintEvent(QPaintEvent* event)
     int pos = 0;
     while (pos < height()) {
         QListWidgetItem* item = itemAt(4, pos + 4);
-        if (item != 0 && item->icon().isNull()) {
+        if (item && item->icon().isNull()) {
             loadLevelImage(row(item));
-            pos += 128;
+            pos += LEVEL_PREVIEW_SIZE;
         } else {
             pos += 4;
         }
@@ -118,7 +120,7 @@ void LevelListWidget::loadLevelImage(int row)
         for (int x = 0; x < 32; ++x)
             m_tileset->draw(tilePainter, x, y, levelData->map().getFG(x, y),
                             levelData->map().getBG(x, y));
-    item(row)->setIcon(QIcon(levelBuffer.scaled(128, 128)));
+    item(row)->setIcon(QIcon(levelBuffer.scaled(LEVEL_PREVIEW_SIZE, LEVEL_PREVIEW_SIZE)));
 }
 
 
@@ -226,7 +228,7 @@ void OrganizerDialog::onCopyLevels()
         }
 
         long sizeOffs = 4;
-        foreach (QListWidgetItem* item, itemsReversed) {
+        for (QListWidgetItem* item : itemsReversed) {
             long start = cbStream.tell();
             m_levels->level(m_levels->row(item))->write(&cbStream, true);
             long end = cbStream.tell();
@@ -276,7 +278,7 @@ void OrganizerDialog::onPasteLevels()
                 level->unref();
             }
 
-            if (m_levels->currentItem() != 0)
+            if (m_levels->currentItem())
                 m_levels->insertLevel(m_levels->currentRow() + 1, level);
             else
                 m_levels->addLevel(level);
@@ -287,7 +289,7 @@ void OrganizerDialog::onPasteLevels()
 
 void OrganizerDialog::onDeleteLevels()
 {
-    foreach (QListWidgetItem* item, m_levels->selectedItems())
+    for (QListWidgetItem* item : m_levels->selectedItems())
         m_levels->delLevel(m_levels->row(item));
 }
 
