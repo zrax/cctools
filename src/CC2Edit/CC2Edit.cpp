@@ -719,7 +719,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
         rightTileLabel->setText(CC2ETileset::getName(tile));
     });
 
-    QGridLayout* allTileLayout = new QGridLayout(allTileWidget);
+    auto allTileLayout = new QGridLayout(allTileWidget);
     allTileLayout->setContentsMargins(4, 4, 4, 4);
     allTileLayout->setVerticalSpacing(4);
     allTileLayout->addWidget(allTileTbar, 0, 0, 1, 3);
@@ -937,10 +937,10 @@ CC2EditMain::CC2EditMain(QWidget* parent)
               tr("Error: No tilesets found.  Please check your CCTools installation"),
               QMessageBox::Ok);
         exit(1);
-    } else if (settings.contains("TilesetName")) {
-        QString tilesetFilename = settings.value("TilesetName").toString();
+    } else {
+        QString tilesetFilename = settings.value("TilesetName", "CC2.tis").toString();
         bool foundTset = false;
-        for (int i=0; i<m_tilesetGroup->actions().size(); ++i) {
+        for (int i = 0; i < m_tilesetGroup->actions().size(); ++i) {
             auto tileset = m_tilesetGroup->actions()[i]->data().value<CC2ETileset*>();
             if (tileset->filename() == tilesetFilename) {
                 m_tilesetGroup->actions()[i]->setChecked(true);
@@ -953,9 +953,6 @@ CC2EditMain::CC2EditMain(QWidget* parent)
             m_tilesetGroup->actions()[0]->setChecked(true);
             loadTileset(m_tilesetGroup->actions()[0]->data().value<CC2ETileset*>());
         }
-    } else {
-        m_tilesetGroup->actions()[0]->setChecked(true);
-        loadTileset(m_tilesetGroup->actions()[0]->data().value<CC2ETileset*>());
     }
 
     if (m_zoomFactor == 1.0)

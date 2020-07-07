@@ -767,11 +767,11 @@ CCEditMain::CCEditMain(QWidget* parent)
                 tr("Error: No tilesets found.  Please check your CCTools installation"),
                 QMessageBox::Ok);
         exit(1);
-    } else if (settings.contains("TilesetName")) {
-        QString tilesetFilename = settings.value("TilesetName").toString();
+    } else {
+        QString tilesetFilename = settings.value("TilesetName", "WEP.tis").toString();
         bool foundTset = false;
-        for (int i=0; i<m_tilesetGroup->actions().size(); ++i) {
-            CCETileset* tileset = m_tilesetGroup->actions()[i]->data().value<CCETileset*>();
+        for (int i = 0; i < m_tilesetGroup->actions().size(); ++i) {
+            auto tileset = m_tilesetGroup->actions()[i]->data().value<CCETileset*>();
             if (tileset->filename() == tilesetFilename) {
                 m_tilesetGroup->actions()[i]->setChecked(true);
                 loadTileset(tileset);
@@ -783,9 +783,6 @@ CCEditMain::CCEditMain(QWidget* parent)
             m_tilesetGroup->actions()[0]->setChecked(true);
             loadTileset(m_tilesetGroup->actions()[0]->data().value<CCETileset*>());
         }
-    } else {
-        m_tilesetGroup->actions()[0]->setChecked(true);
-        loadTileset(m_tilesetGroup->actions()[0]->data().value<CCETileset*>());
     }
 
     if (m_zoomFactor == 1.0)
