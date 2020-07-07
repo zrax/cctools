@@ -905,21 +905,21 @@ void CCEditMain::doLevelsetLoad()
     // position, which in turn makes level re-ordering faster while
     // maintaining correctness.
 
-    for (int i=m_levelList->count(); i<m_levelset->levelCount(); ++i) {
+    while (m_levelList->count() < m_levelset->levelCount()) {
         // Add items to match new count
         m_levelList->addItem(QString());
     }
-    for (int i=m_levelset->levelCount(); i<m_levelList->count(); ++i) {
+    while (m_levelList->count() > m_levelset->levelCount()) {
         // Remove extra items from list
-        delete m_levelList->takeItem(i);
+        delete m_levelList->takeItem(m_levelList->count() - 1);
     }
-    for (int i=0; i<m_levelset->levelCount(); ++i) {
+    for (int i = 0; i < m_levelset->levelCount(); ++i) {
         // Use iterator for level number since stored level numbers may
         // be meaningless until saved...
         m_levelList->item(i)->setText(QString("%1 - %2").arg(i + 1)
                 .arg(QString::fromLatin1(m_levelset->level(i)->name().c_str())));
     }
-    if (m_levelList->currentItem() == 0 && m_levelset->levelCount() > 0)
+    if (!m_levelList->currentItem() && m_levelset->levelCount() > 0)
         m_levelList->setCurrentRow(0);
     m_levelManDock->raise();
 }

@@ -30,8 +30,8 @@ class LevelListWidget : public QListWidget {
     Q_OBJECT
 
 public:
-    LevelListWidget(QWidget* parent = 0);
-    virtual ~LevelListWidget();
+    explicit LevelListWidget(QWidget* parent = nullptr);
+    ~LevelListWidget() override;
 
     void setTileset(CCETileset* tileset) { m_tileset = tileset; }
     void addLevel(ccl::LevelData* level);
@@ -44,7 +44,7 @@ public:
     }
 
 protected:
-    virtual void paintEvent(QPaintEvent*);
+    void paintEvent(QPaintEvent*) override;
 
 private:
     CCETileset* m_tileset;
