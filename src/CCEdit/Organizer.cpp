@@ -253,7 +253,7 @@ void OrganizerDialog::onPasteLevels()
     if (cbData->hasFormat(s_clipboardFormat)) {
         QByteArray buffer = cbData->data(s_clipboardFormat);
         ccl::BufferStream cbStream;
-        cbStream.setFrom(buffer.data(), buffer.size());
+        cbStream.setFrom(buffer.constData(), buffer.size());
 
         unsigned int levelCount = cbStream.read32();
         QList<unsigned short> levelSizes;
@@ -264,7 +264,7 @@ void OrganizerDialog::onPasteLevels()
 
         for (unsigned int i=0; i<levelCount; ++i) {
             long start = cbStream.tell();
-            ccl::LevelData* level = new ccl::LevelData();
+            auto level = new ccl::LevelData();
             try {
                 level->read(&cbStream, true);
                 if (cbStream.tell() - start != levelSizes[i])

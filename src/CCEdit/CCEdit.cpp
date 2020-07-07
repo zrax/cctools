@@ -814,10 +814,10 @@ void CCEditMain::loadLevelset(const QString& filename)
     if (!closeLevelset())
         return;
 
-    ccl::LevelsetType type = ccl::DetermineLevelsetType(filename.toUtf8().data());
+    ccl::LevelsetType type = ccl::DetermineLevelsetType(filename.toUtf8().constData());
     if (type == ccl::LevelsetCcl) {
         ccl::FileStream set;
-        if (set.open(filename.toUtf8().data(), "rb")) {
+        if (set.open(filename.toUtf8().constData(), "rb")) {
             m_levelset = new ccl::Levelset(0);
             try {
                 m_levelset->read(&set);
@@ -837,8 +837,8 @@ void CCEditMain::loadLevelset(const QString& filename)
         setLevelsetFilename(filename);
         m_useDac = false;
     } else if (type == ccl::LevelsetDac) {
-        FILE* dac = fopen(filename.toUtf8().data(), "rt");
-        if (dac == 0) {
+        FILE* dac = fopen(filename.toUtf8().constData(), "rt");
+        if (!dac) {
             QMessageBox::critical(this, tr("Error opening levelset"),
                                   tr("Error: could not open file %1").arg(filename));
             return;
@@ -859,7 +859,7 @@ void CCEditMain::loadLevelset(const QString& filename)
         searchPath.cdUp();
 
         ccl::FileStream set;
-        if (set.open(searchPath.absoluteFilePath(m_dacInfo.m_filename.c_str()).toUtf8().data(), "rb")) {
+        if (set.open(searchPath.absoluteFilePath(m_dacInfo.m_filename.c_str()).toUtf8().constData(), "rb")) {
             m_levelset = new ccl::Levelset(0);
             try {
                 m_levelset->read(&set);
@@ -867,7 +867,7 @@ void CCEditMain::loadLevelset(const QString& filename)
                 QMessageBox::critical(this, tr("Error reading levelset"),
                                         tr("Error loading levelset: %1").arg(e.what()));
                 delete m_levelset;
-                m_levelset = 0;
+                m_levelset = nullptr;
                 return;
             }
         } else {
@@ -940,12 +940,12 @@ void CCEditMain::setLevelsetFilename(const QString& filename)
 
 void CCEditMain::saveLevelset(const QString& filename)
 {
-    if (m_levelset == 0)
+    if (!m_levelset)
         return;
 
     if (m_useDac) {
-        FILE* dac = fopen(filename.toUtf8().data(), "wt");
-        if (dac != 0) {
+        FILE* dac = fopen(filename.toUtf8().constData(), "wt");
+        if (dac) {
             try {
                 m_dacInfo.write(dac);
                 fclose(dac);
@@ -961,7 +961,7 @@ void CCEditMain::saveLevelset(const QString& filename)
             searchPath.cdUp();
 
             ccl::FileStream set;
-            if (set.open(searchPath.absoluteFilePath(m_dacInfo.m_filename.c_str()).toUtf8().data(), "wb")) {
+            if (set.open(searchPath.absoluteFilePath(m_dacInfo.m_filename.c_str()).toUtf8().constData(), "wb")) {
                 try {
                     m_levelset->write(&set);
                 } catch (const ccl::Exception& e) {
@@ -1504,7 +1504,7 @@ void CCEditMain::onPasteAction()
     if (cbData->hasFormat(s_clipboardFormat)) {
         QByteArray buffer = cbData->data(s_clipboardFormat);
         ccl::BufferStream cbStream;
-        cbStream.setFrom(buffer.data(), buffer.size());
+        cbStream.setFrom(buffer.constData(), buffer.size());
 
         int width, height;
         auto copyRegion = new ccl::LevelData;
@@ -1878,7 +1878,7 @@ void CCEditMain::onTestChips()
         return;
     }
     ccl::FileStream stream;
-    if (!stream.open(m_tempExe.toUtf8().data(), "r+b")) {
+    if (!stream.open(m_tempExe.toUtf8().constData(), "r+b")) {
         QMessageBox::critical(this, tr("Error Creating Test EXE"),
                 tr("Error opening %1 for writing").arg(m_tempExe));
         return;
@@ -1905,7 +1905,7 @@ void CCEditMain::onTestChips()
     stream.close();
 
     // Save the levelset to the temp file
-    if (!stream.open(m_tempDat.toUtf8().data(), "wb")) {
+    if (!stream.open(m_tempDat.toUtf8().constData(), "wb")) {
         QMessageBox::critical(this, tr("Error Creating Test Data File"),
                 tr("Error opening %1 for writing").arg(m_tempDat));
         return;
@@ -1933,10 +1933,10 @@ void CCEditMain::onTestChips()
     exePath.cdUp();
 
     m_tempIni = exePath.absoluteFilePath("CCRun.ini");
-    FILE* iniStream = fopen(m_tempIni.toUtf8().data(), "r+t");
-    if (iniStream == 0)
-        iniStream = fopen(m_tempIni.toUtf8().data(), "w+t");
-    if (iniStream == 0) {
+    FILE* iniStream = fopen(m_tempIni.toUtf8().constData(), "r+t");
+    if (!iniStream)
+        iniStream = fopen(m_tempIni.toUtf8().constData(), "w+t");
+    if (!iniStream) {
         QMessageBox::critical(this, tr("Error Creating CCRun.ini"),
                 tr("Error: Could not open or create CCRun.ini file"));
         QFile::remove(m_tempExe);
@@ -2020,7 +2020,7 @@ void CCEditMain::onTestTWorld(unsigned int levelsetType, bool tworld2)
     // Save the levelset to the temp file
     m_tempDat = QDir::toNativeSeparators(QDir::tempPath() + "/CCRun.dat");
     ccl::FileStream stream;
-    if (!stream.open(m_tempDat.toUtf8().data(), "wb")) {
+    if (!stream.open(m_tempDat.toUtf8().constData(), "wb")) {
         QMessageBox::critical(this, tr("Error Creating Test Data File"),
                 tr("Error opening %1 for writing").arg(m_tempDat));
         return;
@@ -2182,7 +2182,7 @@ void CCEditMain::onPropertiesAction()
 
         m_levelset->setType(props.levelsetType());
         if (props.useDac()) {
-            m_dacInfo.m_filename = props.dacFilename().toUtf8().data();
+            m_dacInfo.m_filename = props.dacFilename().toUtf8().constData();
             m_dacInfo.m_ruleset = props.dacRuleset();
             m_dacInfo.m_lastLevel = props.lastLevel();
             m_dacInfo.m_usePasswords = props.usePasswords();
@@ -2275,9 +2275,9 @@ void CCEditMain::onNameChanged(const QString& value)
         return;
 
     ccl::LevelData* level = editor->levelData();
-    if (level->name() != value.toLatin1().data()) {
+    if (level->name() != value.toLatin1().constData()) {
         beginEdit(CCEditHistory::EditName);
-        level->setName(value.toLatin1().data());
+        level->setName(value.toLatin1().constData());
         endEdit();
     }
     const int levelNum = levelIndex(editor->levelData());
@@ -2298,9 +2298,9 @@ void CCEditMain::onPasswordChanged(const QString& value)
         return;
 
     ccl::LevelData* level = editor->levelData();
-    if (level->password() != value.toLatin1().data()) {
+    if (level->password() != value.toLatin1().constData()) {
         beginEdit(CCEditHistory::EditPassword);
-        level->setPassword(value.toLatin1().data());
+        level->setPassword(value.toLatin1().constData());
         endEdit();
     }
 }
@@ -2340,9 +2340,9 @@ void CCEditMain::onHintChanged(const QString& value)
         return;
 
     ccl::LevelData* level = editor->levelData();
-    if (level->hint() != value.toLatin1().data()) {
+    if (level->hint() != value.toLatin1().constData()) {
         beginEdit(CCEditHistory::EditHint);
-        level->setHint(value.toLatin1().data());
+        level->setHint(value.toLatin1().constData());
         endEdit();
     }
 }
