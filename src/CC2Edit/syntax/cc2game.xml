@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE language SYSTEM "language.dtd">
+<!DOCTYPE language SYSTEM "language.dtd"
+[
+    <!-- From isocpp.xml -->
+    <!ENTITY printf_like "&#37;[-+ #0]*(?:[0-9]+|\*)?(?:\.(?:[0-9]+|\*))?(?:(?:hh|ll|[hljzt])?[dioxXun]|[lL]?[fFeEaAgG]|l?[cs]|[p&#37;])">
+]>
 <language name="CC2 Game Script" section="Other" version="1" kateversion="5.0"
           extensions="*.c2g" casesensitive="0" author="Michael Hansen" license="MIT">
   <highlighting>
@@ -81,7 +85,7 @@
       </context>
 
       <context name="String" attribute="String" lineEndContext="#pop">
-        <HlCStringChar attribute="String Char" context="#stay"/>
+        <RegExpr attribute="String Char" context="#stay" String="&printf_like;" />
         <DetectChar attribute="String" char="&quot;" context="#pop"/>
       </context>
     </contexts>
