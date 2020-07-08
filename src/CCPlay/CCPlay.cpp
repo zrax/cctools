@@ -56,7 +56,7 @@ static bool canRunMSCC()
 #endif
 
 static std::unique_ptr<ccl::Levelset>
-load_levelset(QString filename, QWidget* self, int* dacLastLevel = nullptr)
+load_levelset(const QString& filename, QWidget* self, int* dacLastLevel = nullptr)
 {
     ccl::LevelsetType type = ccl::DetermineLevelsetType(filename.toLocal8Bit().constData());
     ccl::FileStream stream;
@@ -66,7 +66,7 @@ load_levelset(QString filename, QWidget* self, int* dacLastLevel = nullptr)
             if (!stream.open(filename.toLocal8Bit().constData(), "rb")) {
                 QMessageBox::critical(self, self->tr("Error Reading Levelset"),
                         self->tr("Error Opening levelset file %1").arg(filename));
-                return 0;
+                return {};
             }
             levelset = std::make_unique<ccl::Levelset>();
             levelset->read(&stream);
@@ -74,10 +74,11 @@ load_levelset(QString filename, QWidget* self, int* dacLastLevel = nullptr)
         } catch (std::exception& e) {
             qDebug("Error trying to load %s: %s", qPrintable(filename), e.what());
             QMessageBox::critical(self, self->tr("Error Reading Levelset"),
-                    self->tr("Error Reading levelset file: %1").arg(e.what()));
+                    self->tr("Error Reading levelset file %1: %2")
+                    .arg(filename).arg(e.what()));
             return {};
         }
-        if (dacLastLevel != 0)
+        if (dacLastLevel)
             *dacLastLevel = (levelset->levelCount() == 149) ? 144 : levelset->levelCount();
         return levelset;
     } else if (type == ccl::LevelsetDac) {
@@ -101,8 +102,8 @@ load_levelset(QString filename, QWidget* self, int* dacLastLevel = nullptr)
         } catch (ccl::Exception& e) {
             qDebug("Error trying to load %s: %s", qPrintable(filename), e.what());
             QMessageBox::critical(self, self->tr("Error reading levelset"),
-                                  self->tr("Error loading levelset descriptor: %1")
-                                  .arg(e.what()));
+                                  self->tr("Error loading levelset descriptor for %1: %2")
+                                  .arg(filename).arg(e.what()));
             fclose(dac);
             return {};
         }
@@ -121,7 +122,7 @@ load_levelset(QString filename, QWidget* self, int* dacLastLevel = nullptr)
                 stream.close();
                 return {};
             }
-            if (dacLastLevel != 0)
+            if (dacLastLevel)
                 *dacLastLevel = (dacInfo.m_lastLevel == 0) ? levelset->levelCount() : dacInfo.m_lastLevel;
             return levelset;
         } else {

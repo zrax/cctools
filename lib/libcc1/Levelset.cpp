@@ -251,8 +251,7 @@ long ccl::LevelData::read(ccl::Stream* stream, bool forClipboard)
     dataSize -= sizeof(unsigned short);
     if (forClipboard)
         dataSize = (long)stream->read16();
-    else if ((long)stream->read16() != dataSize)
-        throw ccl::IOException("Corrupt map data");
+    (void)stream->read16();
 
     while (dataSize > 0) {
         unsigned char field = stream->read8();
@@ -464,8 +463,8 @@ ccl::LevelData* ccl::Levelset::takeLevel(int num)
 
 void ccl::Levelset::read(ccl::Stream* stream)
 {
-    for (size_t i=0; i<m_levels.size(); ++i)
-        m_levels[i]->unref();
+    for (ccl::LevelData* level : m_levels)
+        level->unref();
     m_levels.resize(0);
 
     m_magic = stream->read32();
@@ -473,11 +472,11 @@ void ccl::Levelset::read(ccl::Stream* stream)
         && m_magic != TypeLynxPG)
         throw ccl::IOException("Invalid levelset header");
 
-    size_t numLevels = (size_t)stream->read16();
-    m_levels.resize(numLevels);
-    for (size_t i=0; i<numLevels; ++i) {
-        m_levels[i] = new ccl::LevelData();
-        m_levels[i]->read(stream);
+    uint16_t numLevels = stream->read16();
+    m_levels.reserve(numLevels);
+    for (uint16_t i = 0; i < numLevels; ++i) {
+        m_levels.push_back(new ccl::LevelData);
+        m_levels.back()->read(stream);
     }
 }
 
