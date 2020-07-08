@@ -31,7 +31,7 @@ void Win16::Resource::read(ccl::Stream* stream)
     m_reserved = stream->read32();
 }
 
-void Win16::Resource::update(ccl::Stream* stream)
+void Win16::Resource::update(ccl::Stream* stream) const
 {
     stream->write16(m_offset);
     stream->write16(m_size);
@@ -59,17 +59,15 @@ void Win16::ResourceGroup::read(ccl::Stream* stream)
     m_reserved = stream->read32();
 
     m_resources.resize(m_count);
-    std::vector<Resource>::iterator iter;
-    for (iter = m_resources.begin(); iter != m_resources.end(); ++iter)
-        iter->read(stream);
+    for (Resource& resource : m_resources)
+        resource.read(stream);
 }
 
-void Win16::ResourceGroup::update(ccl::Stream* stream)
+void Win16::ResourceGroup::update(ccl::Stream* stream) const
 {
     stream->seek(8, SEEK_CUR);
-    std::vector<Resource>::iterator iter;
-    for (iter = m_resources.begin(); iter != m_resources.end(); ++iter)
-        iter->update(stream);
+    for (const Resource& resource : m_resources)
+        resource.update(stream);
 }
 
 
@@ -106,36 +104,32 @@ bool Win16::ResourceDirectory::read(ccl::Stream* stream)
     }
 
     // Fetch names for the resources
-    std::list<ResourceGroup>::iterator giter;
-    for (giter = m_groups.begin(); giter != m_groups.end(); ++giter) {
-        std::vector<Resource>::iterator rciter;
-        for (rciter = giter->resources().begin(); rciter != giter->resources().end(); ++rciter) {
-            if (!(rciter->resourceID() & 0x8000)) {
-                stream->seek(m_dirOffset + rciter->resourceID(), SEEK_SET);
+    for (ResourceGroup& group : m_groups) {
+        for (Resource& resource : group.resources()) {
+            if (!(resource.resourceID() & 0x8000)) {
+                stream->seek(m_dirOffset + resource.resourceID(), SEEK_SET);
                 uint8_t length = stream->read8();
-                char* buffer = new char[length + 1];
-                stream->read(buffer, 1, length);
-                buffer[length] = 0;
-                rciter->setName(buffer);
-                delete[] buffer;
+                std::string buffer;
+                buffer.resize(length);
+                stream->read(&buffer[0], 1, length);
+                resource.setName(std::move(buffer));
             }
         }
     }
     return true;
 }
 
-void Win16::ResourceDirectory::update(ccl::Stream* stream)
+void Win16::ResourceDirectory::update(ccl::Stream* stream) const
 {
     // Update the resource tree only with necessary info
     stream->seek(m_dirOffset + 2, SEEK_SET);
-    std::list<ResourceGroup>::iterator iter;
-    for (iter = m_groups.begin(); iter != m_groups.end(); ++iter)
-        iter->update(stream);
+    for (const ResourceGroup& group : m_groups)
+        group.update(stream);
 }
 
-Win16::RcBlob* Win16::ResourceDirectory::loadResource(Resource* res, ccl::Stream* stream)
+Win16::RcBlob* Win16::ResourceDirectory::loadResource(const Resource* res, ccl::Stream* stream)
 {
-    RcBlob* blob = new RcBlob();
+    auto blob = new RcBlob;
     blob->m_size = res->size() << m_resAlign;
     blob->m_data = new uint8_t[blob->m_size];
     stream->seek(res->offset() << m_resAlign, SEEK_SET);
@@ -147,47 +141,42 @@ bool Win16::ResourceDirectory::updateResource(Resource* res, ccl::Stream* stream
 {
     std::list<RcBlob*> savedBlobs;
 
-    std::list<ResourceGroup>::iterator giter;
-    std::vector<Resource>::iterator rciter;
-
     // Save backup blobs if the size has changed
     uint32_t alignSize = blob->m_size >> m_resAlign;
     if (blob->m_size % (1 << m_resAlign))
         ++alignSize;
     if (alignSize != res->size()) {
-        for (giter = m_groups.begin(); giter != m_groups.end(); ++giter) {
-            for (rciter = giter->resources().begin(); rciter != giter->resources().end(); ++rciter) {
-                RcBlob* blob = loadResource(&(*rciter), stream);
-                savedBlobs.push_back(blob);
+        for (ResourceGroup& group : m_groups) {
+            for (Resource& resource : group.resources()) {
+                RcBlob* oldBlob = loadResource(&resource, stream);
+                savedBlobs.push_back(oldBlob);
 
                 // Update the offsets of blobs after the updated one
-                if (rciter->offset() > res->offset())
-                    rciter->setOffset(rciter->offset() + (alignSize - res->size()));
+                if (resource.offset() > res->offset())
+                    resource.setOffset(resource.offset() + (alignSize - res->size()));
             }
         }
     }
 
     // Now go update all the blobs
     res->setSize(alignSize);
-    for (giter = m_groups.begin(); giter != m_groups.end(); ++giter) {
-        for (rciter = giter->resources().begin(); rciter != giter->resources().end(); ++rciter) {
+    for (const ResourceGroup& group : m_groups) {
+        for (const Resource& resource : group.resources()) {
             // NOTE: We rely on the fact that the savedBlobs should stay in the
             //       same order during writing as during reading...
             RcBlob* nextBlob = savedBlobs.front();
             savedBlobs.pop_front();
-            if (&(*rciter) == res) {
-                stream->seek(rciter->offset() << m_resAlign, SEEK_SET);
+            if (&resource == res) {
+                stream->seek(resource.offset() << m_resAlign, SEEK_SET);
                 stream->write(blob->m_data, 1, blob->m_size);
                 if (blob->m_size % (1 << m_resAlign)) {
                     // Pad with zeroes
                     size_t padLength = (1 << m_resAlign) - (blob->m_size % (1 << m_resAlign));
-                    uint8_t* zero = new uint8_t[padLength];
-                    memset(zero, 0, padLength);
-                    stream->write(zero, 1, padLength);
-                    delete[] zero;
+                    std::vector<uint8_t> zero(padLength, 0);
+                    stream->write(&zero[0], 1, padLength);
                 }
             } else {
-                stream->seek(rciter->offset() << m_resAlign, SEEK_SET);
+                stream->seek(resource.offset() << m_resAlign, SEEK_SET);
                 stream->write(nextBlob->m_data, 1, nextBlob->m_size);
             }
             delete nextBlob;

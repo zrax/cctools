@@ -32,7 +32,7 @@ enum ResourceTypes {
 };
 
 struct RcBlob {
-    RcBlob() : m_size(0), m_data(0) { }
+    RcBlob() : m_size(), m_data() { }
     ~RcBlob() { delete[] m_data; }
 
     uint32_t m_size;
@@ -42,15 +42,14 @@ struct RcBlob {
 class Resource {
 public:
     Resource()
-        : m_offset(0), m_size(0), m_flags(0), m_resourceID(0), m_reserved(0) { }
-    Resource(const Resource& copy)
-        : m_offset(copy.m_offset), m_size(copy.m_size), m_flags(copy.m_flags),
-          m_resourceID(copy.m_resourceID), m_reserved(copy.m_reserved),
-          m_name(copy.m_name) { }
+        : m_offset(), m_size(), m_flags(), m_resourceID(), m_reserved() { }
+
+    Resource(const Resource& copy) = default;
+    Resource& operator=(const Resource& copy) = default;
 
     void read(ccl::Stream* stream);
-    void update(ccl::Stream* stream);
-    void setName(const std::string& name) { m_name = name; }
+    void update(ccl::Stream* stream) const;
+    void setName(std::string name) { m_name = std::move(name); }
 
     // These are 32-bit to make shifting easier
     uint32_t offset() const { return (uint32_t)m_offset; }
@@ -74,22 +73,13 @@ private:
 
 class ResourceGroup {
 public:
-    ResourceGroup() : m_typeID(0), m_count(0), m_reserved(0) { }
-    ResourceGroup(const ResourceGroup& copy)
-        : m_typeID(copy.m_typeID), m_count(copy.m_count),
-          m_reserved(copy.m_reserved), m_resources(copy.m_resources) { }
+    ResourceGroup() : m_typeID(), m_count(), m_reserved() { }
 
-    ResourceGroup& operator=(const ResourceGroup& copy)
-    {
-        m_typeID = copy.m_typeID;
-        m_count = copy.m_count;
-        m_reserved = copy.m_reserved;
-        m_resources = copy.m_resources;
-        return *this;
-    }
+    ResourceGroup(const ResourceGroup& copy) = default;
+    ResourceGroup& operator=(const ResourceGroup& copy) = default;
 
     void read(ccl::Stream* stream);
-    void update(ccl::Stream* stream);
+    void update(ccl::Stream* stream) const;
 
     uint16_t typeID() const { return m_typeID; }
     uint16_t count() const { return m_count; }
@@ -107,57 +97,49 @@ private:
 
 class ResourceDirectory {
 public:
-    ResourceDirectory() : m_dirOffset(0), m_resAlign(0) { }
+    ResourceDirectory() : m_dirOffset(), m_resAlign() { }
 
     bool read(ccl::Stream* stream);
-    void update(ccl::Stream* stream);
+    void update(ccl::Stream* stream) const;
 
     Resource* findResource(uint16_t type, const std::string& name)
     {
-        std::list<ResourceGroup>::iterator giter;
-        for (giter = m_groups.begin(); giter != m_groups.end(); ++giter) {
-            if (giter->typeID() != type)
+        for (ResourceGroup& group : m_groups) {
+            if (group.typeID() != type)
                 continue;
 
-            std::vector<Resource>::iterator rciter;
-            for (rciter = giter->resources().begin(); rciter != giter->resources().end(); ++rciter) {
-                if (rciter->name() == name)
-                    return &(*rciter);
+            for (Resource& resource : group.resources()) {
+                if (resource.name() == name)
+                    return &resource;
             }
         }
-        return 0;
+        return nullptr;
     }
 
     Resource* findResource(uint16_t type, uint16_t resourceID)
     {
-        std::list<ResourceGroup>::iterator giter;
-        for (giter = m_groups.begin(); giter != m_groups.end(); ++giter) {
-            if (giter->typeID() != type)
+        for (ResourceGroup& group : m_groups) {
+            if (group.typeID() != type)
                 continue;
 
-            std::vector<Resource>::iterator rciter;
-            for (rciter = giter->resources().begin(); rciter != giter->resources().end(); ++rciter) {
-                if (rciter->resourceID() == resourceID)
-                    return &(*rciter);
+            for (Resource& resource : group.resources()) {
+                if (resource.resourceID() == resourceID)
+                    return &resource;
             }
         }
-        return 0;
+        return nullptr;
     }
 
     RcBlob* loadResource(uint16_t type, const std::string& name, ccl::Stream* stream)
     {
         Resource* res = findResource(type, name);
-        if (res)
-            return loadResource(res, stream);
-        return 0;
+        return res ? loadResource(res, stream) : nullptr;
     }
 
     RcBlob* loadResource(uint16_t type, uint16_t resourceID, ccl::Stream* stream)
     {
         Resource* res = findResource(type, resourceID);
-        if (res)
-            return loadResource(res, stream);
-        return 0;
+        return res ? loadResource(res, stream) : nullptr;
     }
 
     bool updateResource(uint16_t type, const std::string& name,
@@ -183,7 +165,7 @@ private:
     uint16_t m_resAlign;
     std::list<ResourceGroup> m_groups;
 
-    RcBlob* loadResource(Resource* res, ccl::Stream* stream);
+    RcBlob* loadResource(const Resource* res, ccl::Stream* stream);
     bool updateResource(Resource* res, ccl::Stream* stream, RcBlob* blob);
 };
 

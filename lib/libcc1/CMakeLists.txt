@@ -23,6 +23,7 @@ set(libcc1_HEADERS
     GameLogic.h
     CCMetaData.h
     Tileset.h
+    Win16Rsrc.h
 )
 
 set(libcc1_SOURCES
@@ -34,6 +35,7 @@ set(libcc1_SOURCES
     GameLogic.cpp
     CCMetaData.cpp
     Tileset.cpp
+    Win16Rsrc.cpp
 )
 
 add_library(libcc1 STATIC ${libcc1_HEADERS} ${libcc1_SOURCES})
