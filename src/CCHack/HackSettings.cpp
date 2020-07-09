@@ -52,6 +52,10 @@ bool HackSettings::loadFromExe(const char* filename)
         return false;
 
     hax.open(&exeStream);
+    ccl::CCPatchState state = hax.get_CCPatch();
+    ccl::CCPatchState pg_state = hax.get_PGChips();
+    if (state == ccl::CCPatchOther || pg_state == ccl::CCPatchOther)
+        throw std::runtime_error("Unrecognized EXE format");
 
     // General settings
     set_title(hax.get_WindowTitle());
@@ -59,8 +63,8 @@ bool HackSettings::loadFromExe(const char* filename)
     set_iniEntry(hax.get_IniEntryName());
     set_datFile(hax.get_DataFilename());
     set_alwaysFirstTry(hax.get_AlwaysFirstTry());
-    set_ccPatch(hax.get_CCPatch() == ccl::CCPatchPatched);
-    set_pgChips(hax.get_PGChips() == ccl::CCPatchPatched);
+    set_ccPatch(state == ccl::CCPatchPatched);
+    set_pgChips(pg_state == ccl::CCPatchPatched);
     set_fakeLastLevel(hax.get_FakeLastLevel());
     set_realLastLevel(hax.get_LastLevel());
 
@@ -74,7 +78,7 @@ bool HackSettings::loadFromPatch(const char* filename)
     return false;
 }
 
-bool HackSettings::writeToExe(const char* filename)
+bool HackSettings::writeToExe(const char* filename) const
 {
     ccl::ChipsHax hax;
     ccl::FileStream exeStream;
@@ -117,7 +121,7 @@ bool HackSettings::writeToExe(const char* filename)
     return true;
 }
 
-bool HackSettings::writeToPatch(const char* filename)
+bool HackSettings::writeToPatch(const char* filename) const
 {
     //TODO
     return false;

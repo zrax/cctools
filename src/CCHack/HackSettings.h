@@ -39,8 +39,8 @@
     public: \
         bool have_##name() const { return m_##name##_set; } \
         const std::string& get_##name() const { return m_##name##_value; } \
-        void set_##name(const std::string& value) \
-            { m_##name##_value = value; m_##name##_set = true; } \
+        void set_##name(std::string value) \
+            { m_##name##_value = std::move(value); m_##name##_set = true; } \
         void clear_##name() { m_##name##_value.clear(); m_##name##_set = false; }
 
 class HackSettings {
@@ -52,19 +52,19 @@ public:
 
     bool loadFromExe(const char* filename);
     bool loadFromPatch(const char* filename);
-    bool writeToExe(const char* filename);
-    bool writeToPatch(const char* filename);
+    bool writeToExe(const char* filename) const;
+    bool writeToPatch(const char* filename) const;
 
     // General settings
     MAKE_SETTING_STR(title);
     MAKE_SETTING_STR(iniFile);
     MAKE_SETTING_STR(iniEntry);
     MAKE_SETTING_STR(datFile);
-    MAKE_SETTING(bool,  alwaysFirstTry);
-    MAKE_SETTING(bool,  ccPatch);
-    MAKE_SETTING(bool,  pgChips);
-    MAKE_SETTING(int,   fakeLastLevel);
-    MAKE_SETTING(int,   realLastLevel);
+    MAKE_SETTING(bool, alwaysFirstTry);
+    MAKE_SETTING(bool, ccPatch);
+    MAKE_SETTING(bool, pgChips);
+    MAKE_SETTING(int, fakeLastLevel);
+    MAKE_SETTING(int, realLastLevel);
 };
 
 class HackPage : public QWidget {

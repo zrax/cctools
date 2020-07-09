@@ -29,24 +29,28 @@ CCHack::PageGeneral::PageGeneral(QWidget* parent)
     m_cbTitle = new QCheckBox(tr("Game Title:"), this);
     m_title = new QLineEdit(this);
     m_title->setEnabled(false);
+    m_title->setMaxLength(16);
     m_defTitle = new QLineEdit(this);
     m_defTitle->setEnabled(false);
 
     m_cbIniFile = new QCheckBox(tr("INI Filename:"), this);
     m_iniFile = new QLineEdit(this);
     m_iniFile->setEnabled(false);
+    m_iniFile->setMaxLength(11);
     m_defIniFile = new QLineEdit(this);
     m_defIniFile->setEnabled(false);
 
     m_cbIniEntry = new QCheckBox(tr("INI Entry:"), this);
     m_iniEntry = new QLineEdit(this);
     m_iniEntry->setEnabled(false);
+    m_iniEntry->setMaxLength(17);
     m_defIniEntry = new QLineEdit(this);
     m_defIniEntry->setEnabled(false);
 
     m_cbDatFile = new QCheckBox(tr("Data File:"), this);
     m_datFile = new QLineEdit(this);
     m_datFile->setEnabled(false);
+    m_datFile->setMaxLength(9);
     m_defDatFile = new QLineEdit(this);
     m_defDatFile->setEnabled(false);
 
@@ -57,12 +61,14 @@ CCHack::PageGeneral::PageGeneral(QWidget* parent)
     m_cbFakeLastLevel = new QCheckBox(tr("\"Fake\" Last Level:"), this);
     m_fakeLastLevel = new QSpinBox(this);
     m_fakeLastLevel->setEnabled(false);
+    m_fakeLastLevel->setRange(0, 65535);
     m_defFakeLastLevel = new QLineEdit(this);
     m_defFakeLastLevel->setEnabled(false);
 
     m_cbRealLastLevel = new QCheckBox(tr("Actual Last Level:"), this);
     m_realLastLevel = new QSpinBox(this);
     m_realLastLevel->setEnabled(false);
+    m_realLastLevel->setRange(0, 65535);
     m_defRealLastLevel = new QLineEdit(this);
     m_defRealLastLevel->setEnabled(false);
 

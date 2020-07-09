@@ -29,12 +29,13 @@ class CCHackMain : public QMainWindow {
     Q_OBJECT
 
 public:
-    CCHackMain(QWidget* parent = nullptr);
+    explicit CCHackMain(QWidget* parent = nullptr);
 
     void loadFile(const QString& filename);
 
 private slots:
     void onChangePage(QTreeWidgetItem* page, QTreeWidgetItem*);
+    void onReadExeAction();
 
 private:
     QStackedWidget* m_container;

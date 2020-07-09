@@ -25,6 +25,8 @@
 #include <QAction>
 #include <QGridLayout>
 #include <QTimer>
+#include <QFileDialog>
+#include <QMessageBox>
 #include "PageGeneral.h"
 #include "About.h"
 
@@ -111,6 +113,9 @@ CCHackMain::CCHackMain(QWidget* parent)
     split->setSizes(QList<int>() << 200 << 600);
 
     connect(pager, &QTreeWidget::currentItemChanged, this, &CCHackMain::onChangePage);
+
+    connect(acReadExe, &QAction::triggered, this, &CCHackMain::onReadExeAction);
+
     connect(acAbout, &QAction::triggered, this, [this] {
         AboutDialog about(this);
         about.exec();
@@ -152,6 +157,31 @@ void CCHackMain::onChangePage(QTreeWidgetItem* page, QTreeWidgetItem*)
 
     const int pageType = page->data(0, Qt::UserRole).toInt();
     m_container->setCurrentIndex(pageType < m_container->count() ? pageType : 0);
+}
+
+void CCHackMain::onReadExeAction()
+{
+    QString exeFilename = QFileDialog::getOpenFileName(this, tr("Load from EXE"),
+                                QString(), tr("EXE Files (*.exe)"));
+    if (exeFilename.isEmpty())
+        return;
+
+    try {
+        if (!m_settings.loadFromExe(exeFilename.toLocal8Bit().constData())) {
+            QMessageBox::critical(this, tr("Error loading EXE"),
+                                  tr("Could not open %1 for reading").arg(exeFilename));
+            return;
+        }
+    } catch (const std::runtime_error& err) {
+        QMessageBox::critical(this, tr("Error loading EXE"),
+                              tr("Failed to load %1: %2").arg(exeFilename).arg(err.what()));
+        return;
+    }
+
+    for (HackPage* page : m_pages) {
+        if (page)
+            page->setValues(&m_settings);
+    }
 }
 
 
