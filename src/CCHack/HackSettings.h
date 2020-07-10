@@ -32,14 +32,14 @@
         void set_##name(type value) { m_##name##_value = value; m_##name##_set = true; } \
         void clear_##name() { m_##name##_value = type(); m_##name##_set = false; }
 
-#define MAKE_SETTING_STR(name) \
+#define MAKE_SETTING_OBJ(type, name) \
     private: \
         bool m_##name##_set; \
-        std::string m_##name##_value; \
+        type m_##name##_value; \
     public: \
         bool have_##name() const { return m_##name##_set; } \
-        const std::string& get_##name() const { return m_##name##_value; } \
-        void set_##name(std::string value) \
+        const type& get_##name() const { return m_##name##_value; } \
+        void set_##name(type value) \
             { m_##name##_value = std::move(value); m_##name##_set = true; } \
         void clear_##name() { m_##name##_value.clear(); m_##name##_set = false; }
 
@@ -56,15 +56,22 @@ public:
     bool writeToPatch(const char* filename) const;
 
     // General settings
-    MAKE_SETTING_STR(title);
-    MAKE_SETTING_STR(iniFile);
-    MAKE_SETTING_STR(iniEntry);
-    MAKE_SETTING_STR(datFile);
-    MAKE_SETTING(bool, alwaysFirstTry);
-    MAKE_SETTING(bool, ccPatch);
-    MAKE_SETTING(bool, pgChips);
-    MAKE_SETTING(int, fakeLastLevel);
-    MAKE_SETTING(int, realLastLevel);
+    MAKE_SETTING_OBJ(std::string,   title);
+    MAKE_SETTING_OBJ(std::string,   iniFile);
+    MAKE_SETTING_OBJ(std::string,   iniEntry);
+    MAKE_SETTING_OBJ(std::string,   datFile);
+    MAKE_SETTING(bool,              alwaysFirstTry);
+    MAKE_SETTING(bool,              ccPatch);
+    MAKE_SETTING(bool,              pgChips);
+    MAKE_SETTING(int,               fakeLastLevel);
+    MAKE_SETTING(int,               realLastLevel);
+    MAKE_SETTING_OBJ(QByteArray,    vgaTileset);
+    MAKE_SETTING_OBJ(QByteArray,    egaTileset);
+    MAKE_SETTING_OBJ(QByteArray,    monoTileset);
+    MAKE_SETTING_OBJ(QByteArray,    background);
+    MAKE_SETTING_OBJ(QByteArray,    digits);
+    MAKE_SETTING_OBJ(QByteArray,    infoBox);
+    MAKE_SETTING_OBJ(QByteArray,    chipEnd);
 };
 
 class HackPage : public QWidget {
@@ -72,6 +79,13 @@ public:
     HackPage(QWidget* parent = nullptr) : QWidget(parent) { }
     virtual void setValues(HackSettings* settings) = 0;
     virtual void setDefaults(HackSettings* settings) = 0;
+};
+
+class PlaceholderPage : public HackPage {
+public:
+    PlaceholderPage(QWidget* parent = nullptr) : HackPage(parent) { }
+    void setValues(HackSettings* settings) override { }
+    void setDefaults(HackSettings* settings) override { }
 };
 
 #endif

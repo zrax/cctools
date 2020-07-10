@@ -60,12 +60,14 @@ public:
     uint32_t read32();
     void readRLE(tile_t* dest, size_t size);
     std::string readString(size_t length, bool password = false);
+    std::string readZString();
 
     void write8(uint8_t value);
     void write16(uint16_t value);
     void write32(uint32_t value);
     long writeRLE(const tile_t* src, size_t size);
     void writeString(const std::string& value, bool password = false);
+    void writeZString(const std::string& value);
 
     size_t copyBytes(Stream* out, size_t count);
 
@@ -76,22 +78,26 @@ public:
 class FileStream : public Stream {
 public:
     FileStream() : m_file() { }
-    virtual ~FileStream() { close(); }
+    ~FileStream() override { close(); }
 
     bool open(const char* filename, const char* mode);
-    bool isOpen() const { return m_file != 0; }
+    bool isOpen() const { return m_file != nullptr; }
     void close();
 
-    virtual size_t read(void* buffer, size_t size, size_t count)
-    { return fread(buffer, size, count, m_file); }
+    size_t read(void* buffer, size_t size, size_t count) override
+    {
+        return fread(buffer, size, count, m_file);
+    }
 
-    virtual size_t write(const void* buffer, size_t size, size_t count)
-    { return fwrite(buffer, size, count, m_file); }
+    size_t write(const void* buffer, size_t size, size_t count) override
+    {
+        return fwrite(buffer, size, count, m_file);
+    }
 
-    virtual long tell() { return ftell(m_file); }
-    virtual long size();
-    virtual void seek(long offset, int whence) { fseek(m_file, offset, whence); }
-    virtual bool eof();
+    long tell() override { return ftell(m_file); }
+    long size() override;
+    void seek(long offset, int whence) override { fseek(m_file, offset, whence); }
+    bool eof() override;
 
 private:
     FILE* m_file;
@@ -99,18 +105,18 @@ private:
 
 class BufferStream : public Stream {
 public:
-    BufferStream() : m_size(0), m_offs(0), m_alloc(0), m_buffer(0) { }
-    virtual ~BufferStream() { delete[] m_buffer; }
+    BufferStream() : m_size(), m_offs(), m_alloc(), m_buffer() { }
+    ~BufferStream() override { delete[] m_buffer; }
 
     void setFrom(const void* buffer, size_t size);
     const uint8_t* buffer() const { return m_buffer; }
 
-    virtual size_t read(void* buffer, size_t size, size_t count);
-    virtual size_t write(const void* buffer, size_t size, size_t count);
-    virtual long tell() { return (long)m_offs; }
-    virtual long size() { return (long)m_size; }
-    virtual void seek(long offset, int whence);
-    virtual bool eof() { return (m_offs >= m_size); }
+    size_t read(void* buffer, size_t size, size_t count) override;
+    size_t write(const void* buffer, size_t size, size_t count) override;
+    long tell() override { return (long)m_offs; }
+    long size() override { return (long)m_size; }
+    void seek(long offset, int whence) override;
+    bool eof() override { return (m_offs >= m_size); }
 
 private:
     size_t m_size, m_offs, m_alloc;

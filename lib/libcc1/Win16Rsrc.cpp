@@ -42,7 +42,7 @@ std::string Win16::Resource::name() const
 {
     if (m_resourceID & 0x8000) {
         char numbuf[16];
-        snprintf(numbuf, 16, "%u", (uint32_t)m_resourceID);
+        snprintf(numbuf, 16, "%u", (uint32_t)(m_resourceID & ~0x8000));
         return numbuf;
     } else {
         return m_name;
@@ -186,4 +186,72 @@ bool Win16::ResourceDirectory::updateResource(Resource* res, ccl::Stream* stream
     // And finally update the resource table
     update(stream);
     return true;
+}
+
+
+void Win16::RcMenuItem::read(ccl::Stream* stream, bool topLevel)
+{
+    m_flags = stream->read16();
+    if (!topLevel)
+        m_id = stream->read16();
+    m_name = stream->readZString();
+
+    if (m_flags & 0x10) {
+        for ( ;; ) {
+            m_children.emplace_back();
+            m_children.back().read(stream, false);
+            if (m_children.back().m_flags & 0x80)
+                break;
+        }
+    }
+}
+
+void Win16::RcMenuItem::write(ccl::Stream* stream, bool topLevel)
+{
+    if (m_children.empty())
+        m_flags &= ~0x10;
+    else
+        m_flags |= 0x10;
+
+    stream->write16(m_flags);
+    if (!topLevel)
+        stream->write16(m_id);
+    stream->writeZString(m_name);
+
+    if (!m_children.empty()) {
+        for (RcMenuItem& item : m_children)
+            item.m_flags &= ~0x80;
+        m_children.back().m_flags |= 0x80;
+        for (RcMenuItem& item : m_children)
+            item.write(stream, false);
+    }
+}
+
+
+void Win16::MenuResource::read(ccl::Stream* stream)
+{
+    m_version = stream->read16();
+    m_offset = stream->read16();
+
+    for ( ;; ) {
+        m_menus.emplace_back();
+        m_menus.back().read(stream, true);
+        if (m_menus.back().flags() & 0x80)
+            break;
+    }
+}
+
+void Win16::MenuResource::write(ccl::Stream* stream)
+{
+    stream->write16(m_version);
+    stream->write16(m_offset);
+
+    if (m_menus.empty())
+        throw std::runtime_error("MenuResource cannot be empty!");
+
+    for (RcMenuItem& item : m_menus)
+        item.setFlags(item.flags() & ~0x80);
+    m_menus.back().setFlags(m_menus.back().flags() | 0x80);
+    for (RcMenuItem& item : m_menus)
+        item.write(stream, true);
 }

@@ -28,6 +28,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include "PageGeneral.h"
+#include "PageBitmap.h"
 #include "About.h"
 
 static void addPageWithType(QTreeWidgetItem* parent, const QString& name, int type)
@@ -63,7 +64,8 @@ CCHackMain::CCHackMain(QWidget* parent)
     addPageWithType(tiGraphics, tr("EGA Tileset"), PageEGATS);
     addPageWithType(tiGraphics, tr("Mono Tileset"), PageMonoTS);
     addPageWithType(tiGraphics, tr("Background"), PageBackground);
-    addPageWithType(tiGraphics, tr("Endgame"), PageEndGfx);
+    addPageWithType(tiGraphics, tr("Info Box"), PageInfoBox);
+    addPageWithType(tiGraphics, tr("End Graphic"), PageEndGfx);
     addPageWithType(tiGraphics, tr("Digits"), PageDigits);
     pager->expandAll();
 
@@ -124,16 +126,23 @@ CCHackMain::CCHackMain(QWidget* parent)
     m_defaults.setKnownDefaults();
     m_settings.clearAll();
 
-    auto blankPage = new QWidget(this);
-    m_container->addWidget(blankPage);
-
     m_pages[PageGeneral] = new CCHack::PageGeneral(this);
-    m_container->addWidget(m_pages[PageGeneral]);
+    m_pages[PageSound] = new PlaceholderPage(this);
+    m_pages[PageMenus] = new PlaceholderPage(this);
+    m_pages[PageStory] = new PlaceholderPage(this);
+    m_pages[PageEndLevel] = new PlaceholderPage(this);
+    m_pages[PageEndGame] = new PlaceholderPage(this);
+    m_pages[PageMisc] = new PlaceholderPage(this);
+    m_pages[PageVGATS] = new CCHack::PageBitmap(CCHack::PageBitmap::VgaTileset, this);
+    m_pages[PageEGATS] = new CCHack::PageBitmap(CCHack::PageBitmap::EgaTileset, this);
+    m_pages[PageMonoTS] = new CCHack::PageBitmap(CCHack::PageBitmap::MonoTileset, this);
+    m_pages[PageBackground] = new CCHack::PageBitmap(CCHack::PageBitmap::Background, this);
+    m_pages[PageInfoBox] = new CCHack::PageBitmap(CCHack::PageBitmap::InfoBox, this);
+    m_pages[PageEndGfx] = new CCHack::PageBitmap(CCHack::PageBitmap::ChipEnd, this);
+    m_pages[PageDigits] = new CCHack::PageBitmap(CCHack::PageBitmap::Digits, this);
 
     for (HackPage* page : m_pages) {
-        if (!page)
-            continue;
-
+        m_container->addWidget(page);
         page->setDefaults(&m_defaults);
         page->setValues(&m_settings);
     }

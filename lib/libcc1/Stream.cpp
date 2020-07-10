@@ -89,6 +89,20 @@ std::string ccl::Stream::readString(size_t length, bool password)
     return std::string(buffer.get(), length - 1);
 }
 
+std::string ccl::Stream::readZString()
+{
+    std::string buffer;
+    buffer.reserve(32);
+
+    for ( ;; ) {
+        char ch = (char)read8();
+        if (!ch)
+            break;
+        buffer.push_back(ch);
+    }
+    return buffer;
+}
+
 void ccl::Stream::write8(uint8_t value)
 {
     if (write(&value, sizeof(value), 1) == 0)
@@ -160,12 +174,19 @@ void ccl::Stream::writeString(const std::string& value, bool password)
 {
     size_t length = value.size();
     if (password) {
-        for (size_t i=0; i<length; ++i)
-            write8((uint8_t)(value[i] ^ 0x99));
+        for (char ch : value)
+            write8((uint8_t)(ch ^ 0x99));
+        // Null terminator
+        write8(0);
     } else {
-        if (write(value.c_str(), 1, length) != length)
-            throw ccl::IOException("Error writing to stream");
+        writeZString(value);
     }
+}
+
+void ccl::Stream::writeZString(const std::string& value)
+{
+    if (write(value.c_str(), sizeof(char), value.size()) != value.size())
+        throw ccl::IOException("Error writing to stream");
 
     // Null terminator
     write8(0);
@@ -230,9 +251,9 @@ bool ccl::FileStream::open(const char* filename, const char* mode)
 
 void ccl::FileStream::close()
 {
-    if (m_file != 0)
+    if (m_file)
         fclose(m_file);
-    m_file = 0;
+    m_file = nullptr;
 }
 
 long ccl::FileStream::size()
@@ -263,7 +284,7 @@ void ccl::BufferStream::setFrom(const void* buffer, size_t size)
         m_size = size;
         m_alloc = size;
     } else {
-        m_buffer = 0;
+        m_buffer = nullptr;
         m_size = 0;
         m_alloc = 0;
     }
@@ -275,16 +296,16 @@ size_t ccl::BufferStream::read(void* buffer, size_t size, size_t count)
     if (m_buffer == 0)
         return 0;
 
-    size_t bytesCopied = 0;
+    size_t numCopied = 0;
     unsigned char* bufPtr = (unsigned char*)buffer;
     while (m_offs + size <= m_size && count > 0) {
         memcpy(bufPtr, m_buffer + m_offs, size);
         bufPtr += size;
         m_offs += size;
-        bytesCopied += size;
+        ++numCopied;
         --count;
     }
-    return bytesCopied;
+    return numCopied;
 }
 
 size_t ccl::BufferStream::write(const void* buffer, size_t size, size_t count)
@@ -301,18 +322,18 @@ size_t ccl::BufferStream::write(const void* buffer, size_t size, size_t count)
         m_alloc = bigger;
     }
 
-    size_t bytesCopied = 0;
+    size_t numCopied = 0;
     unsigned char* bufPtr = (unsigned char*)buffer;
     while (count > 0) {
         memcpy(m_buffer + m_offs, bufPtr, size);
         bufPtr += size;
         m_offs += size;
-        bytesCopied += size;
+        ++numCopied;
         --count;
     }
     if (m_offs > m_size)
         m_size = m_offs;
-    return bytesCopied;
+    return numCopied;
 }
 
 void ccl::BufferStream::seek(long offset, int whence)

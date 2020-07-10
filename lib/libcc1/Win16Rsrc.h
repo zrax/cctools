@@ -105,7 +105,7 @@ public:
     Resource* findResource(uint16_t type, const std::string& name)
     {
         for (ResourceGroup& group : m_groups) {
-            if (group.typeID() != type)
+            if ((group.typeID() & ~0x8000) != type)
                 continue;
 
             for (Resource& resource : group.resources()) {
@@ -119,11 +119,11 @@ public:
     Resource* findResource(uint16_t type, uint16_t resourceID)
     {
         for (ResourceGroup& group : m_groups) {
-            if (group.typeID() != type)
+            if ((group.typeID() & ~0x8000) != type)
                 continue;
 
             for (Resource& resource : group.resources()) {
-                if (resource.resourceID() == resourceID)
+                if ((resource.resourceID() & ~0x8000) == resourceID)
                     return &resource;
             }
         }
@@ -167,6 +167,53 @@ private:
 
     RcBlob* loadResource(const Resource* res, ccl::Stream* stream);
     bool updateResource(Resource* res, ccl::Stream* stream, RcBlob* blob);
+};
+
+class RcMenuItem {
+public:
+    RcMenuItem() : m_flags(), m_id() { }
+
+    void read(ccl::Stream* stream, bool topLevel);
+    void write(ccl::Stream* stream, bool topLevel);
+
+    uint16_t flags() const { return m_flags; }
+    uint16_t id() const { return m_id; }
+    const std::string& name() const { return m_name; }
+
+    void setFlags(uint16_t flags) { m_flags = flags; }
+    void setId(uint16_t id) { m_id = id; }
+    void setName(std::string name) { m_name = std::move(name); }
+
+    std::vector<RcMenuItem>& children() { return m_children; }
+    const std::vector<RcMenuItem>& children() const { return m_children; }
+
+private:
+    uint16_t m_flags;
+    uint16_t m_id;
+    std::string m_name;
+    std::vector<RcMenuItem> m_children;
+};
+
+class MenuResource {
+public:
+    MenuResource() : m_version(), m_offset() { }
+
+    void read(ccl::Stream* stream);
+    void write(ccl::Stream* stream);
+
+    uint16_t version() const { return m_version; }
+    uint16_t offset() const { return m_offset; }
+
+    void setVersion(uint16_t version) { m_version = version; }
+    void setOffset(uint16_t offset) { m_offset = offset; }
+
+    std::vector<RcMenuItem>& menus() { return m_menus; }
+    const std::vector<RcMenuItem>& menus() const { return m_menus; }
+
+private:
+    uint16_t m_version;
+    uint16_t m_offset;
+    std::vector<RcMenuItem> m_menus;
 };
 
 }

@@ -17,6 +17,7 @@
 
 #include "HackSettings.h"
 #include "libcc1/ChipsHax.h"
+#include "libcc1/Win16Rsrc.h"
 
 void HackSettings::setKnownDefaults()
 {
@@ -29,6 +30,14 @@ void HackSettings::setKnownDefaults()
     set_pgChips(false);
     set_fakeLastLevel(144);
     set_realLastLevel(149);
+
+    clear_vgaTileset();
+    clear_egaTileset();
+    clear_monoTileset();
+    clear_background();
+    clear_digits();
+    clear_infoBox();
+    clear_chipEnd();
 }
 
 void HackSettings::clearAll()
@@ -42,6 +51,14 @@ void HackSettings::clearAll()
     clear_pgChips();
     clear_fakeLastLevel();
     clear_realLastLevel();
+
+    clear_vgaTileset();
+    clear_egaTileset();
+    clear_monoTileset();
+    clear_background();
+    clear_digits();
+    clear_infoBox();
+    clear_chipEnd();
 }
 
 bool HackSettings::loadFromExe(const char* filename)
@@ -67,6 +84,44 @@ bool HackSettings::loadFromExe(const char* filename)
     set_pgChips(pg_state == ccl::CCPatchPatched);
     set_fakeLastLevel(hax.get_FakeLastLevel());
     set_realLastLevel(hax.get_LastLevel());
+
+    Win16::ResourceDirectory rcDir;
+    rcDir.read(&exeStream);
+    Win16::RcBlob* blob = rcDir.loadResource(Win16::RT_Bitmap, "OBJ32_4", &exeStream);
+    if (blob) {
+        set_vgaTileset(QByteArray((const char*)blob->m_data, blob->m_size));
+        delete blob;
+    }
+    blob = rcDir.loadResource(Win16::RT_Bitmap, "OBJ32_4E", &exeStream);
+    if (blob) {
+        set_egaTileset(QByteArray((const char*)blob->m_data, blob->m_size));
+        delete blob;
+    }
+    blob = rcDir.loadResource(Win16::RT_Bitmap, "OBJ32_1", &exeStream);
+    if (blob) {
+        set_monoTileset(QByteArray((const char*)blob->m_data, blob->m_size));
+        delete blob;
+    }
+    blob = rcDir.loadResource(Win16::RT_Bitmap, "BACKGROUND", &exeStream);
+    if (blob) {
+        set_background(QByteArray((const char*)blob->m_data, blob->m_size));
+        delete blob;
+    }
+    blob = rcDir.loadResource(Win16::RT_Bitmap, 200, &exeStream);
+    if (blob) {
+        set_digits(QByteArray((const char*)blob->m_data, blob->m_size));
+        delete blob;
+    }
+    blob = rcDir.loadResource(Win16::RT_Bitmap, "INFOWND", &exeStream);
+    if (blob) {
+        set_infoBox(QByteArray((const char*)blob->m_data, blob->m_size));
+        delete blob;
+    }
+    blob = rcDir.loadResource(Win16::RT_Bitmap, "CHIPEND", &exeStream);
+    if (blob) {
+        set_chipEnd(QByteArray((const char*)blob->m_data, blob->m_size));
+        delete blob;
+    }
 
     exeStream.close();
     return true;

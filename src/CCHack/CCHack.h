@@ -43,9 +43,10 @@ private:
     HackSettings m_defaults, m_settings;
 
     enum PageType {
-        PageNothing, PageGeneral, PageSound,
+        PageGeneral, PageSound,
         PageMenus, PageStory, PageEndLevel, PageEndGame, PageMisc,
-        PageVGATS, PageEGATS, PageMonoTS, PageBackground, PageEndGfx, PageDigits,
+        PageVGATS, PageEGATS, PageMonoTS, PageBackground, PageInfoBox,
+        PageEndGfx, PageDigits,
         Pages_COUNT
     };
     HackPage* m_pages[Pages_COUNT];

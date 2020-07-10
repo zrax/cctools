@@ -24,8 +24,6 @@
 CCHack::PageGeneral::PageGeneral(QWidget* parent)
     : HackPage(parent)
 {
-    auto layout = new QGridLayout(this);
-
     m_cbTitle = new QCheckBox(tr("Game Title:"), this);
     m_title = new QLineEdit(this);
     m_title->setEnabled(false);
@@ -72,6 +70,7 @@ CCHack::PageGeneral::PageGeneral(QWidget* parent)
     m_defRealLastLevel = new QLineEdit(this);
     m_defRealLastLevel->setEnabled(false);
 
+    auto layout = new QGridLayout(this);
     layout->addWidget(new QLabel(tr("Override"), this), 0, 1);
     layout->addWidget(new QLabel(tr("Default"), this), 0, 2);
     layout->addWidget(m_cbTitle, 1, 0);

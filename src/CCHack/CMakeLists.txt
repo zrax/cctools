@@ -20,12 +20,14 @@ set(CCHack_HEADERS
     About.h
     CCHack.h
     HackSettings.h
+    PageBitmap.h
     PageGeneral.h
 )
 
 set(CCHack_SOURCES
     CCHack.cpp
     HackSettings.cpp
+    PageBitmap.cpp
     PageGeneral.cpp
 )
 
