@@ -29,6 +29,7 @@
 #include <QApplication>
 #include <QSettings>
 #include <QDir>
+#include <QStandardPaths>
 #include <QAction>
 #include <QDesktopWidget>
 #include <QDockWidget>
@@ -1631,11 +1632,8 @@ void CC2EditMain::onTestChips2()
     QString winePath = settings.value("WineExe").toString();
     if (winePath.isEmpty() || !QFile::exists(winePath)) {
         // Try standard paths
-        if (QFile::exists("/usr/bin/wine")) {
-            winePath = "/usr/bin/wine";
-        } else if (QFile::exists("/usr/local/bin/wine")) {
-            winePath = "/usr/local/bin/wine";
-        } else {
+        winePath = QStandardPaths::findExecutable("wine");
+        if (winePath.isEmpty() || !QFile::exists(winePath)) {
             QMessageBox::critical(this, tr("Could not find WINE"),
                     tr("Could not find WINE executable.\n"
                        "Please configure WINE in the Test Setup dialog."));

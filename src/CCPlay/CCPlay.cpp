@@ -30,6 +30,7 @@
 #include <QFileDialog>
 #include <QSqlQuery>
 #include <QProcess>
+#include <QStandardPaths>
 #include <memory>
 #include "PlaySettings.h"
 #include "libcc1/Levelset.h"
@@ -422,11 +423,8 @@ void CCPlayMain::onPlayMSCC()
     QString winePath = settings.value("WineExe").toString();
     if (winePath.isEmpty() || !QFile::exists(winePath)) {
         // Try standard paths
-        if (QFile::exists("/usr/bin/wine")) {
-            winePath = "/usr/bin/wine";
-        } else if (QFile::exists("/usr/local/bin/wine")) {
-            winePath = "/usr/local/bin/wine";
-        } else {
+        winePath = QStandardPaths::findExecutable("wine");
+        if (winePath.isEmpty() || !QFile::exists(winePath)) {
             QMessageBox::critical(this, tr("Could not find WINE"),
                     tr("Could not find WINE executable.\n"
                        "Please configure WINE in the CCPlay settings."));
@@ -650,7 +648,7 @@ void CCPlayMain::onPlayMSCC()
 
 void CCPlayMain::onPlayTWorld(bool tworld2)
 {
-    if (m_levelsetList->currentItem() == 0 || m_levelList->topLevelItemCount() == 0)
+    if (!m_levelsetList->currentItem() || m_levelList->topLevelItemCount() == 0)
         return;
 
     QString filename = m_levelsetList->currentItem()->data(0, Qt::UserRole).toString();
@@ -658,27 +656,10 @@ void CCPlayMain::onPlayTWorld(bool tworld2)
     QSettings settings("CCTools", "CCPlay");
     QString tworldExe = settings.value(tworld2 ? "TWorld2Exe" : "TWorldExe").toString();
     if (tworldExe.isEmpty() || !QFile::exists(tworldExe)) {
-#ifndef Q_OS_WIN
         // Try standard paths
-        if (tworld2 && QFile::exists("/usr/games/tworld2")) {
-            tworldExe = "/usr/games/tworld2";
-        } else if (tworld2 && QFile::exists("/usr/local/games/tworld2")) {
-            tworldExe = "/usr/local/games/tworld2";
-        } else if (tworld2 && QFile::exists("/usr/bin/tworld2")) {
-            tworldExe = "/usr/bin/tworld2";
-        } else if (tworld2 && QFile::exists("/usr/local/bin/tworld2")) {
-            tworldExe = "/usr/local/bin/tworld2";
-        } else if (QFile::exists("/usr/games/tworld")) {
-            tworldExe = "/usr/games/tworld";
-        } else if (QFile::exists("/usr/local/games/tworld")) {
-            tworldExe = "/usr/local/games/tworld";
-        } else if (QFile::exists("/usr/bin/tworld")) {
-            tworldExe = "/usr/bin/tworld";
-        } else if (QFile::exists("/usr/local/bin/tworld")) {
-            tworldExe = "/usr/local/bin/tworld";
-        } else
-#endif
-        {
+        tworldExe = tworld2 ? QStandardPaths::findExecutable("tworld2")
+                            : QStandardPaths::findExecutable("tworld");
+        if (tworldExe.isEmpty() || !QFile::exists(tworldExe)) {
             if (tworld2) {
                 QMessageBox::critical(this, tr("Could not find Tile World 2"),
                         tr("Could not find Tile World 2 executable.\n"

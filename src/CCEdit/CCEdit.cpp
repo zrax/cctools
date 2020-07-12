@@ -38,6 +38,7 @@
 #include <QTextCodec>
 #include <QDesktopWidget>
 #include <QDir>
+#include <QStandardPaths>
 #include <QMimeData>
 #include <QElapsedTimer>
 
@@ -1849,11 +1850,8 @@ void CCEditMain::onTestChips()
     QString winePath = settings.value("WineExe").toString();
     if (winePath.isEmpty() || !QFile::exists(winePath)) {
         // Try standard paths
-        if (QFile::exists("/usr/bin/wine")) {
-            winePath = "/usr/bin/wine";
-        } else if (QFile::exists("/usr/local/bin/wine")) {
-            winePath = "/usr/local/bin/wine";
-        } else {
+        winePath = QStandardPaths::findExecutable("wine");
+        if (winePath.isEmpty() || !QFile::exists(winePath)) {
             QMessageBox::critical(this, tr("Could not find WINE"),
                     tr("Could not find WINE executable.\n"
                        "Please configure WINE in the Test Setup dialog."));
@@ -1991,23 +1989,15 @@ void CCEditMain::onTestTWorld(unsigned int levelsetType, bool tworld2)
     QSettings settings("CCTools", "CCEdit");
     QString tworldExe = settings.value(tworld2 ? "TWorld2Exe" : "TWorldExe").toString();
     if (tworldExe.isEmpty() || !QFile::exists(tworldExe)) {
-#ifndef Q_OS_WIN
         // Try standard paths
-        tworldExe = tworld2 ? "/usr/bin/tworld2" : "/usr/bin/tworld";
-        if (!QFile::exists(tworldExe))
-            tworldExe = tworld2 ? "/usr/local/bin/tworld2" : "/usr/local/bin/tworld";
-        if (!QFile::exists(tworldExe)) {
+        tworldExe = tworld2 ? QStandardPaths::findExecutable("tworld2")
+                            : QStandardPaths::findExecutable("tworld");
+        if (tworldExe.isEmpty() || !QFile::exists(tworldExe)) {
             QMessageBox::critical(this, tr("Could not find Tile World"),
                     tr("Could not find Tile World executable.\n"
                        "Please configure Tile World in the Test Setup dialog."));
             return;
         }
-#else
-        QMessageBox::critical(this, tr("Could not find Tile World"),
-                tr("Could not find Tile World executable.\n"
-                   "Please configure Tile World in the Test Setup dialog."));
-        return;
-#endif
     }
 
     // Save the levelset to the temp file

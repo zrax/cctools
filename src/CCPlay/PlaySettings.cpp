@@ -264,7 +264,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     layout->addWidget(dlgTabs, 0, 0);
 #ifndef Q_OS_WIN
     layout->addWidget(new QLabel(
-            tr("Note: Leave WINE or Tile World paths empty to use system-installed locations"),
+            tr("Note: Leave executable paths empty to try system-installed locations"),
             this), 1, 0);
 #else
     layout->addWidget(new QLabel(
