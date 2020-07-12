@@ -61,22 +61,28 @@ void SettingsDialog::CheckEditors(QSettings& settings)
     settings.setValue("EditorIcons", QStringList() << "CCEdit");
 }
 
-QIcon SettingsDialog::IconForEditor(QString iconName)
+QIcon SettingsDialog::IconForEditor(const QString& iconName)
 {
-    if (iconName == "CCEdit")
+    if (iconName == QStringLiteral("CCEdit"))
         return QIcon(":/res/edit-ccedit.png");
-    if (iconName == "ChipEdit")
+    if (iconName == QStringLiteral("ChipEdit"))
         return QIcon(":/res/edit-chipedit.png");
-    if (iconName == "ChipW")
+    if (iconName == QStringLiteral("ChipW"))
         return QIcon(":/res/edit-chipw.png");
-    if (iconName == "CCDesign")
+    if (iconName == QStringLiteral("CCDesign"))
         return QIcon(":/res/edit-ccdesign.png");
+    if (iconName == QStringLiteral("Generic"))
+        return QIcon(":/res/application-x-executable.png");
+    if (iconName == QStringLiteral("GenericScript"))
+        return QIcon(":/res/application-x-executable-script.png");
+    if (iconName == QStringLiteral("JavaJar"))
+        return QIcon(":/res/application-x-java.png");
     return QIcon();
 }
 
 
 SettingsDialog::SettingsDialog(QWidget* parent)
-              : QDialog(parent)
+    : QDialog(parent)
 {
     setWindowTitle("CCPlay Settings");
 
@@ -146,7 +152,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     m_cheatAlwaysFirstTry->setChecked(settings.value("UseAlwaysFirstTry", false).toBool());
 
     m_defaultGame = new QComboBox(tabPlay);
-    m_defaultGame->addItems(QStringList() << "MSCC" << "Tile World" << "Tile World 2");
+    m_defaultGame->addItems(QStringList{ tr("MSCC"), tr("Tile World"), tr("Tile World 2") });
     m_defaultGame->setCurrentIndex(
                 settings.value("DefaultGame").toString() == "TWorld2" ? 2 :
                 settings.value("DefaultGame").toString() == "TWorld"  ? 1 : 0);
@@ -441,9 +447,8 @@ void SettingsDialog::onEditorDown()
 }
 
 
-
 ConfigEditorDialog::ConfigEditorDialog(QWidget* parent)
-                  : QDialog(parent)
+    : QDialog(parent)
 {
     setWindowTitle(tr("Configure Editor"));
 
@@ -457,10 +462,14 @@ ConfigEditorDialog::ConfigEditorDialog(QWidget* parent)
     lblName->setBuddy(m_name);
     m_icon = new QComboBox(this);
     m_icon->setIconSize(QSize(32, 32));
-    m_icon->addItem(SettingsDialog::IconForEditor("CCEdit"), QString());
-    m_icon->addItem(SettingsDialog::IconForEditor("ChipEdit"), QString());
-    m_icon->addItem(SettingsDialog::IconForEditor("ChipW"), QString());
-    m_icon->addItem(SettingsDialog::IconForEditor("CCDesign"), QString());
+    static const QString iconNames[] = {
+        QStringLiteral("CCEdit"), QStringLiteral("ChipEdit"),
+        QStringLiteral("ChipW"), QStringLiteral("CCDesign"),
+        QStringLiteral("Generic"), QStringLiteral("GenericScript"),
+        QStringLiteral("JavaJar")
+    };
+    for (const QString& icon : iconNames)
+        m_icon->addItem(SettingsDialog::IconForEditor(icon), QString(), icon);
     QLabel* lblIcon = new QLabel(tr("&Icon:"), this);
     lblIcon->setBuddy(m_icon);
     m_path = new QLineEdit(this);
@@ -502,30 +511,17 @@ ConfigEditorDialog::ConfigEditorDialog(QWidget* parent)
     connect(browseEditor, &QToolButton::clicked, this, &ConfigEditorDialog::onBrowseEditor);
 }
 
-void ConfigEditorDialog::setIcon(QString icon)
+void ConfigEditorDialog::setIcon(const QString& icon)
 {
-    if (icon == "CCEdit")
-        m_icon->setCurrentIndex(0);
-    else if (icon == "ChipEdit")
-        m_icon->setCurrentIndex(1);
-    else if (icon == "ChipW")
-        m_icon->setCurrentIndex(2);
-    else if (icon == "CCDesign")
-        m_icon->setCurrentIndex(3);
+    for (int i = 0; i < m_icon->count(); ++i) {
+        if (m_icon->itemData(i) == icon)
+            m_icon->setCurrentIndex(i);
+    }
 }
 
 QString ConfigEditorDialog::icon() const
 {
-    switch (m_icon->currentIndex()) {
-    case 1:
-        return "ChipEdit";
-    case 2:
-        return "ChipW";
-    case 3:
-        return "CCDesign";
-    default:
-        return "CCEdit";
-    }
+    return m_icon->currentData().toString();
 }
 
 void ConfigEditorDialog::onBrowseEditor()

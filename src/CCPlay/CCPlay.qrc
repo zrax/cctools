@@ -10,6 +10,9 @@
     <file>res/arrow-down.png</file>
     <file>res/view-refresh.png</file>
 
+    <file>res/application-x-executable.png</file>
+    <file>res/application-x-executable-script.png</file>
+    <file>res/application-x-java.png</file>
     <file>res/play-chips.png</file>
     <file>res/play-tworld.png</file>
     <file>res/edit-ccedit.png</file>

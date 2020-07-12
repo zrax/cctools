@@ -30,11 +30,11 @@ class SettingsDialog : public QDialog {
     Q_OBJECT
 
 public:
-    SettingsDialog(QWidget* parent = 0);
+    explicit SettingsDialog(QWidget* parent = nullptr);
     void refreshEditors();
 
     static void CheckEditors(QSettings& settings);
-    static QIcon IconForEditor(QString iconName);
+    static QIcon IconForEditor(const QString& iconName);
 
 private:
 #ifndef Q_OS_WIN
@@ -80,12 +80,12 @@ class ConfigEditorDialog : public QDialog {
     Q_OBJECT
 
 public:
-    ConfigEditorDialog(QWidget* parent = 0);
+    explicit ConfigEditorDialog(QWidget* parent = nullptr);
 
-    void setName(QString name) { m_name->setText(name); }
-    void setPath(QString path) { m_path->setText(path); }
-    void setArgs(QString args) { m_args->setText(args); }
-    void setIcon(QString icon);
+    void setName(const QString& name) { m_name->setText(name); }
+    void setPath(const QString& path) { m_path->setText(path); }
+    void setArgs(const QString& args) { m_args->setText(args); }
+    void setIcon(const QString& icon);
 
     QString name() const { return m_name->text(); }
     QString path() const { return m_path->text(); }
