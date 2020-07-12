@@ -798,6 +798,12 @@ void CCPlayMain::onToolDefault()
     onTool(m_openToolButton->menu()->actions()[0]);
 }
 
+#ifdef Q_OS_WIN
+#define JAVA_EXE "javaw"
+#else
+#define JAVA_EXE "java"
+#endif
+
 void CCPlayMain::onTool(QAction* action)
 {
     if (!m_levelsetList->currentItem())
@@ -810,11 +816,23 @@ void CCPlayMain::onTool(QAction* action)
 
     QStringList launch = action->data().toString().split('|');
     QStringList params = launch[1].split(' ', QString::SkipEmptyParts);
-    for (int i=0; i<params.size(); ++i) {
+    for (int i = 0; i < params.size(); ++i) {
         params[i].replace("%F", QDir::toNativeSeparators(filename))
                  .replace("%L", QString("%1").arg(curLevel));
     }
-    QProcess::execute(launch[0], params);
+    if (launch[0].endsWith(".jar", Qt::CaseInsensitive)) {
+        const QString javaExecutable = QStandardPaths::findExecutable(JAVA_EXE);
+        if (javaExecutable.isEmpty() || !QFile::exists(javaExecutable)) {
+            QMessageBox::critical(this, tr("Could not find Java"),
+                    tr("This tool requires Java, but the '" JAVA_EXE "' executable could not be found. "
+                       "Please ensure java is installed and is in your PATH."));
+            return;
+        }
+        params = QStringList{ QStringLiteral("-jar"), launch[0] } + params;
+        QProcess::execute(javaExecutable, params);
+    } else {
+        QProcess::execute(launch[0], params);
+    }
 }
 
 void CCPlayMain::onSetup()

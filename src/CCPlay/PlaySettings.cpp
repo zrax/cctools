@@ -30,7 +30,7 @@
 #include <QMessageBox>
 
 #ifdef Q_OS_WIN
-    #define EXE_FILTER "Executables (*.exe)"
+    #define EXE_FILTER "Executables (*.exe *.bat *.jar)"
     #define WINEXE_FILTER "Executables (*.exe)"
     #define EXE_LIST QStringList() << "*.exe"
 #else
