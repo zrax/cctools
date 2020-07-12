@@ -39,9 +39,9 @@
     #define EXE_LIST QStringList()
 #endif
 
-void SettingsDialog::CheckEditors(QSettings& settings)
+void SettingsDialog::CheckTools(QSettings& settings)
 {
-    if (settings.contains("EditorNames"))
+    if (settings.contains(QStringLiteral("EditorNames")))
         return;
 
     // Add default CCEdit entry
@@ -56,12 +56,12 @@ void SettingsDialog::CheckEditors(QSettings& settings)
 #else
     QString cceditPath = QDir(QApplication::applicationDirPath()).absoluteFilePath("CCEdit");
 #endif
-    settings.setValue("EditorNames", QStringList() << "CCEdit");
-    settings.setValue("EditorPaths", QStringList() << cceditPath + "|%F %L");
-    settings.setValue("EditorIcons", QStringList() << "CCEdit");
+    settings.setValue("EditorNames", QStringList{ QStringLiteral("CCEdit") });
+    settings.setValue("EditorPaths", QStringList{ cceditPath + QStringLiteral("|%F %L") });
+    settings.setValue("EditorIcons", QStringList{ QStringLiteral("CCEdit") });
 }
 
-QIcon SettingsDialog::IconForEditor(const QString& iconName)
+QIcon SettingsDialog::IconForTool(const QString& iconName)
 {
     if (iconName == QStringLiteral("CCEdit"))
         return QIcon(":/res/edit-ccedit.png");
@@ -86,19 +86,19 @@ SettingsDialog::SettingsDialog(QWidget* parent)
 {
     setWindowTitle("CCPlay Settings");
 
-    m_actions[ActionEditEditor] = new QAction(QIcon(":/res/document-properties-sm.png"), tr("Add"), this);
-    m_actions[ActionEditEditor]->setEnabled(false);
-    m_actions[ActionAddEditor] = new QAction(QIcon(":/res/list-add.png"), tr("Add"), this);
-    m_actions[ActionAddEditor]->setShortcut(Qt::Key_Insert);
-    m_actions[ActionDelEditor] = new QAction(QIcon(":/res/list-remove.png"), tr("Remove"), this);
-    m_actions[ActionDelEditor]->setShortcut(Qt::Key_Delete);
-    m_actions[ActionDelEditor]->setEnabled(false);
-    m_actions[ActionEditorUp] = new QAction(QIcon(":/res/arrow-up.png"), tr("Move Up"), this);
-    m_actions[ActionEditorUp]->setShortcut(Qt::CTRL | Qt::Key_Up);
-    m_actions[ActionEditorUp]->setEnabled(false);
-    m_actions[ActionEditorDown] = new QAction(QIcon(":/res/arrow-down.png"), tr("Move Down"), this);
-    m_actions[ActionEditorDown]->setShortcut(Qt::CTRL | Qt::Key_Down);
-    m_actions[ActionEditorDown]->setEnabled(false);
+    m_actions[ActionEditTool] = new QAction(QIcon(":/res/document-properties-sm.png"), tr("Add"), this);
+    m_actions[ActionEditTool]->setEnabled(false);
+    m_actions[ActionAddTool] = new QAction(QIcon(":/res/list-add.png"), tr("Add"), this);
+    m_actions[ActionAddTool]->setShortcut(Qt::Key_Insert);
+    m_actions[ActionDelTool] = new QAction(QIcon(":/res/list-remove.png"), tr("Remove"), this);
+    m_actions[ActionDelTool]->setShortcut(Qt::Key_Delete);
+    m_actions[ActionDelTool]->setEnabled(false);
+    m_actions[ActionToolUp] = new QAction(QIcon(":/res/arrow-up.png"), tr("Move Up"), this);
+    m_actions[ActionToolUp]->setShortcut(Qt::CTRL | Qt::Key_Up);
+    m_actions[ActionToolUp]->setEnabled(false);
+    m_actions[ActionToolDown] = new QAction(QIcon(":/res/arrow-down.png"), tr("Move Down"), this);
+    m_actions[ActionToolDown]->setShortcut(Qt::CTRL | Qt::Key_Down);
+    m_actions[ActionToolDown]->setEnabled(false);
 
     QSettings settings("CCTools", "CCPlay");
     QCompleter* exeCompleter = new QCompleter(this);
@@ -163,60 +163,61 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     layPlay->setContentsMargins(8, 8, 8, 8);
     layPlay->setVerticalSpacing(4);
     layPlay->setHorizontalSpacing(4);
+    int row = -1;
 #ifndef Q_OS_WIN
-    layPlay->addWidget(lblWinePath, 0, 0);
-    layPlay->addWidget(m_winePath, 0, 1);
-    layPlay->addWidget(browseWine, 0, 2);
+    layPlay->addWidget(lblWinePath, ++row, 0);
+    layPlay->addWidget(m_winePath, row, 1);
+    layPlay->addWidget(browseWine, row, 2);
 #endif
-    layPlay->addWidget(lblMsccPath, 1, 0);
-    layPlay->addWidget(m_msccPath, 1, 1);
-    layPlay->addWidget(browseChips, 1, 2);
-    layPlay->addWidget(m_useCCPatch, 2, 1);
-    layPlay->addWidget(lblTWorldPath, 3, 0);
-    layPlay->addWidget(m_tworldPath, 3, 1);
-    layPlay->addWidget(browseTWorld, 3, 2);
-    layPlay->addWidget(lblTWorld2Path, 4, 0);
-    layPlay->addWidget(m_tworld2Path, 4, 1);
-    layPlay->addWidget(browseTWorld2, 4, 2);
-    layPlay->addWidget(lblDefaultGame, 5, 0);
-    layPlay->addWidget(m_defaultGame, 5, 1);
-    layPlay->addWidget(new QLabel(tr("Cheats:"), tabPlay), 6, 0);
-    layPlay->addWidget(m_cheatIgnorePasswords, 6, 1);
-    layPlay->addWidget(m_cheatAlwaysFirstTry, 7, 1);
+    layPlay->addWidget(lblMsccPath, ++row, 0);
+    layPlay->addWidget(m_msccPath, row, 1);
+    layPlay->addWidget(browseChips, row, 2);
+    layPlay->addWidget(m_useCCPatch, ++row, 1);
+    layPlay->addWidget(lblTWorldPath, ++row, 0);
+    layPlay->addWidget(m_tworldPath, row, 1);
+    layPlay->addWidget(browseTWorld, row, 2);
+    layPlay->addWidget(lblTWorld2Path, ++row, 0);
+    layPlay->addWidget(m_tworld2Path, row, 1);
+    layPlay->addWidget(browseTWorld2, row, 2);
+    layPlay->addWidget(lblDefaultGame, ++row, 0);
+    layPlay->addWidget(m_defaultGame, row, 1);
+    layPlay->addWidget(new QLabel(tr("Cheats:"), tabPlay), ++row, 0);
+    layPlay->addWidget(m_cheatIgnorePasswords, row, 1);
+    layPlay->addWidget(m_cheatAlwaysFirstTry, ++row, 1);
     layPlay->addItem(new QSpacerItem(0, 0, QSizePolicy::MinimumExpanding,
-                                     QSizePolicy::MinimumExpanding), 8, 0, 1, 3);
+                                     QSizePolicy::MinimumExpanding), ++row, 0, 1, 3);
     dlgTabs->addTab(tabPlay, tr("&Game Settings"));
 
-    QWidget* tabEdit = new QWidget(dlgTabs);
-    m_editorList = new QListWidget(tabEdit);
-    m_editorList->setIconSize(QSize(32, 32));
-    QLabel* lblEditors = new QLabel(tr("Available Edi&tors:\n\n(First item is\n  default)"), tabEdit);
-    lblEditors->setBuddy(m_editorList);
-    m_editors = settings.value("EditorNames").toStringList();
-    m_editorIcons = settings.value("EditorIcons").toStringList();
-    m_editorPaths = settings.value("EditorPaths").toStringList();
-    refreshEditors();
-    QToolBar* tbEditors = new QToolBar(tabEdit);
-    tbEditors->setOrientation(Qt::Vertical);
-    tbEditors->setToolButtonStyle(Qt::ToolButtonIconOnly);
-    tbEditors->setIconSize(QSize(22, 22));
-    tbEditors->addAction(m_actions[ActionEditEditor]);
-    tbEditors->addSeparator();
-    tbEditors->addAction(m_actions[ActionAddEditor]);
-    tbEditors->addAction(m_actions[ActionDelEditor]);
-    tbEditors->addSeparator();
-    tbEditors->addAction(m_actions[ActionEditorUp]);
-    tbEditors->addAction(m_actions[ActionEditorDown]);
+    auto tabTools = new QWidget(dlgTabs);
+    m_toolsList = new QListWidget(tabTools);
+    m_toolsList->setIconSize(QSize(32, 32));
+    auto lblTools = new QLabel(tr("Available &Tools:\n\n(First item is\n  default)"), tabTools);
+    lblTools->setBuddy(m_toolsList);
+    m_tools = settings.value("EditorNames").toStringList();
+    m_toolIcons = settings.value("EditorIcons").toStringList();
+    m_toolPaths = settings.value("EditorPaths").toStringList();
+    refreshTools();
+    auto tbTools = new QToolBar(tabTools);
+    tbTools->setOrientation(Qt::Vertical);
+    tbTools->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    tbTools->setIconSize(QSize(22, 22));
+    tbTools->addAction(m_actions[ActionEditTool]);
+    tbTools->addSeparator();
+    tbTools->addAction(m_actions[ActionAddTool]);
+    tbTools->addAction(m_actions[ActionDelTool]);
+    tbTools->addSeparator();
+    tbTools->addAction(m_actions[ActionToolUp]);
+    tbTools->addAction(m_actions[ActionToolDown]);
 
-    QGridLayout* layEdit = new QGridLayout(tabEdit);
-    layEdit->setContentsMargins(8, 8, 8, 8);
-    layEdit->setVerticalSpacing(4);
-    layEdit->setHorizontalSpacing(4);
-    layEdit->addWidget(lblEditors, 0, 0);
-    layEdit->setAlignment(lblEditors, Qt::AlignTop);
-    layEdit->addWidget(m_editorList, 0, 1);
-    layEdit->addWidget(tbEditors, 0, 2);
-    dlgTabs->addTab(tabEdit, tr("&Editor Settings"));
+    auto layTools = new QGridLayout(tabTools);
+    layTools->setContentsMargins(8, 8, 8, 8);
+    layTools->setVerticalSpacing(4);
+    layTools->setHorizontalSpacing(4);
+    layTools->addWidget(lblTools, 0, 0);
+    layTools->setAlignment(lblTools, Qt::AlignTop);
+    layTools->addWidget(m_toolsList, 0, 1);
+    layTools->addWidget(tbTools, 0, 2);
+    dlgTabs->addTab(tabTools, tr("&Tool Settings"));
 
     QWidget* tabAbout = new QWidget(dlgTabs);
     QLabel* lblAIcon = new QLabel(tabAbout);
@@ -280,21 +281,19 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     connect(browseChips, &QToolButton::clicked, this, &SettingsDialog::onBrowseChips);
     connect(browseTWorld, &QToolButton::clicked, this, &SettingsDialog::onBrowseTWorld);
     connect(browseTWorld2, &QToolButton::clicked, this, &SettingsDialog::onBrowseTWorld2);
-    connect(m_editorList, &QListWidget::currentRowChanged, this, &SettingsDialog::onSelectEditor);
-    connect(m_actions[ActionEditEditor], &QAction::triggered, this, &SettingsDialog::onEditEditor);
-    connect(m_actions[ActionAddEditor], &QAction::triggered, this, &SettingsDialog::onAddEditor);
-    connect(m_actions[ActionDelEditor], &QAction::triggered, this, &SettingsDialog::onDelEditor);
-    connect(m_actions[ActionEditorUp], &QAction::triggered, this, &SettingsDialog::onEditorUp);
-    connect(m_actions[ActionEditorDown], &QAction::triggered, this, &SettingsDialog::onEditorDown);
+    connect(m_toolsList, &QListWidget::currentRowChanged, this, &SettingsDialog::onSelectTool);
+    connect(m_actions[ActionEditTool], &QAction::triggered, this, &SettingsDialog::onEditTool);
+    connect(m_actions[ActionAddTool], &QAction::triggered, this, &SettingsDialog::onAddTool);
+    connect(m_actions[ActionDelTool], &QAction::triggered, this, &SettingsDialog::onDelTool);
+    connect(m_actions[ActionToolUp], &QAction::triggered, this, &SettingsDialog::onToolUp);
+    connect(m_actions[ActionToolDown], &QAction::triggered, this, &SettingsDialog::onToolDown);
 }
 
-void SettingsDialog::refreshEditors()
+void SettingsDialog::refreshTools()
 {
-    m_editorList->clear();
-    for (int i=0; i<m_editors.size(); ++i) {
-        new QListWidgetItem(IconForEditor(m_editorIcons[i]),
-                m_editors[i], m_editorList);
-    }
+    m_toolsList->clear();
+    for (int i = 0; i < m_tools.size(); ++i)
+        new QListWidgetItem(IconForTool(m_toolIcons[i]), m_tools[i], m_toolsList);
 }
 
 void SettingsDialog::onSaveSettings()
@@ -312,9 +311,10 @@ void SettingsDialog::onSaveSettings()
     settings.setValue("DefaultGame",
                       m_defaultGame->currentIndex() == 2 ? "TWorld2" :
                       m_defaultGame->currentIndex() == 1 ? "TWorld"  : "MSCC");
-    settings.setValue("EditorNames", m_editors);
-    settings.setValue("EditorIcons", m_editorIcons);
-    settings.setValue("EditorPaths", m_editorPaths);
+    // Legacy names kept for backwards compatibility
+    settings.setValue("EditorNames", m_tools);
+    settings.setValue("EditorIcons", m_toolIcons);
+    settings.setValue("EditorPaths", m_toolPaths);
     accept();
 }
 
@@ -357,100 +357,100 @@ void SettingsDialog::onBrowseTWorld2()
         m_tworld2Path->setText(path);
 }
 
-void SettingsDialog::onSelectEditor(int editorId)
+void SettingsDialog::onSelectTool(int toolId)
 {
-    if (editorId < 0) {
-        m_actions[ActionEditEditor]->setEnabled(false);
-        m_actions[ActionDelEditor]->setEnabled(false);
-        m_actions[ActionEditorUp]->setEnabled(false);
-        m_actions[ActionEditorDown]->setEnabled(false);
+    if (toolId < 0) {
+        m_actions[ActionEditTool]->setEnabled(false);
+        m_actions[ActionDelTool]->setEnabled(false);
+        m_actions[ActionToolUp]->setEnabled(false);
+        m_actions[ActionToolDown]->setEnabled(false);
     } else {
-        m_actions[ActionEditEditor]->setEnabled(true);
-        m_actions[ActionDelEditor]->setEnabled(true);
-        m_actions[ActionEditorUp]->setEnabled(editorId > 0);
-        m_actions[ActionEditorDown]->setEnabled(editorId < m_editorList->count() - 1);
+        m_actions[ActionEditTool]->setEnabled(true);
+        m_actions[ActionDelTool]->setEnabled(true);
+        m_actions[ActionToolUp]->setEnabled(toolId > 0);
+        m_actions[ActionToolDown]->setEnabled(toolId < m_toolsList->count() - 1);
     }
 }
 
-void SettingsDialog::onEditEditor()
+void SettingsDialog::onEditTool()
 {
-    if (m_editorList->currentItem() == 0)
+    if (!m_toolsList->currentItem())
         return;
 
-    int editorId = m_editorList->currentRow();
-    QStringList params = m_editorPaths[editorId].split('|');
+    int toolId = m_toolsList->currentRow();
+    QStringList params = m_toolPaths[toolId].split('|');
 
-    ConfigEditorDialog dlg;
-    dlg.setName(m_editors[editorId]);
-    dlg.setIcon(m_editorIcons[editorId]);
+    ConfigToolDialog dlg;
+    dlg.setName(m_tools[toolId]);
+    dlg.setIcon(m_toolIcons[toolId]);
     dlg.setPath(params[0]);
     dlg.setArgs(params[1]);
     if (dlg.exec() == QDialog::Accepted) {
-        m_editors[editorId] = dlg.name();
-        m_editorIcons[editorId] = dlg.icon();
-        m_editorPaths[editorId] = dlg.path() + "|" + dlg.args();
-        refreshEditors();
+        m_tools[toolId] = dlg.name();
+        m_toolIcons[toolId] = dlg.icon();
+        m_toolPaths[toolId] = dlg.path() + "|" + dlg.args();
+        refreshTools();
     }
 }
 
-void SettingsDialog::onAddEditor()
+void SettingsDialog::onAddTool()
 {
-    ConfigEditorDialog dlg;
+    ConfigToolDialog dlg;
     if (dlg.exec() == QDialog::Accepted) {
-        m_editors << dlg.name();
-        m_editorIcons << dlg.icon();
-        m_editorPaths << dlg.path() + "|" + dlg.args();
-        refreshEditors();
+        m_tools << dlg.name();
+        m_toolIcons << dlg.icon();
+        m_toolPaths << dlg.path() + "|" + dlg.args();
+        refreshTools();
     }
 }
 
-void SettingsDialog::onDelEditor()
+void SettingsDialog::onDelTool()
 {
-    if (m_editorList->currentItem() == 0)
+    if (!m_toolsList->currentItem())
         return;
 
-    if (QMessageBox::question(this, tr("Remove Editor"),
-                tr("Are you sure you want to remove this editor from the list?"),
+    if (QMessageBox::question(this, tr("Remove Tool"),
+                tr("Are you sure you want to remove this tool from the list?"),
                 QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
-        int editorId = m_editorList->currentRow();
-        m_editors.removeAt(editorId);
-        m_editorIcons.removeAt(editorId);
-        m_editorPaths.removeAt(editorId);
-        refreshEditors();
+        int toolId = m_toolsList->currentRow();
+        m_tools.removeAt(toolId);
+        m_toolIcons.removeAt(toolId);
+        m_toolPaths.removeAt(toolId);
+        refreshTools();
     }
 }
 
-void SettingsDialog::onEditorUp()
+void SettingsDialog::onToolUp()
 {
-    if (m_editorList->currentItem() == 0 || m_editorList->currentRow() < 1)
+    if (!m_toolsList->currentItem() || m_toolsList->currentRow() < 1)
         return;
 
-    int editorId = m_editorList->currentRow();
-    m_editors.insert(editorId - 1, m_editors.takeAt(editorId));
-    m_editorIcons.insert(editorId - 1, m_editorIcons.takeAt(editorId));
-    m_editorPaths.insert(editorId - 1, m_editorPaths.takeAt(editorId));
-    refreshEditors();
-    m_editorList->setCurrentRow(editorId - 1);
+    int toolId = m_toolsList->currentRow();
+    m_tools.insert(toolId - 1, m_tools.takeAt(toolId));
+    m_toolIcons.insert(toolId - 1, m_toolIcons.takeAt(toolId));
+    m_toolPaths.insert(toolId - 1, m_toolPaths.takeAt(toolId));
+    refreshTools();
+    m_toolsList->setCurrentRow(toolId - 1);
 }
 
-void SettingsDialog::onEditorDown()
+void SettingsDialog::onToolDown()
 {
-    if (m_editorList->currentItem() == 0 || m_editorList->currentRow() > m_editorList->count() - 1)
+    if (!m_toolsList->currentItem() || m_toolsList->currentRow() > m_toolsList->count() - 1)
         return;
 
-    int editorId = m_editorList->currentRow();
-    m_editors.insert(editorId + 1, m_editors.takeAt(editorId));
-    m_editorIcons.insert(editorId + 1, m_editorIcons.takeAt(editorId));
-    m_editorPaths.insert(editorId + 1, m_editorPaths.takeAt(editorId));
-    refreshEditors();
-    m_editorList->setCurrentRow(editorId + 1);
+    int toolId = m_toolsList->currentRow();
+    m_tools.insert(toolId + 1, m_tools.takeAt(toolId));
+    m_toolIcons.insert(toolId + 1, m_toolIcons.takeAt(toolId));
+    m_toolPaths.insert(toolId + 1, m_toolPaths.takeAt(toolId));
+    refreshTools();
+    m_toolsList->setCurrentRow(toolId + 1);
 }
 
 
-ConfigEditorDialog::ConfigEditorDialog(QWidget* parent)
+ConfigToolDialog::ConfigToolDialog(QWidget* parent)
     : QDialog(parent)
 {
-    setWindowTitle(tr("Configure Editor"));
+    setWindowTitle(tr("Configure Tool"));
 
     QCompleter* exeCompleter = new QCompleter(this);
     exeCompleter->setModel(new QDirModel(EXE_LIST,
@@ -469,16 +469,16 @@ ConfigEditorDialog::ConfigEditorDialog(QWidget* parent)
         QStringLiteral("JavaJar")
     };
     for (const QString& icon : iconNames)
-        m_icon->addItem(SettingsDialog::IconForEditor(icon), QString(), icon);
+        m_icon->addItem(SettingsDialog::IconForTool(icon), QString(), icon);
     QLabel* lblIcon = new QLabel(tr("&Icon:"), this);
     lblIcon->setBuddy(m_icon);
     m_path = new QLineEdit(this);
     m_path->setCompleter(exeCompleter);
-    QLabel* lblPath = new QLabel(tr("Editor &Path:"), this);
+    QLabel* lblPath = new QLabel(tr("Tool &Path:"), this);
     lblPath->setBuddy(m_path);
-    QToolButton* browseEditor = new QToolButton(this);
-    browseEditor->setIcon(QIcon(":/res/document-open-folder.png"));
-    browseEditor->setAutoRaise(true);
+    auto browseTool = new QToolButton(this);
+    browseTool->setIcon(QIcon(":/res/document-open-folder.png"));
+    browseTool->setAutoRaise(true);
     m_args = new QLineEdit(this);
     QLabel* lblArgs = new QLabel(tr("P&arameters:"), this);
     lblArgs->setBuddy(m_args);
@@ -499,7 +499,7 @@ ConfigEditorDialog::ConfigEditorDialog(QWidget* parent)
     layout->addItem(new QSpacerItem(0, 8), 2, 0, 1, 4);
     layout->addWidget(lblPath, 3, 0);
     layout->addWidget(m_path, 3, 1, 1, 2);
-    layout->addWidget(browseEditor, 3, 3);
+    layout->addWidget(browseTool, 3, 3);
     layout->addWidget(lblArgs, 4, 0);
     layout->addWidget(m_args, 4, 1, 1, 2);
     layout->addWidget(new QLabel(tr("%F = filename, %L = level number"), this), 5, 1, 1, 2);
@@ -508,10 +508,10 @@ ConfigEditorDialog::ConfigEditorDialog(QWidget* parent)
 
     connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
-    connect(browseEditor, &QToolButton::clicked, this, &ConfigEditorDialog::onBrowseEditor);
+    connect(browseTool, &QToolButton::clicked, this, &ConfigToolDialog::onBrowseTool);
 }
 
-void ConfigEditorDialog::setIcon(const QString& icon)
+void ConfigToolDialog::setIcon(const QString& icon)
 {
     for (int i = 0; i < m_icon->count(); ++i) {
         if (m_icon->itemData(i) == icon)
@@ -519,14 +519,14 @@ void ConfigEditorDialog::setIcon(const QString& icon)
     }
 }
 
-QString ConfigEditorDialog::icon() const
+QString ConfigToolDialog::icon() const
 {
     return m_icon->currentData().toString();
 }
 
-void ConfigEditorDialog::onBrowseEditor()
+void ConfigToolDialog::onBrowseTool()
 {
-    QString path = QFileDialog::getOpenFileName(this, tr("Browse for editor executable"),
+    QString path = QFileDialog::getOpenFileName(this, tr("Browse for tool executable"),
                                 m_path->text(), EXE_FILTER);
     if (!path.isEmpty())
         m_path->setText(path);

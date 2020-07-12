@@ -196,8 +196,8 @@ CCPlayMain::CCPlayMain(QWidget* parent)
     m_actions[ActionPlayTWorld2] = new QAction(QIcon(":/res/play-tworld.png"), tr("Play (TWorld 2)"), this);
     m_actions[ActionPlayTWorld2]->setStatusTip(tr("Play level in Tile World 2 (F7)"));
     m_actions[ActionPlayTWorld2]->setShortcut(Qt::Key_F7);
-    m_actions[ActionEdit] = new QAction(tr("Custom Tool"), this);
-    m_actions[ActionEdit]->setShortcut(Qt::Key_F9);
+    m_actions[ActionTool] = new QAction(tr("Custom Tool"), this);
+    m_actions[ActionTool]->setShortcut(Qt::Key_F9);
     m_actions[ActionSetup] = new QAction(QIcon(":/res/document-properties.png"), tr("Settings"), this);
     m_actions[ActionSetup]->setStatusTip(tr("Configure CCPlay settings"));
     m_actions[ActionSetup]->setShortcut(QKeySequence::Preferences);
@@ -224,18 +224,18 @@ CCPlayMain::CCPlayMain(QWidget* parent)
     layPlayButton->setContentsMargins(0, 0, 0, 0);
     layPlayButton->addWidget(m_playButton);
     toolbar->addWidget(alignPlayButton);
-    QWidget* alignEditButton = new QWidget(toolbar);
-    m_editButton = new QToolButton(alignEditButton);
-    m_editButton->setAutoRaise(true);
-    m_editButton->setIconSize(QSize(32, 32));
-    m_editButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    m_editButton->setDefaultAction(m_actions[ActionEdit]);
-    m_editButton->setPopupMode(QToolButton::MenuButtonPopup);
-    m_editButton->setMenu(new QMenu(m_editButton));
-    QLayout* layEditButton = new QGridLayout(alignEditButton);
-    layEditButton->setContentsMargins(0, 0, 0, 0);
-    layEditButton->addWidget(m_editButton);
-    toolbar->addWidget(alignEditButton);
+    QWidget* alignOpenToolButton = new QWidget(toolbar);
+    m_openToolButton = new QToolButton(alignOpenToolButton);
+    m_openToolButton->setAutoRaise(true);
+    m_openToolButton->setIconSize(QSize(32, 32));
+    m_openToolButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    m_openToolButton->setDefaultAction(m_actions[ActionTool]);
+    m_openToolButton->setPopupMode(QToolButton::MenuButtonPopup);
+    m_openToolButton->setMenu(new QMenu(m_openToolButton));
+    QLayout* layOpenToolButton = new QGridLayout(alignOpenToolButton);
+    layOpenToolButton->setContentsMargins(0, 0, 0, 0);
+    layOpenToolButton->addWidget(m_openToolButton);
+    toolbar->addWidget(alignOpenToolButton);
     toolbar->addSeparator();
     toolbar->addAction(m_actions[ActionSetup]);
     toolbar->addAction(m_actions[ActionExit]);
@@ -260,8 +260,8 @@ CCPlayMain::CCPlayMain(QWidget* parent)
             [this]() { this->onPlayTWorld(false); });
     connect(m_actions[ActionPlayTWorld2], &QAction::triggered,
             [this]() { this->onPlayTWorld(true); });
-    connect(m_actions[ActionEdit], &QAction::triggered, this, &CCPlayMain::onEditDefault);
-    connect(m_editButton->menu(), &QMenu::triggered, this, &CCPlayMain::onEditor);
+    connect(m_actions[ActionTool], &QAction::triggered, this, &CCPlayMain::onToolDefault);
+    connect(m_openToolButton->menu(), &QMenu::triggered, this, &CCPlayMain::onTool);
     connect(m_actions[ActionSetup], &QAction::triggered, this, &CCPlayMain::onSetup);
     connect(m_actions[ActionExit], &QAction::triggered, this, &CCPlayMain::close);
     connect(btnRefresh, &QToolButton::clicked, this, &CCPlayMain::onRefreshLevelsets);
@@ -278,7 +278,7 @@ CCPlayMain::CCPlayMain(QWidget* parent)
         restoreState(settings.value("WindowState").toByteArray());
     m_levelsetPath->setText(settings.value("LevelsetPath", QDir::currentPath()).toString());
 
-    SettingsDialog::CheckEditors(settings);
+    SettingsDialog::CheckTools(settings);
     refreshTools();
 }
 
@@ -365,29 +365,29 @@ void CCPlayMain::refreshTools()
     else
         m_playButton->setDefaultAction(m_actions[ActionPlayTWorld]);
 
-    QStringList editors = settings.value("EditorNames").toStringList();
-    QStringList editorIcons = settings.value("EditorIcons").toStringList();
-    QStringList editorPaths = settings.value("EditorPaths").toStringList();
-    m_editButton->menu()->clear();
-    for (int i=0; i<editors.size(); ++i) {
-        QAction* action = m_editButton->menu()->addAction(
-                    SettingsDialog::IconForEditor(editorIcons[i]),
-                    tr("Edit (%1)").arg(editors[i]));
-        action->setStatusTip(tr("Edit with %1").arg(editors[i]));
-        action->setData(editorPaths[i]);
+    QStringList tools = settings.value("EditorNames").toStringList();
+    QStringList toolIcons = settings.value("EditorIcons").toStringList();
+    QStringList toolPaths = settings.value("EditorPaths").toStringList();
+    m_openToolButton->menu()->clear();
+    for (int i = 0; i < tools.size(); ++i) {
+        QAction* action = m_openToolButton->menu()->addAction(
+                    SettingsDialog::IconForTool(toolIcons[i]),
+                    tr("Open (%1)").arg(tools[i]));
+        action->setStatusTip(tr("Open with %1").arg(tools[i]));
+        action->setData(toolPaths[i]);
     }
-    if (editors.size() > 0) {
-        m_actions[ActionEdit]->setEnabled(true);
-        m_actions[ActionEdit]->setText(tr("Edit (%1)").arg(editors[0]));
-        m_actions[ActionEdit]->setIcon(SettingsDialog::IconForEditor(editorIcons[0]));
-        m_actions[ActionEdit]->setStatusTip(tr("Edit with %1 (F9)").arg(editors[0]));
+    if (tools.size() > 0) {
+        m_actions[ActionTool]->setEnabled(true);
+        m_actions[ActionTool]->setText(tr("Open (%1)").arg(tools[0]));
+        m_actions[ActionTool]->setIcon(SettingsDialog::IconForTool(toolIcons[0]));
+        m_actions[ActionTool]->setStatusTip(tr("Open with %1 (F9)").arg(tools[0]));
     } else {
-        m_actions[ActionEdit]->setEnabled(false);
-        m_actions[ActionEdit]->setText(tr("Edit (N/A)"));
+        m_actions[ActionTool]->setEnabled(false);
+        m_actions[ActionTool]->setText(tr("Open (N/A)"));
         QPixmap emptyIcon(32, 32);
         emptyIcon.fill(Qt::darkGray);
-        m_actions[ActionEdit]->setIcon(QIcon(emptyIcon));
-        m_actions[ActionEdit]->setStatusTip(tr("No editors configured"));
+        m_actions[ActionTool]->setIcon(QIcon(emptyIcon));
+        m_actions[ActionTool]->setStatusTip(tr("No tools configured"));
     }
 }
 
@@ -810,21 +810,21 @@ void CCPlayMain::onPlayTWorld(bool tworld2)
     refreshScores();
 }
 
-void CCPlayMain::onEditDefault()
+void CCPlayMain::onToolDefault()
 {
-    if (m_editButton->menu()->isEmpty())
+    if (m_openToolButton->menu()->isEmpty())
         return;
-    onEditor(m_editButton->menu()->actions()[0]);
+    onTool(m_openToolButton->menu()->actions()[0]);
 }
 
-void CCPlayMain::onEditor(QAction* action)
+void CCPlayMain::onTool(QAction* action)
 {
-    if (m_levelsetList->currentItem() == 0)
+    if (!m_levelsetList->currentItem())
         return;
 
     QString filename = m_levelsetList->currentItem()->data(0, Qt::UserRole).toString();
     int curLevel = 1;
-    if (m_levelList->currentItem() != 0)
+    if (!m_levelList->currentItem())
         curLevel = m_levelList->indexOfTopLevelItem(m_levelList->currentItem()) + 1;
 
     QStringList launch = action->data().toString().split('|');
@@ -856,7 +856,7 @@ void CCPlayMain::onBrowseLevelsetPath()
         m_levelsetPath->setText(path);
 }
 
-void CCPlayMain::onPathChanged(QString path)
+void CCPlayMain::onPathChanged(const QString& path)
 {
     QDir levelsetDir(path);
     if (!levelsetDir.exists() || !m_scoredb.isOpen())

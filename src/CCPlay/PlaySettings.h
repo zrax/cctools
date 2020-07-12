@@ -31,10 +31,10 @@ class SettingsDialog : public QDialog {
 
 public:
     explicit SettingsDialog(QWidget* parent = nullptr);
-    void refreshEditors();
+    void refreshTools();
 
-    static void CheckEditors(QSettings& settings);
-    static QIcon IconForEditor(const QString& iconName);
+    static void CheckTools(QSettings& settings);
+    static QIcon IconForTool(const QString& iconName);
 
 private:
 #ifndef Q_OS_WIN
@@ -47,18 +47,18 @@ private:
     QCheckBox* m_useCCPatch;
     QCheckBox* m_cheatIgnorePasswords;
     QCheckBox* m_cheatAlwaysFirstTry;
-    QListWidget* m_editorList;
+    QListWidget* m_toolsList;
 
     enum {
-        ActionEditEditor, ActionAddEditor, ActionDelEditor,
-        ActionEditorUp, ActionEditorDown,
+        ActionEditTool, ActionAddTool, ActionDelTool,
+        ActionToolUp, ActionToolDown,
         NUM_ACTIONS
     };
     QAction* m_actions[NUM_ACTIONS];
 
-    QStringList m_editors;
-    QStringList m_editorIcons;
-    QStringList m_editorPaths;
+    QStringList m_tools;
+    QStringList m_toolIcons;
+    QStringList m_toolPaths;
 
 private slots:
     void onSaveSettings();
@@ -66,21 +66,21 @@ private slots:
     void onBrowseChips();
     void onBrowseTWorld();
     void onBrowseTWorld2();
-    void onSelectEditor(int);
+    void onSelectTool(int);
 
-    void onEditEditor();
-    void onAddEditor();
-    void onDelEditor();
-    void onEditorUp();
-    void onEditorDown();
+    void onEditTool();
+    void onAddTool();
+    void onDelTool();
+    void onToolUp();
+    void onToolDown();
 };
 
 
-class ConfigEditorDialog : public QDialog {
+class ConfigToolDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit ConfigEditorDialog(QWidget* parent = nullptr);
+    explicit ConfigToolDialog(QWidget* parent = nullptr);
 
     void setName(const QString& name) { m_name->setText(name); }
     void setPath(const QString& path) { m_path->setText(path); }
@@ -99,7 +99,7 @@ private:
     QComboBox* m_icon;
 
 private slots:
-    void onBrowseEditor();
+    void onBrowseTool();
 };
 
 #endif

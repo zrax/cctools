@@ -29,24 +29,24 @@ class CCPlayMain : public QMainWindow {
     Q_OBJECT
 
 public:
-    CCPlayMain(QWidget* parent = 0);
+    explicit CCPlayMain(QWidget* parent = nullptr);
 
     bool initDatabase();
-    void setLevelsetPath(QString path) { m_levelsetPath->setText(path); }
+    void setLevelsetPath(const QString& path) { m_levelsetPath->setText(path); }
 
 protected:
-    virtual void closeEvent(QCloseEvent*);
+    void closeEvent(QCloseEvent*) override;
 
 private:
     enum {
         ActionPlayMSCC, ActionPlayTWorld, ActionPlayTWorld2,
-        ActionEdit, ActionSetup, ActionExit,
+        ActionTool, ActionSetup, ActionExit,
         NUM_ACTIONS
     };
 
     QAction* m_actions[NUM_ACTIONS];
     QToolButton* m_playButton;
-    QToolButton* m_editButton;
+    QToolButton* m_openToolButton;
 
     QLineEdit* m_levelsetPath;
     QTreeWidget* m_levelsetList;
@@ -59,13 +59,13 @@ private:
 private slots:
     void onPlayMSCC();
     void onPlayTWorld(bool tworld2);
-    void onEditDefault();
-    void onEditor(QAction* action);
+    void onToolDefault();
+    void onTool(QAction* action);
     void onSetup();
 
     void onRefreshLevelsets();
     void onBrowseLevelsetPath();
-    void onPathChanged(QString);
+    void onPathChanged(const QString&);
     void onLevelsetChanged(QTreeWidgetItem*, QTreeWidgetItem*);
 };
 
