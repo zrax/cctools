@@ -4,9 +4,11 @@
 *.ccl
 *.ccx
 .DS_Store
+desktop.ini
 /bin/CCEdit*
 /bin/CCPlay*
 /bin/CCHack*
 /bin/Release
 /bin/Debug
 /build
+/res/*.tis

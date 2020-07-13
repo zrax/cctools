@@ -43,10 +43,8 @@ bool CC2ETileset::load(const QString& filename)
         throw ccl::IOException("Cannot open tileset file for reading");
 
     char magic[8];
-    if (file.read(magic, 8) != 8 || memcmp(magic, "CCTILE02", 8) != 0) {
-        file.close();
+    if (file.read(magic, 8) != 8 || memcmp(magic, "CCTILE02", 8) != 0)
         return false;
-    }
 
     quint32 len;
     std::unique_ptr<char[]> utfbuffer;
@@ -78,16 +76,17 @@ bool CC2ETileset::load(const QString& filename)
 
     // CC2 tiles
     len = read32(file);
+    if (!len) {
+        // Can't use this tileset, as it contains no CC2 tile image
+        return false;
+    }
     pixbuffer.reset(new uchar[len]);
     file.read((char*)pixbuffer.get(), len);
-    if (!tempmap.loadFromData(pixbuffer.get(), len, "PNG")) {
-        file.close();
+    if (!tempmap.loadFromData(pixbuffer.get(), len, "PNG"))
         throw ccl::IOException("Invalid or corrupt CC2 image");
-    }
     for (int i = 0; i < cc2::NUM_GRAPHICS; ++i)
         m_gfx[i] = tempmap.copy((i / 16) * m_size, (i % 16) * m_size, m_size, m_size);
 
-    file.close();
     m_filename = QFileInfo(filename).fileName();
     return true;
 }

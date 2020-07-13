@@ -44,10 +44,8 @@ bool CCETileset::load(const QString& filename)
 
     char magic[8];
     if (file.read(magic, 8) != 8
-            || (memcmp(magic, "CCTILE01", 8) != 0 && memcmp(magic, "CCTILE02", 8) != 0)) {
-        file.close();
+            || (memcmp(magic, "CCTILE01", 8) != 0 && memcmp(magic, "CCTILE02", 8) != 0))
         return false;
-    }
 
     quint32 len;
     std::unique_ptr<char[]> utfbuffer;
@@ -73,10 +71,8 @@ bool CCETileset::load(const QString& filename)
     len = read32(file);
     pixbuffer.reset(new uchar[len]);
     file.read((char*)pixbuffer.get(), len);
-    if (!tempmap.loadFromData(pixbuffer.get(), len, "PNG")) {
-        file.close();
+    if (!tempmap.loadFromData(pixbuffer.get(), len, "PNG"))
         throw ccl::IOException("Invalid or corrupt base image");
-    }
     for (int i=0; i<ccl::NUM_TILE_TYPES; ++i)
         m_base[i] = tempmap.copy((i / 16) * m_size, (i % 16) * m_size, m_size, m_size);
 
@@ -84,14 +80,11 @@ bool CCETileset::load(const QString& filename)
     len = read32(file);
     pixbuffer.reset(new uchar[len]);
     file.read((char*)pixbuffer.get(), len);
-    if (!tempmap.loadFromData(pixbuffer.get(), len, "PNG")) {
-        file.close();
+    if (!tempmap.loadFromData(pixbuffer.get(), len, "PNG"))
         throw ccl::IOException("Invalid or corrupt overlay image");
-    }
     for (int i=0; i<ccl::NUM_TILE_TYPES; ++i)
         m_overlay[i] = tempmap.copy((i / 16) * m_size, (i % 16) * m_size, m_size, m_size);
 
-    file.close();
     m_filename = QFileInfo(filename).fileName();
     return true;
 }
