@@ -1,3 +1,14 @@
+2013-01-21 - 2.0.1 RELEASE (2.0.1)
+~~~~~~~~~~
+New Features
+  * Package CCHack 1.2a with the Windows installer (CCTools 2.0.1), since I
+    haven't had time to work on CCHack 2.0 in a while.
+
+Update 2020-07-10
+  * Added a portable .zip file distribution for Windows for those who don't
+    need/want the full installer.
+
+
 2011-05-17 - 2.0 RELEASE (2.0.0)
 ~~~~~~~~~~
 New Features
