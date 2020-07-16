@@ -43,10 +43,6 @@ public:
         ShowErrors = (1<<5),
         ShowAll = ShowPlayer | ShowMovement | ShowButtons | ShowMovePaths |
                   ShowViewBox | ShowErrors,
-        PaintLeftTemp = (1<<6),
-        PaintRightTemp = (1<<7),
-        PaintTempBury = (1<<8),
-        PaintOverlayMask = PaintLeftTemp | PaintRightTemp,
     };
 
     EditorWidget(QWidget* parent = nullptr);
@@ -54,6 +50,7 @@ public:
     {
         if (m_levelData)
             m_levelData->unref();
+        m_levelEditCache->unref();
     }
 
     void setTileset(CCETileset* tileset);
@@ -64,7 +61,7 @@ public:
 
     QSize sizeHint() const override
     {
-        if (m_tileset == 0)
+        if (!m_tileset)
             return QSize();
         return QSize(32 * m_tileset->size() * m_zoomFactor,
                      32 * m_tileset->size() * m_zoomFactor);
@@ -99,7 +96,6 @@ public:
     QPixmap renderReport();
 
 public slots:
-    void viewTile(QPainter& painter, int x, int y);
     void putTile(tile_t tile, int x, int y, DrawLayer layer);
     void setZoom(double factor);
 
@@ -112,6 +108,7 @@ protected:
 private:
     CCETileset* m_tileset;
     ccl::LevelData* m_levelData;
+    ccl::LevelData* m_levelEditCache;
     QList<QPoint> m_hilights;
     tile_t m_leftTile, m_rightTile;
     DrawMode m_drawMode;

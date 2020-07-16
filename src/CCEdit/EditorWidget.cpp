@@ -31,11 +31,8 @@ static EditorWidget::DrawLayer select_layer(Qt::KeyboardModifiers keys)
     return EditorWidget::LayAuto;
 }
 
-enum PlotMethod { PlotPreview, PlotDraw };
-
-static void plot_box(EditorWidget* self, QPoint from, QPoint to, PlotMethod method,
-                     QPainter* previewPainter, tile_t drawTile = 0,
-                     EditorWidget::DrawLayer layer = EditorWidget::LayAuto)
+static void plot_box(EditorWidget* self, QPoint from, QPoint to, tile_t drawTile,
+                     EditorWidget::DrawLayer layer)
 {
     if (from == QPoint(-1, -1))
         return;
@@ -45,30 +42,13 @@ static void plot_box(EditorWidget* self, QPoint from, QPoint to, PlotMethod meth
     int highY = std::max(from.y(), to.y());
     int highX = std::max(from.x(), to.x());
 
-    if (method == PlotPreview) {
-        for (int y = lowY; y <= highY; ++y)
-            for (int x = lowX; x <= highX; ++x)
-                self->viewTile(*previewPainter, x, y);
-    } else if (method == PlotDraw) {
-        for (int y = lowY; y <= highY; ++y)
-            for (int x = lowX; x <= highX; ++x)
-                self->putTile(drawTile, x, y, layer);
-    }
+    for (int y = lowY; y <= highY; ++y)
+        for (int x = lowX; x <= highX; ++x)
+            self->putTile(drawTile, x, y, layer);
 }
 
-static void plot_tile(EditorWidget* self, QPoint point, PlotMethod method,
-                      QPainter* previewPainter, tile_t drawTile = 0,
-                      EditorWidget::DrawLayer layer = EditorWidget::LayAuto)
-{
-    if (method == PlotPreview)
-        self->viewTile(*previewPainter, point.x(), point.y());
-    else if (method == PlotDraw)
-        self->putTile(drawTile, point.x(), point.y(), layer);
-}
-
-static void plot_line(EditorWidget* self, QPoint from, QPoint to, PlotMethod method,
-                      QPainter* previewPainter, tile_t drawTile = 0,
-                      EditorWidget::DrawLayer layer = EditorWidget::LayAuto)
+static void plot_line(EditorWidget* self, QPoint from, QPoint to, tile_t drawTile,
+                      EditorWidget::DrawLayer layer)
 {
     if (from == QPoint(-1, -1))
         return;
@@ -93,8 +73,7 @@ static void plot_line(EditorWidget* self, QPoint from, QPoint to, PlotMethod met
     int ystep = (lowY < highY) ? 1 : -1;
     int y = lowY;
     for (int x = lowX; x <= highX; ++x) {
-        plot_tile(self, steep ? QPoint(y, x) : QPoint(x, y), method,
-                  previewPainter, drawTile, layer);
+        self->putTile(drawTile, steep ? y : x, steep ? x : y, layer);
         err -= dY;
         if (err < 0) {
             y += ystep;
@@ -103,8 +82,8 @@ static void plot_line(EditorWidget* self, QPoint from, QPoint to, PlotMethod met
     }
 }
 
-static void plot_flood(EditorWidget* self, QPoint start, tile_t drawTile = 0,
-                       EditorWidget::DrawLayer layer = EditorWidget::LayAuto)
+static void plot_flood(EditorWidget* self, QPoint start, tile_t drawTile,
+                       EditorWidget::DrawLayer layer)
 {
     ccl::LevelMap& map = self->levelData()->map();
     tile_t replace_bg = map.getBG(start.x(), start.y());
@@ -112,7 +91,7 @@ static void plot_flood(EditorWidget* self, QPoint start, tile_t drawTile = 0,
 
     std::queue<QPoint> floodQueue;
     floodQueue.push(start);
-    plot_tile(self, start, PlotDraw, nullptr, drawTile, layer);
+    self->putTile(drawTile, start.x(), start.y(), layer);
     if (map.getBG(start.x(), start.y()) == replace_bg
             && map.getFG(start.x(), start.y()) == replace_fg) {
         // No change was made.  Exit to avoid an infinite loop
@@ -126,25 +105,25 @@ static void plot_flood(EditorWidget* self, QPoint start, tile_t drawTile = 0,
         if (pt.x() > 0 && map.getBG(pt.x() - 1, pt.y()) == replace_bg
                 && map.getFG(pt.x() - 1, pt.y()) == replace_fg) {
             QPoint next(pt.x() - 1, pt.y());
-            plot_tile(self, next, PlotDraw, nullptr, drawTile, layer);
+            self->putTile(drawTile, next.x(), next.y(), layer);
             floodQueue.push(next);
         }
         if (pt.x() < 31 && map.getBG(pt.x() + 1, pt.y()) == replace_bg
                 && map.getFG(pt.x() + 1, pt.y()) == replace_fg) {
             QPoint next(pt.x() + 1, pt.y());
-            plot_tile(self, next, PlotDraw, nullptr, drawTile, layer);
+            self->putTile(drawTile, next.x(), next.y(), layer);
             floodQueue.push(next);
         }
         if (pt.y() > 0 && map.getBG(pt.x(), pt.y() - 1) == replace_bg
                 && map.getFG(pt.x(), pt.y() - 1) == replace_fg) {
             QPoint next(pt.x(), pt.y() - 1);
-            plot_tile(self, next, PlotDraw, nullptr, drawTile, layer);
+            self->putTile(drawTile, next.x(), next.y(), layer);
             floodQueue.push(next);
         }
         if (pt.y() < 31 && map.getBG(pt.x(), pt.y() + 1) == replace_bg
                 && map.getFG(pt.x(), pt.y() + 1) == replace_fg) {
             QPoint next(pt.x(), pt.y() + 1);
-            plot_tile(self, next, PlotDraw, nullptr, drawTile, layer);
+            self->putTile(drawTile, next.x(), next.y(), layer);
             floodQueue.push(next);
         }
     }
@@ -262,6 +241,8 @@ EditorWidget::EditorWidget(QWidget* parent)
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     setMouseTracking(true);
+
+    m_levelEditCache = new ccl::LevelData;
 }
 
 void EditorWidget::setTileset(CCETileset* tileset)
@@ -309,17 +290,11 @@ void EditorWidget::renderTileBuffer()
             }
         }
     }
-
-    // Draw current buffer
-    if (m_drawMode == DrawLine && (m_paintFlags & PaintOverlayMask) != 0)
-        plot_line(this, m_origin, m_current, PlotPreview, &tilePainter);
-    else if (m_drawMode == DrawFill && (m_paintFlags & PaintOverlayMask) != 0)
-        plot_box(this, m_origin, m_current, PlotPreview, &tilePainter);
 }
 
 void EditorWidget::paintEvent(QPaintEvent*)
 {
-    if (m_tileset == 0 || m_levelData == 0)
+    if (!m_tileset || !m_levelData)
         return;
 
     QPainter painter(this);
@@ -476,7 +451,6 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
         return;
     m_current = QPoint(posX, posY);
 
-    m_paintFlags &= ~(PaintLeftTemp | PaintRightTemp | PaintTempBury);
     if (m_cachedButton == Qt::MidButton && m_origin != QPoint(-1, -1)) {
         int lowX = std::min(m_origin.x(), m_current.x());
         int lowY = std::min(m_origin.y(), m_current.y());
@@ -489,14 +463,13 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
                        ? m_leftTile : m_rightTile;
         if (m_drawMode == DrawPencil) {
             putTile(curtile, posX, posY, select_layer(event->modifiers()));
-        } else if (m_drawMode == DrawLine || m_drawMode == DrawFill
-                   || m_drawMode == DrawFlood) {
-            if (m_cachedButton == Qt::LeftButton)
-                m_paintFlags |= PaintLeftTemp;
-            else if (m_cachedButton == Qt::RightButton)
-                m_paintFlags |= PaintRightTemp;
-            if ((event->modifiers() & Qt::ShiftModifier) != 0)
-                m_paintFlags |= PaintTempBury;
+        } else if (m_drawMode == DrawLine || m_drawMode == DrawFill) {
+            m_levelData->copyFrom(m_levelEditCache);
+            // Draw current pending operation
+            if (m_drawMode == DrawLine)
+                plot_line(this, m_origin, m_current, curtile, select_layer(event->modifiers()));
+            else if (m_drawMode == DrawFill)
+                plot_box(this, m_origin, m_current, curtile, select_layer(event->modifiers()));
             dirtyBuffer();
         } else if (m_drawMode == DrawPathMaker) {
             if (m_origin != m_current) {
@@ -679,6 +652,7 @@ void EditorWidget::mousePressEvent(QMouseEvent* event)
     const int posY = event->y() / (m_tileset->size() * m_zoomFactor);
     m_current = QPoint(-1, -1);
     m_cachedButton = event->button();
+    m_levelEditCache->copyFrom(m_levelData);
 
     if ((m_cachedButton == Qt::LeftButton || m_cachedButton == Qt::RightButton)
         && (m_drawMode == DrawPencil || m_drawMode == DrawLine || m_drawMode == DrawFill
@@ -752,20 +726,6 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
     bool resetOrigin = true;
     if (m_drawMode == DrawSelect || m_cachedButton == Qt::MidButton) {
         resetOrigin = false;
-    } else if (m_drawMode == DrawLine) {
-        if (m_cachedButton == Qt::LeftButton)
-            plot_line(this, m_origin, m_current, PlotDraw, nullptr, m_leftTile,
-                      select_layer(event->modifiers()));
-        else if (m_cachedButton == Qt::RightButton)
-            plot_line(this, m_origin, m_current, PlotDraw, nullptr, m_rightTile,
-                      select_layer(event->modifiers()));
-    } else if (m_drawMode == DrawFill) {
-        if (m_cachedButton == Qt::LeftButton)
-            plot_box(this, m_origin, m_current, PlotDraw, nullptr, m_leftTile,
-                     select_layer(event->modifiers()));
-        else if (m_cachedButton == Qt::RightButton)
-            plot_box(this, m_origin, m_current, PlotDraw, nullptr, m_rightTile,
-                     select_layer(event->modifiers()));
     } else if (m_drawMode == DrawFlood) {
         if (m_cachedButton == Qt::LeftButton)
             plot_flood(this, m_current, m_leftTile, select_layer(event->modifiers()));
@@ -821,26 +781,6 @@ void EditorWidget::setDrawMode(DrawMode mode)
     m_selectRect = QRect(-1, -1, -1, -1);
     update();
     emit hasSelection(false);
-}
-
-void EditorWidget::viewTile(QPainter& painter, int x, int y)
-{
-    if ((m_paintFlags & PaintLeftTemp) != 0) {
-        if ((m_paintFlags & PaintTempBury) != 0)
-            m_tileset->draw(painter, x, y, m_levelData->map().getFG(x, y),
-                            m_leftTile);
-        else
-            m_tileset->draw(painter, x, y, m_leftTile,
-                            m_levelData->map().getBG(x, y));
-    } else if ((m_paintFlags & PaintRightTemp) != 0) {
-        if ((m_paintFlags & PaintTempBury) != 0)
-            m_tileset->draw(painter, x, y, m_levelData->map().getFG(x, y),
-                            m_rightTile);
-        else
-            m_tileset->draw(painter, x, y, m_rightTile,
-                            m_levelData->map().getBG(x, y));
-    }
-    dirtyBuffer();
 }
 
 void EditorWidget::putTile(tile_t tile, int x, int y, DrawLayer layer)
