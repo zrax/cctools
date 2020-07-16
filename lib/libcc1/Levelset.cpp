@@ -249,9 +249,15 @@ long ccl::LevelData::read(ccl::Stream* stream, bool forClipboard)
     dataSize -= m_map.read(stream) + sizeof(unsigned short);
 
     dataSize -= sizeof(unsigned short);
-    if (forClipboard)
+    if (forClipboard) {
         dataSize = (long)stream->read16();
-    (void)stream->read16();
+    } else {
+        long fieldSize = (long)stream->read16();
+        if (fieldSize != dataSize) {
+            fprintf(stderr, "Warning: Ignoring invalid field data size: %ld (expected %ld)",
+                    fieldSize, dataSize);
+        }
+    }
 
     while (dataSize > 0) {
         unsigned char field = stream->read8();
