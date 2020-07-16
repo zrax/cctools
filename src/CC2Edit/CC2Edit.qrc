@@ -27,6 +27,7 @@
     <file>res/draw-freehand.png</file>
     <file>res/draw-line.png</file>
     <file>res/draw-box.png</file>
+    <file>res/draw-fill.png</file>
     <file>res/draw-path.png</file>
     <file>res/draw-wire.png</file>
     <file>res/draw-hints.png</file>

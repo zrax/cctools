@@ -161,6 +161,10 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionDrawFill]->setStatusTip(tr("Draw tiles with the box fill tool"));
     m_actions[ActionDrawFill]->setShortcut(Qt::CTRL | Qt::Key_B);
     m_actions[ActionDrawFill]->setCheckable(true);
+    m_actions[ActionDrawFlood] = new QAction(QIcon(":/res/draw-fill.png"), tr("&Flood Fill"), this);
+    m_actions[ActionDrawFlood]->setStatusTip(tr("Draw tiles with the flood fill tool"));
+    m_actions[ActionDrawFlood]->setShortcut(Qt::CTRL | Qt::Key_F);
+    m_actions[ActionDrawFlood]->setCheckable(true);
     m_actions[ActionPathMaker] = new QAction(QIcon(":/res/draw-path.png"), tr("Path &Maker"), this);
     m_actions[ActionPathMaker]->setStatusTip(tr("Draw a directional path of tiles"));
     m_actions[ActionPathMaker]->setShortcut(Qt::CTRL | Qt::Key_M);
@@ -185,6 +189,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     drawModeGroup->addAction(m_actions[ActionDrawPencil]);
     drawModeGroup->addAction(m_actions[ActionDrawLine]);
     drawModeGroup->addAction(m_actions[ActionDrawFill]);
+    drawModeGroup->addAction(m_actions[ActionDrawFlood]);
     drawModeGroup->addAction(m_actions[ActionPathMaker]);
     m_actions[ActionDrawPencil]->setChecked(true);
 
@@ -560,6 +565,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     toolsMenu->addAction(m_actions[ActionDrawPencil]);
     toolsMenu->addAction(m_actions[ActionDrawLine]);
     toolsMenu->addAction(m_actions[ActionDrawFill]);
+    toolsMenu->addAction(m_actions[ActionDrawFlood]);
     toolsMenu->addAction(m_actions[ActionPathMaker]);
     toolsMenu->addSeparator();
     toolsMenu->addAction(m_actions[ActionConnect]);
@@ -627,6 +633,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     tbarTools->addAction(m_actions[ActionDrawPencil]);
     tbarTools->addAction(m_actions[ActionDrawLine]);
     tbarTools->addAction(m_actions[ActionDrawFill]);
+    tbarTools->addAction(m_actions[ActionDrawFlood]);
     tbarTools->addAction(m_actions[ActionPathMaker]);
     tbarTools->addSeparator();
     tbarTools->addAction(m_actions[ActionConnect]);
@@ -654,6 +661,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionDrawPencil], &QAction::toggled, this, &CCEditMain::onDrawPencilAction);
     connect(m_actions[ActionDrawLine], &QAction::toggled, this, &CCEditMain::onDrawLineAction);
     connect(m_actions[ActionDrawFill], &QAction::toggled, this, &CCEditMain::onDrawFillAction);
+    connect(m_actions[ActionDrawFlood], &QAction::toggled, this, &CCEditMain::onDrawFloodAction);
     connect(m_actions[ActionPathMaker], &QAction::toggled, this, &CCEditMain::onPathMakerToggled);
     connect(m_actions[ActionConnect], &QAction::toggled, this, &CCEditMain::onConnectToggled);
     connect(m_actions[ActionAdvancedMech], &QAction::triggered, this, &CCEditMain::onAdvancedMechAction);
@@ -1412,6 +1420,7 @@ void CCEditMain::onSelectToggled(bool mode)
         m_actions[ActionDrawPencil]->setChecked(false);
         m_actions[ActionDrawLine]->setChecked(false);
         m_actions[ActionDrawFill]->setChecked(false);
+        m_actions[ActionDrawFlood]->setChecked(false);
         m_actions[ActionPathMaker]->setChecked(false);
         m_actions[ActionConnect]->setChecked(false);
 
@@ -1653,6 +1662,19 @@ void CCEditMain::onDrawFillAction(bool checked)
         getEditorAt(i)->setDrawMode(m_currentDrawMode);
 }
 
+void CCEditMain::onDrawFloodAction(bool checked)
+{
+    if (!checked)
+        return;
+
+    m_savedDrawMode = ActionDrawFlood;
+    m_currentDrawMode = EditorWidget::DrawFlood;
+    m_actions[ActionSelect]->setChecked(false);
+    m_actions[ActionConnect]->setChecked(false);
+    for (int i = 0; i < m_editorTabs->count(); ++i)
+        getEditorAt(i)->setDrawMode(m_currentDrawMode);
+}
+
 void CCEditMain::onPathMakerToggled(bool checked)
 {
     if (!checked)
@@ -1676,6 +1698,7 @@ void CCEditMain::onConnectToggled(bool mode)
         m_actions[ActionDrawPencil]->setChecked(false);
         m_actions[ActionDrawLine]->setChecked(false);
         m_actions[ActionDrawFill]->setChecked(false);
+        m_actions[ActionDrawFlood]->setChecked(false);
         m_actions[ActionPathMaker]->setChecked(false);
 
         for (int i=0; i<m_editorTabs->count(); ++i)

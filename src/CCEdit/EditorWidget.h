@@ -28,8 +28,8 @@ class EditorWidget : public QWidget {
 
 public:
     enum DrawMode {
-        DrawPencil, DrawLine, DrawFill, DrawSelect, DrawButtonConnect,
-        DrawPathMaker,
+        DrawPencil, DrawLine, DrawFill, DrawFlood, DrawSelect,
+        DrawButtonConnect, DrawPathMaker,
     };
 
     enum DrawLayer { LayTop, LayBottom, LayAuto };

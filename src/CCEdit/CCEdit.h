@@ -70,8 +70,8 @@ private:
         ActionNew, ActionOpen, ActionSave, ActionSaveAs, ActionClose,
         ActionGenReport, ActionExit, ActionSelect, ActionCut, ActionCopy,
         ActionPaste, ActionClear, ActionUndo, ActionRedo, ActionDrawPencil,
-        ActionDrawLine, ActionDrawFill, ActionPathMaker, ActionConnect,
-        ActionAdvancedMech, ActionToggleWalls, ActionCheckErrors,
+        ActionDrawLine, ActionDrawFill, ActionDrawFlood, ActionPathMaker,
+        ActionConnect, ActionAdvancedMech, ActionToggleWalls, ActionCheckErrors,
         ActionViewButtons, ActionViewMovers, ActionViewActivePlayer,
         ActionViewViewport, ActionViewMonsterPaths, ActionViewErrors,
         ActionZoom100, ActionZoom75, ActionZoom50, ActionZoom25, ActionZoom125,
@@ -142,6 +142,7 @@ private slots:
     void onDrawPencilAction(bool);
     void onDrawLineAction(bool);
     void onDrawFillAction(bool);
+    void onDrawFloodAction(bool);
     void onPathMakerToggled(bool);
     void onConnectToggled(bool);
     void onAdvancedMechAction();
