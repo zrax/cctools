@@ -1441,38 +1441,35 @@ void CCEditMain::onCopyAction()
     if (!editor || editor->selection() == QRect(-1, -1, -1, -1))
         return;
 
-    ccl::LevelData* copyRegion = new ccl::LevelData();
+    auto copyRegion = new ccl::LevelData();
     ccl::LevelData* current = editor->levelData();
     copyRegion->map().copyFrom(editor->levelData()->map(),
         editor->selection().left(), editor->selection().top(),
         0, 0, editor->selection().width(), editor->selection().height());
 
     // Gather any mechanics that are completely encompassed by this region
-    std::list<ccl::Trap>::const_iterator trap_iter;
-    for (trap_iter = current->traps().begin(); trap_iter != current->traps().end(); ++trap_iter) {
-        if (editor->selection().contains(trap_iter->button.X, trap_iter->button.Y)
-            && editor->selection().contains(trap_iter->trap.X, trap_iter->trap.Y))
-            copyRegion->trapConnect(trap_iter->button.X - editor->selection().left(),
-                                    trap_iter->button.Y - editor->selection().top(),
-                                    trap_iter->trap.X - editor->selection().left(),
-                                    trap_iter->trap.Y - editor->selection().top());
+    for (const ccl::Trap& trap_iter : current->traps()) {
+        if (editor->selection().contains(trap_iter.button.X, trap_iter.button.Y)
+            && editor->selection().contains(trap_iter.trap.X, trap_iter.trap.Y))
+            copyRegion->trapConnect(trap_iter.button.X - editor->selection().left(),
+                                    trap_iter.button.Y - editor->selection().top(),
+                                    trap_iter.trap.X - editor->selection().left(),
+                                    trap_iter.trap.Y - editor->selection().top());
     }
 
-    std::list<ccl::Clone>::const_iterator clone_iter;
-    for (clone_iter = current->clones().begin(); clone_iter != current->clones().end(); ++clone_iter) {
-        if (editor->selection().contains(clone_iter->button.X, clone_iter->button.Y)
-            && editor->selection().contains(clone_iter->clone.X, clone_iter->clone.Y))
-            copyRegion->cloneConnect(clone_iter->button.X - editor->selection().left(),
-                                     clone_iter->button.Y - editor->selection().top(),
-                                     clone_iter->clone.X - editor->selection().left(),
-                                     clone_iter->clone.Y - editor->selection().top());
+    for (const ccl::Clone& clone_iter : current->clones()) {
+        if (editor->selection().contains(clone_iter.button.X, clone_iter.button.Y)
+            && editor->selection().contains(clone_iter.clone.X, clone_iter.clone.Y))
+            copyRegion->cloneConnect(clone_iter.button.X - editor->selection().left(),
+                                     clone_iter.button.Y - editor->selection().top(),
+                                     clone_iter.clone.X - editor->selection().left(),
+                                     clone_iter.clone.Y - editor->selection().top());
     }
 
-    std::list<ccl::Point>::const_iterator move_iter;
-    for (move_iter = current->moveList().begin(); move_iter != current->moveList().end(); ++move_iter) {
-        if (editor->selection().contains(move_iter->X, move_iter->Y))
-            copyRegion->addMover(move_iter->X - editor->selection().left(),
-                                 move_iter->Y - editor->selection().top());
+    for (const ccl::Point& move_iter : current->moveList()) {
+        if (editor->selection().contains(move_iter.X, move_iter.Y))
+            copyRegion->addMover(move_iter.X - editor->selection().left(),
+                                 move_iter.Y - editor->selection().top());
     }
 
     try {
@@ -1541,33 +1538,29 @@ void CCEditMain::onPasteAction()
         beginEdit(CCEditHistory::EditMap);
         editor->selectRegion(destX, destY, width, height);
         onClearAction();
-        editor->levelData()->map().copyFrom(copyRegion->map(),
-            0, 0, destX, destY, width, height);
         ccl::LevelData* current = editor->levelData();
+        current->map().copyFrom(copyRegion->map(), 0, 0, destX, destY, width, height);
 
-        std::list<ccl::Trap>::const_iterator trap_iter;
-        for (trap_iter = copyRegion->traps().begin(); trap_iter != copyRegion->traps().end(); ++trap_iter) {
-            if (current->traps().size() < MAX_TRAPS && trap_iter->button.X + destX < CCL_WIDTH
-                && trap_iter->button.Y + destY < CCL_HEIGHT && trap_iter->trap.X + destX < CCL_WIDTH
-                && trap_iter->trap.Y + destY < CCL_HEIGHT)
-                current->trapConnect(trap_iter->button.X + destX, trap_iter->button.Y + destY,
-                                     trap_iter->trap.X + destX, trap_iter->trap.Y + destY);
+        for (const ccl::Trap& trap_iter : copyRegion->traps()) {
+            if (current->traps().size() < MAX_TRAPS && trap_iter.button.X + destX < CCL_WIDTH
+                && trap_iter.button.Y + destY < CCL_HEIGHT && trap_iter.trap.X + destX < CCL_WIDTH
+                && trap_iter.trap.Y + destY < CCL_HEIGHT)
+                current->trapConnect(trap_iter.button.X + destX, trap_iter.button.Y + destY,
+                                     trap_iter.trap.X + destX, trap_iter.trap.Y + destY);
         }
 
-        std::list<ccl::Clone>::const_iterator clone_iter;
-        for (clone_iter = copyRegion->clones().begin(); clone_iter != copyRegion->clones().end(); ++clone_iter) {
-            if (current->clones().size() < MAX_CLONES && clone_iter->button.X + destX < CCL_WIDTH
-                && clone_iter->button.Y + destY < CCL_HEIGHT && clone_iter->clone.X + destX < CCL_WIDTH
-                && clone_iter->clone.Y + destY < CCL_HEIGHT)
-                current->cloneConnect(clone_iter->button.X + destX, clone_iter->button.Y + destY,
-                                      clone_iter->clone.X + destX, clone_iter->clone.Y + destY);
+        for (const ccl::Clone& clone_iter : copyRegion->clones()) {
+            if (current->clones().size() < MAX_CLONES && clone_iter.button.X + destX < CCL_WIDTH
+                && clone_iter.button.Y + destY < CCL_HEIGHT && clone_iter.clone.X + destX < CCL_WIDTH
+                && clone_iter.clone.Y + destY < CCL_HEIGHT)
+                current->cloneConnect(clone_iter.button.X + destX, clone_iter.button.Y + destY,
+                                      clone_iter.clone.X + destX, clone_iter.clone.Y + destY);
         }
 
-        std::list<ccl::Point>::const_iterator move_iter;
-        for (move_iter = copyRegion->moveList().begin(); move_iter != copyRegion->moveList().end(); ++move_iter) {
-            if (current->moveList().size() < MAX_MOVERS && move_iter->X + destX < CCL_WIDTH
-                && move_iter->Y + destY < CCL_HEIGHT)
-                current->addMover(move_iter->X + destX, move_iter->Y + destY);
+        for (const ccl::Point& move_iter : copyRegion->moveList()) {
+            if (current->moveList().size() < MAX_MOVERS && move_iter.X + destX < CCL_WIDTH
+                && move_iter.Y + destY < CCL_HEIGHT)
+                current->addMover(move_iter.X + destX, move_iter.Y + destY);
         }
 
         endEdit();
@@ -1589,7 +1582,6 @@ void CCEditMain::onClearAction()
         }
     }
     endEdit();
-    editor->update();
 }
 
 void CCEditMain::onUndoAction()
@@ -1719,7 +1711,6 @@ void CCEditMain::onAdvancedMechAction()
         endEdit();
     else
         cancelEdit();
-    editor->update();
 }
 
 void CCEditMain::onToggleWallsAction()
@@ -1731,7 +1722,6 @@ void CCEditMain::onToggleWallsAction()
     beginEdit(CCEditHistory::EditMap);
     ccl::ToggleDoors(editor->levelData());
     endEdit();
-    editor->update();
 }
 
 void CCEditMain::onCheckErrorsAction()
@@ -2077,6 +2067,8 @@ void CCEditMain::endEdit()
     if (m_undoCommand->leave(editor->levelData())) {
         m_undoStack->push(m_undoCommand);
         m_undoCommand = nullptr;
+        editor->dirtyBuffer();
+        editor->update();
     }
 }
 
