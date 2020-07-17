@@ -240,7 +240,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionZoomFit]->setStatusTip(tr("Zoom to fit view area"));
     m_actions[ActionZoomFit]->setShortcut(Qt::CTRL | Qt::Key_0);
     m_actions[ActionZoomFit]->setCheckable(true);
-    QActionGroup* zoomGroup = new QActionGroup(this);
+    auto zoomGroup = new QActionGroup(this);
     zoomGroup->addAction(m_actions[ActionZoom100]);
     zoomGroup->addAction(m_actions[ActionZoom75]);
     zoomGroup->addAction(m_actions[ActionZoom50]);
@@ -1039,7 +1039,7 @@ void CCEditMain::closeEvent(QCloseEvent* event)
 
 void CCEditMain::resizeEvent(QResizeEvent* event)
 {
-    if (event != 0)
+    if (!event)
         QWidget::resizeEvent(event);
 
     if (m_zoomFactor == 0.0 && m_editorTabs->currentWidget() != 0) {
@@ -1048,6 +1048,32 @@ void CCEditMain::resizeEvent(QResizeEvent* event)
         double zy = (double)zmax.height() / (32 * m_currentTileset->size());
         for (int i=0; i<m_editorTabs->count(); ++i)
             getEditorAt(i)->setZoom(std::min(zx, zy));
+    }
+}
+
+void CCEditMain::keyPressEvent(QKeyEvent* event)
+{
+    if (event->key() == Qt::Key_Shift) {
+        EditorWidget* editor = currentEditor();
+        if (editor) {
+            editor->setPaintFlag(EditorWidget::RevealLower);
+            event->accept();
+        }
+    } else {
+        QMainWindow::keyPressEvent(event);
+    }
+}
+
+void CCEditMain::keyReleaseEvent(QKeyEvent* event)
+{
+    if (event->key() == Qt::Key_Shift) {
+        EditorWidget* editor = currentEditor();
+        if (editor) {
+            editor->clearPaintFlag(EditorWidget::RevealLower);
+            event->accept();
+        }
+    } else {
+        QMainWindow::keyPressEvent(event);
     }
 }
 
@@ -1603,10 +1629,8 @@ void CCEditMain::updateForUndoCommand(const QUndoCommand* command)
     if (editorCmd) {
         for (int i = 0; i < m_editorTabs->count(); ++i) {
             auto editor = getEditorAt(i);
-            if (editor->levelData() == editorCmd->levelPtr()) {
+            if (editor->levelData() == editorCmd->levelPtr())
                 editor->dirtyBuffer();
-                editor->update();
-            }
         }
         loadLevel(editorCmd->levelPtr());
     } else if (dynamic_cast<const LevelsetUndoCommand*>(command)) {
@@ -2068,7 +2092,6 @@ void CCEditMain::endEdit()
         m_undoStack->push(m_undoCommand);
         m_undoCommand = nullptr;
         editor->dirtyBuffer();
-        editor->update();
     }
 }
 

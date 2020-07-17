@@ -126,6 +126,8 @@ protected:
     void setLevelsetFilename(const QString& filename);
     void closeEvent(QCloseEvent*) override;
     void resizeEvent(QResizeEvent*) override;
+    void keyPressEvent(QKeyEvent*) override;
+    void keyReleaseEvent(QKeyEvent*) override;
 
 private slots:
     void onOpenAction();

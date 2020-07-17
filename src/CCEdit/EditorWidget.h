@@ -43,6 +43,9 @@ public:
         ShowErrors = (1<<5),
         ShowAll = ShowPlayer | ShowMovement | ShowButtons | ShowMovePaths |
                   ShowViewBox | ShowErrors,
+
+        // Renders the upper layer very faintly over the lower layer.
+        RevealLower = (1<<11),
     };
 
     EditorWidget(QWidget* parent = nullptr);
@@ -74,22 +77,35 @@ public:
 
     QRect selection() const { return m_selectRect; }
     void selectRegion(int left, int top, int width, int height)
-    { m_selectRect = QRect(left, top, width, height); }
+    {
+        m_selectRect = QRect(left, top, width, height);
+    }
 
     void setPaintFlag(int flag)
     {
-        m_paintFlags |= flag;
-        update();
+        uint32_t newFlags = m_paintFlags | flag;
+        if (newFlags != m_paintFlags) {
+            m_paintFlags = newFlags;
+            dirtyBuffer();
+        }
     }
 
     void clearPaintFlag(int flag)
     {
-        m_paintFlags &= ~flag;
-        update();
+        uint32_t newFlags = m_paintFlags & ~flag;
+        if (newFlags != m_paintFlags) {
+            m_paintFlags = newFlags;
+            dirtyBuffer();
+        }
     }
 
     void renderTileBuffer();
-    void dirtyBuffer() { m_cacheDirty = true; }
+    void dirtyBuffer()
+    {
+        m_cacheDirty = true;
+        update();
+    }
+
     double zoom() const { return m_zoomFactor; }
 
     void renderTo(QPainter& painter);

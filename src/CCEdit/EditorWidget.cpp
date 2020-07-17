@@ -249,9 +249,8 @@ void EditorWidget::setTileset(CCETileset* tileset)
 {
     m_tileset = tileset;
     m_tileBuffer = QPixmap(32 * m_tileset->size(), 32 * m_tileset->size());
-    dirtyBuffer();
     resize(sizeHint());
-    update();
+    dirtyBuffer();
 }
 
 void EditorWidget::setLevelData(ccl::LevelData* level)
@@ -264,7 +263,6 @@ void EditorWidget::setLevelData(ccl::LevelData* level)
     m_origin = QPoint(-1, -1);
     m_selectRect = QRect(-1, -1, -1, -1);
     dirtyBuffer();
-    update();
 
     emit hasSelection(false);
 }
@@ -272,10 +270,22 @@ void EditorWidget::setLevelData(ccl::LevelData* level)
 void EditorWidget::renderTileBuffer()
 {
     QPainter tilePainter(&m_tileBuffer);
-    for (int y = 0; y < 32; ++y)
-        for (int x = 0; x < 32; ++x)
-            m_tileset->draw(tilePainter, x, y, m_levelData->map().getFG(x, y),
-                            m_levelData->map().getBG(x, y));
+    if ((m_paintFlags & RevealLower) != 0) {
+        for (int y = 0; y < 32; ++y)
+            for (int x = 0; x < 32; ++x)
+                m_tileset->draw(tilePainter, x, y, m_levelData->map().getBG(x, y));
+        tilePainter.setOpacity(0.15);
+        for (int y = 0; y < 32; ++y)
+            for (int x = 0; x < 32; ++x)
+                m_tileset->draw(tilePainter, x, y, m_levelData->map().getFG(x, y),
+                                m_levelData->map().getBG(x, y));
+        tilePainter.setOpacity(1.0);
+    } else {
+        for (int y = 0; y < 32; ++y)
+            for (int x = 0; x < 32; ++x)
+                m_tileset->draw(tilePainter, x, y, m_levelData->map().getFG(x, y),
+                                m_levelData->map().getBG(x, y));
+    }
 
     if ((m_paintFlags & ShowErrors) != 0) {
         for (int y = 0; y < 32; ++y) {
@@ -450,6 +460,11 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
     if (m_current == QPoint(posX, posY) && !m_cacheDirty)
         return;
     m_current = QPoint(posX, posY);
+
+    if (event->modifiers() & Qt::ShiftModifier)
+        setPaintFlag(RevealLower);
+    else
+        clearPaintFlag(RevealLower);
 
     if (m_cachedButton == Qt::MidButton && m_origin != QPoint(-1, -1)) {
         int lowX = std::min(m_origin.x(), m_current.x());
@@ -933,7 +948,6 @@ void EditorWidget::putTile(tile_t tile, int x, int y, DrawLayer layer)
 void EditorWidget::setZoom(double factor)
 {
     m_zoomFactor = factor;
-    dirtyBuffer();
     resize(sizeHint());
-    update();
+    dirtyBuffer();
 }
