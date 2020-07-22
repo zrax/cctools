@@ -68,6 +68,9 @@ public:
     /* Enter all available hacks here */
     HACK_BOOL16(IgnorePasswords,    0x482E      )   // No need for the menu cheat
     HACK_STRING(DialogTitle,        0x4868,   17)   // Used for message boxes
+    HACK_STRING(NotEnoughTimers,    0x487A,   39)
+    HACK_STRING(NewGameConfirm,     0x48A2,  157)
+    HACK_STRING(NotEnoughMemory,    0x4940,   52)
     HACK_STRING(FireDeathMsg,       0x4976,   49)
     HACK_STRING(WaterDeathMsg,      0x49A8,   41)
     HACK_STRING(BombDeathMsg,       0x49D2,   29)
@@ -77,8 +80,28 @@ public:
     HACK_STRING(IniFilename,        0x4A68,   11)
     HACK_STRING(IniEntryName,       0x4A74,   17)
     HACK_STRING(DataFilename,       0x4AD4,    9)
+    HACK_STRING(ToolSound,          0x4C0A,    9)
+    HACK_STRING(DoorSound,          0x4C14,    8)
+    HACK_STRING(DeathSound,         0x4C1D,   10)
+    HACK_STRING(LevelCompleteSound, 0x4C28,   10)
+    HACK_STRING(SocketSound,        0x4C33,   10)
+    HACK_STRING(WallSound,          0x4C3E,    8)
+    HACK_STRING(ThiefSound,         0x4C47,   10)
+    HACK_STRING(SoundOnSound,       0x4C52,   10)
+    HACK_STRING(ChipSound,          0x4C5D,   10)
+    HACK_STRING(ButtonSound,        0x4C68,    8)
+    HACK_STRING(WaterSound,         0x4C71,   10)
+    HACK_STRING(BombSound,          0x4C7C,    8)
+    HACK_STRING(TeleportSound,      0x4C85,   12)
+    HACK_STRING(TimerTickSound,     0x4C92,   10)
+    HACK_STRING(TimesUpSound,       0x4C9D,    8)
+    HACK_STRING(Midi_1,             0x4CA6,   10)
+    HACK_STRING(Midi_2,             0x4CB1,   10)
+    HACK_STRING(Midi_3,             0x4CBC,   10)
     HACK_STRING(WindowTitle,        0x4D16,   16)   // Displayed in main window
     HACK_STRING(DefaultDeath,       0x4D7C,    6)
+    HACK_STRING(IgnorePwdMenu,      0x4E31,   17)   // Not stored in MENU resource
+    HACK_STRING(SkipLevelMsg,       0x510C,   89)
     HACK_STRING(CorruptFileMsg,     0x5166,   39)
     HACK_STRING(FirstTryMsg,        0x5334,   18)   // Yowser! First Try!
     HACK_STRING(ThirdTryMsg,        0x5347,   14)   // Go Bit Buster!
