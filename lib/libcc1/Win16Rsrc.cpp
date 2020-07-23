@@ -17,6 +17,7 @@
 
 #include "Win16Rsrc.h"
 #include <cstring>
+#include <queue>
 
 #ifdef _MSC_VER
 #define snprintf sprintf_s
@@ -139,21 +140,20 @@ Win16::RcBlob Win16::ResourceDirectory::loadResource(const Resource* res, ccl::S
 
 bool Win16::ResourceDirectory::updateResource(Resource* res, ccl::Stream* stream, const RcBlob& blob)
 {
-    std::list<RcBlob> savedBlobs;
+    std::queue<RcBlob> savedBlobs;
 
     // Save backup blobs if the size has changed
     uint32_t alignSize = blob.m_size >> m_resAlign;
     if (blob.m_size % (1 << m_resAlign))
         ++alignSize;
-    if (alignSize != res->size()) {
-        for (ResourceGroup& group : m_groups) {
-            for (Resource& resource : group.resources()) {
-                savedBlobs.push_back(loadResource(&resource, stream));
 
-                // Update the offsets of blobs after the updated one
-                if (resource.offset() > res->offset())
-                    resource.setOffset(resource.offset() + (alignSize - res->size()));
-            }
+    for (ResourceGroup& group : m_groups) {
+        for (Resource& resource : group.resources()) {
+            savedBlobs.push(loadResource(&resource, stream));
+
+            // Update the offsets of blobs after the updated one
+            if (resource.offset() > res->offset())
+                resource.setOffset(resource.offset() + (alignSize - res->size()));
         }
     }
 
@@ -164,7 +164,7 @@ bool Win16::ResourceDirectory::updateResource(Resource* res, ccl::Stream* stream
             // NOTE: We rely on the fact that the savedBlobs should stay in the
             //       same order during writing as during reading...
             RcBlob nextBlob = std::move(savedBlobs.front());
-            savedBlobs.pop_front();
+            savedBlobs.pop();
             if (&resource == res) {
                 stream->seek(resource.offset() << m_resAlign, SEEK_SET);
                 stream->write(blob.m_data, 1, blob.m_size);
