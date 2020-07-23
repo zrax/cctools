@@ -32,8 +32,25 @@ enum ResourceTypes {
 };
 
 struct RcBlob {
-    RcBlob() : m_size(), m_data() { }
+    RcBlob() noexcept : m_size(), m_data() { }
     ~RcBlob() { delete[] m_data; }
+
+    RcBlob(const RcBlob&) = delete;
+    RcBlob& operator=(const RcBlob&) = delete;
+
+    RcBlob(RcBlob&& init) noexcept : m_size(init.m_size), m_data(init.m_data)
+    {
+        init.m_data = nullptr;
+    }
+
+    RcBlob& operator=(RcBlob&& init) noexcept
+    {
+        m_size = init.m_size;
+        std::swap(m_data, init.m_data);
+        return *this;
+    }
+
+    bool isNull() const { return m_data == nullptr; }
 
     uint32_t m_size;
     uint8_t* m_data;
@@ -130,20 +147,20 @@ public:
         return nullptr;
     }
 
-    RcBlob* loadResource(uint16_t type, const std::string& name, ccl::Stream* stream)
+    RcBlob loadResource(uint16_t type, const std::string& name, ccl::Stream* stream)
     {
         Resource* res = findResource(type, name);
-        return res ? loadResource(res, stream) : nullptr;
+        return res ? loadResource(res, stream) : RcBlob();
     }
 
-    RcBlob* loadResource(uint16_t type, uint16_t resourceID, ccl::Stream* stream)
+    RcBlob loadResource(uint16_t type, uint16_t resourceID, ccl::Stream* stream)
     {
         Resource* res = findResource(type, resourceID);
-        return res ? loadResource(res, stream) : nullptr;
+        return res ? loadResource(res, stream) : RcBlob();
     }
 
     bool updateResource(uint16_t type, const std::string& name,
-                        ccl::Stream* stream, RcBlob* blob)
+                        ccl::Stream* stream, const RcBlob& blob)
     {
         Resource* res = findResource(type, name);
         if (res)
@@ -152,7 +169,7 @@ public:
     }
 
     bool updateResource(uint16_t type, uint16_t resourceID,
-                        ccl::Stream* stream, RcBlob* blob)
+                        ccl::Stream* stream, const RcBlob& blob)
     {
         Resource* res = findResource(type, resourceID);
         if (res)
@@ -165,8 +182,8 @@ private:
     uint16_t m_resAlign;
     std::list<ResourceGroup> m_groups;
 
-    RcBlob* loadResource(const Resource* res, ccl::Stream* stream);
-    bool updateResource(Resource* res, ccl::Stream* stream, RcBlob* blob);
+    RcBlob loadResource(const Resource* res, ccl::Stream* stream);
+    bool updateResource(Resource* res, ccl::Stream* stream, const RcBlob& blob);
 };
 
 class RcMenuItem {

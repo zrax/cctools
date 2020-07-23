@@ -47,13 +47,16 @@ class HackSettings {
 public:
     HackSettings() { clearAll(); }
 
+    HackSettings(const HackSettings&) = default;
+    HackSettings& operator=(const HackSettings&) = default;
+
     void setKnownDefaults();
     void clearAll();
 
-    bool loadFromExe(const char* filename);
-    bool loadFromPatch(const char* filename);
-    bool writeToExe(const char* filename) const;
-    bool writeToPatch(const char* filename) const;
+    bool loadFromExe(const QString& filename);
+    bool loadFromPatch(const QString& filename);
+    bool writeToExe(const QString& filename) const;
+    bool writeToPatch(const QString& filename) const;
 
     // General settings
     MAKE_SETTING_OBJ(std::string,   title);
@@ -76,16 +79,19 @@ public:
 
 class HackPage : public QWidget {
 public:
-    HackPage(QWidget* parent = nullptr) : QWidget(parent) { }
+    explicit HackPage(QWidget* parent = nullptr) : QWidget(parent) { }
     virtual void setValues(HackSettings* settings) = 0;
     virtual void setDefaults(HackSettings* settings) = 0;
+    virtual void saveTo(HackSettings* settings) = 0;
+    virtual void markClean() { }
 };
 
 class PlaceholderPage : public HackPage {
 public:
-    PlaceholderPage(QWidget* parent = nullptr) : HackPage(parent) { }
-    void setValues(HackSettings* settings) override { }
-    void setDefaults(HackSettings* settings) override { }
+    explicit PlaceholderPage(QWidget* parent = nullptr) : HackPage(parent) { }
+    void setValues(HackSettings*) override { }
+    void setDefaults(HackSettings*) override { }
+    void saveTo(HackSettings*) override { }
 };
 
 #endif

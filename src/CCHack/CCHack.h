@@ -36,6 +36,7 @@ public:
 private slots:
     void onChangePage(QTreeWidgetItem* page, QTreeWidgetItem*);
     void onReadExeAction();
+    void onWriteExeAction();
 
 private:
     QStackedWidget* m_container;

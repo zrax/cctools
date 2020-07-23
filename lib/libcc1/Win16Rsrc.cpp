@@ -127,29 +127,28 @@ void Win16::ResourceDirectory::update(ccl::Stream* stream) const
         group.update(stream);
 }
 
-Win16::RcBlob* Win16::ResourceDirectory::loadResource(const Resource* res, ccl::Stream* stream)
+Win16::RcBlob Win16::ResourceDirectory::loadResource(const Resource* res, ccl::Stream* stream)
 {
-    auto blob = new RcBlob;
-    blob->m_size = res->size() << m_resAlign;
-    blob->m_data = new uint8_t[blob->m_size];
+    RcBlob blob;
+    blob.m_size = res->size() << m_resAlign;
+    blob.m_data = new uint8_t[blob.m_size];
     stream->seek(res->offset() << m_resAlign, SEEK_SET);
-    stream->read(blob->m_data, 1, blob->m_size);
+    stream->read(blob.m_data, 1, blob.m_size);
     return blob;
 }
 
-bool Win16::ResourceDirectory::updateResource(Resource* res, ccl::Stream* stream, RcBlob* blob)
+bool Win16::ResourceDirectory::updateResource(Resource* res, ccl::Stream* stream, const RcBlob& blob)
 {
-    std::list<RcBlob*> savedBlobs;
+    std::list<RcBlob> savedBlobs;
 
     // Save backup blobs if the size has changed
-    uint32_t alignSize = blob->m_size >> m_resAlign;
-    if (blob->m_size % (1 << m_resAlign))
+    uint32_t alignSize = blob.m_size >> m_resAlign;
+    if (blob.m_size % (1 << m_resAlign))
         ++alignSize;
     if (alignSize != res->size()) {
         for (ResourceGroup& group : m_groups) {
             for (Resource& resource : group.resources()) {
-                RcBlob* oldBlob = loadResource(&resource, stream);
-                savedBlobs.push_back(oldBlob);
+                savedBlobs.push_back(loadResource(&resource, stream));
 
                 // Update the offsets of blobs after the updated one
                 if (resource.offset() > res->offset())
@@ -164,22 +163,21 @@ bool Win16::ResourceDirectory::updateResource(Resource* res, ccl::Stream* stream
         for (const Resource& resource : group.resources()) {
             // NOTE: We rely on the fact that the savedBlobs should stay in the
             //       same order during writing as during reading...
-            RcBlob* nextBlob = savedBlobs.front();
+            RcBlob nextBlob = std::move(savedBlobs.front());
             savedBlobs.pop_front();
             if (&resource == res) {
                 stream->seek(resource.offset() << m_resAlign, SEEK_SET);
-                stream->write(blob->m_data, 1, blob->m_size);
-                if (blob->m_size % (1 << m_resAlign)) {
+                stream->write(blob.m_data, 1, blob.m_size);
+                if (blob.m_size % (1 << m_resAlign)) {
                     // Pad with zeroes
-                    size_t padLength = (1 << m_resAlign) - (blob->m_size % (1 << m_resAlign));
+                    size_t padLength = (1 << m_resAlign) - (blob.m_size % (1 << m_resAlign));
                     std::vector<uint8_t> zero(padLength, 0);
                     stream->write(&zero[0], 1, padLength);
                 }
             } else {
                 stream->seek(resource.offset() << m_resAlign, SEEK_SET);
-                stream->write(nextBlob->m_data, 1, nextBlob->m_size);
+                stream->write(nextBlob.m_data, 1, nextBlob.m_size);
             }
-            delete nextBlob;
         }
     }
 

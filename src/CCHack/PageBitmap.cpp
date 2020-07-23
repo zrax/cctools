@@ -25,6 +25,8 @@
 #include <QMessageBox>
 #include <QBuffer>
 
+#define BITMAPFILEHEADER_SIZE 14
+
 CCHack::PageBitmap::PageBitmap(int which, QWidget* parent)
     : HackPage(parent), m_which(which), m_modified()
 {
@@ -57,34 +59,34 @@ CCHack::PageBitmap::PageBitmap(int which, QWidget* parent)
 
 void CCHack::PageBitmap::setValues(HackSettings* settings)
 {
-    const QByteArray* bmpData = nullptr;
+    QByteArray bmpData;
     switch (m_which) {
     case VgaTileset:
-        bmpData = &settings->get_vgaTileset();
+        bmpData = settings->get_vgaTileset();
         break;
     case EgaTileset:
-        bmpData = &settings->get_egaTileset();
+        bmpData = settings->get_egaTileset();
         break;
     case MonoTileset:
-        bmpData = &settings->get_monoTileset();
+        bmpData = settings->get_monoTileset();
         break;
     case Background:
-        bmpData = &settings->get_background();
+        bmpData = settings->get_background();
         break;
     case Digits:
-        bmpData = &settings->get_digits();
+        bmpData = settings->get_digits();
         break;
     case InfoBox:
-        bmpData = &settings->get_infoBox();
+        bmpData = settings->get_infoBox();
         break;
     case ChipEnd:
-        bmpData = &settings->get_chipEnd();
+        bmpData = settings->get_chipEnd();
         break;
     default:
-        return;
+        Q_UNREACHABLE();
     }
 
-    if (bmpData->isEmpty()) {
+    if (bmpData.isEmpty()) {
         m_bitmap = QByteArray();
     } else {
         QBuffer buffer;
@@ -93,38 +95,94 @@ void CCHack::PageBitmap::setValues(HackSettings* settings)
 
         uint32_t headerSize;
         uint32_t ofImageData;
-        memcpy(&headerSize, bmpData->constData(), sizeof(headerSize));
+        memcpy(&headerSize, bmpData.constData(), sizeof(headerSize));
         if (headerSize >= 40 && headerSize != 64) {
             uint16_t bpp;
-            memcpy(&bpp, bmpData->constData() + 14, sizeof(bpp));
+            memcpy(&bpp, bmpData.constData() + 14, sizeof(bpp));
             if (bpp <= 8) {
                 uint32_t paletteSize;
-                memcpy(&paletteSize, bmpData->constData() + 32, sizeof(paletteSize));
+                memcpy(&paletteSize, bmpData.constData() + 32, sizeof(paletteSize));
                 if (paletteSize == 0)
                     paletteSize = 1u << bpp;
-                ofImageData = 14 + headerSize + (paletteSize * 4);
+                ofImageData = BITMAPFILEHEADER_SIZE + headerSize + (paletteSize * 4);
             } else {
-                ofImageData = 14 + headerSize;
+                ofImageData = BITMAPFILEHEADER_SIZE + headerSize;
             }
         } else {
             uint16_t bpp;
-            memcpy(&bpp, bmpData->constData() + 10, sizeof(bpp));
+            memcpy(&bpp, bmpData.constData() + 10, sizeof(bpp));
             if (bpp <= 8) {
                 uint32_t paletteSize = 1u << bpp;
-                ofImageData = 14 + headerSize + (paletteSize * 4);
+                ofImageData = BITMAPFILEHEADER_SIZE + headerSize + (paletteSize * 4);
             } else {
-                ofImageData = 14 + headerSize;
+                ofImageData = BITMAPFILEHEADER_SIZE + headerSize;
             }
         }
 
-        uint32_t cbFileSize = 14 + bmpData->size();
+        uint32_t cbFileSize = BITMAPFILEHEADER_SIZE + bmpData.size();
         buffer.write((const char *)&cbFileSize, sizeof(cbFileSize));
         uint16_t reserved[2] = { 0, 0 };
         buffer.write((const char *)&reserved, sizeof(reserved));
         buffer.write((const char *)&ofImageData, sizeof(ofImageData));
-        buffer.write(*bmpData);
+        buffer.write(bmpData);
         m_bitmap = buffer.data();
     }
+
+    // This displays the graphic and updates the UI appropriately
+    onRevert();
+}
+
+void CCHack::PageBitmap::saveTo(HackSettings* settings)
+{
+    if (!m_modified)
+        return;
+
+    QBuffer bmpBuffer;
+    bmpBuffer.open(QIODevice::ReadWrite);
+    m_image.save(&bmpBuffer, "BMP");
+
+    // Strip off the bitmap file header
+    bmpBuffer.seek(BITMAPFILEHEADER_SIZE);
+    QByteArray bmp = bmpBuffer.read(bmpBuffer.size() - BITMAPFILEHEADER_SIZE);
+
+    switch (m_which) {
+    case VgaTileset:
+        settings->set_vgaTileset(bmp);
+        break;
+    case EgaTileset:
+        settings->set_egaTileset(bmp);
+        break;
+    case MonoTileset:
+        settings->set_monoTileset(bmp);
+        break;
+    case Background:
+        settings->set_background(bmp);
+        break;
+    case Digits:
+        // TODO: We already convert any imported bitmap to 8-bit indexed,
+        // but we should probably do another sanity check here to make sure
+        // what we write to the executable is still valid...
+        settings->set_digits(bmp);
+        break;
+    case InfoBox:
+        settings->set_infoBox(bmp);
+        break;
+    case ChipEnd:
+        settings->set_chipEnd(bmp);
+        break;
+    default:
+        Q_UNREACHABLE();
+    }
+}
+
+void CCHack::PageBitmap::markClean()
+{
+    QBuffer bmpBuffer;
+    bmpBuffer.open(QIODevice::ReadWrite);
+    m_image.save(&bmpBuffer, "BMP");
+
+    bmpBuffer.seek(0);
+    m_bitmap = bmpBuffer.readAll();
 
     // This displays the graphic and updates the UI appropriately
     onRevert();
@@ -198,28 +256,28 @@ void CCHack::PageBitmap::onImport()
         }
     }
 
-    m_pixmap = QPixmap::fromImage(std::move(bmp));
+    m_image = std::move(bmp);
     m_stateLabel->setText(tr("From File"));
     m_exportButton->setEnabled(false);
 
-    m_preview->setPixmap(m_pixmap);
-    m_preview->resize(m_pixmap.size());
+    m_preview->setPixmap(QPixmap::fromImage(m_image));
+    m_preview->resize(m_image.size());
     m_modified = true;
 }
 
 void CCHack::PageBitmap::onRevert()
 {
     if (m_bitmap.isEmpty()) {
-        m_pixmap = QPixmap();
+        m_image = QImage();
         m_stateLabel->setText(tr("No Graphic Loaded"));
         m_exportButton->setEnabled(false);
     } else {
-        m_pixmap.loadFromData(m_bitmap, "BMP");
+        m_image.loadFromData(m_bitmap, "BMP");
         m_stateLabel->setText(tr("From Executable"));
         m_exportButton->setEnabled(true);
     }
 
-    m_preview->setPixmap(m_pixmap);
-    m_preview->resize(m_pixmap.size());
+    m_preview->setPixmap(QPixmap::fromImage(m_image));
+    m_preview->resize(m_image.size());
     m_modified = false;
 }

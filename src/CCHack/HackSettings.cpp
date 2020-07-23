@@ -19,6 +19,9 @@
 #include "libcc1/ChipsHax.h"
 #include "libcc1/Win16Rsrc.h"
 
+#include <QFile>
+#include <QMessageBox>
+
 void HackSettings::setKnownDefaults()
 {
     set_title("Chip's Challenge");
@@ -61,11 +64,11 @@ void HackSettings::clearAll()
     clear_chipEnd();
 }
 
-bool HackSettings::loadFromExe(const char* filename)
+bool HackSettings::loadFromExe(const QString& filename)
 {
     ccl::ChipsHax hax;
     ccl::FileStream exeStream;
-    if (!exeStream.open(filename, "rb"))
+    if (!exeStream.open(filename.toLocal8Bit().constData(), "rb"))
         return false;
 
     hax.open(&exeStream);
@@ -86,73 +89,78 @@ bool HackSettings::loadFromExe(const char* filename)
     set_realLastLevel(hax.get_LastLevel());
 
     Win16::ResourceDirectory rcDir;
+    Win16::RcBlob blob;
     rcDir.read(&exeStream);
-    Win16::RcBlob* blob = rcDir.loadResource(Win16::RT_Bitmap, "OBJ32_4", &exeStream);
-    if (blob) {
-        set_vgaTileset(QByteArray((const char*)blob->m_data, blob->m_size));
-        delete blob;
-    }
+    blob = rcDir.loadResource(Win16::RT_Bitmap, "OBJ32_4", &exeStream);
+    if (!blob.isNull())
+        set_vgaTileset(QByteArray((const char*)blob.m_data, blob.m_size));
     blob = rcDir.loadResource(Win16::RT_Bitmap, "OBJ32_4E", &exeStream);
-    if (blob) {
-        set_egaTileset(QByteArray((const char*)blob->m_data, blob->m_size));
-        delete blob;
-    }
+    if (!blob.isNull())
+        set_egaTileset(QByteArray((const char*)blob.m_data, blob.m_size));
     blob = rcDir.loadResource(Win16::RT_Bitmap, "OBJ32_1", &exeStream);
-    if (blob) {
-        set_monoTileset(QByteArray((const char*)blob->m_data, blob->m_size));
-        delete blob;
-    }
+    if (!blob.isNull())
+        set_monoTileset(QByteArray((const char*)blob.m_data, blob.m_size));
     blob = rcDir.loadResource(Win16::RT_Bitmap, "BACKGROUND", &exeStream);
-    if (blob) {
-        set_background(QByteArray((const char*)blob->m_data, blob->m_size));
-        delete blob;
-    }
+    if (!blob.isNull())
+        set_background(QByteArray((const char*)blob.m_data, blob.m_size));
     blob = rcDir.loadResource(Win16::RT_Bitmap, 200, &exeStream);
-    if (blob) {
-        set_digits(QByteArray((const char*)blob->m_data, blob->m_size));
-        delete blob;
-    }
+    if (!blob.isNull())
+        set_digits(QByteArray((const char*)blob.m_data, blob.m_size));
     blob = rcDir.loadResource(Win16::RT_Bitmap, "INFOWND", &exeStream);
-    if (blob) {
-        set_infoBox(QByteArray((const char*)blob->m_data, blob->m_size));
-        delete blob;
-    }
+    if (!blob.isNull())
+        set_infoBox(QByteArray((const char*)blob.m_data, blob.m_size));
     blob = rcDir.loadResource(Win16::RT_Bitmap, "CHIPEND", &exeStream);
-    if (blob) {
-        set_chipEnd(QByteArray((const char*)blob->m_data, blob->m_size));
-        delete blob;
-    }
+    if (!blob.isNull())
+        set_chipEnd(QByteArray((const char*)blob.m_data, blob.m_size));
 
     exeStream.close();
     return true;
 }
 
-bool HackSettings::loadFromPatch(const char* filename)
+bool HackSettings::loadFromPatch(const QString& filename)
 {
     //TODO
     return false;
 }
 
-bool HackSettings::writeToExe(const char* filename) const
+static Win16::RcBlob toBlob(const QByteArray& ba)
+{
+    Win16::RcBlob blob;
+    blob.m_size = ba.size();
+    blob.m_data = new uint8_t[blob.m_size];
+    memcpy(blob.m_data, ba.constData(), blob.m_size);
+    return blob;
+}
+
+bool HackSettings::writeToExe(const QString& filename) const
 {
     ccl::ChipsHax hax;
     ccl::FileStream exeStream;
-    if (!exeStream.open(filename, "r+b"))
+    if (!exeStream.open(filename.toLocal8Bit().constData(), "r+b"))
         return false;
 
     hax.open(&exeStream);
+    ccl::CCPatchState state = hax.get_CCPatch();
+    ccl::CCPatchState pg_state = hax.get_PGChips();
+    if (state == ccl::CCPatchOther || pg_state == ccl::CCPatchOther)
+        throw std::runtime_error("Unrecognized EXE format");
 
-    // Do these first as a way to check if the EXE is sane
-    if (have_ccPatch()) {
-        if (hax.get_CCPatch() == ccl::CCPatchOther)
-            return false;
-        hax.set_CCPatch(get_ccPatch() ? ccl::CCPatchPatched : ccl::CCPatchOriginal);
-    }
     if (have_pgChips()) {
-        if (hax.get_PGChips() == ccl::CCPatchOther)
-            return false;
-        hax.set_PGChips(get_pgChips() ? ccl::CCPatchPatched : ccl::CCPatchOriginal);
+        // We do this first (before writing graphics) so the graphics patch
+        // has a chance of applying cleanly.
+        pg_state = hax.validate_PGChips();
+        if (pg_state == ccl::CCPatchOther) {
+            QMessageBox::warning(nullptr, QObject::tr("Cannot apply patch"),
+                    QObject::tr("Cannot apply PGChips Patch -- the executable doesn't "
+                                "match the expected format.  Perhaps a custom tileset "
+                                "graphic has already been written?"));
+        } else {
+            hax.set_PGChips(get_pgChips() ? ccl::CCPatchPatched : ccl::CCPatchOriginal);
+        }
     }
+
+    if (have_ccPatch())
+        hax.set_CCPatch(get_ccPatch() ? ccl::CCPatchPatched : ccl::CCPatchOriginal);
 
     // General settings
     if (have_title()) {
@@ -172,11 +180,42 @@ bool HackSettings::writeToExe(const char* filename) const
     if (have_realLastLevel())
         hax.set_LastLevel(get_realLastLevel());
 
+    Win16::ResourceDirectory rcDir;
+    rcDir.read(&exeStream);
+    if (have_vgaTileset()) {
+        Win16::RcBlob blob = toBlob(get_vgaTileset());
+        rcDir.updateResource(Win16::RT_Bitmap, "OBJ32_4", &exeStream, blob);
+    }
+    if (have_egaTileset()) {
+        Win16::RcBlob blob = toBlob(get_egaTileset());
+        rcDir.updateResource(Win16::RT_Bitmap, "OBJ32_4E", &exeStream, blob);
+    }
+    if (have_monoTileset()) {
+        Win16::RcBlob blob = toBlob(get_monoTileset());
+        rcDir.updateResource(Win16::RT_Bitmap, "OBJ32_1", &exeStream, blob);
+    }
+    if (have_background()) {
+        Win16::RcBlob blob = toBlob(get_background());
+        rcDir.updateResource(Win16::RT_Bitmap, "BACKGROUND", &exeStream, blob);
+    }
+    if (have_digits()) {
+        Win16::RcBlob blob = toBlob(get_digits());
+        rcDir.updateResource(Win16::RT_Bitmap, 200, &exeStream, blob);
+    }
+    if (have_infoBox()) {
+        Win16::RcBlob blob = toBlob(get_infoBox());
+        rcDir.updateResource(Win16::RT_Bitmap, "INFOWND", &exeStream, blob);
+    }
+    if (have_chipEnd()) {
+        Win16::RcBlob blob = toBlob(get_chipEnd());
+        rcDir.updateResource(Win16::RT_Bitmap, "CHIPEND", &exeStream, blob);
+    }
+
     exeStream.close();
     return true;
 }
 
-bool HackSettings::writeToPatch(const char* filename) const
+bool HackSettings::writeToPatch(const QString& filename) const
 {
     //TODO
     return false;

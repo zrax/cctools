@@ -116,7 +116,7 @@ ccl::CCPatchState ccl::ChipsHax::get_CCPatch()
 
 void ccl::ChipsHax::set_PGChips(CCPatchState state)
 {
-    static const uint8_t* data;
+    const uint8_t* data;
     switch (state) {
     case CCPatchOriginal:
         data = pg_original;
@@ -166,5 +166,56 @@ ccl::CCPatchState ccl::ChipsHax::get_PGChips()
         return CCPatchOriginal;
     if (memcmp(buffer, pgcheck_patch, PGCHECK_SIZE) == 0)
         return CCPatchPatched;
+    return CCPatchOther;
+}
+
+static bool check_patch(const uint8_t* data, ccl::Stream* stream)
+{
+    stream->seek(0, SEEK_SET);
+    for ( ;; ) {
+        uint8_t b = *data++;
+        if (b == 0xFF) {
+            b = *data++;
+            if (b == 0) {
+                if (stream->read8() != 0xFF)
+                    return false;
+            } else if (b == 0xFF) {
+                uint16_t s = (data[0] << 8) | data[1];
+                data += 2;
+                if (s == 0xFFFF) {
+                    uint32_t l = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
+                    data += 4;
+                    if (l == 0xFFFFFFFF)
+                        return true;
+                    stream->seek(l, SEEK_CUR);
+                } else {
+                    stream->seek(s, SEEK_CUR);
+                }
+            } else {
+                stream->seek(b, SEEK_CUR);
+            }
+        } else if (stream->read8() != b) {
+            return false;
+        }
+    }
+
+    /* Unreachable */
+    std::abort();
+}
+
+ccl::CCPatchState ccl::ChipsHax::validate_PGChips()
+{
+    static const struct {
+        const uint8_t* data;
+        CCPatchState state;
+    } try_patch[] = {
+        { pg_original, CCPatchOriginal },
+        { pg_patch, CCPatchPatched },
+    };
+
+    for (const auto& patch : try_patch) {
+        if (check_patch(patch.data, m_stream))
+            return patch.state;
+    }
     return CCPatchOther;
 }

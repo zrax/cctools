@@ -29,9 +29,10 @@ class PageGeneral : public HackPage {
     Q_OBJECT
 
 public:
-    PageGeneral(QWidget* parent);
+    explicit PageGeneral(QWidget* parent = nullptr);
     void setValues(HackSettings* settings) override;
     void setDefaults(HackSettings* settings) override;
+    void saveTo(HackSettings* settings) override;
 
 private:
     QCheckBox* m_cbTitle;

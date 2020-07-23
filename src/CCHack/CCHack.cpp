@@ -116,6 +116,7 @@ CCHackMain::CCHackMain(QWidget* parent)
 
     connect(pager, &QTreeWidget::currentItemChanged, this, &CCHackMain::onChangePage);
 
+    connect(acWriteExe, &QAction::triggered, this, &CCHackMain::onWriteExeAction);
     connect(acReadExe, &QAction::triggered, this, &CCHackMain::onReadExeAction);
 
     connect(acAbout, &QAction::triggered, this, [this] {
@@ -143,8 +144,8 @@ CCHackMain::CCHackMain(QWidget* parent)
 
     for (HackPage* page : m_pages) {
         m_container->addWidget(page);
-        page->setDefaults(&m_defaults);
         page->setValues(&m_settings);
+        page->setDefaults(&m_defaults);
     }
 }
 
@@ -176,7 +177,7 @@ void CCHackMain::onReadExeAction()
         return;
 
     try {
-        if (!m_settings.loadFromExe(exeFilename.toLocal8Bit().constData())) {
+        if (!m_settings.loadFromExe(exeFilename)) {
             QMessageBox::critical(this, tr("Error loading EXE"),
                                   tr("Could not open %1 for reading").arg(exeFilename));
             return;
@@ -187,10 +188,36 @@ void CCHackMain::onReadExeAction()
         return;
     }
 
-    for (HackPage* page : m_pages) {
-        if (page)
-            page->setValues(&m_settings);
+    for (HackPage* page : m_pages)
+        page->setValues(&m_settings);
+}
+
+void CCHackMain::onWriteExeAction()
+{
+    QString exeFilename = QFileDialog::getOpenFileName(this, tr("Write to EXE"),
+                                QString(), tr("EXE Files (*.exe)"));
+    if (exeFilename.isEmpty())
+        return;
+
+    HackSettings saveSettings;
+    for (HackPage* page : m_pages)
+        page->saveTo(&saveSettings);
+
+    try {
+        if (!saveSettings.writeToExe(exeFilename)) {
+            QMessageBox::critical(this, tr("Error updating EXE"),
+                                  tr("Could not open %1 for writing").arg(exeFilename));
+            return;
+        }
+        m_settings = saveSettings;
+    } catch (const std::runtime_error& err) {
+        QMessageBox::critical(this, tr("Error updating EXE"),
+                              tr("Failed to write to %1: %2").arg(exeFilename).arg(err.what()));
+        return;
     }
+
+    for (HackPage* page : m_pages)
+        page->markClean();
 }
 
 

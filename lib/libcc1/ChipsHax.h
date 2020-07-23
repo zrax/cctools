@@ -136,6 +136,7 @@ public:
     // Patch for PGChips (PieGuy's modification enabling the use of Ice blocks)
     void set_PGChips(CCPatchState state);
     CCPatchState get_PGChips();
+    CCPatchState validate_PGChips();
 
 private:
     ccl::Stream* m_stream;

@@ -37,6 +37,8 @@ public:
     PageBitmap(int which, QWidget* parent);
     void setValues(HackSettings* settings) override;
     void setDefaults(HackSettings*) override { }
+    void saveTo(HackSettings* settings) override;
+    void markClean() override;
 
 private slots:
     void onExport();
@@ -52,9 +54,7 @@ private:
     QPushButton* m_revertButton;
     QLabel* m_preview;
     QByteArray m_bitmap;
-    QPixmap m_pixmap;
-
-    void writeBitmap(QIODevice* stream);
+    QImage m_image;
 };
 
 }

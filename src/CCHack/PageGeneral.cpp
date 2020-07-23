@@ -53,8 +53,11 @@ CCHack::PageGeneral::PageGeneral(QWidget* parent)
     m_defDatFile->setEnabled(false);
 
     m_alwaysFirstTry = new QCheckBox(tr("Always grant \"First Try\" bonus"), this);
+    m_alwaysFirstTry->setTristate(true);
     m_ccPatch = new QCheckBox(tr("CCPatch (fixes crash while walking over squares with two masked tiles)"), this);
+    m_ccPatch->setTristate(true);
     m_pgChips = new QCheckBox(tr("PGChips (adds Ice Block support to the game)"), this);
+    m_pgChips->setTristate(true);
 
     m_cbFakeLastLevel = new QCheckBox(tr("\"Fake\" Last Level:"), this);
     m_fakeLastLevel = new QSpinBox(this);
@@ -132,9 +135,31 @@ void CCHack::PageGeneral::setDefaults(HackSettings* settings)
     m_defIniFile->setText(QString::fromLatin1(settings->get_iniFile().c_str()));
     m_defIniEntry->setText(QString::fromLatin1(settings->get_iniEntry().c_str()));
     m_defDatFile->setText(QString::fromLatin1(settings->get_datFile().c_str()));
-    m_alwaysFirstTry->setChecked(settings->get_alwaysFirstTry());
-    m_ccPatch->setChecked(settings->get_ccPatch());
-    m_pgChips->setChecked(settings->get_pgChips());
+    m_alwaysFirstTry->setCheckState(Qt::PartiallyChecked);
+    m_ccPatch->setCheckState(Qt::PartiallyChecked);
+    m_pgChips->setCheckState(Qt::PartiallyChecked);
     m_defFakeLastLevel->setText(QString("%1").arg(settings->get_fakeLastLevel()));
     m_defRealLastLevel->setText(QString("%1").arg(settings->get_realLastLevel()));
+}
+
+void CCHack::PageGeneral::saveTo(HackSettings* settings)
+{
+    if (m_cbTitle->isChecked())
+        settings->set_title(m_title->text().toLatin1().constData());
+    if (m_cbIniFile->isChecked())
+        settings->set_iniFile(m_iniFile->text().toLatin1().constData());
+    if (m_cbIniEntry->isChecked())
+        settings->set_iniEntry(m_iniEntry->text().toLatin1().constData());
+    if (m_cbDatFile->isChecked())
+        settings->set_datFile(m_datFile->text().toLatin1().constData());
+    if (m_alwaysFirstTry->checkState() != Qt::PartiallyChecked)
+        settings->set_alwaysFirstTry(m_alwaysFirstTry->isChecked());
+    if (m_ccPatch->checkState() != Qt::PartiallyChecked)
+        settings->set_ccPatch(m_ccPatch->isChecked());
+    if (m_pgChips->checkState() != Qt::PartiallyChecked)
+        settings->set_pgChips(m_pgChips->isChecked());
+    if (m_cbFakeLastLevel->isChecked())
+        settings->set_fakeLastLevel(m_fakeLastLevel->value());
+    if (m_cbRealLastLevel->isChecked())
+        settings->set_realLastLevel(m_realLastLevel->value());
 }
