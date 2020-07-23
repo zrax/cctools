@@ -32,7 +32,14 @@ endif()
 
 add_executable(CCPlay WIN32 MACOSX_BUNDLE
                ${CCPlay_HEADERS} ${CCPlay_SOURCES} CCPlay.qrc)
-target_link_libraries(CCPlay Qt5::Core Qt5::Widgets Qt5::Sql Qt5::Xml libcc1)
+target_link_libraries(CCPlay PRIVATE
+    Qt5::Core
+    Qt5::Widgets
+    Qt5::Sql
+    Qt5::Xml
+    libcc1
+    CommonWidgets
+)
 
 if(APPLE)
     set(MACOSX_BUNDLE true)

@@ -48,16 +48,16 @@
 
 #include "LevelsetProps.h"
 #include "Organizer.h"
-#include "ExtWidgets.h"
 #include "TileWidgets.h"
 #include "LayerWidget.h"
 #include "AdvancedMechanics.h"
 #include "TestSetup.h"
 #include "ErrorCheck.h"
-#include "About.h"
 #include "libcc1/IniFile.h"
 #include "libcc1/ChipsHax.h"
 #include "libcc1/GameLogic.h"
+#include "CommonWidgets/About.h"
+#include "CommonWidgets/EditorTabWidget.h"
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -701,7 +701,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     });
 
     connect(m_actions[ActionAbout], &QAction::triggered, this, [this] {
-        AboutDialog about(this);
+        AboutDialog about(QStringLiteral("CCEdit"), QPixmap(":/icons/boot-48.png"), this);
         about.exec();
     });
 

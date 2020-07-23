@@ -29,7 +29,7 @@
 #include <QMessageBox>
 #include "PageGeneral.h"
 #include "PageBitmap.h"
-#include "About.h"
+#include "CommonWidgets/About.h"
 
 static void addPageWithType(QTreeWidgetItem* parent, const QString& name, int type)
 {
@@ -120,7 +120,7 @@ CCHackMain::CCHackMain(QWidget* parent)
     connect(acReadExe, &QAction::triggered, this, &CCHackMain::onReadExeAction);
 
     connect(acAbout, &QAction::triggered, this, [this] {
-        AboutDialog about(this);
+        AboutDialog about(QStringLiteral("CCHack"), QPixmap(":/icons/sock-48.png"), this);
         about.exec();
     });
 

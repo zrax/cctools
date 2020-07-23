@@ -16,15 +16,15 @@
  ******************************************************************************/
 
 #include "CC2Edit.h"
-#include "ExtWidgets.h"
 #include "TileWidgets.h"
 #include "TileInspector.h"
 #include "ScriptTools.h"
 #include "TestSetup.h"
 #include "ImportDialog.h"
 #include "ResizeDialog.h"
-#include "About.h"
 #include "libcc2/GameLogic.h"
+#include "CommonWidgets/About.h"
+#include "CommonWidgets/EditorTabWidget.h"
 
 #include <QApplication>
 #include <QSettings>
@@ -888,7 +888,8 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     });
 
     connect(m_actions[ActionAbout], &QAction::triggered, this, [this] {
-        AboutDialog about(this);
+        AboutDialog about(QStringLiteral("CC2Edit"),
+                          QPixmap(":/icons/boot-32.png"), this);
         about.exec();
     });
 

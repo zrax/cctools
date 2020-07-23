@@ -15,24 +15,28 @@
  * along with CCTools.  If not, see <http://www.gnu.org/licenses/>.           *
  ******************************************************************************/
 
-#include "ExtWidgets.h"
+#ifndef _EDITORTABWIDGET_H
+#define _EDITORTABWIDGET_H
 
-#include <QToolButton>
-#include <QMouseEvent>
+#include <QTabWidget>
+#include <QTabBar>
 
-void MidClickClose_TabBar::mouseReleaseEvent(QMouseEvent* event)
-{
-    int tab = tabAt(event->pos());
-    if (tab >= 0 && event->button() == Qt::MiddleButton)
-        emit tabCloseRequested(tab);
+class MidClickClose_TabBar : public QTabBar {
+    Q_OBJECT
 
-    QTabBar::mouseReleaseEvent(event);
-}
+public:
+    explicit MidClickClose_TabBar(QWidget* parent = nullptr)
+        : QTabBar(parent) { }
 
-EditorTabWidget::EditorTabWidget(QWidget* parent)
-    : QTabWidget(parent)
-{
-    setTabBar(new MidClickClose_TabBar(this));
-    setMovable(true);
-    setTabsClosable(true);
-}
+protected:
+    void mouseReleaseEvent(QMouseEvent* event) override;
+};
+
+class EditorTabWidget : public QTabWidget {
+    Q_OBJECT
+
+public:
+    explicit EditorTabWidget(QWidget* parent = nullptr);
+};
+
+#endif

@@ -18,7 +18,6 @@ include_directories(${CCTools_SOURCE_DIR}/lib)
 
 set(CCEdit_HEADERS
     CCEdit.h
-    About.h
     EditorWidget.h
     LayerWidget.h
     TileWidgets.h
@@ -28,7 +27,6 @@ set(CCEdit_HEADERS
     TestSetup.h
     ErrorCheck.h
     Organizer.h
-    ExtWidgets.h
 )
 
 set(CCEdit_SOURCES
@@ -42,7 +40,6 @@ set(CCEdit_SOURCES
     TestSetup.cpp
     ErrorCheck.cpp
     Organizer.cpp
-    ExtWidgets.cpp
 )
 
 if(WIN32)
@@ -51,7 +48,13 @@ endif()
 
 add_executable(CCEdit WIN32 MACOSX_BUNDLE
                ${CCEdit_HEADERS} ${CCEdit_SOURCES} CCEdit.qrc)
-target_link_libraries(CCEdit Qt5::Core Qt5::Widgets Qt5::Xml libcc1)
+target_link_libraries(CCEdit PRIVATE
+    Qt5::Core
+    Qt5::Widgets
+    Qt5::Xml
+    libcc1
+    CommonWidgets
+)
 
 if(APPLE)
     set(MACOSX_BUNDLE true)

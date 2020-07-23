@@ -17,10 +17,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CCTools_SOURCE_DIR}/lib)
 
 set(CC2Edit_HEADERS
-    About.h
     CC2Edit.h
     EditorWidget.h
-    ExtWidgets.h
     History.h
     ImportDialog.h
     ResizeDialog.h
@@ -34,7 +32,6 @@ set(CC2Edit_HEADERS
 set(CC2Edit_SOURCES
     CC2Edit.cpp
     EditorWidget.cpp
-    ExtWidgets.cpp
     History.cpp
     ImportDialog.cpp
     ResizeDialog.cpp
@@ -51,7 +48,13 @@ endif()
 
 add_executable(CC2Edit WIN32 MACOSX_BUNDLE
                ${CC2Edit_HEADERS} ${CC2Edit_SOURCES} CC2Edit.qrc)
-target_link_libraries(CC2Edit PRIVATE Qt5::Core Qt5::Widgets libcc1 libcc2)
+target_link_libraries(CC2Edit PRIVATE
+    Qt5::Core
+    Qt5::Widgets
+    libcc1
+    libcc2
+    CommonWidgets
+)
 
 target_include_directories(CC2Edit PRIVATE "${PROJECT_SOURCE_DIR}")
 target_link_libraries(CC2Edit PRIVATE qtextpad)

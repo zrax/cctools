@@ -15,8 +15,8 @@
  * along with CCTools.  If not, see <http://www.gnu.org/licenses/>.           *
  ******************************************************************************/
 
-#ifndef _ABOUT_CC2EDIT_H
-#define _ABOUT_CC2EDIT_H
+#ifndef _ABOUT_CCTOOLS_H
+#define _ABOUT_CCTOOLS_H
 
 #include <QDialog>
 #include <QGridLayout>
@@ -25,16 +25,17 @@
 #include <QIcon>
 #include <QDialogButtonBox>
 
-class AboutDialog : public QDialog {
+#define CCTOOLS_VERSION "2.1"
+#define CCTOOLS_APP_VER "2.0.95"
+
+class AboutWidget : public QWidget {
 public:
-    explicit AboutDialog(QWidget* parent = nullptr) : QDialog(parent)
+    AboutWidget(const QString& name, const QPixmap& icon, QWidget *parent = nullptr)
+        : QWidget(parent)
     {
         // Inline because it's small
-        setWindowTitle(tr("About CC2Edit"));
-        setWindowIcon(QIcon(":/res/help-about.png"));
-
         auto lblIcon = new QLabel(this);
-        lblIcon->setPixmap(QPixmap(":/icons/boot-32.png"));
+        lblIcon->setPixmap(icon);
         lblIcon->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
 
         auto lblLicense = new QLabel(this);
@@ -56,19 +57,35 @@ public:
             "along with this program.  If not, see "
             "&lt;<a href=\"http://www.gnu.org/licenses/\">http://www.gnu.org/licenses/</a>&gt;."));
 
-        auto buttons = new QDialogButtonBox(
-                QDialogButtonBox::Ok, Qt::Horizontal, this);
-
         auto layout = new QGridLayout(this);
-        layout->setContentsMargins(16, 16, 16, 16);
+        layout->setContentsMargins(0, 0, 0, 0);
         layout->setVerticalSpacing(8);
         layout->setHorizontalSpacing(8);
         layout->addWidget(lblIcon, 0, 0, 3, 1);
-        layout->addWidget(new QLabel("CC2Edit 2.0.95", this), 0, 1);
-        layout->addWidget(new QLabel("Part of CCTools 2.1", this), 1, 1);
+        layout->addWidget(new QLabel(name + QStringLiteral(" " CCTOOLS_APP_VER), this), 0, 1);
+        layout->addWidget(new QLabel(tr("Part of CCTools %1").arg(CCTOOLS_VERSION), this), 1, 1);
         layout->addWidget(new QLabel(tr("Copyright (C) 2020  Michael Hansen"), this), 2, 1);
         layout->addWidget(lblLicense, 4, 0, 1, 2);
-        layout->addWidget(buttons, 6, 0, 1, 2);
+    }
+};
+
+class AboutDialog : public QDialog {
+public:
+    AboutDialog(const QString& name, const QPixmap& icon, QWidget* parent = nullptr)
+        : QDialog(parent)
+    {
+        setWindowTitle(tr("About %1").arg(name));
+        setWindowIcon(QIcon(":/res/help-about.png"));
+
+        auto aboutWidget = new AboutWidget(name, icon, this);
+        auto buttons = new QDialogButtonBox(
+                QDialogButtonBox::Ok, Qt::Horizontal, this);
+
+        auto layout = new QVBoxLayout(this);
+        layout->setContentsMargins(16, 16, 16, 16);
+        layout->setSpacing(8);
+        layout->addWidget(aboutWidget);
+        layout->addWidget(buttons);
 
         connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
     }

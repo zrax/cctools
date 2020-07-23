@@ -17,7 +17,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CCTools_SOURCE_DIR}/lib)
 
 set(CCHack_HEADERS
-    About.h
     CCHack.h
     HackSettings.h
     PageBitmap.h
@@ -37,7 +36,13 @@ endif()
 
 add_executable(CCHack WIN32 MACOSX_BUNDLE
                ${CCHack_HEADERS} ${CCHack_SOURCES} CCHack.qrc)
-target_link_libraries(CCHack Qt5::Core Qt5::Widgets Qt5::Xml libcc1)
+target_link_libraries(CCHack PRIVATE
+    Qt5::Core
+    Qt5::Widgets
+    Qt5::Xml
+    libcc1
+    CommonWidgets
+)
 
 if(APPLE)
     set(MACOSX_BUNDLE true)
