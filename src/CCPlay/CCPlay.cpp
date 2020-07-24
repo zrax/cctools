@@ -411,7 +411,7 @@ void CCPlayMain::refreshScores()
 
 void CCPlayMain::onPlayMSCC()
 {
-    if (m_levelsetList->currentItem() == 0 || m_levelList->topLevelItemCount() == 0)
+    if (!m_levelsetList->currentItem() || m_levelList->topLevelItemCount() == 0)
         return;
 
     QString filename = m_levelsetList->currentItem()->data(0, Qt::UserRole).toString();
@@ -816,7 +816,7 @@ void CCPlayMain::onTool(QAction* action)
 
     QString filename = m_levelsetList->currentItem()->data(0, Qt::UserRole).toString();
     int curLevel = 1;
-    if (!m_levelList->currentItem())
+    if (m_levelList->currentItem())
         curLevel = m_levelList->indexOfTopLevelItem(m_levelList->currentItem()) + 1;
 
     QStringList launch = action->data().toString().split('|');

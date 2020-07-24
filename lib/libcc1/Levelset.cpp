@@ -254,7 +254,7 @@ long ccl::LevelData::read(ccl::Stream* stream, bool forClipboard)
     } else {
         long fieldSize = (long)stream->read16();
         if (fieldSize != dataSize) {
-            fprintf(stderr, "Warning: Ignoring invalid field data size: %ld (expected %ld)",
+            fprintf(stderr, "Warning: Ignoring invalid field data size: %ld (expected %ld)\n",
                     fieldSize, dataSize);
         }
     }
