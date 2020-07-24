@@ -21,22 +21,14 @@
 #include <QTabWidget>
 #include <QTabBar>
 
-class MidClickClose_TabBar : public QTabBar {
-    Q_OBJECT
-
-public:
-    explicit MidClickClose_TabBar(QWidget* parent = nullptr)
-        : QTabBar(parent) { }
-
-protected:
-    void mouseReleaseEvent(QMouseEvent* event) override;
-};
-
 class EditorTabWidget : public QTabWidget {
     Q_OBJECT
 
 public:
     explicit EditorTabWidget(QWidget* parent = nullptr);
+
+    void addFloatingTab(QWidget* widget, const QString& label);
+    void promoteTab();
 };
 
 #endif

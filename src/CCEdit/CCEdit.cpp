@@ -715,6 +715,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_levelList, &QListWidget::currentRowChanged, this, &CCEditMain::onSelectLevel);
     connect(m_levelList, &QListWidget::itemActivated, this, [this](QListWidgetItem* item) {
         loadLevel(m_levelList->row(item));
+        m_editorTabs->promoteTab();
     });
 
     connect(m_nameEdit, &QLineEdit::textChanged, this, &CCEditMain::onNameChanged);
@@ -1273,7 +1274,7 @@ EditorWidget* CCEditMain::addEditor(ccl::LevelData* level)
     editor->setRightTile(m_rightTile);
     if (m_zoomFactor != 0.0)
         editor->setZoom(m_zoomFactor);
-    m_editorTabs->addTab(scroll, level->name().c_str());
+    m_editorTabs->addFloatingTab(scroll, QString::fromLatin1(level->name().c_str()));
     resizeEvent(nullptr);
 
     connect(editor, &EditorWidget::mouseInfo, statusBar(), &QStatusBar::showMessage);
@@ -1849,12 +1850,12 @@ void CCEditMain::onZoomCust()
 void CCEditMain::onZoomFit()
 {
     m_zoomFactor = 0.0;
-    resizeEvent(0);
+    resizeEvent(nullptr);
 }
 
 void CCEditMain::onTilesetMenu(QAction* which)
 {
-    CCETileset* tileset = which->data().value<CCETileset*>();
+    auto tileset = which->data().value<CCETileset*>();
     loadTileset(tileset);
 }
 
@@ -2081,6 +2082,9 @@ void CCEditMain::beginEdit(CCEditHistory::Type type)
         m_undoCommand->enter();
     else
         m_undoCommand = new EditorUndoCommand(type, editor->levelData());
+
+    // Any type of edit should promote the tab to non-floating status
+    m_editorTabs->promoteTab();
 }
 
 void CCEditMain::endEdit()
@@ -2260,6 +2264,7 @@ void CCEditMain::onSelectLevel(int idx)
         m_actions[ActionMoveDown]->setEnabled(idx < m_levelList->count() - 1);
         m_actions[ActionDelLevel]->setEnabled(true);
     }
+    loadLevel(idx);
 }
 
 void CCEditMain::onPasswordGenAction()

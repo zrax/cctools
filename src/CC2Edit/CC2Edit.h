@@ -31,6 +31,7 @@ class QComboBox;
 class QCheckBox;
 class QSpinBox;
 class QListWidget;
+class QListWidgetItem;
 class QPlainTextEdit;
 class QActionGroup;
 
@@ -45,7 +46,7 @@ public:
     void createNewMap();
     void createNewScript();
     void loadFile(const QString& filename);
-    bool loadMap(const QString& filename);
+    bool loadMap(const QString& filename, bool floatTab);
     bool loadScript(const QString& filename);
     void editScript(const QString& filename);
     void closeScript();
@@ -55,7 +56,7 @@ public:
 
     CC2EditorWidget* getEditorAt(int idx);
     CC2EditorWidget* currentEditor();
-    CC2EditorWidget* addEditor(cc2::Map* map, const QString& filename);
+    CC2EditorWidget* addEditor(cc2::Map* map, const QString& filename, bool floatTab);
     CC2ScriptEditor* getScriptEditorAt(int idx);
     CC2ScriptEditor* currentScriptEditor();
     CC2ScriptEditor* addScriptEditor(const QString& filename);
@@ -178,6 +179,7 @@ private:
     QString m_testGameDir;
 
     void registerTileset(const QString& filename);
+    void loadEditorForItem(QListWidgetItem* item);
 };
 
 #endif // _CC2EDIT_H

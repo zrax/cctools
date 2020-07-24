@@ -277,10 +277,12 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     tbarGameScript->addAction(m_actions[ActionEditScript]);
     m_gameMapList = new QListWidget(m_gameProperties);
 
+    connect(m_gameMapList, &QListWidget::currentRowChanged, this, [this](int row) {
+        loadEditorForItem(m_gameMapList->item(row));
+    });
     connect(m_gameMapList, &QListWidget::itemActivated, this, [this](QListWidgetItem* item) {
-        QString filename = item->data(Qt::UserRole).toString();
-        if (!filename.isEmpty())
-            loadMap(filename);
+        loadEditorForItem(item);
+        m_editorTabs->promoteTab();
     });
 
     auto gamePropsLayout = new QGridLayout(m_gameProperties);
@@ -993,7 +995,7 @@ void CC2EditMain::createNewMap()
 {
     auto map = new cc2::Map;
     map->mapData().resize(32, 32);
-    addEditor(map, QString());
+    addEditor(map, QString(), false);
     map->unref();
 
     m_mapPropsDock->raise();
@@ -1026,7 +1028,7 @@ void CC2EditMain::loadFile(const QString& filename)
         if (loadScript(filename))
             m_gamePropsDock->raise();
     } else if (info.suffix().compare(QLatin1String("c2m"), Qt::CaseInsensitive) == 0) {
-        if (loadMap(filename))
+        if (loadMap(filename, false))
             m_mapPropsDock->raise();
     } else {
         QMessageBox::critical(this, tr("Invalid filename"),
@@ -1034,7 +1036,7 @@ void CC2EditMain::loadFile(const QString& filename)
     }
 }
 
-bool CC2EditMain::loadMap(const QString& filename)
+bool CC2EditMain::loadMap(const QString& filename, bool floatTab)
 {
     QFileInfo info(filename);
     for (int i = 0; i < m_editorTabs->count(); ++i) {
@@ -1056,7 +1058,7 @@ bool CC2EditMain::loadMap(const QString& filename)
     bool success = true;
     try {
         map->read(&fs);
-        addEditor(map, filename);
+        addEditor(map, filename, floatTab);
     } catch (const std::exception& ex) {
         QMessageBox::critical(this, tr("Error loading map"), ex.what());
         success = false;
@@ -1159,6 +1161,13 @@ void CC2EditMain::registerTileset(const QString& filename)
     m_tilesetGroup->addAction(menuItem);
 }
 
+void CC2EditMain::loadEditorForItem(QListWidgetItem* item)
+{
+    QString filename = item->data(Qt::UserRole).toString();
+    if (!filename.isEmpty())
+        loadMap(filename, true);
+}
+
 void CC2EditMain::findTilesets()
 {
     m_tilesetMenu->clear();
@@ -1239,7 +1248,7 @@ CC2ScriptEditor* CC2EditMain::currentScriptEditor()
     return getScriptEditorAt(m_editorTabs->currentIndex());
 }
 
-CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename)
+CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename, bool floatTab)
 {
     auto scroll = new QScrollArea(m_editorTabs);
     auto editor = new CC2EditorWidget(scroll);
@@ -1266,7 +1275,10 @@ CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename)
     } else {
         QFileInfo info(filename);
         editor->setFilename(info.canonicalFilePath());
-        m_editorTabs->addTab(scroll, info.fileName());
+        if (floatTab)
+            m_editorTabs->addFloatingTab(scroll, info.fileName());
+        else
+            m_editorTabs->addTab(scroll, info.fileName());
     }
     resizeEvent(nullptr);
 
@@ -1288,6 +1300,8 @@ CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename)
             m_editorTabs->setTabText(index, tabText.left(tabText.size() - 2));
         else if (!clean && !tabText.endsWith(QStringLiteral(" *")))
             m_editorTabs->setTabText(index, tabText + QStringLiteral(" *"));
+
+        m_editorTabs->promoteTab();
     });
 
     connect(this, &CC2EditMain::tilesetChanged, editor, &CC2EditorWidget::setTileset);
@@ -1398,7 +1412,7 @@ void CC2EditMain::onImportCC1Action()
         QFileInfo info(filename);
         QString tempName = QStringLiteral("%1-%2.c2m").arg(info.baseName())
                                 .arg(levelNum + 1, 3, 10, QLatin1Char('0'));
-        CC2EditorWidget* editor = addEditor(map, tempName);
+        CC2EditorWidget* editor = addEditor(map, tempName, false);
         editor->resetClean();
         m_mapPropsDock->raise();
     }
