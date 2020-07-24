@@ -38,6 +38,13 @@
 #include "libcc1/CCMetaData.h"
 #include "CommonWidgets/PathCompleter.h"
 
+// Dammit Qt
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+#define QT_SKIP_EMPTY_PARTS Qt::SkipEmptyParts
+#else
+#define QT_SKIP_EMPTY_PARTS QString::SkipEmptyParts
+#endif
+
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -813,7 +820,7 @@ void CCPlayMain::onTool(QAction* action)
         curLevel = m_levelList->indexOfTopLevelItem(m_levelList->currentItem()) + 1;
 
     QStringList launch = action->data().toString().split('|');
-    QStringList params = launch[1].split(' ', QString::SkipEmptyParts);
+    QStringList params = launch[1].split(QRegularExpression("\\s+"), QT_SKIP_EMPTY_PARTS);
     for (int i = 0; i < params.size(); ++i) {
         params[i].replace("%F", QDir::toNativeSeparators(filename))
                  .replace("%L", QString("%1").arg(curLevel));
