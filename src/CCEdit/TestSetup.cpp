@@ -22,34 +22,27 @@
 #include <QDialogButtonBox>
 #include <QToolButton>
 #include <QGridLayout>
-#include <QCompleter>
-#include <QDirModel>
 #include <QFileDialog>
+#include "CommonWidgets/PathCompleter.h"
 
 #ifdef Q_OS_WIN
-    #define EXE_FILTER "Executables (*.exe)"
-    #define WINEXE_FILTER "Executables (*.exe)"
-    #define EXE_LIST QStringList{ "*.exe" }
+#   define EXE_FILTER tr("Executables (*.exe)")
+#   define WINEXE_FILTER tr("Executables (*.exe)")
+#   define EXE_LIST QStringList{ QStringLiteral("*.exe") }
 #else
-    #define EXE_FILTER "Executables (*)"
-    #define WINEXE_FILTER "Windows Executables (*.exe *.EXE)"
-    #define EXE_LIST QStringList()
+#   define EXE_FILTER tr("Executables (*)")
+#   define WINEXE_FILTER tr("Windows Executables (*.exe *.EXE)")
+#   define EXE_LIST QStringList()
 #endif
 
 TestSetupDialog::TestSetupDialog(QWidget* parent)
-               : QDialog(parent)
+    : QDialog(parent)
 {
     setWindowTitle(tr("Setup testing parameters"));
 
     QSettings settings("CCTools", "CCEdit");
-    QCompleter* exeCompleter = new QCompleter(this);
-    exeCompleter->setModel(new QDirModel(EXE_LIST,
-            QDir::AllDirs | QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Executable,
-            QDir::Name, exeCompleter));
-    QCompleter* winExeCompleter = new QCompleter(this);
-    winExeCompleter->setModel(new QDirModel(QStringList() << "*.exe",
-            QDir::AllDirs | QDir::AllEntries | QDir::NoDotAndDotDot,
-            QDir::Name, winExeCompleter));
+    auto exeCompleter = new FileCompleter(EXE_LIST, this);
+    auto winExeCompleter = new FileCompleter(QStringList{ "*.exe" }, this);
 
 #ifndef Q_OS_WIN
     m_winePath = new QLineEdit(settings.value("WineExe").toString(), this);

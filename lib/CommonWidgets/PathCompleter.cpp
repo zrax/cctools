@@ -15,22 +15,29 @@
  * along with CCTools.  If not, see <http://www.gnu.org/licenses/>.           *
  ******************************************************************************/
 
-#ifndef _ABOUT_CCTOOLS_H
-#define _ABOUT_CCTOOLS_H
+#include "PathCompleter.h"
 
-#include <QDialog>
+// TODO: QDirModel is deprecated, but QFileSystemModel doesn't work correctly
+// for QCompleter, at least not in Qt 5.15.0
+#include <QDirModel>
 
-#define CCTOOLS_VERSION "2.1"
-#define CCTOOLS_APP_VER "2.0.95"
+DirCompleter::DirCompleter(QObject* parent)
+    : QCompleter(parent)
+{
+    auto model = new QDirModel(this);
+    model->setFilter(QDir::AllDirs | QDir::Drives | QDir::NoDotAndDotDot);
+    model->setSorting(QDir::Name | QDir::IgnoreCase);
+    setModel(model);
+    setCaseSensitivity(Qt::CaseInsensitive);
+}
 
-class AboutWidget : public QWidget {
-public:
-    AboutWidget(const QString& name, const QPixmap& icon, QWidget *parent = nullptr);
-};
-
-class AboutDialog : public QDialog {
-public:
-    AboutDialog(const QString& name, const QPixmap& icon, QWidget* parent = nullptr);
-};
-
-#endif
+FileCompleter::FileCompleter(const QStringList& filters, QObject* parent)
+    : QCompleter(parent)
+{
+    auto model = new QDirModel(this);
+    model->setFilter(QDir::AllDirs | QDir::AllEntries | QDir::NoDotAndDotDot);
+    model->setNameFilters(filters);
+    model->setSorting(QDir::Name | QDir::IgnoreCase);
+    setModel(model);
+    setCaseSensitivity(Qt::CaseInsensitive);
+}

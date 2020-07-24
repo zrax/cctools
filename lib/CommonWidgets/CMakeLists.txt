@@ -16,10 +16,13 @@
 set(CommonWidgets_HEADERS
     About.h
     EditorTabWidget.h
+    PathCompleter.h
 )
 
 set(CommonWidgets_SOURCES
+    About.cpp
     EditorTabWidget.cpp
+    PathCompleter.cpp
 )
 
 add_library(CommonWidgets STATIC ${CommonWidgets_HEADERS} ${CommonWidgets_SOURCES})

@@ -24,20 +24,20 @@
 #include <QToolButton>
 #include <QToolBar>
 #include <QGridLayout>
-#include <QCompleter>
-#include <QDirModel>
 #include <QFileDialog>
 #include <QMessageBox>
 #include "CommonWidgets/About.h"
+#include "CommonWidgets/PathCompleter.h"
 
 #ifdef Q_OS_WIN
-    #define EXE_FILTER "Executables (*.exe *.bat *.jar)"
-    #define WINEXE_FILTER "Executables (*.exe)"
-    #define EXE_LIST QStringList() << "*.exe"
+#   define EXE_FILTER tr("Executables (*.exe *.bat *.jar)")
+#   define WINEXE_FILTER tr("Executables (*.exe)")
+#   define EXE_LIST QStringList{ QStringLiteral("*.exe"), QStringLiteral("*.bat"), \
+                                 QStringLiteral("*.jar") }
 #else
-    #define EXE_FILTER "Executables (*)"
-    #define WINEXE_FILTER "Windows Executables (*.exe *.EXE)"
-    #define EXE_LIST QStringList()
+#   define EXE_FILTER tr("Executables (*)")
+#   define WINEXE_FILTER tr("Windows Executables (*.exe *.EXE)")
+#   define EXE_LIST QStringList()
 #endif
 
 void SettingsDialog::CheckTools(QSettings& settings)
@@ -102,14 +102,8 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     m_actions[ActionToolDown]->setEnabled(false);
 
     QSettings settings("CCTools", "CCPlay");
-    QCompleter* exeCompleter = new QCompleter(this);
-    exeCompleter->setModel(new QDirModel(EXE_LIST,
-            QDir::AllDirs | QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Executable,
-            QDir::Name, exeCompleter));
-    QCompleter* winExeCompleter = new QCompleter(this);
-    winExeCompleter->setModel(new QDirModel(QStringList() << "*.exe",
-            QDir::AllDirs | QDir::AllEntries | QDir::NoDotAndDotDot,
-            QDir::Name, winExeCompleter));
+    auto exeCompleter = new FileCompleter(EXE_LIST, this);
+    auto winExeCompleter = new FileCompleter(QStringList{ "*.exe" }, this);
 
     QTabWidget* dlgTabs = new QTabWidget(this);
     QWidget* tabPlay = new QWidget(dlgTabs);
@@ -423,10 +417,7 @@ ConfigToolDialog::ConfigToolDialog(QWidget* parent)
 {
     setWindowTitle(tr("Configure Tool"));
 
-    QCompleter* exeCompleter = new QCompleter(this);
-    exeCompleter->setModel(new QDirModel(EXE_LIST,
-            QDir::AllDirs | QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Executable,
-            QDir::Name, exeCompleter));
+    auto exeCompleter = new FileCompleter(EXE_LIST, this);
 
     m_name = new QLineEdit(this);
     QLabel* lblName = new QLabel(tr("&Name:"), this);

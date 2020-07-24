@@ -15,22 +15,19 @@
  * along with CCTools.  If not, see <http://www.gnu.org/licenses/>.           *
  ******************************************************************************/
 
-#ifndef _ABOUT_CCTOOLS_H
-#define _ABOUT_CCTOOLS_H
+#ifndef _PATH_COMPLETER_H
+#define _PATH_COMPLETER_H
 
-#include <QDialog>
+#include <QCompleter>
 
-#define CCTOOLS_VERSION "2.1"
-#define CCTOOLS_APP_VER "2.0.95"
-
-class AboutWidget : public QWidget {
+class DirCompleter : public QCompleter {
 public:
-    AboutWidget(const QString& name, const QPixmap& icon, QWidget *parent = nullptr);
+    explicit DirCompleter(QObject* parent = nullptr);
 };
 
-class AboutDialog : public QDialog {
+class FileCompleter : public QCompleter {
 public:
-    AboutDialog(const QString& name, const QPixmap& icon, QWidget* parent = nullptr);
+    explicit FileCompleter(const QStringList& filters, QObject* parent = nullptr);
 };
 
 #endif

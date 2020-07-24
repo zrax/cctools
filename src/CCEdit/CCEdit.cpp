@@ -21,11 +21,11 @@
 #include <QMenuBar>
 #include <QToolBar>
 #include <QDockWidget>
-#include <QIntValidator>
 #include <QGridLayout>
 #include <QScrollArea>
 #include <QToolBox>
 #include <QToolButton>
+#include <QLabel>
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QInputDialog>

@@ -24,8 +24,6 @@
 #include <QLabel>
 #include <QGridLayout>
 #include <QMenu>
-#include <QDirModel>
-#include <QCompleter>
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QSqlQuery>
@@ -38,6 +36,7 @@
 #include "libcc1/IniFile.h"
 #include "libcc1/ChipsHax.h"
 #include "libcc1/CCMetaData.h"
+#include "CommonWidgets/PathCompleter.h"
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -144,29 +143,26 @@ CCPlayMain::CCPlayMain(QWidget* parent)
 {
     setWindowTitle("CCPlay 2.1");
 
-    QWidget* contents = new QWidget(this);
+    auto contents = new QWidget(this);
     m_levelsetPath = new QLineEdit(contents);
-    QCompleter* dirCompleter = new QCompleter(this);
-    dirCompleter->setModel(new QDirModel(QStringList(),
-            QDir::Dirs | QDir::Drives | QDir::NoDotAndDotDot,
-            QDir::Name, dirCompleter));
-    m_levelsetPath->setCompleter(dirCompleter);
-    QLabel* lblLevelsetPath = new QLabel(tr("Levelset &Path:"), contents);
+    m_levelsetPath->setCompleter(new DirCompleter(this));
+    auto lblLevelsetPath = new QLabel(tr("Levelset &Path:"), contents);
     lblLevelsetPath->setBuddy(m_levelsetPath);
-    QToolButton* btnRefresh = new QToolButton(this);
+    auto btnRefresh = new QToolButton(this);
     btnRefresh->setAutoRaise(true);
     btnRefresh->setIcon(QIcon(":/res/view-refresh.png"));
     btnRefresh->setStatusTip(tr("Refresh Levelsets"));
-    QToolButton* btnOpenPath = new QToolButton(this);
+    auto btnOpenPath = new QToolButton(this);
     btnOpenPath->setAutoRaise(true);
     btnOpenPath->setIcon(QIcon(":/res/document-open-folder.png"));
     btnOpenPath->setStatusTip(tr("Browse for Levelset path"));
 
-    QSplitter* splitLevelsetData = new QSplitter(Qt::Vertical, contents);
+    auto splitLevelsetData = new QSplitter(Qt::Vertical, contents);
     m_levelsetList = new QTreeWidget(splitLevelsetData);
     m_levelsetList->setRootIsDecorated(false);
-    m_levelsetList->setHeaderLabels(QStringList() << tr("Levelset")
-            << tr("Levels") << tr("Highest") << tr("Last") << tr("My Score"));
+    m_levelsetList->setHeaderLabels(QStringList{
+        tr("Levelset"), tr("Levels"), tr("Highest"), tr("Last"), tr("My Score")
+    });
     m_levelsetList->setColumnWidth(0, 160);
     m_levelsetList->setColumnWidth(1, m_levelsetList->fontMetrics().boundingRect(tr("Levels")).width() + 16);
     m_levelsetList->setColumnWidth(2, m_levelsetList->fontMetrics().boundingRect(tr("Highest")).width() + 16);
@@ -176,8 +172,10 @@ CCPlayMain::CCPlayMain(QWidget* parent)
 
     m_levelList = new QTreeWidget(splitLevelsetData);
     m_levelList->setRootIsDecorated(false);
-    m_levelList->setHeaderLabels(QStringList() << "#" << tr("Name")
-            << tr("Author") << tr("Time") << tr("My Time") << tr("My Score"));
+    m_levelList->setHeaderLabels(QStringList{
+        QStringLiteral("#"), tr("Name"), tr("Author"), tr("Time"),
+        tr("My Time"), tr("My Score")
+    });
     m_levelList->setColumnWidth(0, m_levelList->fontMetrics().boundingRect("000").width() + 10);
     m_levelList->setColumnWidth(1, 160);
     m_levelList->setColumnWidth(2, 80);
