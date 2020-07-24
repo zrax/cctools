@@ -31,7 +31,7 @@ public:
 
 signals:
     void gameName(const QString& name);
-    void mapAdded(const QString& path);
+    void mapAdded(int levelNum, const QString& path);
 };
 
 #endif

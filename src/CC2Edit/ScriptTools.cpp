@@ -17,10 +17,90 @@
 
 #include "ScriptTools.h"
 #include "libcc2/GameScript.h"
+#include "libcc2/Map.h"
 
 #include <QMessageBox>
 #include <QDir>
 #include <stdexcept>
+#include <unordered_map>
+
+static void add_constants(std::unordered_map<std::string, unsigned long>& locals)
+{
+    // TODO: This should be read-only
+    locals["male"] = cc2::Tile::Player;
+    locals["female"] = cc2::Tile::Player2;
+    locals["continue"] = 0x1;
+    locals["replay"] = 0x2;
+    locals["silent"] = 0x4;
+    locals["ktools"] = 0x10;
+    locals["ktime"] = 0x20;
+    locals["no_bonus"] = 0x40;
+}
+
+static unsigned long
+c2g_evaluate(std::unordered_map<std::string, unsigned long>& locals, cc2::C2GNode* node)
+{
+    switch (node->type()) {
+    case cc2::C2GNode::NodeNumber:
+        return static_cast<cc2::NumberNode*>(node)->value();
+    case cc2::C2GNode::NodeIdentifier:
+        return locals[static_cast<cc2::IdentifierNode*>(node)->name()];
+    case cc2::C2GNode::NodeOperator:
+        {
+            auto opNode = static_cast<cc2::OperatorNode*>(node);
+            unsigned long lhs = c2g_evaluate(locals, opNode->operand(0));
+            unsigned long rhs = c2g_evaluate(locals, opNode->operand(1));
+            if (opNode->token() == "<")
+                return (lhs < rhs) ? 1 : 0;
+            else if (opNode->token() == "<=")
+                return (lhs <= rhs) ? 1 : 0;
+            else if (opNode->token() == ">")
+                return (lhs > rhs) ? 1 : 0;
+            else if (opNode->token() == ">=")
+                return (lhs >= rhs) ? 1 : 0;
+            else if (opNode->token() == "==")
+                return (lhs == rhs) ? 1 : 0;
+            else if (opNode->token() == "!=")
+                return (lhs != rhs) ? 1 : 0;
+            else if (opNode->token() == "*")
+                return lhs * rhs;
+            else if (opNode->token() == "/") {
+                if (rhs == 0) {
+                    fprintf(stderr, "Divide by zero in evaluate()\n");
+                    return 0;
+                }
+                return lhs / rhs;
+            } else if (opNode->token() == "+")
+                return lhs + rhs;
+            else if (opNode->token() == "-")
+                return lhs - rhs;
+            else if (opNode->token() == "%") {
+                if (rhs == 0) {
+                    fprintf(stderr, "Divide by zero in evaluate()\n");
+                    return 0;
+                }
+                return lhs % rhs;
+            } else if (opNode->token() == "^")
+                return lhs ^ rhs;
+            else if (opNode->token() == "&&")
+                return (lhs && rhs) ? 1 : 0;
+            else if (opNode->token() == "&")
+                return lhs & rhs;
+            else if (opNode->token() == "||")
+                return (lhs || rhs) ? 1 : 0;
+            else if (opNode->token() == "|")
+                return lhs | rhs;
+            else {
+                fprintf(stderr, "Unexpected operator \"%s\" in evaluate()", opNode->token().c_str());
+                return 0;
+            }
+        }
+        break;
+    default:
+        fprintf(stderr, "Unexpected node type %d in evaluate()\n", node->type());
+        return 0;
+    }
+}
 
 bool ScriptMapLoader::loadScript(const QString& filename)
 {
@@ -35,6 +115,10 @@ bool ScriptMapLoader::loadScript(const QString& filename)
     QDir scriptDir(filename);
     scriptDir.cdUp();
 
+    std::unordered_map<std::string, unsigned long> locals;
+    add_constants(locals);
+    locals["level"] = 1;
+
     for (auto* node : script.nodes()) {
         switch (node->type()) {
         case cc2::C2GNode::NodeMap:
@@ -46,9 +130,21 @@ bool ScriptMapLoader::loadScript(const QString& filename)
                 auto paramNode = static_cast<cc2::StringNode*>(cmdNode->param());
                 QString param = QString::fromStdString(paramNode->text());
                 if (node->type() == cc2::C2GNode::NodeMap)
-                    emit mapAdded(scriptDir.absoluteFilePath(param));
+                    emit mapAdded(static_cast<int>(locals["level"]++),
+                                  scriptDir.absoluteFilePath(param));
                 else if (node->type() == cc2::C2GNode::NodeGame)
                     emit gameName(param);
+            }
+            break;
+        case cc2::C2GNode::NodeOperator:
+            {
+                auto opNode = static_cast<cc2::OperatorNode*>(node);
+                if (opNode->token() == "=") {
+                    if (opNode->operand(0)->type() != cc2::C2GNode::NodeIdentifier)
+                        continue;
+                    auto identNode = static_cast<cc2::IdentifierNode*>(opNode->operand(0));
+                    locals[identNode->name()] = c2g_evaluate(locals, opNode->operand(1));
+                }
             }
             break;
         default:

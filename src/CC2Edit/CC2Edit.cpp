@@ -1074,7 +1074,8 @@ bool CC2EditMain::loadScript(const QString& filename)
 
     ScriptMapLoader mapLoader;
     connect(&mapLoader, &ScriptMapLoader::gameName, this, &CC2EditMain::setGameName);
-    connect(&mapLoader, &ScriptMapLoader::mapAdded, this, [this](const QString &filename) {
+    connect(&mapLoader, &ScriptMapLoader::mapAdded, this,
+            [this](int levelNum, const QString &filename) {
         cc2::Map map;
         ccl::FileStream fs;
         if (fs.open(filename.toLocal8Bit().constData(), "rb")) {
@@ -1090,7 +1091,7 @@ bool CC2EditMain::loadScript(const QString& filename)
                             ? QString::fromLatin1(map.title().c_str())
                             : QFileInfo(filename).fileName();
 
-        QString name = tr("%1 - %2").arg(m_gameMapList->count() + 1).arg(title);
+        QString name = tr("%1 - %2").arg(levelNum).arg(title);
         auto item = new QListWidgetItem(name, m_gameMapList);
         item->setData(Qt::UserRole, filename);
     });
@@ -1163,6 +1164,9 @@ void CC2EditMain::registerTileset(const QString& filename)
 
 void CC2EditMain::loadEditorForItem(QListWidgetItem* item)
 {
+    if (!item)
+        return;
+
     QString filename = item->data(Qt::UserRole).toString();
     if (!filename.isEmpty())
         loadMap(filename, true);
