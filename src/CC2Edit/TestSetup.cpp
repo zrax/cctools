@@ -87,9 +87,10 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     layout->addWidget(lblChips2Path, ++row, 0);
     layout->addWidget(m_chips2Path, row, 1);
     layout->addWidget(browseChips2, row, 2);
-    auto chips1Label = new QLabel(
-            tr("Note: The Steam version of Chip's Challenge 1 (chips1.exe) may also be used."),
-            this);
+    auto chips1Label = new QLabel(tr("Notes: <ul>"
+            "<li>The Steam version of Chip's Challenge 1 (chips1.exe) may also be used.</li>"
+            "<li>Steam must be <b>running</b> and <b>logged in</b> for playtesting to work properly.</li>"
+            "</ul>"), this);
     chips1Label->setWordWrap(true);
     layout->addWidget(chips1Label, ++row, 0, 1, 3);
     layout->addItem(new QSpacerItem(0, 0, QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding),
