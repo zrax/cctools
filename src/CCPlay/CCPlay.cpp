@@ -861,15 +861,17 @@ void CCPlayMain::onPathChanged(const QString& path)
 
     m_levelsetList->clear();
 #ifdef Q_OS_WIN
-    const QStringList setExts = QStringList()
-        << "*.dat" << "*.ccl" << "*.dac";
+    const QStringList setExts = QStringList{ "*.dat", "*.ccl", "*.dac" };
 #else
-    const QStringList setExts = QStringList()
-        << "*.dat" << "*.DAT" << "*.Dat" << "*.ccl" << "*.CCL" << "*.Ccl"
-        << "*.dac" << "*.DAC" << "*.Dac";
+    const QStringList setExts = QStringList{
+        "*.dat", "*.DAT", "*.Dat",
+        "*.ccl", "*.CCL", "*.Ccl",
+        "*.dac", "*.DAC", "*.Dac"
+    };
 #endif
-    QStringList setList = levelsetDir.entryList(setExts, QDir::Files, QDir::Name);
-    foreach (QString set, setList) {
+    QStringList setList = levelsetDir.entryList(setExts, QDir::Files,
+                                                QDir::Name | QDir::IgnoreCase);
+    for (const QString& set : setList) {
         QString filename = levelsetDir.absoluteFilePath(set);
         auto levelset = load_levelset(filename, this);
         if (!levelset)
