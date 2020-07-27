@@ -21,6 +21,108 @@
 #include <QPainter>
 #include <QPaintEvent>
 #include <QMouseEvent>
+#include <queue>
+
+static CC2EditorWidget::CombineMode select_cmode(Qt::KeyboardModifiers keys)
+{
+    if ((keys & Qt::ShiftModifier) != 0)
+        return CC2EditorWidget::CombineForce;
+    else if ((keys & Qt::ControlModifier) != 0)
+        return CC2EditorWidget::Replace;
+    return CC2EditorWidget::CombineSmart;
+}
+
+static void plot_box(CC2EditorWidget* self, QPoint from, QPoint to,
+                     const cc2::Tile& drawTile, CC2EditorWidget::CombineMode mode)
+{
+    if (from == QPoint(-1, -1))
+        return;
+
+    int lowY = std::min(from.y(), to.y());
+    int lowX = std::min(from.x(), to.x());
+    int highY = std::max(from.y(), to.y());
+    int highX = std::max(from.x(), to.x());
+
+    for (int y = lowY; y <= highY; ++y)
+        for (int x = lowX; x <= highX; ++x)
+            self->putTile(drawTile, x, y, mode);
+}
+
+static void plot_line(CC2EditorWidget* self, QPoint from, QPoint to,
+                      const cc2::Tile& drawTile, CC2EditorWidget::CombineMode mode)
+{
+    if (from == QPoint(-1, -1))
+        return;
+
+    int lowY = from.y();
+    int lowX = from.x();
+    int highY = to.y();
+    int highX = to.x();
+    bool steep = abs(highY - lowY) > abs(highX - lowX);
+    if (steep) {
+        std::swap(lowX, lowY);
+        std::swap(highX, highY);
+    }
+    if (lowX > highX) {
+        std::swap(lowX, highX);
+        std::swap(lowY, highY);
+    }
+
+    int dX = highX - lowX;
+    int dY = abs(highY - lowY);
+    int err = dX / 2;
+    int ystep = (lowY < highY) ? 1 : -1;
+    int y = lowY;
+    for (int x = lowX; x <= highX; ++x) {
+        self->putTile(drawTile, steep ? y : x, steep ? x : y, mode);
+        err -= dY;
+        if (err < 0) {
+            y += ystep;
+            err += dX;
+        }
+    }
+}
+
+static void plot_flood(CC2EditorWidget* self, QPoint start,
+                       const cc2::Tile& drawTile, CC2EditorWidget::CombineMode mode)
+{
+    cc2::MapData& map = self->map()->mapData();
+    const cc2::Tile replaceTile = map.tile(start.x(), start.y());
+
+    std::queue<QPoint> floodQueue;
+    floodQueue.push(start);
+    self->putTile(drawTile, start.x(), start.y(), mode);
+    if (map.tile(start.x(), start.y()) == replaceTile) {
+        // No change was made.  Exit to avoid an infinite loop
+        return;
+    }
+
+    while (!floodQueue.empty()) {
+        QPoint pt = floodQueue.front();
+        floodQueue.pop();
+
+        if (pt.x() > 0 && map.tile(pt.x() - 1, pt.y()) == replaceTile) {
+            QPoint next(pt.x() - 1, pt.y());
+            self->putTile(drawTile, next.x(), next.y(), mode);
+            floodQueue.push(next);
+        }
+        if (pt.x() < map.width() - 1 && map.tile(pt.x() + 1, pt.y()) == replaceTile) {
+            QPoint next(pt.x() + 1, pt.y());
+            self->putTile(drawTile, next.x(), next.y(), mode);
+            floodQueue.push(next);
+        }
+        if (pt.y() > 0 && map.tile(pt.x(), pt.y() - 1) == replaceTile) {
+            QPoint next(pt.x(), pt.y() - 1);
+            self->putTile(drawTile, next.x(), next.y(), mode);
+            floodQueue.push(next);
+        }
+        if (pt.y() < map.height() - 1 && map.tile(pt.x(), pt.y() + 1) == replaceTile) {
+            QPoint next(pt.x(), pt.y() + 1);
+            self->putTile(drawTile, next.x(), next.y(), mode);
+            floodQueue.push(next);
+        }
+    }
+}
 
 CC2EditorWidget::CC2EditorWidget(QWidget* parent)
     : QWidget(parent), m_tileset(), m_map(), m_drawMode(DrawPencil),
@@ -36,6 +138,7 @@ CC2EditorWidget::CC2EditorWidget(QWidget* parent)
     setMouseTracking(true);
 
     m_selectRect = QRect(-1, -1, -1, -1);
+    m_editCache = new cc2::Map;
 }
 
 void CC2EditorWidget::setTileset(CC2ETileset* tileset)
@@ -78,11 +181,13 @@ void CC2EditorWidget::resizeMap(const QSize& newSize)
 
 void CC2EditorWidget::setDrawMode(DrawMode mode)
 {
-    m_drawMode = mode;
-    m_origin = QPoint(-1, -1);
-    m_selectRect = QRect(-1, -1, -1, -1);
-    update();
-    emit hasSelection(false);
+    if (m_drawMode != mode) {
+        m_drawMode = mode;
+        m_origin = QPoint(-1, -1);
+        m_selectRect = QRect(-1, -1, -1, -1);
+        update();
+        emit hasSelection(false);
+    }
 }
 
 void CC2EditorWidget::beginEdit(CC2EditHistory::Type type)
@@ -146,6 +251,13 @@ void CC2EditorWidget::renderTo(QPainter& painter)
         m_cacheDirty = false;
     }
     painter.drawPixmap(0, 0, m_tileCache);
+
+    if (m_selectRect != QRect(-1, -1, -1, -1)) {
+        QRect selectionArea = calcTileRect(m_selectRect);
+        painter.fillRect(selectionArea, QBrush(QColor(95, 95, 191, 127)));
+        painter.setPen(QColor(63, 63, 191));
+        painter.drawRect(selectionArea);
+    }
 
     if ((m_paintFlags & ShowViewBox) != 0) {
         painter.setPen(QColor(0, 255, 127));
@@ -321,6 +433,40 @@ void CC2EditorWidget::mouseMoveEvent(QMouseEvent* event)
     m_current = QPoint(posX, posY);
 
     const cc2::MapData& map = m_map->mapData();
+    if (m_cachedButton == Qt::MidButton && m_origin != QPoint(-1, -1)) {
+        int lowX = std::min(m_origin.x(), m_current.x());
+        int lowY = std::min(m_origin.y(), m_current.y());
+        int highX = std::max(m_origin.x(), m_current.x());
+        int highY = std::max(m_origin.y(), m_current.y());
+        selectRegion(lowX, lowY, highX - lowX + 1, highY - lowY + 1);
+        emit hasSelection(true);
+    } else if ((m_cachedButton & (Qt::LeftButton | Qt::RightButton)) != 0) {
+        const cc2::Tile& curTile = (m_cachedButton == Qt::LeftButton)
+                                 ? m_leftTile : m_rightTile;
+        if (m_drawMode == DrawPencil) {
+            putTile(curTile, posX, posY, select_cmode(event->modifiers()));
+        } else if (m_drawMode == DrawLine || m_drawMode == DrawFill) {
+            m_map->copyFrom(m_editCache);
+            // Draw current pending operation
+            if (m_drawMode == DrawLine)
+                plot_line(this, m_origin, m_current, curTile, select_cmode(event->modifiers()));
+            else if (m_drawMode == DrawFill)
+                plot_box(this, m_origin, m_current, curTile, select_cmode(event->modifiers()));
+            dirtyBuffer();
+        } else if (m_drawMode == DrawPathMaker) {
+            // TODO
+        } else if (m_drawMode == DrawSelect && m_origin != QPoint(-1, -1)) {
+            int lowX = std::min(m_origin.x(), m_current.x());
+            int lowY = std::min(m_origin.y(), m_current.y());
+            int highX = std::max(m_origin.x(), m_current.x());
+            int highY = std::max(m_origin.y(), m_current.y());
+            selectRegion(lowX, lowY, highX - lowX + 1, highY - lowY + 1);
+            emit hasSelection(true);
+
+            //TODO:  Allow dragging of floating selection without losing data
+        }
+    }
+
     const cc2::Tile* tile = &map.tile(posX, posY);
     QString info = QString("(%1, %2): %3").arg(posX).arg(posY).arg(CC2ETileset::getName(tile));
     while (tile->haveLower() && tile->lower()->type() != cc2::Tile::Floor) {
@@ -442,7 +588,31 @@ void CC2EditorWidget::mousePressEvent(QMouseEvent* event)
     const int posY = event->y() / (m_tileset->size() * m_zoomFactor);
     m_current = QPoint(-1, -1);
     m_cachedButton = event->button();
-    m_origin = QPoint(posX, posY);
+    m_editCache->copyFrom(m_map);
+
+    if ((m_cachedButton == Qt::LeftButton || m_cachedButton == Qt::RightButton)
+        && (m_drawMode == DrawPencil || m_drawMode == DrawLine || m_drawMode == DrawFill
+            || m_drawMode == DrawFlood || m_drawMode == DrawPathMaker || m_drawMode == DrawWires))
+        beginEdit(CC2EditHistory::EditMap);
+
+    if (m_drawMode != DrawSelect && event->button() != Qt::MidButton) {
+        m_selectRect = QRect(-1, -1, -1, -1);
+        emit hasSelection(false);
+    }
+
+    if (m_cachedButton == Qt::MidButton) {
+        m_origin = QPoint(posX, posY);
+    } else if (m_drawMode == DrawSelect) {
+        if (m_cachedButton == Qt::LeftButton) {
+            m_origin = QPoint(posX, posY);
+        } else if (m_cachedButton == Qt::RightButton) {
+            m_origin = QPoint(-1, -1);
+            m_selectRect = QRect(-1, -1, -1, -1);
+            emit hasSelection(false);
+        }
+    } else {
+        m_origin = QPoint(posX, posY);
+    }
 
     mouseMoveEvent(event);
 }
@@ -454,11 +624,53 @@ void CC2EditorWidget::mouseReleaseEvent(QMouseEvent* event)
     if (event->button() != m_cachedButton)
         return;
 
-    if (m_drawMode == DrawInspectTile || m_drawMode == DrawInspectHint)
+    bool resetOrigin = true;
+    if (m_drawMode == DrawInspectTile || m_drawMode == DrawInspectHint) {
         emit tilePicked(m_origin.x(), m_origin.y());
+    } else if (m_drawMode == DrawSelect || m_cachedButton == Qt::MidButton) {
+        resetOrigin = false;
+    } else if (m_drawMode == DrawFlood) {
+        if (m_cachedButton == Qt::LeftButton)
+            plot_flood(this, m_current, m_leftTile, select_cmode(event->modifiers()));
+        else if (m_cachedButton == Qt::RightButton)
+            plot_flood(this, m_current, m_rightTile, select_cmode(event->modifiers()));
+    }
+
+    if (resetOrigin)
+        m_origin = QPoint(-1, -1);
+    if ((m_cachedButton == Qt::LeftButton || m_cachedButton == Qt::RightButton)
+        && (m_drawMode == DrawPencil || m_drawMode == DrawLine || m_drawMode == DrawFill
+            || m_drawMode == DrawFlood || m_drawMode == DrawPathMaker || m_drawMode == DrawWires))
+        endEdit();
 
     update();
     m_cachedButton = Qt::NoButton;
+}
+
+void CC2EditorWidget::putTile(const cc2::Tile& tile, int x, int y, CombineMode mode)
+{
+    cc2::Tile& curTile = m_map->mapData().tile(x, y);
+    if (mode == Replace) {
+        curTile = tile;
+    } else if (mode == CombineForce) {
+        if (tile.haveLower()) {
+            cc2::Tile push(tile);
+            *push.lower() = curTile;
+            curTile = push;
+        } else if (curTile.haveLower()) {
+            cc2::Tile* tEnd = &curTile;
+            while (tEnd->haveLower())
+                tEnd = tEnd->lower();
+            *tEnd = tile;
+        } else {
+            curTile = tile;
+        }
+    } else {
+        // TODO: Make this smarter
+        curTile = tile;
+    }
+
+    dirtyBuffer();
 }
 
 void CC2EditorWidget::setZoom(double factor)

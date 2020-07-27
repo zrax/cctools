@@ -137,6 +137,18 @@ cc2::Tile& cc2::Tile::operator=(Tile&& move) noexcept
     return *this;
 }
 
+bool cc2::Tile::operator==(const Tile& other) const
+{
+    if (m_type != other.m_type || m_direction != other.m_direction
+        || m_tileFlags != other.m_tileFlags || m_modifier != other.m_modifier)
+        return false;
+
+    const cc2::Tile* myLower = lower();
+    if (myLower)
+        return myLower->operator==(*other.lower());
+    return true;
+}
+
 void cc2::Tile::read(ccl::Stream* stream)
 {
     m_type = stream->read8();

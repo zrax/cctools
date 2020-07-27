@@ -189,6 +189,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     drawModeGroup->addAction(m_actions[ActionDrawFill]);
     drawModeGroup->addAction(m_actions[ActionDrawFlood]);
     drawModeGroup->addAction(m_actions[ActionPathMaker]);
+    drawModeGroup->addAction(m_actions[ActionDrawWire]);
     m_actions[ActionDrawPencil]->setChecked(true);
 
     m_actions[ActionViewButtons] = new QAction(tr("Show &Button Connections"), this);
@@ -782,10 +783,9 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     toolsMenu->addAction(m_actions[ActionDrawFill]);
     toolsMenu->addAction(m_actions[ActionDrawFlood]);
     toolsMenu->addAction(m_actions[ActionPathMaker]);
-    toolsMenu->addSeparator();
     toolsMenu->addAction(m_actions[ActionDrawWire]);
-    toolsMenu->addAction(m_actions[ActionInspectHints]);
     toolsMenu->addSeparator();
+    toolsMenu->addAction(m_actions[ActionInspectHints]);
     toolsMenu->addAction(m_actions[ActionInspectTiles]);
     toolsMenu->addSeparator();
     toolsMenu->addAction(m_actions[ActionToggleGreens]);
@@ -844,10 +844,9 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     tbarTools->addAction(m_actions[ActionDrawFill]);
     tbarTools->addAction(m_actions[ActionDrawFlood]);
     tbarTools->addAction(m_actions[ActionPathMaker]);
-    tbarTools->addSeparator();
     tbarTools->addAction(m_actions[ActionDrawWire]);
-    tbarTools->addAction(m_actions[ActionInspectHints]);
     tbarTools->addSeparator();
+    tbarTools->addAction(m_actions[ActionInspectHints]);
     tbarTools->addAction(m_actions[ActionInspectTiles]);
     tbarTools->addSeparator();
     tbarTools->addAction(m_actions[ActionToggleGreens]);
@@ -861,6 +860,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     connect(m_actions[ActionImportCC1], &QAction::triggered, this, &CC2EditMain::onImportCC1Action);
     connect(m_actions[ActionClose], &QAction::triggered, this, &CC2EditMain::closeScript);
 
+    connect(m_actions[ActionSelect], &QAction::toggled, this, &CC2EditMain::onSelectToggled);
     connect(m_actions[ActionCut], &QAction::triggered, this, &CC2EditMain::onCutAction);
     connect(m_actions[ActionCopy], &QAction::triggered, this, &CC2EditMain::onCopyAction);
     connect(m_actions[ActionPaste], &QAction::triggered, this, &CC2EditMain::onPasteAction);
@@ -868,8 +868,14 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     connect(m_actions[ActionUndo], &QAction::triggered, this, &CC2EditMain::onUndoAction);
     connect(m_actions[ActionRedo], &QAction::triggered, this, &CC2EditMain::onRedoAction);
 
-    connect(m_actions[ActionInspectHints], &QAction::triggered, this, &CC2EditMain::onInspectHints);
-    connect(m_actions[ActionInspectTiles], &QAction::triggered, this, &CC2EditMain::onInspectTiles);
+    connect(m_actions[ActionDrawPencil], &QAction::toggled, this, &CC2EditMain::onDrawPencilAction);
+    connect(m_actions[ActionDrawLine], &QAction::toggled, this, &CC2EditMain::onDrawLineAction);
+    connect(m_actions[ActionDrawFill], &QAction::toggled, this, &CC2EditMain::onDrawFillAction);
+    connect(m_actions[ActionDrawFlood], &QAction::toggled, this, &CC2EditMain::onDrawFloodAction);
+    connect(m_actions[ActionPathMaker], &QAction::toggled, this, &CC2EditMain::onPathMakerAction);
+    connect(m_actions[ActionDrawWire], &QAction::toggled, this, &CC2EditMain::onDrawWireAction);
+    connect(m_actions[ActionInspectHints], &QAction::toggled, this, &CC2EditMain::onInspectHints);
+    connect(m_actions[ActionInspectTiles], &QAction::toggled, this, &CC2EditMain::onInspectTiles);
     connect(m_actions[ActionToggleGreens], &QAction::triggered, this, &CC2EditMain::onToggleGreensAction);
 
     connect(m_actions[ActionViewViewport], &QAction::toggled, this, &CC2EditMain::onViewViewportToggled);
@@ -1271,6 +1277,8 @@ CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename, 
     //    editor->setPaintFlag(CC2EditorWidget::ShowErrors);
     editor->setTileset(m_currentTileset);
     editor->setMap(map);
+    editor->setLeftTile(m_leftTile);
+    editor->setRightTile(m_rightTile);
     if (m_zoomFactor != 0.0)
         editor->setZoom(m_zoomFactor);
 
@@ -1309,6 +1317,8 @@ CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename, 
     });
 
     connect(this, &CC2EditMain::tilesetChanged, editor, &CC2EditorWidget::setTileset);
+    connect(this, &CC2EditMain::leftTileChanged, editor, &CC2EditorWidget::setLeftTile);
+    connect(this, &CC2EditMain::rightTileChanged, editor, &CC2EditorWidget::setRightTile);
 
     m_editorTabs->setCurrentWidget(scroll);
     return editor;
@@ -1422,6 +1432,27 @@ void CC2EditMain::onImportCC1Action()
     }
 }
 
+void CC2EditMain::onSelectToggled(bool mode)
+{
+    if (!mode && m_currentDrawMode == CC2EditorWidget::DrawSelect) {
+        m_actions[m_savedDrawMode]->setChecked(true);
+    } else if (mode) {
+        m_currentDrawMode = CC2EditorWidget::DrawSelect;
+        m_actions[ActionDrawPencil]->setChecked(false);
+        m_actions[ActionDrawLine]->setChecked(false);
+        m_actions[ActionDrawFill]->setChecked(false);
+        m_actions[ActionDrawFlood]->setChecked(false);
+        m_actions[ActionPathMaker]->setChecked(false);
+        m_actions[ActionDrawWire]->setChecked(false);
+        m_actions[ActionInspectHints]->setChecked(false);
+        m_actions[ActionInspectTiles]->setChecked(false);
+
+        CC2EditorWidget* editor = currentEditor();
+        if (editor)
+            editor->setDrawMode(m_currentDrawMode);
+    }
+}
+
 void CC2EditMain::onCutAction()
 {
     auto mapEditor = currentEditor();
@@ -1494,6 +1525,102 @@ void CC2EditMain::onRedoAction()
     } else if (scriptEditor) {
         scriptEditor->redo();
     }
+}
+
+void CC2EditMain::onDrawPencilAction(bool checked)
+{
+    if (!checked)
+        return;
+
+    m_savedDrawMode = ActionDrawPencil;
+    m_currentDrawMode = CC2EditorWidget::DrawPencil;
+    m_actions[ActionSelect]->setChecked(false);
+    m_actions[ActionInspectHints]->setChecked(false);
+    m_actions[ActionInspectTiles]->setChecked(false);
+
+    CC2EditorWidget* editor = currentEditor();
+    if (editor)
+        editor->setDrawMode(m_currentDrawMode);
+}
+
+void CC2EditMain::onDrawLineAction(bool checked)
+{
+    if (!checked)
+        return;
+
+    m_savedDrawMode = ActionDrawLine;
+    m_currentDrawMode = CC2EditorWidget::DrawLine;
+    m_actions[ActionSelect]->setChecked(false);
+    m_actions[ActionInspectHints]->setChecked(false);
+    m_actions[ActionInspectTiles]->setChecked(false);
+
+    CC2EditorWidget* editor = currentEditor();
+    if (editor)
+        editor->setDrawMode(m_currentDrawMode);
+}
+
+void CC2EditMain::onDrawFillAction(bool checked)
+{
+    if (!checked)
+        return;
+
+    m_savedDrawMode = ActionDrawFill;
+    m_currentDrawMode = CC2EditorWidget::DrawFill;
+    m_actions[ActionSelect]->setChecked(false);
+    m_actions[ActionInspectHints]->setChecked(false);
+    m_actions[ActionInspectTiles]->setChecked(false);
+
+    CC2EditorWidget* editor = currentEditor();
+    if (editor)
+        editor->setDrawMode(m_currentDrawMode);
+}
+
+void CC2EditMain::onDrawFloodAction(bool checked)
+{
+    if (!checked)
+        return;
+
+    m_savedDrawMode = ActionDrawFlood;
+    m_currentDrawMode = CC2EditorWidget::DrawFlood;
+    m_actions[ActionSelect]->setChecked(false);
+    m_actions[ActionInspectHints]->setChecked(false);
+    m_actions[ActionInspectTiles]->setChecked(false);
+
+    CC2EditorWidget* editor = currentEditor();
+    if (editor)
+        editor->setDrawMode(m_currentDrawMode);
+}
+
+void CC2EditMain::onPathMakerAction(bool checked)
+{
+    if (!checked)
+        return;
+
+    m_savedDrawMode = ActionPathMaker;
+    m_currentDrawMode = CC2EditorWidget::DrawPathMaker;
+    m_actions[ActionSelect]->setChecked(false);
+    m_actions[ActionInspectHints]->setChecked(false);
+    m_actions[ActionInspectTiles]->setChecked(false);
+
+    CC2EditorWidget* editor = currentEditor();
+    if (editor)
+        editor->setDrawMode(m_currentDrawMode);
+}
+
+void CC2EditMain::onDrawWireAction(bool checked)
+{
+    if (!checked)
+        return;
+
+    m_savedDrawMode = ActionDrawWire;
+    m_currentDrawMode = CC2EditorWidget::DrawWires;
+    m_actions[ActionSelect]->setChecked(false);
+    m_actions[ActionInspectHints]->setChecked(false);
+    m_actions[ActionInspectTiles]->setChecked(false);
+
+    CC2EditorWidget* editor = currentEditor();
+    if (editor)
+        editor->setDrawMode(m_currentDrawMode);
 }
 
 void CC2EditMain::onInspectHints(bool mode)

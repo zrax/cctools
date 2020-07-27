@@ -255,6 +255,7 @@ public:
     Tile(Tile&& move) noexcept;
     Tile& operator=(Tile&& move) noexcept;
 
+    bool operator==(const Tile& other) const;
 
     Type type() const { return (Type)m_type; }
     void setType(int type)

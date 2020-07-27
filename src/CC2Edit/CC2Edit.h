@@ -74,13 +74,19 @@ protected:
 private slots:
     void onOpenAction();
     void onImportCC1Action();
+    void onSelectToggled(bool);
     void onCutAction();
     void onCopyAction();
     void onPasteAction();
     void onClearAction();
     void onUndoAction();
     void onRedoAction();
-
+    void onDrawPencilAction(bool);
+    void onDrawLineAction(bool);
+    void onDrawFillAction(bool);
+    void onDrawFloodAction(bool);
+    void onPathMakerAction(bool);
+    void onDrawWireAction(bool);
     void onInspectHints(bool);
     void onInspectTiles(bool);
     void onToggleGreensAction();

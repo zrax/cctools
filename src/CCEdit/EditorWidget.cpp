@@ -791,11 +791,13 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
 
 void EditorWidget::setDrawMode(DrawMode mode)
 {
-    m_drawMode = mode;
-    m_origin = QPoint(-1, -1);
-    m_selectRect = QRect(-1, -1, -1, -1);
-    update();
-    emit hasSelection(false);
+    if (m_drawMode != mode) {
+        m_drawMode = mode;
+        m_origin = QPoint(-1, -1);
+        m_selectRect = QRect(-1, -1, -1, -1);
+        update();
+        emit hasSelection(false);
+    }
 }
 
 void EditorWidget::putTile(tile_t tile, int x, int y, DrawLayer layer)

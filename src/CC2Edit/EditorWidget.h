@@ -32,7 +32,11 @@ class CC2EditorWidget : public QWidget {
 public:
     enum DrawMode {
         DrawPencil, DrawLine, DrawFill, DrawFlood, DrawSelect, DrawPathMaker,
-        DrawInspectTile, DrawInspectHint,
+        DrawWires, DrawInspectTile, DrawInspectHint,
+    };
+
+    enum CombineMode {
+        CombineSmart, CombineForce, Replace,
     };
 
     enum PaintFlags {
@@ -50,6 +54,7 @@ public:
     {
         if (m_map)
             m_map->unref();
+        m_editCache->unref();
     }
 
     void setTileset(CC2ETileset* tileset);
@@ -72,6 +77,12 @@ public:
 
     DrawMode drawMode() const { return m_drawMode; }
     void setDrawMode(DrawMode mode);
+
+    QRect selection() const { return m_selectRect; }
+    void selectRegion(int left, int top, int width, int height)
+    {
+        m_selectRect = QRect(left, top, width, height);
+    }
 
     void setPaintFlag(int flag)
     {
@@ -109,9 +120,12 @@ signals:
     void tilePicked(int x, int y);
 
 public slots:
+    void putTile(const cc2::Tile& tile, int x, int y, CombineMode mode);
     void setZoom(double factor);
     void undo();
     void redo();
+    void setLeftTile(const cc2::Tile& tile) { m_leftTile = tile; }
+    void setRightTile(const cc2::Tile& tile) { m_rightTile = tile; }
 
 protected:
     void paintEvent(QPaintEvent*) override;
@@ -122,8 +136,10 @@ protected:
 private:
     CC2ETileset* m_tileset;
     cc2::Map* m_map;
+    cc2::Map* m_editCache;
     QString m_filename;
     QList<QPoint> m_hilights;
+    cc2::Tile m_leftTile, m_rightTile;
     DrawMode m_drawMode;
     uint32_t m_paintFlags;
     Qt::MouseButton m_cachedButton;
