@@ -661,11 +661,11 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     connect(this, &CC2EditMain::tilesetChanged, layerWidget, &LayerWidget::setTileset);
     connect(this, &CC2EditMain::leftTileChanged, layerWidget, &LayerWidget::setUpper);
     connect(this, &CC2EditMain::rightTileChanged, layerWidget, &LayerWidget::setLower);
-    connect(this, &CC2EditMain::leftTileChanged, this, [leftTileLabel](const cc2::Tile* tile) {
-        leftTileLabel->setText(CC2ETileset::getName(tile));
+    connect(this, &CC2EditMain::leftTileChanged, this, [leftTileLabel](const cc2::Tile& tile) {
+        leftTileLabel->setText(CC2ETileset::getName(&tile));
     });
-    connect(this, &CC2EditMain::rightTileChanged, this, [rightTileLabel](const cc2::Tile* tile) {
-        rightTileLabel->setText(CC2ETileset::getName(tile));
+    connect(this, &CC2EditMain::rightTileChanged, this, [rightTileLabel](const cc2::Tile& tile) {
+        rightTileLabel->setText(CC2ETileset::getName(&tile));
     });
 
     auto tileLayout = new QGridLayout(sortedTiles);
@@ -721,11 +721,11 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     connect(this, &CC2EditMain::tilesetChanged, layerWidget, &LayerWidget::setTileset);
     connect(this, &CC2EditMain::leftTileChanged, layerWidget, &LayerWidget::setUpper);
     connect(this, &CC2EditMain::rightTileChanged, layerWidget, &LayerWidget::setLower);
-    connect(this, &CC2EditMain::leftTileChanged, this, [leftTileLabel](const cc2::Tile* tile) {
-        leftTileLabel->setText(CC2ETileset::getName(tile));
+    connect(this, &CC2EditMain::leftTileChanged, this, [leftTileLabel](const cc2::Tile& tile) {
+        leftTileLabel->setText(CC2ETileset::getName(&tile));
     });
-    connect(this, &CC2EditMain::rightTileChanged, this, [rightTileLabel](const cc2::Tile* tile) {
-        rightTileLabel->setText(CC2ETileset::getName(tile));
+    connect(this, &CC2EditMain::rightTileChanged, this, [rightTileLabel](const cc2::Tile& tile) {
+        rightTileLabel->setText(CC2ETileset::getName(&tile));
     });
 
     auto allTileLayout = new QGridLayout(allTileWidget);
@@ -984,9 +984,9 @@ CC2EditMain::CC2EditMain(QWidget* parent)
 
     // Set default editor tiles
     cc2::Tile defTile(cc2::Tile::Wall);
-    setLeftTile(&defTile);
-    defTile.set(cc2::Tile::Floor);
-    setRightTile(&defTile);
+    setLeftTile(defTile);
+    defTile.setType(cc2::Tile::Floor);
+    setRightTile(defTile);
 
     setGameName(QString());
 }
@@ -1570,11 +1570,11 @@ void CC2EditMain::onTilePicked(int x, int y)
     if (m_currentDrawMode == CC2EditorWidget::DrawInspectTile) {
         TileInspector inspector(this);
         inspector.setTileset(m_currentTileset);
-        cc2::Tile* tile = editor->map()->mapData().tile(x, y);
+        cc2::Tile& tile = editor->map()->mapData().tile(x, y);
         inspector.loadTile(tile);
         if (inspector.exec() == QDialog::Accepted) {
             editor->beginEdit(CC2EditHistory::EditMap);
-            *tile = inspector.tile();
+            tile = inspector.tile();
             editor->endEdit();
         }
     } else if (m_currentDrawMode == CC2EditorWidget::DrawInspectHint) {
@@ -1917,15 +1917,15 @@ void CC2EditMain::updateMapProperties(cc2::Map* map)
     m_note->setPlainText(QString::fromLatin1(map->note().c_str()));
 }
 
-void CC2EditMain::setLeftTile(const cc2::Tile* tile)
+void CC2EditMain::setLeftTile(const cc2::Tile& tile)
 {
-    m_leftTile = *tile;
+    m_leftTile = tile;
     emit leftTileChanged(tile);
 }
 
-void CC2EditMain::setRightTile(const cc2::Tile* tile)
+void CC2EditMain::setRightTile(const cc2::Tile& tile)
 {
-    m_rightTile = *tile;
+    m_rightTile = tile;
     emit rightTileChanged(tile);
 }
 

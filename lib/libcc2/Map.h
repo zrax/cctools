@@ -252,25 +252,19 @@ public:
     Tile(const Tile& copy);
     Tile& operator=(const Tile& copy);
 
-    Tile(Tile&& move);
-    Tile& operator=(Tile&& move);
+    Tile(Tile&& move) noexcept;
+    Tile& operator=(Tile&& move) noexcept;
+
 
     Type type() const { return (Type)m_type; }
-    Direction direction() const { return (Direction)m_direction; }
-
     void setType(int type)
     {
         m_type = type;
         checkLower();
     }
 
+    Direction direction() const { return (Direction)m_direction; }
     void setDirection(Direction dir) { m_direction = dir; }
-
-    void set(int type, Direction dir = (Direction)0)
-    {
-        setType(type);
-        setDirection(dir);
-    }
 
     uint8_t tileFlags() const { return m_tileFlags; }
     void setTileFlags(uint8_t mask) { m_tileFlags = mask; }
@@ -332,18 +326,18 @@ public:
     int countChips() const;
     std::tuple<int, int> countPoints() const;
 
-    Tile* tile(int x, int y)
+    Tile& tile(int x, int y)
     {
         if (!m_map || x >= m_width || y >= m_height)
             throw std::out_of_range("Map index out of bounds");
-        return &m_map[(y * m_width) + x];
+        return m_map[(y * m_width) + x];
     }
 
-    const Tile* tile(int x, int y) const
+    const Tile& tile(int x, int y) const
     {
         if (!m_map || x >= m_width || y >= m_height)
             throw std::out_of_range("Map index out of bounds");
-        return &m_map[(y * m_width) + x];
+        return m_map[(y * m_width) + x];
     }
 
     bool haveTile(int x, int y, Tile::Type type) const;

@@ -145,13 +145,13 @@ void TileInspector::setTileset(CC2ETileset* tileset)
     m_layers->setIconSize(m_tileset->qsize());
 }
 
-void TileInspector::loadTile(cc2::Tile* tile)
+void TileInspector::loadTile(const cc2::Tile& tile)
 {
     Q_ASSERT(m_tileset);
-    m_tile = *tile;
+    m_tile = tile;
 
     m_layers->clear();
-    addLayers(tile);
+    addLayers(&tile);
     m_layers->setCurrentRow(0);
 }
 
@@ -254,8 +254,9 @@ void TileInspector::setTileType(int type)
     // Re-populate lower layers in the layer list
     while (m_layers->count() > layer + 1)
         delete m_layers->takeItem(layer + 1);
-    if (tile->haveLower())
-        addLayers(tile->lower());
+    cc2::Tile* lower = tile->lower();
+    if (lower)
+        addLayers(lower);
 }
 
 void TileInspector::setTileModifier(int modifier)
@@ -300,7 +301,7 @@ void TileInspector::onChangeFlag(uint8_t flag, bool on)
     m_layers->item(layer)->setText(CC2ETileset::getName(tile));
 }
 
-void TileInspector::addLayers(cc2::Tile *tile)
+void TileInspector::addLayers(const cc2::Tile* tile)
 {
     while (tile) {
         auto item = new QListWidgetItem(m_layers);

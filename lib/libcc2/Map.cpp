@@ -119,7 +119,7 @@ cc2::Tile& cc2::Tile::operator=(const Tile& copy)
     return *this;
 }
 
-cc2::Tile::Tile(Tile&& move)
+cc2::Tile::Tile(Tile&& move) noexcept
     : m_type(move.m_type), m_direction(move.m_direction),
       m_tileFlags(move.m_tileFlags), m_modifier(move.m_modifier),
       m_lower(move.m_lower)
@@ -127,7 +127,7 @@ cc2::Tile::Tile(Tile&& move)
     move.m_lower = nullptr;
 }
 
-cc2::Tile& cc2::Tile::operator=(Tile&& move)
+cc2::Tile& cc2::Tile::operator=(Tile&& move) noexcept
 {
     m_type = move.m_type;
     m_direction = move.m_direction;
@@ -420,7 +420,8 @@ void cc2::MapData::resize(uint8_t width, uint8_t height)
 
 static int tileChips(const cc2::Tile* tile)
 {
-    const int lowerChips = tile->haveLower() ? tileChips(tile->lower()) : 0;
+    const cc2::Tile* lower = tile->lower();
+    const int lowerChips = lower ? tileChips(lower) : 0;
 
     switch (tile->type()) {
     case cc2::Tile::Chip:
@@ -443,8 +444,8 @@ int cc2::MapData::countChips() const
 
 static std::tuple<int, int> tilePoints(const cc2::Tile* tile)
 {
-    auto points = tile->haveLower()
-                ? tilePoints(tile->lower()) : std::make_tuple(0, 1);
+    const cc2::Tile* lower = tile->lower();
+    auto points = lower ? tilePoints(lower) : std::make_tuple(0, 1);
 
     switch (tile->type()) {
     case cc2::Tile::Flag10:
@@ -483,14 +484,15 @@ static bool _haveTile(const cc2::Tile* tile, cc2::Tile::Type type)
 {
     if (tile->type() == type)
         return true;
-    if (tile->haveLower())
-        return _haveTile(tile->lower(), type);
+    const cc2::Tile* lower = tile->lower();
+    if (lower)
+        return _haveTile(lower, type);
     return false;
 }
 
 bool cc2::MapData::haveTile(int x, int y, Tile::Type type) const
 {
-    return _haveTile(tile(x, y), type);
+    return _haveTile(&tile(x, y), type);
 }
 
 
@@ -749,10 +751,11 @@ void cc2::Map::importFrom(const ccl::LevelData* level)
     int chipsLeft = level->chips();
     for (int y = 0; y < 32; ++y) {
         for (int x = 0; x < 32; ++x) {
-            Tile* upper = m_mapData.tile(x, y);
-            *upper = mapCC1Tile(level->map().getFG(x, y), chipsLeft);
-            if (upper->haveLower())
-                *upper->lower() = mapCC1Tile(level->map().getBG(x, y), chipsLeft);
+            Tile& upper = m_mapData.tile(x, y);
+            upper = mapCC1Tile(level->map().getFG(x, y), chipsLeft);
+            Tile* lower = upper.lower();
+            if (lower)
+                *lower = mapCC1Tile(level->map().getBG(x, y), chipsLeft);
         }
     }
 }

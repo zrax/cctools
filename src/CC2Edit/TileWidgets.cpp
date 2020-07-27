@@ -20,7 +20,7 @@
 #include <QMouseEvent>
 #include <QPainter>
 
-Q_DECLARE_METATYPE(cc2::Tile*)
+Q_DECLARE_METATYPE(const cc2::Tile*)
 
 LayerWidget::LayerWidget(QWidget* parent)
     : QFrame(parent), m_tileset()
@@ -36,15 +36,15 @@ void LayerWidget::setTileset(CC2ETileset* tileset)
     update();
 }
 
-void LayerWidget::setUpper(const cc2::Tile* tile)
+void LayerWidget::setUpper(const cc2::Tile& tile)
 {
-    m_upper = *tile;
+    m_upper = tile;
     update();
 }
 
-void LayerWidget::setLower(const cc2::Tile* tile)
+void LayerWidget::setLower(const cc2::Tile& tile)
 {
-    m_lower = *tile;
+    m_lower = tile;
     update();
 }
 
@@ -64,17 +64,17 @@ void LayerWidget::paintEvent(QPaintEvent* event)
 void TileListWidget::setTiles(std::vector<cc2::Tile> tiles)
 {
     m_tiles = std::move(tiles);
-    for (cc2::Tile& tile : m_tiles) {
+    for (const cc2::Tile& tile : m_tiles) {
         auto item = new QListWidgetItem(CC2ETileset::getName(&tile), this);
         item->setData(Qt::UserRole, QVariant::fromValue(&tile));
     }
 }
 
-cc2::Tile* TileListWidget::tile(int index)
+const cc2::Tile* TileListWidget::tile(int index)
 {
     auto tileItem = item(index);
     if (tileItem)
-        return tileItem->data(Qt::UserRole).value<cc2::Tile*>();
+        return tileItem->data(Qt::UserRole).value<const cc2::Tile*>();
     return nullptr;
 }
 
@@ -92,9 +92,9 @@ void TileListWidget::mousePressEvent(QMouseEvent* event)
         return;
 
     if (event->button() == Qt::LeftButton)
-        emit tileSelectedLeft(currentItem()->data(Qt::UserRole).value<cc2::Tile*>());
+        emit tileSelectedLeft(*currentItem()->data(Qt::UserRole).value<const cc2::Tile*>());
     else if (event->button() == Qt::RightButton)
-        emit tileSelectedRight(currentItem()->data(Qt::UserRole).value<cc2::Tile*>());
+        emit tileSelectedRight(*currentItem()->data(Qt::UserRole).value<const cc2::Tile*>());
     setCurrentItem(nullptr);
 }
 
@@ -298,40 +298,40 @@ void BigTileWidget::rotateLeft()
             tile.setModifier(ror4(tile.modifier()));
             break;
         case cc2::Tile::Ice_NE:
-            tile.set(cc2::Tile::Ice_NW);
+            tile.setType(cc2::Tile::Ice_NW);
             break;
         case cc2::Tile::Ice_SE:
-            tile.set(cc2::Tile::Ice_NE);
+            tile.setType(cc2::Tile::Ice_NE);
             break;
         case cc2::Tile::Ice_SW:
-            tile.set(cc2::Tile::Ice_SE);
+            tile.setType(cc2::Tile::Ice_SE);
             break;
         case cc2::Tile::Ice_NW:
-            tile.set(cc2::Tile::Ice_SW);
+            tile.setType(cc2::Tile::Ice_SW);
             break;
         case cc2::Tile::Force_N:
-            tile.set(cc2::Tile::Force_W);
+            tile.setType(cc2::Tile::Force_W);
             break;
         case cc2::Tile::Force_E:
-            tile.set(cc2::Tile::Force_N);
+            tile.setType(cc2::Tile::Force_N);
             break;
         case cc2::Tile::Force_S:
-            tile.set(cc2::Tile::Force_E);
+            tile.setType(cc2::Tile::Force_E);
             break;
         case cc2::Tile::Force_W:
-            tile.set(cc2::Tile::Force_S);
+            tile.setType(cc2::Tile::Force_S);
             break;
         case cc2::Tile::RevolvDoor_SW:
-            tile.set(cc2::Tile::RevolvDoor_SE);
+            tile.setType(cc2::Tile::RevolvDoor_SE);
             break;
         case cc2::Tile::RevolvDoor_NW:
-            tile.set(cc2::Tile::RevolvDoor_SW);
+            tile.setType(cc2::Tile::RevolvDoor_SW);
             break;
         case cc2::Tile::RevolvDoor_NE:
-            tile.set(cc2::Tile::RevolvDoor_NW);
+            tile.setType(cc2::Tile::RevolvDoor_NW);
             break;
         case cc2::Tile::RevolvDoor_SE:
-            tile.set(cc2::Tile::RevolvDoor_NE);
+            tile.setType(cc2::Tile::RevolvDoor_NE);
             break;
         case cc2::Tile::TrainTracks:
             {
@@ -344,10 +344,10 @@ void BigTileWidget::rotateLeft()
             }
             break;
         case cc2::Tile::Switch_Off:
-            tile.set(cc2::Tile::Switch_On);
+            tile.setType(cc2::Tile::Switch_On);
             break;
         case cc2::Tile::Switch_On:
-            tile.set(cc2::Tile::Switch_Off);
+            tile.setType(cc2::Tile::Switch_Off);
             break;
         case cc2::Tile::LogicGate:
             if (tile.modifier() >= cc2::TileModifier::CounterGate_0
@@ -392,40 +392,40 @@ void BigTileWidget::rotateRight()
             tile.setModifier(rol4(tile.modifier()));
             break;
         case cc2::Tile::Ice_NE:
-            tile.set(cc2::Tile::Ice_SE);
+            tile.setType(cc2::Tile::Ice_SE);
             break;
         case cc2::Tile::Ice_SE:
-            tile.set(cc2::Tile::Ice_SW);
+            tile.setType(cc2::Tile::Ice_SW);
             break;
         case cc2::Tile::Ice_SW:
-            tile.set(cc2::Tile::Ice_NW);
+            tile.setType(cc2::Tile::Ice_NW);
             break;
         case cc2::Tile::Ice_NW:
-            tile.set(cc2::Tile::Ice_NE);
+            tile.setType(cc2::Tile::Ice_NE);
             break;
         case cc2::Tile::Force_N:
-            tile.set(cc2::Tile::Force_E);
+            tile.setType(cc2::Tile::Force_E);
             break;
         case cc2::Tile::Force_E:
-            tile.set(cc2::Tile::Force_S);
+            tile.setType(cc2::Tile::Force_S);
             break;
         case cc2::Tile::Force_S:
-            tile.set(cc2::Tile::Force_W);
+            tile.setType(cc2::Tile::Force_W);
             break;
         case cc2::Tile::Force_W:
-            tile.set(cc2::Tile::Force_N);
+            tile.setType(cc2::Tile::Force_N);
             break;
         case cc2::Tile::RevolvDoor_SW:
-            tile.set(cc2::Tile::RevolvDoor_NW);
+            tile.setType(cc2::Tile::RevolvDoor_NW);
             break;
         case cc2::Tile::RevolvDoor_NW:
-            tile.set(cc2::Tile::RevolvDoor_NE);
+            tile.setType(cc2::Tile::RevolvDoor_NE);
             break;
         case cc2::Tile::RevolvDoor_NE:
-            tile.set(cc2::Tile::RevolvDoor_SE);
+            tile.setType(cc2::Tile::RevolvDoor_SE);
             break;
         case cc2::Tile::RevolvDoor_SE:
-            tile.set(cc2::Tile::RevolvDoor_SW);
+            tile.setType(cc2::Tile::RevolvDoor_SW);
             break;
         case cc2::Tile::TrainTracks:
             {
@@ -438,10 +438,10 @@ void BigTileWidget::rotateRight()
             }
             break;
         case cc2::Tile::Switch_Off:
-            tile.set(cc2::Tile::Switch_On);
+            tile.setType(cc2::Tile::Switch_On);
             break;
         case cc2::Tile::Switch_On:
-            tile.set(cc2::Tile::Switch_Off);
+            tile.setType(cc2::Tile::Switch_Off);
             break;
         case cc2::Tile::LogicGate:
             if (tile.modifier() >= cc2::TileModifier::CounterGate_0
@@ -487,9 +487,9 @@ void BigTileWidget::mousePressEvent(QMouseEvent* event)
     if (which >= tiles.size())
         return;
     if (event->button() == Qt::LeftButton)
-        emit tileSelectedLeft(&tiles[which]);
+        emit tileSelectedLeft(tiles[which]);
     else if (event->button() == Qt::RightButton)
-        emit tileSelectedRight(&tiles[which]);
+        emit tileSelectedRight(tiles[which]);
 }
 
 void BigTileWidget::mouseMoveEvent(QMouseEvent* event)

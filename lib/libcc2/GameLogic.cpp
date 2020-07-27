@@ -19,21 +19,22 @@
 
 static void toggleTile(cc2::Tile* tile)
 {
-    if (tile->haveLower())
-        toggleTile(tile->lower());
+    cc2::Tile* lower = tile->lower();
+    if (lower)
+        toggleTile(lower);
 
     switch (tile->type()) {
     case cc2::Tile::ToggleWall:
-        tile->set(cc2::Tile::ToggleFloor);
+        tile->setType(cc2::Tile::ToggleFloor);
         break;
     case cc2::Tile::ToggleFloor:
-        tile->set(cc2::Tile::ToggleWall);
+        tile->setType(cc2::Tile::ToggleWall);
         break;
     case cc2::Tile::GreenBomb:
-        tile->set(cc2::Tile::GreenChip);
+        tile->setType(cc2::Tile::GreenChip);
         break;
     case cc2::Tile::GreenChip:
-        tile->set(cc2::Tile::GreenBomb);
+        tile->setType(cc2::Tile::GreenBomb);
         break;
     default:
         break;
@@ -45,6 +46,6 @@ void cc2::ToggleGreens(Map* map)
     MapData& mapData = map->mapData();
     for (int y = 0; y < mapData.height(); ++y) {
         for (int x = 0; x < mapData.width(); ++x) 
-            toggleTile(mapData.tile(x, y));
+            toggleTile(&mapData.tile(x, y));
     }
 }

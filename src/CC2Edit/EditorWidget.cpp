@@ -125,7 +125,7 @@ void CC2EditorWidget::renderTileBuffer()
     const cc2::MapData& mapData = m_map->mapData();
     for (int y = 0; y < mapData.height(); ++y) {
         for (int x = 0; x < mapData.width(); ++x)
-            m_tileset->draw(tilePainter, x, y, mapData.tile(x, y), true);
+            m_tileset->draw(tilePainter, x, y, &mapData.tile(x, y), true);
     }
 }
 
@@ -321,7 +321,7 @@ void CC2EditorWidget::mouseMoveEvent(QMouseEvent* event)
     m_current = QPoint(posX, posY);
 
     const cc2::MapData& map = m_map->mapData();
-    const cc2::Tile* tile = map.tile(posX, posY);
+    const cc2::Tile* tile = &map.tile(posX, posY);
     QString info = QString("(%1, %2): %3").arg(posX).arg(posY).arg(CC2ETileset::getName(tile));
     while (tile->haveLower() && tile->lower()->type() != cc2::Tile::Floor) {
         tile = tile->lower();

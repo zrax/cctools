@@ -29,7 +29,7 @@ class CCETileset : public QObject {
     Q_OBJECT
 
 public:
-    CCETileset(QObject* parent = nullptr)
+    explicit CCETileset(QObject* parent = nullptr)
         : QObject(parent), m_size()
     { }
 

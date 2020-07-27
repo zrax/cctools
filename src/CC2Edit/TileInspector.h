@@ -35,7 +35,7 @@ public:
     explicit TileInspector(QWidget* parent = nullptr);
 
     void setTileset(CC2ETileset* tileset);
-    void loadTile(cc2::Tile* tile);
+    void loadTile(const cc2::Tile& tile);
 
     const cc2::Tile& tile() const { return m_tile; }
 
@@ -61,7 +61,7 @@ private:
     QGroupBox* m_flagsGroup;
     QCheckBox* m_tileFlags[8];
 
-    void addLayers(cc2::Tile* tile);
+    void addLayers(const cc2::Tile* tile);
     cc2::Tile* tileLayer(int index);
 };
 

@@ -64,8 +64,8 @@ public:
 
 signals:
     void tilesetChanged(CC2ETileset*);
-    void leftTileChanged(const cc2::Tile*);
-    void rightTileChanged(const cc2::Tile*);
+    void leftTileChanged(const cc2::Tile&);
+    void rightTileChanged(const cc2::Tile&);
 
 protected:
     void closeEvent(QCloseEvent*) override;
@@ -98,8 +98,8 @@ private slots:
     void onTabChanged(int);
     void updateMapProperties(cc2::Map* map);
 
-    void setLeftTile(const cc2::Tile*);
-    void setRightTile(const cc2::Tile*);
+    void setLeftTile(const cc2::Tile&);
+    void setRightTile(const cc2::Tile&);
 
     void onTitleChanged(const QString&);
     void onAuthorChanged(const QString&);

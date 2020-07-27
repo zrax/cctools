@@ -95,9 +95,10 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile,
                          bool allLayers) const
 {
     // Recurse up from the bottom-most layer
-    if (tile->haveLower()) {
+    const cc2::Tile* lower = tile->lower();
+    if (lower) {
         if (allLayers)
-            drawAt(painter, x, y, tile->lower(), true);
+            drawAt(painter, x, y, lower, true);
         else
             painter.drawPixmap(x, y, m_gfx[cc2::G_Floor]);
     }
@@ -1124,9 +1125,11 @@ void CC2ETileset::drawWires(QPainter& painter, int x, int y, uint32_t wireMask,
 QIcon CC2ETileset::getIcon(const cc2::Tile* tile) const
 {
     QPixmap ico(m_size, m_size);
-    QPainter painter(&ico);
-    draw(painter, 0, 0, tile, false);
-    painter.end();
+    if (tile) {
+        QPainter painter(&ico);
+        draw(painter, 0, 0, tile, false);
+        painter.end();
+    }
     return QIcon(ico);
 }
 
