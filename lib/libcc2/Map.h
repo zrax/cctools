@@ -293,6 +293,9 @@ public:
         return (m_type > Floor) || (m_type == Floor && m_modifier != 0);
     }
 
+    void rotateLeft();
+    void rotateRight();
+
 private:
     uint8_t m_type;
     uint8_t m_direction;

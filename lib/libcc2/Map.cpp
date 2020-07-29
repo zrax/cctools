@@ -343,6 +343,202 @@ bool cc2::Tile::needArrows() const
     }
 }
 
+static uint8_t rol4(uint8_t bits)
+{
+    uint8_t rbits = (bits & 0x0f) << 1;
+    if (bits & 0x08)
+        rbits = (rbits & 0x0f) | 0x01;
+    return (bits & 0xf0) | rbits;
+}
+
+static uint8_t ror4(uint8_t bits)
+{
+    uint8_t rbits = (bits & 0x0f) >> 1;
+    if (bits & 0x01)
+        rbits |= 0x08;
+    return (bits & 0xf0) | rbits;
+}
+
+void cc2::Tile::rotateLeft()
+{
+    if (haveDirection())
+        m_direction = (m_direction + 3) % 4;
+
+    switch (m_type) {
+    case Floor:
+        // Actually rotating wire tunnels
+        {
+            uint8_t wires = ror4(m_modifier) & 0x0f;
+            wires |= (wires << 4);
+            m_modifier = (m_modifier & ~0xff) | wires;
+        }
+        break;
+    case PanelCanopy:
+    case DirBlock:
+        m_tileFlags = ror4(m_tileFlags);
+        break;
+    case StyledFloor:
+    case StyledWall:
+        m_modifier = (m_modifier + 3) % 4;
+        break;
+    case Cloner:
+        m_modifier = ror4(m_modifier);
+        break;
+    case Ice_NE:
+        setType(Ice_NW);
+        break;
+    case Ice_SE:
+        setType(Ice_NE);
+        break;
+    case Ice_SW:
+        setType(Ice_SE);
+        break;
+    case Ice_NW:
+        setType(Ice_SW);
+        break;
+    case Force_N:
+        setType(Force_W);
+        break;
+    case Force_E:
+        setType(Force_N);
+        break;
+    case Force_S:
+        setType(Force_E);
+        break;
+    case Force_W:
+        setType(Force_S);
+        break;
+    case RevolvDoor_SW:
+        setType(RevolvDoor_SE);
+        break;
+    case RevolvDoor_NW:
+        setType(RevolvDoor_SW);
+        break;
+    case RevolvDoor_NE:
+        setType(RevolvDoor_NW);
+        break;
+    case RevolvDoor_SE:
+        setType(RevolvDoor_NE);
+        break;
+    case TrainTracks:
+        {
+            uint32_t track = ror4(m_modifier);
+            if (track & TileModifier::Track_NS)
+                track = (track & ~TileModifier::Track_NS) | TileModifier::Track_WE;
+            else if (track & TileModifier::Track_WE)
+                track = (track & ~TileModifier::Track_WE) | TileModifier::Track_NS;
+            m_modifier = track;
+        }
+        break;
+    case Switch_Off:
+        setType(Switch_On);
+        break;
+    case Switch_On:
+        setType(Switch_Off);
+        break;
+    case LogicGate:
+        if (m_modifier >= TileModifier::CounterGate_0 && m_modifier <= TileModifier::CounterGate_9) {
+            m_modifier = ((m_modifier - cc2::TileModifier::CounterGate_0) + 9) % 10
+                         + cc2::TileModifier::CounterGate_0;
+        } else {
+            m_modifier = ((m_modifier + 3) % 4) | (m_modifier & ~0x03);
+        }
+        break;
+    default:
+        break;
+    }
+}
+
+void cc2::Tile::rotateRight()
+{
+    if (haveDirection())
+        m_direction = (m_direction + 1) % 4;
+
+    switch (m_type) {
+    case Floor:
+        // Actually rotating wire tunnels
+        {
+            uint8_t wires = rol4(m_modifier) & 0x0f;
+            wires |= (wires << 4);
+            m_modifier = (m_modifier & ~0xff) | wires;
+        }
+        break;
+    case PanelCanopy:
+    case DirBlock:
+        m_tileFlags = rol4(m_tileFlags);
+        break;
+    case StyledFloor:
+    case StyledWall:
+        m_modifier = (m_modifier + 1) % 4;
+        break;
+    case Cloner:
+        m_modifier = rol4(m_modifier);
+        break;
+    case Ice_NE:
+        setType(Ice_SE);
+        break;
+    case Ice_SE:
+        setType(Ice_SW);
+        break;
+    case Ice_SW:
+        setType(Ice_NW);
+        break;
+    case Ice_NW:
+        setType(Ice_NE);
+        break;
+    case Force_N:
+        setType(Force_E);
+        break;
+    case Force_E:
+        setType(Force_S);
+        break;
+    case Force_S:
+        setType(Force_W);
+        break;
+    case Force_W:
+        setType(Force_N);
+        break;
+    case RevolvDoor_SW:
+        setType(RevolvDoor_NW);
+        break;
+    case RevolvDoor_NW:
+        setType(RevolvDoor_NE);
+        break;
+    case RevolvDoor_NE:
+        setType(RevolvDoor_SE);
+        break;
+    case RevolvDoor_SE:
+        setType(RevolvDoor_SW);
+        break;
+    case TrainTracks:
+        {
+            uint32_t track = rol4(m_modifier);
+            if (track & TileModifier::Track_NS)
+                track = (track & ~TileModifier::Track_NS) | TileModifier::Track_WE;
+            else if (track & TileModifier::Track_WE)
+                track = (track & ~TileModifier::Track_WE) | TileModifier::Track_NS;
+            m_modifier = track;
+        }
+        break;
+    case Switch_Off:
+        setType(Switch_On);
+        break;
+    case Switch_On:
+        setType(Switch_Off);
+        break;
+    case LogicGate:
+        if (m_modifier >= TileModifier::CounterGate_0 && m_modifier <= TileModifier::CounterGate_9) {
+            m_modifier = ((m_modifier - TileModifier::CounterGate_0) + 1) % 10
+                         + TileModifier::CounterGate_0;
+        } else {
+            m_modifier = ((m_modifier + 1) % 4) | (m_modifier & ~0x03);
+        }
+        break;
+    default:
+        break;
+    }
+}
+
 cc2::Tile* cc2::Tile::checkLower()
 {
     if (!haveLower())

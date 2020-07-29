@@ -701,8 +701,20 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     auto rolAction = allTileTbar->addAction(QIcon(":res/object-rotate-left-lg.png"), tr("Rotate Left"));
     auto rorAction = allTileTbar->addAction(QIcon(":res/object-rotate-right-lg.png"), tr("Rotate Right"));
 
-    connect(rolAction, &QAction::triggered, allTiles, &BigTileWidget::rotateLeft);
-    connect(rorAction, &QAction::triggered, allTiles, &BigTileWidget::rotateRight);
+    connect(rolAction, &QAction::triggered, this, [this, allTiles] {
+        allTiles->rotateLeft();
+        m_leftTile.rotateLeft();
+        setLeftTile(m_leftTile);
+        m_rightTile.rotateLeft();
+        setRightTile(m_rightTile);
+    });
+    connect(rorAction, &QAction::triggered, this, [this, allTiles] {
+        allTiles->rotateRight();
+        m_leftTile.rotateRight();
+        setLeftTile(m_leftTile);
+        m_rightTile.rotateRight();
+        setRightTile(m_rightTile);
+    });
     connect(glyphAction, &QAction::toggled, this, [allTiles](bool checked) {
         allTiles->setView(checked ? BigTileWidget::ViewGlyphs
                                   : BigTileWidget::ViewTiles);
