@@ -139,6 +139,7 @@ public:
         Track_NW = 0x8,
         Track_WE = 0x10,
         Track_NS = 0x20,
+        TrackDir_MASK = 0x3f,
         TrackSwitch = 0x40,
 
         ActiveTrack_MASK = 0x700,
@@ -256,6 +257,7 @@ public:
     Tile& operator=(Tile&& move) noexcept;
 
     bool operator==(const Tile& other) const;
+    bool operator!=(const Tile& other) const { return !operator==(other); }
 
     Type type() const { return (Type)m_type; }
     void setType(int type)
@@ -278,6 +280,22 @@ public:
 
     Tile* lower() { return haveLower() ? m_lower : nullptr; }
     const Tile* lower() const { return haveLower() ? m_lower : nullptr; }
+
+    Tile& bottom()
+    {
+        Tile* tp = this;
+        while (tp->haveLower())
+            tp = tp->m_lower;
+        return *tp;
+    }
+
+    const Tile& bottom() const
+    {
+        const Tile* tp = this;
+        while (tp->haveLower())
+            tp = tp->m_lower;
+        return *tp;
+    }
 
     static bool haveLower(int type);
     static bool haveDirection(int type);

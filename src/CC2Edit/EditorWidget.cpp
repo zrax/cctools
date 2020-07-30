@@ -282,7 +282,7 @@ void CC2EditorWidget::renderTo(QPainter& painter)
 
     // Highlight context-sensitive objects
     painter.setPen(QColor(255, 0, 0));
-    foreach (QPoint hi, m_hilights)
+    for (const QPoint& hi : m_hilights)
         painter.drawRect(calcTileRect(hi.x(), hi.y()));
 }
 
@@ -647,27 +647,67 @@ void CC2EditorWidget::mouseReleaseEvent(QMouseEvent* event)
     m_cachedButton = Qt::NoButton;
 }
 
+static uint32_t trackToActive(uint32_t trackModifier)
+{
+    if ((trackModifier & cc2::TileModifier::Track_NE) != 0)
+        return cc2::TileModifier::ActiveTrack_NE;
+    if ((trackModifier & cc2::TileModifier::Track_SE) != 0)
+        return cc2::TileModifier::ActiveTrack_SE;
+    if ((trackModifier & cc2::TileModifier::Track_SW) != 0)
+        return cc2::TileModifier::ActiveTrack_SW;
+    if ((trackModifier & cc2::TileModifier::Track_NW) != 0)
+        return cc2::TileModifier::ActiveTrack_NW;
+    if ((trackModifier & cc2::TileModifier::Track_WE) != 0)
+        return cc2::TileModifier::ActiveTrack_WE;
+    if ((trackModifier & cc2::TileModifier::Track_NS) != 0)
+        return cc2::TileModifier::ActiveTrack_NS;
+    return 0;
+}
+
 void CC2EditorWidget::putTile(const cc2::Tile& tile, int x, int y, CombineMode mode)
 {
     cc2::Tile& curTile = m_map->mapData().tile(x, y);
     if (mode == Replace) {
         curTile = tile;
     } else if (mode == CombineForce) {
-        if (tile.haveLower()) {
+        if (tile.type() == curTile.bottom().type()) {
+            // Combine flags on matching tiles
+            curTile.setModifier(curTile.modifier() | tile.modifier());
+            curTile.setTileFlags(curTile.tileFlags() | tile.tileFlags());
+        } else if (tile.haveLower()) {
             cc2::Tile push(tile);
             *push.lower() = curTile;
             curTile = push;
-        } else if (curTile.haveLower()) {
-            cc2::Tile* tEnd = &curTile;
-            while (tEnd->haveLower())
-                tEnd = tEnd->lower();
-            *tEnd = tile;
         } else {
-            curTile = tile;
+            curTile.bottom() = tile;
         }
     } else {
         // TODO: Make this smarter
-        curTile = tile;
+        if ((tile.type() == cc2::Tile::Floor && tile.modifier() != 0
+                && curTile.bottom().type() == cc2::Tile::Floor)
+            || (tile.type() == cc2::Tile::TrainTracks
+                && curTile.bottom().type() == cc2::Tile::TrainTracks)) {
+            // Combine wire tunnels and tracks
+            curTile.setModifier(curTile.modifier() | tile.modifier());
+        } else {
+            curTile = tile;
+        }
+    }
+
+    if (tile.type() == cc2::Tile::TrainTracks) {
+        // Set the active track, if necessary
+        cc2::Tile& trackTile = curTile.bottom();
+        Q_ASSERT(trackTile.type() == cc2::Tile::TrainTracks);
+        if (trackTile.modifier() & cc2::TileModifier::TrackSwitch) {
+            const uint32_t activeBase = trackTile.modifier() & ~cc2::TileModifier::ActiveTrack_MASK;
+            if ((tile.modifier() & cc2::TileModifier::TrackDir_MASK) != 0) {
+                // Use the track in the current drawing tile
+                trackTile.setModifier(activeBase | trackToActive(tile.modifier()));
+            } else {
+                // Find the first valid track and make it active
+                trackTile.setModifier(activeBase | trackToActive(trackTile.modifier()));
+            }
+        }
     }
 
     dirtyBuffer();
