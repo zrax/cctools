@@ -200,7 +200,7 @@ public:
         NUM_TILE_TYPES,
     };
 
-    enum Direction { North, East, South, West };
+    enum Direction { InvalidDir = -1, North, East, South, West };
 
     enum ArrowMask {
         ArrowNorth = 0x1,

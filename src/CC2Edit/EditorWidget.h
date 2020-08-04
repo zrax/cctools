@@ -144,6 +144,8 @@ private:
     uint32_t m_paintFlags;
     Qt::MouseButton m_cachedButton;
     QPoint m_origin, m_current;
+    cc2::Tile::Direction m_lastDir;
+    cc2::Tile m_lastPathTile;
     QUndoStack* m_undoStack;
     MapUndoCommand* m_undoCommand;
     QRect m_selectRect;

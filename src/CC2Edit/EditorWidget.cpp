@@ -124,10 +124,50 @@ static void plot_flood(CC2EditorWidget* self, QPoint start,
     }
 }
 
+static cc2::Tile::Direction calc_dir(const QPoint& from, const QPoint& to)
+{
+    int dX = to.x() - from.x();
+    int dY = to.y() - from.y();
+    if (dX < 0)
+        return cc2::Tile::West;
+    else if (dX > 0)
+        return cc2::Tile::East;
+    else if (dY < 0)
+        return cc2::Tile::North;
+    else if (dY > 0)
+        return cc2::Tile::South;
+    return cc2::Tile::InvalidDir;
+}
+
+static cc2::Tile directionalize(const cc2::Tile& tile, cc2::Tile::Direction dir)
+{
+    if (dir == cc2::Tile::InvalidDir) {
+        return tile;
+    } else if (tile.type() >= cc2::Tile::Force_N && tile.type() <= cc2::Tile::Force_W) {
+        return cc2::Tile(cc2::Tile::Force_N + int(dir));
+    } else if (tile.type() == cc2::Tile::TrainTracks
+               && (tile.modifier() & cc2::TileModifier::TrackDir_MASK) != 0) {
+        // Assume we want to exit straight.  The end can be cleaned up by
+        // the user if necessary...
+        cc2::Tile dirTile(tile);
+        if (dir == cc2::Tile::North || dir == cc2::Tile::South)
+            dirTile.setModifier(cc2::TileModifier::Track_NS);
+        else if (dir == cc2::Tile::West || dir == cc2::Tile::East)
+            dirTile.setModifier(cc2::TileModifier::Track_WE);
+        return dirTile;
+    } else if (tile.haveDirection()) {
+        cc2::Tile dirTile(tile);
+        dirTile.setDirection(dir);
+        return dirTile;
+    }
+    return tile;
+}
+
+
 CC2EditorWidget::CC2EditorWidget(QWidget* parent)
     : QWidget(parent), m_tileset(), m_map(), m_drawMode(DrawPencil),
-      m_paintFlags(), m_cachedButton(Qt::NoButton), m_undoCommand(),
-      m_zoomFactor(1.0)
+      m_paintFlags(), m_cachedButton(Qt::NoButton), m_lastDir(cc2::Tile::InvalidDir),
+      m_undoCommand(), m_zoomFactor(1.0)
 {
     m_undoStack = new QUndoStack(this);
     connect(m_undoStack, &QUndoStack::canUndoChanged, this, &CC2EditorWidget::canUndoChanged);
@@ -462,7 +502,77 @@ void CC2EditorWidget::mouseMoveEvent(QMouseEvent* event)
                 plot_box(this, m_origin, m_current, curTile, select_cmode(event->modifiers()));
             dirtyBuffer();
         } else if (m_drawMode == DrawPathMaker) {
-            // TODO
+            cc2::Tile oldTile = map.tile(posX, posY);
+            if (m_origin != m_current) {
+                cc2::Tile::Direction dir = calc_dir(m_origin, m_current);
+                cc2::Tile dirTile = directionalize(curTile, dir);
+                if (curTile.type() >= cc2::Tile::Force_N && curTile.type() <= cc2::Tile::Force_W) {
+                    // Crossing a force floor should turn to ice
+                    const cc2::Tile& oldFloor = oldTile.bottom();
+                    if (((dirTile.type() == cc2::Tile::Force_E || dirTile.type() == cc2::Tile::Force_W)
+                            && (oldFloor.type() == cc2::Tile::Force_N || oldFloor.type() == cc2::Tile::Force_S))
+                        || ((dirTile.type() == cc2::Tile::Force_N || dirTile.type() == cc2::Tile::Force_S)
+                            && (oldFloor.type() == cc2::Tile::Force_E || oldFloor.type() == cc2::Tile::Force_W)))
+                        putTile(cc2::Tile(cc2::Tile::Ice), posX, posY, select_cmode(event->modifiers()));
+                    else
+                        putTile(dirTile, posX, posY, select_cmode(event->modifiers()));
+                    const cc2::Tile& originTile = map.tile(m_origin.x(), m_origin.y()).bottom();
+                    if (originTile.type() != cc2::Tile::Ice)
+                        putTile(dirTile, m_origin.x(), m_origin.y(), select_cmode(event->modifiers()));
+                } else if (curTile.type() == cc2::Tile::Ice && m_lastDir != cc2::Tile::InvalidDir) {
+                    // Add curves to ice
+                    putTile(dirTile, posX, posY, select_cmode(event->modifiers()));
+                    if ((m_lastDir == cc2::Tile::North && dir == cc2::Tile::East)
+                            || (m_lastDir == cc2::Tile::West && dir == cc2::Tile::South))
+                        dirTile.setType(cc2::Tile::Ice_SE);
+                    else if ((m_lastDir == cc2::Tile::North && dir == cc2::Tile::West)
+                            || (m_lastDir == cc2::Tile::East && dir == cc2::Tile::South))
+                        dirTile.setType(cc2::Tile::Ice_SW);
+                    else if ((m_lastDir == cc2::Tile::South && dir == cc2::Tile::East)
+                            || (m_lastDir == cc2::Tile::West && dir == cc2::Tile::North))
+                        dirTile.setType(cc2::Tile::Ice_NE);
+                    else if ((m_lastDir == cc2::Tile::South && dir == cc2::Tile::West)
+                            || (m_lastDir == cc2::Tile::East && dir == cc2::Tile::North))
+                        dirTile.setType(cc2::Tile::Ice_NW);
+                    else
+                        dirTile.setType(cc2::Tile::Ice);
+                    putTile(dirTile, m_origin.x(), m_origin.y(), select_cmode(event->modifiers()));
+                } else if (curTile.type() == cc2::Tile::TrainTracks
+                           && (curTile.modifier() & cc2::TileModifier::TrackDir_MASK) != 0
+                           /*&& m_lastDir != cc2::Tile::InvalidDir*/) {
+                    // Curve train tracks, and cross them if necessary
+                    putTile(dirTile, posX, posY, select_cmode(event->modifiers()));
+                    const cc2::Tile& originTile = map.tile(m_origin.x(), m_origin.y()).bottom();
+                    if (originTile.type() == cc2::Tile::TrainTracks
+                            && (originTile.modifier() & cc2::TileModifier::TrackDir_MASK) != 0) {
+                        m_map->mapData().tile(m_origin.x(), m_origin.y()) = m_lastPathTile;
+                        if ((m_lastDir == cc2::Tile::North && dir == cc2::Tile::East)
+                                || (m_lastDir == cc2::Tile::West && dir == cc2::Tile::South))
+                            dirTile.setModifier(cc2::TileModifier::Track_SE);
+                        else if ((m_lastDir == cc2::Tile::North && dir == cc2::Tile::West)
+                                || (m_lastDir == cc2::Tile::East && dir == cc2::Tile::South))
+                            dirTile.setModifier(cc2::TileModifier::Track_SW);
+                        else if ((m_lastDir == cc2::Tile::South && dir == cc2::Tile::East)
+                                || (m_lastDir == cc2::Tile::West && dir == cc2::Tile::North))
+                            dirTile.setModifier(cc2::TileModifier::Track_NE);
+                        else if ((m_lastDir == cc2::Tile::South && dir == cc2::Tile::West)
+                                || (m_lastDir == cc2::Tile::East && dir == cc2::Tile::North))
+                            dirTile.setModifier(cc2::TileModifier::Track_NW);
+                        putTile(dirTile, m_origin.x(), m_origin.y(), select_cmode(event->modifiers()));
+                    }
+                } else {
+                    // Any other directional tile
+                    putTile(dirTile, posX, posY, select_cmode(event->modifiers()));
+                    putTile(dirTile, m_origin.x(), m_origin.y(), select_cmode(event->modifiers()));
+                }
+                m_origin = m_current;
+                m_lastDir = dir;
+            } else {
+                putTile(curTile, posX, posY, select_cmode(event->modifiers()));
+                m_origin = m_current;
+                m_lastDir = cc2::Tile::InvalidDir;
+            }
+            m_lastPathTile = oldTile;
         } else if (m_drawMode == DrawSelect && m_origin != QPoint(-1, -1)) {
             int lowX = std::min(m_origin.x(), m_current.x());
             int lowY = std::min(m_origin.y(), m_current.y());
@@ -653,6 +763,7 @@ void CC2EditorWidget::mouseReleaseEvent(QMouseEvent* event)
 
     update();
     m_cachedButton = Qt::NoButton;
+    m_lastDir = cc2::Tile::InvalidDir;
 }
 
 static uint32_t trackToActive(uint32_t trackModifier)

@@ -179,7 +179,7 @@ static ConnType test_connect(ccl::LevelData* level, QPoint from, QPoint to)
     return ConnNone;
 }
 
-static ccl::Direction calc_dir(QPoint from, QPoint to)
+static ccl::Direction calc_dir(const QPoint& from, const QPoint& to)
 {
     int dX = to.x() - from.x();
     int dY = to.y() - from.y();
@@ -795,6 +795,7 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
 
     update();
     m_cachedButton = Qt::NoButton;
+    m_lastDir = ccl::DirInvalid;
 }
 
 void EditorWidget::setDrawMode(DrawMode mode)
