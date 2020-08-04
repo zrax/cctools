@@ -455,6 +455,14 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
     if (!m_tileset || !m_levelData || !rect().contains(event->pos()))
         return;
 
+    if (m_cachedButton != Qt::NoButton && (event->buttons() & m_cachedButton) == 0) {
+        // We missed a mouseReleaseEvent (probably from a focus loss)
+        QMouseEvent releaseEvent(QEvent::MouseButtonRelease, event->localPos(),
+                                 event->windowPos(), event->screenPos(),
+                                 m_cachedButton, event->buttons(), event->modifiers());
+        mouseReleaseEvent(&releaseEvent);
+    }
+
     int posX = event->x() / (m_tileset->size() * m_zoomFactor);
     int posY = event->y() / (m_tileset->size() * m_zoomFactor);
     if (m_current == QPoint(posX, posY) && !m_cacheDirty)
