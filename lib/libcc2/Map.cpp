@@ -1056,7 +1056,8 @@ void cc2::Map::read(ccl::Stream* stream)
         } else {
             fprintf(stderr, "Warning: Unrecognized field '%c%c%c%c' in map file.\n",
                     tag[0], tag[1], tag[2], tag[3]);
-            CC2FieldStorage unknown;
+            m_unknown.emplace_back();
+            CC2FieldStorage& unknown = m_unknown.back();
             memcpy(unknown.tag, tag, sizeof(unknown.tag));
             unknown.data.resize(size);
             stream->read(&unknown.data[0], 1, size);

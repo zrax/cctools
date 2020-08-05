@@ -205,7 +205,7 @@ ccl::Stream* ccl::Stream::unpack(long packedLength)
     uint16_t unpackedSize = read16();
     packedLength -= sizeof(unpackedSize);
 
-    while (packedLength != 0) {
+    while (packedLength > 0) {
         uint8_t control = read8();
         packedLength -= 1;
         if (control >= 0x80) {
