@@ -19,6 +19,7 @@
 #define _CCL_STREAM_H
 
 #include <string>
+#include <memory>
 #include <cstdio>
 #include "Errors.h"
 
@@ -71,7 +72,7 @@ public:
 
     size_t copyBytes(Stream* out, size_t count);
 
-    Stream* unpack(long packedLength);
+    std::unique_ptr<Stream> unpack(long packedLength);
     long pack(Stream* unpacked);
 };
 

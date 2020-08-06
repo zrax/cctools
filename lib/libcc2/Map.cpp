@@ -1033,7 +1033,7 @@ void cc2::Map::read(ccl::Stream* stream)
         } else if (memcmp(tag, "MAP ", 4) == 0) {
             m_mapData.read(stream, size);
         } else if (memcmp(tag, "PACK", 4) == 0) {
-            std::unique_ptr<ccl::Stream> ustream(stream->unpack(size));
+            std::unique_ptr<ccl::Stream> ustream = stream->unpack(size);
             m_mapData.read(ustream.get(), ustream->size());
         } else if (memcmp(tag, "KEY ", 4) == 0) {
             if (size != sizeof(m_key))
@@ -1044,7 +1044,7 @@ void cc2::Map::read(ccl::Stream* stream)
             m_replay.resize(size);
             stream->read(&m_replay[0], 1, size);
         } else if (memcmp(tag, "PRPL", 4) == 0) {
-            std::unique_ptr<ccl::Stream> ustream(stream->unpack(size));
+            std::unique_ptr<ccl::Stream> ustream = stream->unpack(size);
             m_replay.resize(ustream->size());
             ustream->read(&m_replay[0], 1, ustream->size());
         } else if (memcmp(tag, "RDNY", 4) == 0) {
@@ -1134,8 +1134,9 @@ void cc2::Map::write(ccl::Stream* stream) const
     // 3 bytes of the OPTN field
     writeTagged(stream, "OPTN", [&] { m_option.write(stream); });
 
-    // TODO: Pack MAP data
-    writeTagged(stream, "MAP ", [&] { m_mapData.write(stream); });
+    ccl::BufferStream unpackedMap;
+    m_mapData.write(&unpackedMap);
+    writeTagged(stream, "PACK", [&] { stream->pack(&unpackedMap); });
     writeTaggedBlock<sizeof(m_key)>(stream, "KEY ", m_key);
 
     // Ensure any unrecognized fields are preserved upon write
@@ -1145,11 +1146,10 @@ void cc2::Map::write(ccl::Stream* stream) const
         });
     }
 
-    // TODO: Pack REPL data
     if (!m_replay.empty()) {
-        writeTagged(stream, "REPL", [&] {
-            stream->write(&m_replay[0], 1, m_replay.size());
-        });
+        ccl::BufferStream unpackedReplay;
+        unpackedReplay.write(&m_replay[0], 1, m_replay.size());
+        writeTagged(stream, "PRPL", [&] { stream->pack(&unpackedReplay); });
     }
 
     if (m_readOnly)

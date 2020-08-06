@@ -18,7 +18,8 @@
 #include "Stream.h"
 
 #include <cstring>
-#include <memory>
+#include <vector>
+#include <algorithm>
 #include <stdexcept>
 
 uint8_t ccl::Stream::read8()
@@ -172,7 +173,6 @@ long ccl::Stream::writeRLE(const tile_t* src, size_t size)
 
 void ccl::Stream::writeString(const std::string& value, bool password)
 {
-    size_t length = value.size();
     if (password) {
         for (char ch : value)
             write8((uint8_t)(ch ^ 0x99));
@@ -199,7 +199,7 @@ size_t ccl::Stream::copyBytes(ccl::Stream* out, size_t size)
     return out->write(bytes.get(), 1, nread);
 }
 
-ccl::Stream* ccl::Stream::unpack(long packedLength)
+std::unique_ptr<ccl::Stream> ccl::Stream::unpack(long packedLength)
 {
     std::unique_ptr<ccl::BufferStream> ustream(new ccl::BufferStream);
     uint16_t unpackedSize = read16();
@@ -230,16 +230,80 @@ ccl::Stream* ccl::Stream::unpack(long packedLength)
         }
     }
 
-    if (unpackedSize != ustream->size())
+    if (unpackedSize != (ustream->size() & 0xffff))
         throw ccl::IOException("Packed data did not match expected length");
 
     ustream->seek(0, SEEK_SET);
-    return ustream.release();
+    return ustream;
+}
+
+static long match_length(const uint8_t* m1, const uint8_t *m2, long max)
+{
+    long length = 0;
+    while (length < max && m1[length] == m2[length])
+        ++length;
+    return length;
 }
 
 long ccl::Stream::pack(Stream* unpacked)
 {
-    throw std::runtime_error("Not yet implemented");
+    unpacked->seek(0, SEEK_SET);
+
+    std::vector<uint8_t> bytes;
+    const size_t unpackedSize = unpacked->size();
+    bytes.resize(unpackedSize);
+    if (unpacked->read(&bytes[0], 1, unpackedSize) != unpackedSize)
+        throw std::runtime_error("Failed reading unpacked data");
+
+    // Write the unpacked size checksum
+    write16(static_cast<uint16_t>(unpackedSize & 0xffff));
+
+    // LZSS-like compression
+    long pos = 0;
+    long packedSize = sizeof(uint16_t);
+    std::vector<uint8_t> accum;
+
+    auto flush_accum = [&] {
+        while (!accum.empty()) {
+            size_t take_bytes = std::min(accum.size(), size_t(0x7f));
+            write8(static_cast<uint8_t>(take_bytes));
+            write(&accum[0], 1, take_bytes);
+            accum.erase(accum.begin(), accum.begin() + take_bytes);
+            packedSize += 1 + take_bytes;
+        }
+    };
+
+    while (static_cast<size_t>(pos) < bytes.size()) {
+        long longest_match_len = 0;
+        long longest_match_seek = 0;
+        long mSeek = std::max(0L, pos - 0xffL);
+        while (mSeek < pos) {
+            long mLen = std::min(match_length(&bytes[pos], &bytes[mSeek], bytes.size() - pos),
+                                 0x7fL);
+            if (mLen > longest_match_len) {
+                longest_match_len = mLen;
+                longest_match_seek = pos - mSeek;
+            }
+            ++mSeek;
+        }
+        if (longest_match_len > 3) {
+            flush_accum();
+
+            // Encode this as a back-reference
+            write8(static_cast<uint8_t>(0x80 + longest_match_len));
+            write8(static_cast<uint8_t>(longest_match_seek));
+            packedSize += 2;
+            pos += longest_match_len;
+        } else {
+            accum.push_back(bytes[pos]);
+            pos += 1;
+        }
+    }
+
+    // Flush any leftover unencoded bytes
+    flush_accum();
+
+    return packedSize;
 }
 
 
