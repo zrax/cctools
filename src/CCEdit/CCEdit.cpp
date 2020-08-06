@@ -77,8 +77,7 @@ static bool canRunMSCC()
 }
 #endif
 
-#define CCEDIT_TITLE "CCEdit 2.1"
-
+static const QString s_appTitle = QStringLiteral("CCEdit " CCTOOLS_VERSION);
 static const QString s_clipboardFormat = QStringLiteral("CHIPEDIT MAPSECT");
 
 enum TileListId {
@@ -93,7 +92,7 @@ CCEditMain::CCEditMain(QWidget* parent)
       m_savedDrawMode(ActionDrawPencil), m_currentDrawMode(EditorWidget::DrawPencil),
       m_levelset(), m_dirtyFlag(), m_useDac(), m_subProc()
 {
-    setWindowTitle(CCEDIT_TITLE);
+    setWindowTitle(s_appTitle);
 
     // Actions
     m_actions[ActionNew] = new QAction(QIcon(":/res/document-new.png"), tr("&New Levelset..."), this);
@@ -940,9 +939,9 @@ void CCEditMain::setLevelsetFilename(const QString& filename)
     QString displayName = filename.isEmpty() ? tr("Untitled")
                         : QFileInfo(filename).fileName();
     if (m_dirtyFlag)
-        setWindowTitle(QStringLiteral(CCEDIT_TITLE " - ") + displayName + QStringLiteral(" *"));
+        setWindowTitle(s_appTitle + QStringLiteral(" - ") + displayName + QStringLiteral(" *"));
     else
-        setWindowTitle(QStringLiteral(CCEDIT_TITLE " - ") + displayName);
+        setWindowTitle(s_appTitle + QStringLiteral(" - ") + displayName);
 }
 
 void CCEditMain::saveLevelset(const QString& filename)
@@ -1106,7 +1105,7 @@ bool CCEditMain::closeLevelset()
     delete m_levelset;
     m_levelset = nullptr;
     m_dirtyFlag = 0;
-    setWindowTitle(CCEDIT_TITLE);
+    setWindowTitle(s_appTitle);
 
     m_actions[ActionSave]->setEnabled(false);
     m_actions[ActionSaveAs]->setEnabled(false);

@@ -51,8 +51,6 @@
 #include <QInputDialog>
 #include <QFileDialog>
 
-#define CC2EDIT_TITLE "CC2Edit 2.1"
-
 Q_DECLARE_METATYPE(CC2ETileset*)
 
 enum TileListId {
@@ -76,7 +74,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     : QMainWindow(parent), m_currentTileset(),  m_savedDrawMode(ActionDrawPencil),
       m_currentDrawMode(CC2EditorWidget::DrawPencil), m_subProc()
 {
-    setWindowTitle(CC2EDIT_TITLE);
+    setWindowTitle(QStringLiteral("CC2Edit " CCTOOLS_VERSION));
 
     // Actions
     m_actions[ActionNewMap] = new QAction(QIcon(":/res/document-new.png"), tr("&New Map..."), this);

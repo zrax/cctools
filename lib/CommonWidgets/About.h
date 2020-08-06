@@ -20,8 +20,8 @@
 
 #include <QDialog>
 
-#define CCTOOLS_VERSION "2.1"
-#define CCTOOLS_APP_VER "2.0.95"
+#define CCTOOLS_VERSION "3.0-beta"
+#define CCTOOLS_APP_VER "2.95"
 
 class AboutWidget : public QWidget {
 public:

@@ -2,26 +2,26 @@
 OutputDir=.
 OutputBaseFilename=CCTools
 AppName=CCTools
-AppVerName=CCTools 2.1.0
+AppVerName=CCTools 3.0
 AppPublisher=Michael Hansen
-AppVersion=2.1.0
+AppVersion=3.0
 AppID={{CB9B9C3F-2810-44FB-8659-A0C5F9E24F1D}
 LicenseFile=..\LICENSE
 ChangesAssociations=true
 DefaultDirName={pf}\CCTools
 AllowNoIcons=true
-DefaultGroupName=CCTools 2.1
+DefaultGroupName=CCTools 3.0
 UninstallDisplayIcon={app}\CCEdit.exe
-UninstallDisplayName=CCTools 2.1
+UninstallDisplayName=CCTools 3.0
 Compression=lzma/ultra
 InternalCompressLevel=ultra
 SolidCompression=true
 VersionInfoDescription=CCTools Setup
-VersionInfoVersion=2.1.0
+VersionInfoVersion=3.0
 VersionInfoCompany=Michael Hansen
 VersionInfoCopyright=Copyright (C) 2020 Michael Hansen
-VersionInfoProductName=CCTools 2.1
-VersionInfoProductVersion=2.1.0
+VersionInfoProductName=CCTools 3.0
+VersionInfoProductVersion=3.0
 
 [Types]
 Name: Full; Description: Full Install

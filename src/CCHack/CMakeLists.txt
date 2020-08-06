@@ -47,10 +47,10 @@ target_link_libraries(CCHack PRIVATE
 if(APPLE)
     set(MACOSX_BUNDLE true)
     set(MACOSX_BUNDLE_NAME CCHack)
-    set(MACOSX_BUNDLE_INFO_STRING "CCHack 2.1")
-    set(MACOSX_BUNDLE_LONG_VERSION_STRING "2.0.95")
-    set(MACOSX_BUNDLE_SHORT_VERSION_STRING "2.0.95")
-    set(MACOSX_BUNDLE_COPYRIGHT "Copyright (C) 2011 Michael Hansen")
+    set(MACOSX_BUNDLE_INFO_STRING "CCHack 3.0")
+    set(MACOSX_BUNDLE_LONG_VERSION_STRING "2.95.0")
+    set(MACOSX_BUNDLE_SHORT_VERSION_STRING "2.95.0")
+    set(MACOSX_BUNDLE_COPYRIGHT "Copyright (C) 2020 Michael Hansen")
     set(MACOSX_BUNDLE_ICON_FILE "sock.icns")
 
     install(TARGETS CCHack

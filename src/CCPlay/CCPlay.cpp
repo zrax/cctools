@@ -36,6 +36,7 @@
 #include "libcc1/IniFile.h"
 #include "libcc1/ChipsHax.h"
 #include "libcc1/CCMetaData.h"
+#include "CommonWidgets/About.h"
 #include "CommonWidgets/PathCompleter.h"
 
 // Dammit Qt
@@ -148,7 +149,7 @@ load_levelset(const QString& filename, QWidget* self, int* dacLastLevel = nullpt
 CCPlayMain::CCPlayMain(QWidget* parent)
     : QMainWindow(parent)
 {
-    setWindowTitle("CCPlay 2.1");
+    setWindowTitle(QStringLiteral("CCPlay " CCTOOLS_VERSION));
 
     auto contents = new QWidget(this);
     m_levelsetPath = new QLineEdit(contents);

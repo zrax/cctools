@@ -40,7 +40,7 @@ static void addPageWithType(QTreeWidgetItem* parent, const QString& name, int ty
 CCHackMain::CCHackMain(QWidget* parent)
     : QMainWindow(parent), m_pages()
 {
-    setWindowTitle("CCHack 2.1");
+    setWindowTitle(QStringLiteral("CCHack " CCTOOLS_VERSION));
 
     auto split = new QSplitter(this);
     auto pager = new QTreeWidget(split);
