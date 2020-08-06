@@ -42,7 +42,6 @@ private:
 #endif
     QLineEdit* m_msccPath;
     QLineEdit* m_tworldPath;
-    QLineEdit* m_tworld2Path;
     QComboBox* m_defaultGame;
     QCheckBox* m_useCCPatch;
     QCheckBox* m_cheatIgnorePasswords;
@@ -62,10 +61,11 @@ private:
 
 private slots:
     void onSaveSettings();
+#ifndef Q_OS_WIN
     void onBrowseWine();
+#endif
     void onBrowseChips();
     void onBrowseTWorld();
-    void onBrowseTWorld2();
     void onSelectTool(int);
 
     void onEditTool();

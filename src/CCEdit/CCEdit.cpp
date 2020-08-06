@@ -262,14 +262,6 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionTestTWorldLynx]->setStatusTip(tr("Test the current level in Tile World with the Lynx Ruleset"));
     m_actions[ActionTestTWorldLynx]->setShortcut(Qt::Key_F7);
     m_actions[ActionTestTWorldLynx]->setEnabled(false);
-    m_actions[ActionTestTWorld2CC] = new QAction(tr("Test in Tile World &2 (MSCC)"), this);
-    m_actions[ActionTestTWorld2CC]->setStatusTip(tr("Test the current level in Tile World 2 with the MSCC Ruleset"));
-    m_actions[ActionTestTWorld2CC]->setShortcut(Qt::Key_F8);
-    m_actions[ActionTestTWorld2CC]->setEnabled(false);
-    m_actions[ActionTestTWorld2Lynx] = new QAction(tr("Test in Tile World 2 (L&ynx)"), this);
-    m_actions[ActionTestTWorld2Lynx]->setStatusTip(tr("Test the current level in Tile World 2 with the Lynx Ruleset"));
-    m_actions[ActionTestTWorld2Lynx]->setShortcut(Qt::Key_F9);
-    m_actions[ActionTestTWorld2Lynx]->setEnabled(false);
     m_actions[ActionTestSetup] = new QAction(tr("&Setup Testing..."), this);
     m_actions[ActionTestSetup]->setStatusTip(tr("Setup testing parameters and options"));
 
@@ -603,8 +595,6 @@ CCEditMain::CCEditMain(QWidget* parent)
         testMenu->addAction(m_actions[ActionTestChips]);
     testMenu->addAction(m_actions[ActionTestTWorldCC]);
     testMenu->addAction(m_actions[ActionTestTWorldLynx]);
-    testMenu->addAction(m_actions[ActionTestTWorld2CC]);
-    testMenu->addAction(m_actions[ActionTestTWorld2Lynx]);
     testMenu->addSeparator();
     testMenu->addAction(m_actions[ActionTestSetup]);
 
@@ -683,16 +673,10 @@ CCEditMain::CCEditMain(QWidget* parent)
     if (canRunMSCC())
         connect(m_actions[ActionTestChips], &QAction::triggered, this, &CCEditMain::onTestChips);
     connect(m_actions[ActionTestTWorldCC], &QAction::triggered, this, [this] {
-        onTestTWorld(ccl::Levelset::TypeMS, false);
+        onTestTWorld(ccl::Levelset::TypeMS);
     });
     connect(m_actions[ActionTestTWorldLynx], &QAction::triggered, this, [this] {
-        onTestTWorld(ccl::Levelset::TypeLynx, false);
-    });
-    connect(m_actions[ActionTestTWorld2CC], &QAction::triggered, this, [this] {
-        onTestTWorld(ccl::Levelset::TypeMS, true);
-    });
-    connect(m_actions[ActionTestTWorld2Lynx], &QAction::triggered, this, [this] {
-        onTestTWorld(ccl::Levelset::TypeLynx, true);
+        onTestTWorld(ccl::Levelset::TypeLynx);
     });
     connect(m_actions[ActionTestSetup], &QAction::triggered, this, [] {
         TestSetupDialog dlg;
@@ -1450,7 +1434,7 @@ void CCEditMain::onSelectToggled(bool mode)
         m_actions[ActionPathMaker]->setChecked(false);
         m_actions[ActionConnect]->setChecked(false);
 
-        for (int i=0; i<m_editorTabs->count(); ++i)
+        for (int i = 0; i < m_editorTabs->count(); ++i)
             getEditorAt(i)->setDrawMode(m_currentDrawMode);
     }
 }
@@ -2006,7 +1990,7 @@ void CCEditMain::onTestChips()
     QDir::setCurrent(cwd);
 }
 
-void CCEditMain::onTestTWorld(unsigned int levelsetType, bool tworld2)
+void CCEditMain::onTestTWorld(unsigned int levelsetType)
 {
     EditorWidget* editor = currentEditor();
     if (!editor)
@@ -2024,11 +2008,12 @@ void CCEditMain::onTestTWorld(unsigned int levelsetType, bool tworld2)
     }
 
     QSettings settings("CCTools", "CCEdit");
-    QString tworldExe = settings.value(tworld2 ? "TWorld2Exe" : "TWorldExe").toString();
+    QString tworldExe = settings.value("TWorldExe").toString();
     if (tworldExe.isEmpty() || !QFile::exists(tworldExe)) {
         // Try standard paths
-        tworldExe = tworld2 ? QStandardPaths::findExecutable("tworld2")
-                            : QStandardPaths::findExecutable("tworld");
+        tworldExe = QStandardPaths::findExecutable("tworld2");
+        if (tworldExe.isEmpty() || !QFile::exists(tworldExe))
+            tworldExe = QStandardPaths::findExecutable("tworld");
         if (tworldExe.isEmpty() || !QFile::exists(tworldExe)) {
             QMessageBox::critical(this, tr("Could not find Tile World"),
                     tr("Could not find Tile World executable.\n"
@@ -2420,8 +2405,6 @@ void CCEditMain::onTabChanged(int tabIdx)
             m_actions[ActionTestChips]->setEnabled(false);
         m_actions[ActionTestTWorldCC]->setEnabled(false);
         m_actions[ActionTestTWorldLynx]->setEnabled(false);
-        m_actions[ActionTestTWorld2CC]->setEnabled(false);
-        m_actions[ActionTestTWorld2Lynx]->setEnabled(false);
         return;
     }
 
@@ -2449,8 +2432,6 @@ void CCEditMain::onTabChanged(int tabIdx)
         m_actions[ActionTestChips]->setEnabled(true);
     m_actions[ActionTestTWorldCC]->setEnabled(true);
     m_actions[ActionTestTWorldLynx]->setEnabled(true);
-    m_actions[ActionTestTWorld2CC]->setEnabled(true);
-    m_actions[ActionTestTWorld2Lynx]->setEnabled(true);
 }
 
 void CCEditMain::onProcessFinished(int, QProcess::ExitStatus)

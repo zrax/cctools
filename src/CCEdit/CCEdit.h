@@ -76,8 +76,7 @@ private:
         ActionViewViewport, ActionViewMonsterPaths, ActionViewErrors,
         ActionZoom100, ActionZoom75, ActionZoom50, ActionZoom25, ActionZoom125,
         ActionZoomCust, ActionZoomFit, ActionTestChips, ActionTestTWorldCC,
-        ActionTestTWorldLynx, ActionTestTWorld2CC, ActionTestTWorld2Lynx,
-        ActionTestSetup, ActionAbout,
+        ActionTestTWorldLynx, ActionTestSetup, ActionAbout,
         ActionAddLevel, ActionDelLevel, ActionMoveUp, ActionMoveDown,
         ActionProperties, ActionOrganize,
         NUM_ACTIONS
@@ -161,7 +160,7 @@ private slots:
     void onZoomFit();
     void onTilesetMenu(QAction*);
     void onTestChips();
-    void onTestTWorld(unsigned int levelsetType, bool tworld2);
+    void onTestTWorld(unsigned int levelsetType);
 
     void beginEdit(CCEditHistory::Type type);
     void endEdit();

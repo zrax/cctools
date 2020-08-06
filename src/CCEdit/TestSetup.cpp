@@ -68,13 +68,6 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     auto browseTWorld = new QToolButton(this);
     browseTWorld->setIcon(QIcon(":/res/document-open-folder-sm.png"));
     browseTWorld->setAutoRaise(true);
-    m_tworld2Path = new QLineEdit(settings.value("TWorld2Exe").toString(), this);
-    m_tworld2Path->setCompleter(exeCompleter);
-    auto lblTWorld2Path = new QLabel(tr("Tile World &2 Path:"), this);
-    lblTWorld2Path->setBuddy(m_tworld2Path);
-    auto browseTWorld2 = new QToolButton(this);
-    browseTWorld2->setIcon(QIcon(":/res/document-open-folder-sm.png"));
-    browseTWorld2->setAutoRaise(true);
     auto buttons = new QDialogButtonBox(
             QDialogButtonBox::Save | QDialogButtonBox::Cancel,
             Qt::Horizontal, this);
@@ -102,9 +95,6 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     layout->addWidget(lblTWorldPath, ++row, 0);
     layout->addWidget(m_tworldPath, row, 1);
     layout->addWidget(browseTWorld, row, 2);
-    layout->addWidget(lblTWorld2Path, ++row, 0);
-    layout->addWidget(m_tworld2Path, row, 1);
-    layout->addWidget(browseTWorld2, row, 2);
 #ifndef Q_OS_WIN
     layout->addWidget(new QLabel(
             tr("Note: Leave WINE or Tile World paths empty to use system-installed locations"),
@@ -126,7 +116,6 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
 #endif
     connect(browseChips, &QToolButton::clicked, this, &TestSetupDialog::onBrowseChips);
     connect(browseTWorld, &QToolButton::clicked, this, &TestSetupDialog::onBrowseTWorld);
-    connect(browseTWorld2, &QToolButton::clicked, this, &TestSetupDialog::onBrowseTWorld2);
 }
 
 void TestSetupDialog::onSaveSettings()
@@ -137,23 +126,20 @@ void TestSetupDialog::onSaveSettings()
 #endif
     settings.setValue("ChipsExe", m_msccPath->text());
     settings.setValue("TWorldExe", m_tworldPath->text());
-    settings.setValue("TWorld2Exe", m_tworld2Path->text());
     settings.setValue("TestCCPatch", m_useCCPatch->isChecked());
     settings.setValue("TestPGPatch", m_usePGPatch->isChecked());
     accept();
 }
 
+#ifndef Q_OS_WIN
 void TestSetupDialog::onBrowseWine()
 {
-#ifndef Q_OS_WIN
     QString path = QFileDialog::getOpenFileName(this, tr("Browse for Wine executable"),
                                 m_winePath->text(), EXE_FILTER);
     if (!path.isEmpty())
         m_winePath->setText(path);
-#else
-    qCritical("onBrowseWine: Not supported on Windows platforms");
-#endif
 }
+#endif
 
 void TestSetupDialog::onBrowseChips()
 {
@@ -169,12 +155,4 @@ void TestSetupDialog::onBrowseTWorld()
                                 m_tworldPath->text(), EXE_FILTER);
     if (!path.isEmpty())
         m_tworldPath->setText(path);
-}
-
-void TestSetupDialog::onBrowseTWorld2()
-{
-    QString path = QFileDialog::getOpenFileName(this, tr("Browse for Tile World 2 executable"),
-                                                m_tworld2Path->text(), EXE_FILTER);
-    if (!path.isEmpty())
-        m_tworld2Path->setText(path);
 }

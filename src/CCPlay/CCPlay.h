@@ -39,7 +39,7 @@ protected:
 
 private:
     enum {
-        ActionPlayMSCC, ActionPlayTWorld, ActionPlayTWorld2,
+        ActionPlayMSCC, ActionPlayTWorld,
         ActionTool, ActionSetup, ActionExit,
         NUM_ACTIONS
     };
@@ -58,7 +58,7 @@ private:
 
 private slots:
     void onPlayMSCC();
-    void onPlayTWorld(bool tworld2);
+    void onPlayTWorld();
     void onToolDefault();
     void onTool(QAction* action);
     void onSetup();

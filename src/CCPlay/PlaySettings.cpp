@@ -119,25 +119,18 @@ SettingsDialog::SettingsDialog(QWidget* parent)
 
     m_msccPath = new QLineEdit(settings.value("ChipsExe").toString(), tabPlay);
     m_msccPath->setCompleter(winExeCompleter);
-    QLabel* lblMsccPath = new QLabel(tr("MS&CC Path:"), tabPlay);
+    auto lblMsccPath = new QLabel(tr("MS&CC Path:"), tabPlay);
     lblMsccPath->setBuddy(m_msccPath);
-    QToolButton* browseChips = new QToolButton(tabPlay);
+    auto browseChips = new QToolButton(tabPlay);
     browseChips->setIcon(QIcon(":/res/document-open-folder.png"));
     browseChips->setAutoRaise(true);
     m_tworldPath = new QLineEdit(settings.value("TWorldExe").toString(), tabPlay);
     m_tworldPath->setCompleter(exeCompleter);
-    QLabel* lblTWorldPath = new QLabel(tr("&Tile World Path:"), tabPlay);
+    auto lblTWorldPath = new QLabel(tr("&Tile World Path:"), tabPlay);
     lblTWorldPath->setBuddy(m_tworldPath);
-    QToolButton* browseTWorld = new QToolButton(tabPlay);
+    auto browseTWorld = new QToolButton(tabPlay);
     browseTWorld->setIcon(QIcon(":/res/document-open-folder.png"));
     browseTWorld->setAutoRaise(true);
-    m_tworld2Path = new QLineEdit(settings.value("TWorld2Exe").toString(), tabPlay);
-    m_tworld2Path->setCompleter(exeCompleter);
-    QLabel* lblTWorld2Path = new QLabel(tr("Tile &World 2 Path:"), tabPlay);
-    lblTWorld2Path->setBuddy(m_tworld2Path);
-    QToolButton* browseTWorld2 = new QToolButton(tabPlay);
-    browseTWorld2->setIcon(QIcon(":/res/document-open-folder.png"));
-    browseTWorld2->setAutoRaise(true);
 
     m_useCCPatch = new QCheckBox(tr("MSCC: Use CCPatch"), tabPlay);
     m_useCCPatch->setChecked(settings.value("UseCCPatch", true).toBool());
@@ -147,14 +140,14 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     m_cheatAlwaysFirstTry->setChecked(settings.value("UseAlwaysFirstTry", false).toBool());
 
     m_defaultGame = new QComboBox(tabPlay);
-    m_defaultGame->addItems(QStringList{ tr("MSCC"), tr("Tile World"), tr("Tile World 2") });
+    m_defaultGame->addItems(QStringList{ tr("MSCC"), tr("Tile World") });
+    const QString defaultGame = settings.value("DefaultGame").toString();
     m_defaultGame->setCurrentIndex(
-                settings.value("DefaultGame").toString() == "TWorld2" ? 2 :
-                settings.value("DefaultGame").toString() == "TWorld"  ? 1 : 0);
-    QLabel* lblDefaultGame = new QLabel(tr("&Default Game:"), tabPlay);
+                (defaultGame == "TWorld2" || defaultGame == "TWorld") ? 1 : 0);
+    auto lblDefaultGame = new QLabel(tr("&Default Game:"), tabPlay);
     lblDefaultGame->setBuddy(m_defaultGame);
 
-    QGridLayout* layPlay = new QGridLayout(tabPlay);
+    auto layPlay = new QGridLayout(tabPlay);
     layPlay->setContentsMargins(8, 8, 8, 8);
     layPlay->setVerticalSpacing(4);
     layPlay->setHorizontalSpacing(4);
@@ -171,9 +164,6 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     layPlay->addWidget(lblTWorldPath, ++row, 0);
     layPlay->addWidget(m_tworldPath, row, 1);
     layPlay->addWidget(browseTWorld, row, 2);
-    layPlay->addWidget(lblTWorld2Path, ++row, 0);
-    layPlay->addWidget(m_tworld2Path, row, 1);
-    layPlay->addWidget(browseTWorld2, row, 2);
     layPlay->addWidget(lblDefaultGame, ++row, 0);
     layPlay->addWidget(m_defaultGame, row, 1);
     layPlay->addWidget(new QLabel(tr("Cheats:"), tabPlay), ++row, 0);
@@ -245,7 +235,6 @@ SettingsDialog::SettingsDialog(QWidget* parent)
 #endif
     connect(browseChips, &QToolButton::clicked, this, &SettingsDialog::onBrowseChips);
     connect(browseTWorld, &QToolButton::clicked, this, &SettingsDialog::onBrowseTWorld);
-    connect(browseTWorld2, &QToolButton::clicked, this, &SettingsDialog::onBrowseTWorld2);
     connect(m_toolsList, &QListWidget::currentRowChanged, this, &SettingsDialog::onSelectTool);
     connect(m_actions[ActionEditTool], &QAction::triggered, this, &SettingsDialog::onEditTool);
     connect(m_actions[ActionAddTool], &QAction::triggered, this, &SettingsDialog::onAddTool);
@@ -269,7 +258,6 @@ void SettingsDialog::onSaveSettings()
 #endif
     settings.setValue("ChipsExe", m_msccPath->text());
     settings.setValue("TWorldExe", m_tworldPath->text());
-    settings.setValue("TWorld2Exe", m_tworld2Path->text());
     settings.setValue("UseCCPatch", m_useCCPatch->isChecked());
     settings.setValue("UseIgnorePasswords", m_cheatIgnorePasswords->isChecked());
     settings.setValue("UseAlwaysFirstTry", m_cheatAlwaysFirstTry->isChecked());
@@ -283,17 +271,15 @@ void SettingsDialog::onSaveSettings()
     accept();
 }
 
+#ifndef Q_OS_WIN
 void SettingsDialog::onBrowseWine()
 {
-#ifndef Q_OS_WIN
     QString path = QFileDialog::getOpenFileName(this, tr("Browse for Wine executable"),
                                 m_winePath->text(), EXE_FILTER);
     if (!path.isEmpty())
         m_winePath->setText(path);
-#else
-    qCritical("onBrowseWine: Not supported on Windows platforms");
-#endif
 }
+#endif
 
 void SettingsDialog::onBrowseChips()
 {
@@ -311,15 +297,6 @@ void SettingsDialog::onBrowseTWorld()
                                 m_tworldPath->text(), EXE_FILTER);
     if (!path.isEmpty())
         m_tworldPath->setText(path);
-}
-
-void SettingsDialog::onBrowseTWorld2()
-{
-    QString path = QFileDialog::getOpenFileName(this,
-                                tr("Browse for Tile World 2 executable"),
-                                m_tworldPath->text(), EXE_FILTER);
-    if (!path.isEmpty())
-        m_tworld2Path->setText(path);
 }
 
 void SettingsDialog::onSelectTool(int toolId)
