@@ -120,9 +120,18 @@ void CCHack::PageGeneral::setValues(HackSettings* settings)
     m_iniEntry->setText(QString::fromLatin1(settings->get_iniEntry().c_str()));
     m_cbDatFile->setChecked(settings->have_datFile());
     m_datFile->setText(QString::fromLatin1(settings->get_datFile().c_str()));
-    m_alwaysFirstTry->setChecked(settings->get_alwaysFirstTry());
-    m_ccPatch->setChecked(settings->get_ccPatch());
-    m_pgChips->setChecked(settings->get_pgChips());
+    if (settings->have_alwaysFirstTry())
+        m_alwaysFirstTry->setChecked(settings->get_alwaysFirstTry());
+    else
+        m_alwaysFirstTry->setCheckState(Qt::PartiallyChecked);
+    if (settings->have_ccPatch())
+        m_ccPatch->setChecked(settings->get_ccPatch());
+    else
+        m_ccPatch->setCheckState(Qt::PartiallyChecked);
+    if (settings->have_pgChips())
+        m_pgChips->setChecked(settings->get_pgChips());
+    else
+        m_pgChips->setCheckState(Qt::PartiallyChecked);
     m_cbFakeLastLevel->setChecked(settings->have_fakeLastLevel());
     m_fakeLastLevel->setValue(settings->get_fakeLastLevel());
     m_cbRealLastLevel->setChecked(settings->have_realLastLevel());
@@ -135,9 +144,6 @@ void CCHack::PageGeneral::setDefaults(HackSettings* settings)
     m_defIniFile->setText(QString::fromLatin1(settings->get_iniFile().c_str()));
     m_defIniEntry->setText(QString::fromLatin1(settings->get_iniEntry().c_str()));
     m_defDatFile->setText(QString::fromLatin1(settings->get_datFile().c_str()));
-    m_alwaysFirstTry->setCheckState(Qt::PartiallyChecked);
-    m_ccPatch->setCheckState(Qt::PartiallyChecked);
-    m_pgChips->setCheckState(Qt::PartiallyChecked);
     m_defFakeLastLevel->setText(QString("%1").arg(settings->get_fakeLastLevel()));
     m_defRealLastLevel->setText(QString("%1").arg(settings->get_realLastLevel()));
 }

@@ -118,6 +118,7 @@ CCHackMain::CCHackMain(QWidget* parent)
 
     connect(pager, &QTreeWidget::currentItemChanged, this, &CCHackMain::onChangePage);
 
+    connect(acSave, &QAction::triggered, this, &CCHackMain::onSavePatchAction);
     connect(acWriteExe, &QAction::triggered, this, &CCHackMain::onWriteExeAction);
     connect(acLoad, &QAction::triggered, this, &CCHackMain::onLoadFromAction);
     connect(acReset, &QAction::triggered, this, &CCHackMain::onResetAction);
@@ -158,9 +159,7 @@ void CCHackMain::loadFile(const QString& filename)
     if (info.suffix().compare(QLatin1String("exe"), Qt::CaseInsensitive) == 0) {
         loadExecutable(filename);
     } else if (info.suffix().compare(QLatin1String("ccp"), Qt::CaseInsensitive) == 0) {
-        // TODO: Load patch file
-        QMessageBox::critical(this, tr("Not yet implemented"),
-                              tr("This feature is not yet implemented :("));
+        loadPatchFile(filename);
     } else {
         QMessageBox::critical(this, tr("Invalid filename"),
                               tr("Unsupported file type for %1").arg(filename));
@@ -169,8 +168,9 @@ void CCHackMain::loadFile(const QString& filename)
 
 void CCHackMain::loadExecutable(const QString& filename)
 {
+    HackSettings settings;
     try {
-        if (!m_settings.loadFromExe(filename)) {
+        if (!settings.loadFromExe(filename)) {
             QMessageBox::critical(this, tr("Error loading EXE"),
                                   tr("Could not open %1 for reading").arg(filename));
             return;
@@ -181,6 +181,27 @@ void CCHackMain::loadExecutable(const QString& filename)
         return;
     }
 
+    m_settings = settings;
+    for (HackPage* page : m_pages)
+        page->setValues(&m_settings);
+}
+
+void CCHackMain::loadPatchFile(const QString& filename)
+{
+    HackSettings settings;
+    try {
+        if (!settings.loadFromPatch(filename)) {
+            QMessageBox::critical(this, tr("Error loading patch"),
+                                  tr("Could not open %1 for reading").arg(filename));
+            return;
+        }
+    } catch (const std::runtime_error& err) {
+        QMessageBox::critical(this, tr("Error loading patch"),
+                              tr("Failed to load %1: %2").arg(filename).arg(err.what()));
+        return;
+    }
+
+    m_settings = settings;
     for (HackPage* page : m_pages)
         page->setValues(&m_settings);
 }
@@ -209,6 +230,34 @@ void CCHackMain::onLoadFromAction()
         loadFile(filename);
 }
 
+void CCHackMain::onSavePatchAction()
+{
+    QString filename = QFileDialog::getSaveFileName(this, tr("Save Patch"),
+                                QString(), tr("CCHack Patch Files (*.ccp)"));
+    if (filename.isEmpty())
+        return;
+
+    HackSettings saveSettings;
+    for (HackPage* page : m_pages)
+        page->saveTo(&saveSettings);
+
+    try {
+        if (!saveSettings.writeToPatch(filename)) {
+            QMessageBox::critical(this, tr("Error saving patch"),
+                                  tr("Could not open %1 for writing").arg(filename));
+            return;
+        }
+    } catch (const std::runtime_error& err) {
+        QMessageBox::critical(this, tr("Error saving patch"),
+                              tr("Failed to write to %1: %2").arg(filename).arg(err.what()));
+        return;
+    }
+
+    m_settings = saveSettings;
+    for (HackPage* page : m_pages)
+        page->markClean();
+}
+
 void CCHackMain::onWriteExeAction()
 {
     QString exeFilename = QFileDialog::getOpenFileName(this, tr("Write to EXE"),
@@ -226,13 +275,13 @@ void CCHackMain::onWriteExeAction()
                                   tr("Could not open %1 for writing").arg(exeFilename));
             return;
         }
-        m_settings = saveSettings;
     } catch (const std::runtime_error& err) {
         QMessageBox::critical(this, tr("Error updating EXE"),
                               tr("Failed to write to %1: %2").arg(exeFilename).arg(err.what()));
         return;
     }
 
+    m_settings = saveSettings;
     for (HackPage* page : m_pages)
         page->markClean();
 }
@@ -243,10 +292,8 @@ void CCHackMain::onResetAction()
                         tr("Are you sure you want to clear all fields and graphics?"));
     if (response == QMessageBox::Yes) {
         m_settings.clearAll();
-        for (HackPage* page : m_pages) {
+        for (HackPage* page : m_pages)
             page->setValues(&m_settings);
-            page->setDefaults(&m_defaults);
-        }
     }
 }
 

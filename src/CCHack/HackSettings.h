@@ -43,6 +43,8 @@
             { m_##name##_value = std::move(value); m_##name##_set = true; } \
         void clear_##name() { m_##name##_value.clear(); m_##name##_set = false; }
 
+#define BITMAPFILEHEADER_SIZE 14
+
 class HackSettings {
 public:
     HackSettings() { clearAll(); }

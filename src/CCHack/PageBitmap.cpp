@@ -25,10 +25,8 @@
 #include <QMessageBox>
 #include <QBuffer>
 
-#define BITMAPFILEHEADER_SIZE 14
-
 CCHack::PageBitmap::PageBitmap(int which, QWidget* parent)
-    : HackPage(parent), m_which(which), m_modified()
+    : HackPage(parent), m_which(which)
 {
     m_stateLabel = new QLabel(this);
 
@@ -134,7 +132,7 @@ void CCHack::PageBitmap::setValues(HackSettings* settings)
 
 void CCHack::PageBitmap::saveTo(HackSettings* settings)
 {
-    if (!m_modified)
+    if (m_image.isNull())
         return;
 
     QBuffer bmpBuffer;
@@ -177,12 +175,16 @@ void CCHack::PageBitmap::saveTo(HackSettings* settings)
 
 void CCHack::PageBitmap::markClean()
 {
-    QBuffer bmpBuffer;
-    bmpBuffer.open(QIODevice::ReadWrite);
-    m_image.save(&bmpBuffer, "BMP");
+    if (m_image.isNull()) {
+        m_bitmap = QByteArray();
+    } else {
+        QBuffer bmpBuffer;
+        bmpBuffer.open(QIODevice::ReadWrite);
+        m_image.save(&bmpBuffer, "BMP");
 
-    bmpBuffer.seek(0);
-    m_bitmap = bmpBuffer.readAll();
+        bmpBuffer.seek(0);
+        m_bitmap = bmpBuffer.readAll();
+    }
 
     // This displays the graphic and updates the UI appropriately
     onRevert();
@@ -262,7 +264,6 @@ void CCHack::PageBitmap::onImport()
 
     m_preview->setPixmap(QPixmap::fromImage(m_image));
     m_preview->resize(m_image.size());
-    m_modified = true;
 }
 
 void CCHack::PageBitmap::onRevert()
@@ -273,11 +274,10 @@ void CCHack::PageBitmap::onRevert()
         m_exportButton->setEnabled(false);
     } else {
         m_image.loadFromData(m_bitmap, "BMP");
-        m_stateLabel->setText(tr("From Executable"));
+        m_stateLabel->setText(tr("Stored Bitmap"));
         m_exportButton->setEnabled(true);
     }
 
     m_preview->setPixmap(QPixmap::fromImage(m_image));
     m_preview->resize(m_image.size());
-    m_modified = false;
 }

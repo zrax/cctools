@@ -33,10 +33,12 @@ public:
 
     void loadFile(const QString& filename);
     void loadExecutable(const QString& filename);
+    void loadPatchFile(const QString& filename);
 
 private slots:
     void onChangePage(QTreeWidgetItem* page, QTreeWidgetItem*);
     void onLoadFromAction();
+    void onSavePatchAction();
     void onWriteExeAction();
     void onResetAction();
 

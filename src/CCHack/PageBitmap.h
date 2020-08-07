@@ -47,7 +47,6 @@ private slots:
 
 private:
     int m_which;
-    bool m_modified;
     QLabel* m_stateLabel;
     QPushButton* m_exportButton;
     QPushButton* m_importButton;

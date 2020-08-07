@@ -20,6 +20,9 @@
 #include "libcc1/Win16Rsrc.h"
 
 #include <QFile>
+#include <QFileInfo>
+#include <QDir>
+#include <QSettings>
 #include <QMessageBox>
 
 void HackSettings::setKnownDefaults()
@@ -175,10 +178,185 @@ bool HackSettings::loadFromExe(const QString& filename)
     return true;
 }
 
+// These match the keys used in CCHack 1.2a whenever possible, for compatibility
+// NOTE: An empty group is implied to be in the "General" category
+static const QString ccp_Title = QStringLiteral("PrgTitle");
+static const QString ccp_IniFile = QStringLiteral("EntPack");
+static const QString ccp_IniEntry = QStringLiteral("EntPackEntry");
+static const QString ccp_DatFile = QStringLiteral("ChipsDAT");
+static const QString ccp_AlwaysFirstTry = QStringLiteral("Code Patches/AlwaysFirstTry");
+static const QString ccp_CCPatch = QStringLiteral("Code Patches/CCPatch");
+static const QString ccp_PGChips = QStringLiteral("Code Patches/PGChips");
+static const QString ccp_FakeLastLevel = QStringLiteral("End Game/FLevNum");
+static const QString ccp_RealLastLevel = QStringLiteral("End Game/LevNum");
+static const QString ccp_ToolSound = QStringLiteral("Default Sounds/Tool");
+static const QString ccp_DoorSound = QStringLiteral("Default Sounds/Door");
+static const QString ccp_DeathSound = QStringLiteral("Default Sounds/Death");
+static const QString ccp_LevelCompleteSound = QStringLiteral("Default Sounds/LevComplete");
+static const QString ccp_SocketSound = QStringLiteral("Default Sounds/Socket");
+static const QString ccp_WallSound = QStringLiteral("Default Sounds/HitWall");
+static const QString ccp_ThiefSound = QStringLiteral("Default Sounds/Thief");
+static const QString ccp_SoundOnSound = QStringLiteral("Default Sounds/Sound");
+static const QString ccp_ChipSound = QStringLiteral("Default Sounds/Chip");
+static const QString ccp_ButtonSound = QStringLiteral("Default Sounds/Button");
+static const QString ccp_WaterSound = QStringLiteral("Default Sounds/Water");
+static const QString ccp_BombSound = QStringLiteral("Default Sounds/Bomb");
+static const QString ccp_TeleportSound = QStringLiteral("Default Sounds/Teleporter");
+static const QString ccp_TimerTickSound = QStringLiteral("Default Sounds/Timer");
+static const QString ccp_TimesUpSound = QStringLiteral("Default Sounds/Bell");
+static const QString ccp_Midi_1 = QStringLiteral("Default Sounds/Midi1");
+static const QString ccp_Midi_2 = QStringLiteral("Default Sounds/Midi2");
+static const QString ccp_Midi_3 = QStringLiteral("Default Sounds/Midi3");
+static const QString ccp_VgaTileset = QStringLiteral("Graphics/OBJ32_4");
+static const QString ccp_EgaTileset = QStringLiteral("Graphics/OBJ32_4E");
+static const QString ccp_MonoTileset = QStringLiteral("Graphics/OBJ32_1");
+static const QString ccp_Background = QStringLiteral("Graphics/BACKGROUND");
+static const QString ccp_Digits = QStringLiteral("Graphics/RC200");
+static const QString ccp_InfoBox = QStringLiteral("Graphics/INFOWND");
+static const QString ccp_ChipEnd = QStringLiteral("Graphics/CHIPEND");
+
+static bool validString(const QSettings& settings, const QString& key)
+{
+    if (!settings.contains(key))
+        return false;
+    return !settings.value(key).toString().isEmpty();
+}
+
+static bool validInt(const QSettings& settings, const QString& key)
+{
+    if (!settings.contains(key))
+        return false;
+    bool ok;
+    (void)settings.value(key).toInt(&ok);
+    return ok;
+}
+
+static bool validBitmap(const QSettings& settings, const QString& key)
+{
+    if (!settings.contains(key))
+        return false;
+    return settings.value(key).type() == QVariant::ByteArray;
+}
+
+static bool validFilename(const QSettings& settings, const QString& key, const QDir& baseDir)
+{
+    if (!settings.contains(key))
+        return false;
+    const QString filename = settings.value(key).toString();
+    if (filename.isEmpty())
+        return false;
+    return baseDir.exists(filename);
+}
+
+static QByteArray loadRCBitmap(const QString& filename, const QDir& baseDir)
+{
+    const QString filePath = baseDir.filePath(filename);
+    QFile bmp(filePath);
+    if (!bmp.open(QIODevice::ReadOnly))
+        throw std::runtime_error("Could not open bitmap file for reading");
+
+    // Skip over the BITMAPFILEHEADER, since that is not stored in the EXE resource
+    bmp.seek(BITMAPFILEHEADER_SIZE);
+    return bmp.readAll();
+}
+
 bool HackSettings::loadFromPatch(const QString& filename)
 {
-    //TODO
-    return false;
+    if (!QFile::exists(filename))
+        return false;
+
+    QSettings patch(filename, QSettings::IniFormat);
+
+    // General Settings
+    if (validString(patch, ccp_Title))
+        set_title(patch.value(ccp_Title).toString().toLatin1().constData());
+    if (validString(patch, ccp_IniFile))
+        set_iniFile(patch.value(ccp_IniFile).toString().toLatin1().constData());
+    if (validString(patch, ccp_IniEntry))
+        set_iniEntry(patch.value(ccp_IniEntry).toString().toLatin1().constData());
+    if (validString(patch, ccp_DatFile))
+        set_datFile(patch.value(ccp_DatFile).toString().toLatin1().constData());
+    if (patch.contains(ccp_AlwaysFirstTry))
+        set_alwaysFirstTry(patch.value(ccp_AlwaysFirstTry).toBool());
+    if (patch.contains(ccp_CCPatch))
+        set_ccPatch(patch.value(ccp_CCPatch).toBool());
+    if (patch.contains(ccp_PGChips))
+        set_pgChips(patch.value(ccp_PGChips).toBool());
+    if (validInt(patch, ccp_FakeLastLevel))
+        set_fakeLastLevel(patch.value(ccp_FakeLastLevel).toInt());
+    if (validInt(patch, ccp_RealLastLevel))
+        set_realLastLevel(patch.value(ccp_RealLastLevel).toInt());
+
+    // Sounds and MIDI
+    if (validString(patch, ccp_ToolSound))
+        set_toolSound(patch.value(ccp_ToolSound).toString().toLatin1().constData());
+    if (validString(patch, ccp_DoorSound))
+        set_doorSound(patch.value(ccp_DoorSound).toString().toLatin1().constData());
+    if (validString(patch, ccp_DeathSound))
+        set_deathSound(patch.value(ccp_DeathSound).toString().toLatin1().constData());
+    if (validString(patch, ccp_LevelCompleteSound))
+        set_levelCompleteSound(patch.value(ccp_LevelCompleteSound).toString().toLatin1().constData());
+    if (validString(patch, ccp_SocketSound))
+        set_socketSound(patch.value(ccp_SocketSound).toString().toLatin1().constData());
+    if (validString(patch, ccp_WallSound))
+        set_wallSound(patch.value(ccp_WallSound).toString().toLatin1().constData());
+    if (validString(patch, ccp_ThiefSound))
+        set_thiefSound(patch.value(ccp_ThiefSound).toString().toLatin1().constData());
+    if (validString(patch, ccp_SoundOnSound))
+        set_soundOnSound(patch.value(ccp_SoundOnSound).toString().toLatin1().constData());
+    if (validString(patch, ccp_ChipSound))
+        set_chipSound(patch.value(ccp_ChipSound).toString().toLatin1().constData());
+    if (validString(patch, ccp_ButtonSound))
+        set_buttonSound(patch.value(ccp_ButtonSound).toString().toLatin1().constData());
+    if (validString(patch, ccp_WaterSound))
+        set_waterSound(patch.value(ccp_WaterSound).toString().toLatin1().constData());
+    if (validString(patch, ccp_BombSound))
+        set_bombSound(patch.value(ccp_BombSound).toString().toLatin1().constData());
+    if (validString(patch, ccp_TeleportSound))
+        set_teleportSound(patch.value(ccp_TeleportSound).toString().toLatin1().constData());
+    if (validString(patch, ccp_TimerTickSound))
+        set_timerTickSound(patch.value(ccp_TimerTickSound).toString().toLatin1().constData());
+    if (validString(patch, ccp_TimesUpSound))
+        set_timesUpSound(patch.value(ccp_TimesUpSound).toString().toLatin1().constData());
+    if (validString(patch, ccp_Midi_1))
+        set_midi_1(patch.value(ccp_Midi_1).toString().toLatin1().constData());
+    if (validString(patch, ccp_Midi_2))
+        set_midi_2(patch.value(ccp_Midi_2).toString().toLatin1().constData());
+    if (validString(patch, ccp_Midi_3))
+        set_midi_3(patch.value(ccp_Midi_3).toString().toLatin1().constData());
+
+    // Graphics
+    const QDir baseDir = QFileInfo(filename).dir();
+    if (validBitmap(patch, ccp_VgaTileset))
+        set_vgaTileset(patch.value(ccp_VgaTileset).toByteArray());
+    else if (validFilename(patch, ccp_VgaTileset, baseDir))
+        set_vgaTileset(loadRCBitmap(patch.value(ccp_VgaTileset).toString(), baseDir));
+    if (validBitmap(patch, ccp_EgaTileset))
+        set_egaTileset(patch.value(ccp_EgaTileset).toByteArray());
+    else if (validFilename(patch, ccp_EgaTileset, baseDir))
+        set_egaTileset(loadRCBitmap(patch.value(ccp_EgaTileset).toString(), baseDir));
+    if (validBitmap(patch, ccp_MonoTileset))
+        set_monoTileset(patch.value(ccp_MonoTileset).toByteArray());
+    else if (validFilename(patch, ccp_MonoTileset, baseDir))
+        set_monoTileset(loadRCBitmap(patch.value(ccp_MonoTileset).toString(), baseDir));
+    if (validBitmap(patch, ccp_Background))
+        set_background(patch.value(ccp_Background).toByteArray());
+    else if (validFilename(patch, ccp_Background, baseDir))
+        set_background(loadRCBitmap(patch.value(ccp_Background).toString(), baseDir));
+    if (validBitmap(patch, ccp_Digits))
+        set_digits(patch.value(ccp_Digits).toByteArray());
+    else if (validFilename(patch, ccp_Digits, baseDir))
+        set_digits(loadRCBitmap(patch.value(ccp_Digits).toString(), baseDir));
+    if (validBitmap(patch, ccp_InfoBox))
+        set_infoBox(patch.value(ccp_InfoBox).toByteArray());
+    else if (validFilename(patch, ccp_InfoBox, baseDir))
+        set_infoBox(loadRCBitmap(patch.value(ccp_InfoBox).toString(), baseDir));
+    if (validBitmap(patch, ccp_ChipEnd))
+        set_chipEnd(patch.value(ccp_ChipEnd).toByteArray());
+    else if (validFilename(patch, ccp_ChipEnd, baseDir))
+        set_chipEnd(loadRCBitmap(patch.value(ccp_ChipEnd).toString(), baseDir));
+
+    return true;
 }
 
 static Win16::RcBlob toBlob(const QByteArray& ba)
@@ -313,6 +491,86 @@ bool HackSettings::writeToExe(const QString& filename) const
 
 bool HackSettings::writeToPatch(const QString& filename) const
 {
-    //TODO
-    return false;
+    QSettings patch(filename, QSettings::IniFormat);
+    if (!patch.isWritable())
+        return false;
+
+    // Don't leave previous settings in the file
+    patch.clear();
+
+    // General Settings
+    if (have_title())
+        patch.setValue(ccp_Title, QString::fromLatin1(get_title().c_str()));
+    if (have_iniFile())
+        patch.setValue(ccp_IniFile, QString::fromLatin1(get_iniFile().c_str()));
+    if (have_iniEntry())
+        patch.setValue(ccp_IniEntry, QString::fromLatin1(get_iniEntry().c_str()));
+    if (have_datFile())
+        patch.setValue(ccp_DatFile, QString::fromLatin1(get_datFile().c_str()));
+    if (have_alwaysFirstTry())
+        patch.setValue(ccp_AlwaysFirstTry, get_alwaysFirstTry());
+    if (have_ccPatch())
+        patch.setValue(ccp_CCPatch, get_ccPatch());
+    if (have_pgChips())
+        patch.setValue(ccp_PGChips, get_pgChips());
+    if (have_fakeLastLevel())
+        patch.setValue(ccp_FakeLastLevel, get_fakeLastLevel());
+    if (have_realLastLevel())
+        patch.setValue(ccp_RealLastLevel, get_realLastLevel());
+
+    // Sounds and MIDI
+    if (have_toolSound())
+        patch.setValue(ccp_ToolSound, QString::fromLatin1(get_toolSound().c_str()));
+    if (have_doorSound())
+        patch.setValue(ccp_DoorSound, QString::fromLatin1(get_doorSound().c_str()));
+    if (have_deathSound())
+        patch.setValue(ccp_DeathSound, QString::fromLatin1(get_deathSound().c_str()));
+    if (have_levelCompleteSound())
+        patch.setValue(ccp_LevelCompleteSound, QString::fromLatin1(get_levelCompleteSound().c_str()));
+    if (have_socketSound())
+        patch.setValue(ccp_SocketSound, QString::fromLatin1(get_socketSound().c_str()));
+    if (have_wallSound())
+        patch.setValue(ccp_WallSound, QString::fromLatin1(get_wallSound().c_str()));
+    if (have_thiefSound())
+        patch.setValue(ccp_ThiefSound, QString::fromLatin1(get_thiefSound().c_str()));
+    if (have_soundOnSound())
+        patch.setValue(ccp_SoundOnSound, QString::fromLatin1(get_soundOnSound().c_str()));
+    if (have_chipSound())
+        patch.setValue(ccp_ChipSound, QString::fromLatin1(get_chipSound().c_str()));
+    if (have_buttonSound())
+        patch.setValue(ccp_ButtonSound, QString::fromLatin1(get_buttonSound().c_str()));
+    if (have_waterSound())
+        patch.setValue(ccp_WaterSound, QString::fromLatin1(get_waterSound().c_str()));
+    if (have_bombSound())
+        patch.setValue(ccp_BombSound, QString::fromLatin1(get_bombSound().c_str()));
+    if (have_teleportSound())
+        patch.setValue(ccp_TeleportSound, QString::fromLatin1(get_teleportSound().c_str()));
+    if (have_timerTickSound())
+        patch.setValue(ccp_TimerTickSound, QString::fromLatin1(get_timerTickSound().c_str()));
+    if (have_timesUpSound())
+        patch.setValue(ccp_TimesUpSound, QString::fromLatin1(get_timesUpSound().c_str()));
+    if (have_midi_1())
+        patch.setValue(ccp_Midi_1, QString::fromLatin1(get_midi_1().c_str()));
+    if (have_midi_2())
+        patch.setValue(ccp_Midi_2, QString::fromLatin1(get_midi_2().c_str()));
+    if (have_midi_3())
+        patch.setValue(ccp_Midi_3, QString::fromLatin1(get_midi_3().c_str()));
+
+    // Graphics -- we store them directly in the .ccp file for CCHack 3.0
+    if (have_vgaTileset())
+        patch.setValue(ccp_VgaTileset, get_vgaTileset());
+    if (have_egaTileset())
+        patch.setValue(ccp_EgaTileset, get_egaTileset());
+    if (have_monoTileset())
+        patch.setValue(ccp_MonoTileset, get_monoTileset());
+    if (have_background())
+        patch.setValue(ccp_Background, get_background());
+    if (have_digits())
+        patch.setValue(ccp_Digits, get_digits());
+    if (have_infoBox())
+        patch.setValue(ccp_InfoBox, get_infoBox());
+    if (have_chipEnd())
+        patch.setValue(ccp_ChipEnd, get_chipEnd());
+
+    return true;
 }
