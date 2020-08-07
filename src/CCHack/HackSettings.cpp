@@ -34,6 +34,25 @@ void HackSettings::setKnownDefaults()
     set_fakeLastLevel(144);
     set_realLastLevel(149);
 
+    set_toolSound("blip2.wav");
+    set_doorSound("door.wav");
+    set_deathSound("bummer.wav");
+    set_levelCompleteSound("ditty1.wav");
+    set_socketSound("chimes.wav");
+    set_wallSound("oof3.wav");
+    set_thiefSound("strike.wav");
+    set_soundOnSound("chimes.wav");
+    set_chipSound("click3.wav");
+    set_buttonSound("pop2.wav");
+    set_waterSound("water2.wav");
+    set_bombSound("hit3.wav");
+    set_teleportSound("teleport.wav");
+    set_timerTickSound("click1.wav");
+    set_timesUpSound("bell.wav");
+    set_midi_1("chip01.mid");
+    set_midi_2("chip02.mid");
+    set_midi_3("canyon.mid");
+
     clear_vgaTileset();
     clear_egaTileset();
     clear_monoTileset();
@@ -54,6 +73,25 @@ void HackSettings::clearAll()
     clear_pgChips();
     clear_fakeLastLevel();
     clear_realLastLevel();
+
+    clear_toolSound();
+    clear_doorSound();
+    clear_deathSound();
+    clear_levelCompleteSound();
+    clear_socketSound();
+    clear_wallSound();
+    clear_thiefSound();
+    clear_soundOnSound();
+    clear_chipSound();
+    clear_buttonSound();
+    clear_waterSound();
+    clear_bombSound();
+    clear_teleportSound();
+    clear_timerTickSound();
+    clear_timesUpSound();
+    clear_midi_1();
+    clear_midi_2();
+    clear_midi_3();
 
     clear_vgaTileset();
     clear_egaTileset();
@@ -87,6 +125,26 @@ bool HackSettings::loadFromExe(const QString& filename)
     set_pgChips(pg_state == ccl::CCPatchPatched);
     set_fakeLastLevel(hax.get_FakeLastLevel());
     set_realLastLevel(hax.get_LastLevel());
+
+    // Sounds and MIDI
+    set_toolSound(hax.get_ToolSound());
+    set_doorSound(hax.get_DoorSound());
+    set_deathSound(hax.get_DeathSound());
+    set_levelCompleteSound(hax.get_LevelCompleteSound());
+    set_socketSound(hax.get_SocketSound());
+    set_wallSound(hax.get_WallSound());
+    set_thiefSound(hax.get_ThiefSound());
+    set_soundOnSound(hax.get_SoundOnSound());
+    set_chipSound(hax.get_ChipSound());
+    set_buttonSound(hax.get_ButtonSound());
+    set_waterSound(hax.get_WaterSound());
+    set_bombSound(hax.get_BombSound());
+    set_teleportSound(hax.get_TeleportSound());
+    set_timerTickSound(hax.get_TimerTickSound());
+    set_timesUpSound(hax.get_TimesUpSound());
+    set_midi_1(hax.get_Midi_1());
+    set_midi_2(hax.get_Midi_2());
+    set_midi_3(hax.get_Midi_3());
 
     Win16::ResourceDirectory rcDir;
     Win16::RcBlob blob;
@@ -179,6 +237,44 @@ bool HackSettings::writeToExe(const QString& filename) const
         hax.set_FakeLastLevel(get_fakeLastLevel());
     if (have_realLastLevel())
         hax.set_LastLevel(get_realLastLevel());
+
+    // Sounds and MIDI
+    if (have_toolSound())
+        hax.set_ToolSound(get_toolSound());
+    if (have_doorSound())
+        hax.set_DoorSound(get_doorSound());
+    if (have_deathSound())
+        hax.set_DeathSound(get_deathSound());
+    if (have_levelCompleteSound())
+        hax.set_LevelCompleteSound(get_levelCompleteSound());
+    if (have_socketSound())
+        hax.set_SocketSound(get_socketSound());
+    if (have_wallSound())
+        hax.set_WallSound(get_wallSound());
+    if (have_thiefSound())
+        hax.set_ThiefSound(get_thiefSound());
+    if (have_soundOnSound())
+        hax.set_SoundOnSound(get_soundOnSound());
+    if (have_chipSound())
+        hax.set_ChipSound(get_chipSound());
+    if (have_buttonSound())
+        hax.set_ButtonSound(get_buttonSound());
+    if (have_waterSound())
+        hax.set_WaterSound(get_waterSound());
+    if (have_bombSound())
+        hax.set_BombSound(get_bombSound());
+    if (have_teleportSound())
+        hax.set_TeleportSound(get_teleportSound());
+    if (have_timerTickSound())
+        hax.set_TimerTickSound(get_timerTickSound());
+    if (have_timesUpSound())
+        hax.set_TimesUpSound(get_timesUpSound());
+    if (have_midi_1())
+        hax.set_Midi_1(get_midi_1());
+    if (have_midi_2())
+        hax.set_Midi_2(get_midi_2());
+    if (have_midi_3())
+        hax.set_Midi_3(get_midi_3());
 
     Win16::ResourceDirectory rcDir;
     rcDir.read(&exeStream);

@@ -32,6 +32,7 @@ public:
     explicit CCHackMain(QWidget* parent = nullptr);
 
     void loadFile(const QString& filename);
+    void loadExecutable(const QString& filename);
 
 private slots:
     void onChangePage(QTreeWidgetItem* page, QTreeWidgetItem*);

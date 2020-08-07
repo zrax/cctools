@@ -28,6 +28,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include "PageGeneral.h"
+#include "PageSounds.h"
 #include "PageBitmap.h"
 #include "CommonWidgets/About.h"
 
@@ -112,7 +113,7 @@ CCHackMain::CCHackMain(QWidget* parent)
     split->setStretchFactor(1, 5);
     split->setContentsMargins(4, 4, 4, 4);
     resize(800, 480);
-    split->setSizes(QList<int>() << 200 << 600);
+    split->setSizes(QList<int>{ 200, 600 });
 
     connect(pager, &QTreeWidget::currentItemChanged, this, &CCHackMain::onChangePage);
 
@@ -128,7 +129,7 @@ CCHackMain::CCHackMain(QWidget* parent)
     m_settings.clearAll();
 
     m_pages[PageGeneral] = new CCHack::PageGeneral(this);
-    m_pages[PageSound] = new PlaceholderPage(this);
+    m_pages[PageSound] = new CCHack::PageSounds(this);
     m_pages[PageMenus] = new PlaceholderPage(this);
     m_pages[PageStory] = new PlaceholderPage(this);
     m_pages[PageEndLevel] = new PlaceholderPage(this);
@@ -151,14 +152,39 @@ CCHackMain::CCHackMain(QWidget* parent)
 
 void CCHackMain::loadFile(const QString& filename)
 {
-    //TODO
+    QFileInfo info(filename);
+    if (info.suffix().compare(QLatin1String("exe"), Qt::CaseInsensitive) == 0) {
+        loadExecutable(filename);
+    } else if (info.suffix().compare(QLatin1String("ccp"), Qt::CaseInsensitive) == 0) {
+        // TODO: Load patch file
+    } else {
+        QMessageBox::critical(this, tr("Invalid filename"),
+                              tr("Unsupported file type for %1").arg(filename));
+    }
+}
+
+void CCHackMain::loadExecutable(const QString& filename)
+{
+    try {
+        if (!m_settings.loadFromExe(filename)) {
+            QMessageBox::critical(this, tr("Error loading EXE"),
+                                  tr("Could not open %1 for reading").arg(filename));
+            return;
+        }
+    } catch (const std::runtime_error& err) {
+        QMessageBox::critical(this, tr("Error loading EXE"),
+                              tr("Failed to load %1: %2").arg(filename).arg(err.what()));
+        return;
+    }
+
+    for (HackPage* page : m_pages)
+        page->setValues(&m_settings);
 }
 
 void CCHackMain::onChangePage(QTreeWidgetItem* page, QTreeWidgetItem*)
 {
     if (page->childCount() > 0) {
         // Focus the first child item instead of this category item.
-        QTreeWidget* tree = page->treeWidget();
         QTimer::singleShot(0, [page] {
             page->treeWidget()->setCurrentItem(page->child(0));
         });
@@ -173,23 +199,8 @@ void CCHackMain::onReadExeAction()
 {
     QString exeFilename = QFileDialog::getOpenFileName(this, tr("Load from EXE"),
                                 QString(), tr("EXE Files (*.exe)"));
-    if (exeFilename.isEmpty())
-        return;
-
-    try {
-        if (!m_settings.loadFromExe(exeFilename)) {
-            QMessageBox::critical(this, tr("Error loading EXE"),
-                                  tr("Could not open %1 for reading").arg(exeFilename));
-            return;
-        }
-    } catch (const std::runtime_error& err) {
-        QMessageBox::critical(this, tr("Error loading EXE"),
-                              tr("Failed to load %1: %2").arg(exeFilename).arg(err.what()));
-        return;
-    }
-
-    for (HackPage* page : m_pages)
-        page->setValues(&m_settings);
+    if (!exeFilename.isEmpty())
+        loadExecutable(exeFilename);
 }
 
 void CCHackMain::onWriteExeAction()

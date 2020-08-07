@@ -68,6 +68,26 @@ public:
     MAKE_SETTING(bool,              pgChips);
     MAKE_SETTING(int,               fakeLastLevel);
     MAKE_SETTING(int,               realLastLevel);
+
+    MAKE_SETTING_OBJ(std::string,   toolSound);
+    MAKE_SETTING_OBJ(std::string,   doorSound);
+    MAKE_SETTING_OBJ(std::string,   deathSound);
+    MAKE_SETTING_OBJ(std::string,   levelCompleteSound);
+    MAKE_SETTING_OBJ(std::string,   socketSound);
+    MAKE_SETTING_OBJ(std::string,   wallSound);
+    MAKE_SETTING_OBJ(std::string,   thiefSound);
+    MAKE_SETTING_OBJ(std::string,   soundOnSound);
+    MAKE_SETTING_OBJ(std::string,   chipSound);
+    MAKE_SETTING_OBJ(std::string,   buttonSound);
+    MAKE_SETTING_OBJ(std::string,   waterSound);
+    MAKE_SETTING_OBJ(std::string,   bombSound);
+    MAKE_SETTING_OBJ(std::string,   teleportSound);
+    MAKE_SETTING_OBJ(std::string,   timerTickSound);
+    MAKE_SETTING_OBJ(std::string,   timesUpSound);
+    MAKE_SETTING_OBJ(std::string,   midi_1);
+    MAKE_SETTING_OBJ(std::string,   midi_2);
+    MAKE_SETTING_OBJ(std::string,   midi_3);
+
     MAKE_SETTING_OBJ(QByteArray,    vgaTileset);
     MAKE_SETTING_OBJ(QByteArray,    egaTileset);
     MAKE_SETTING_OBJ(QByteArray,    monoTileset);
