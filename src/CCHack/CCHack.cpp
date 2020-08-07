@@ -83,9 +83,9 @@ CCHackMain::CCHackMain(QWidget* parent)
     m_container->setContentsMargins(0, 0, 0, 0);
 
     auto acSave = new QAction(QIcon(":/res/document-save.png"), tr("&Save Patch"), this);
-    auto acLoad = new QAction(QIcon(":/res/document-open.png"), tr("&Load Patch"), this);
     auto acWriteExe = new QAction(QIcon(":/res/document-save-as.png"), tr("&Write EXE"), this);
-    auto acReadExe = new QAction(QIcon(":/res/document-open.png"), tr("&Read EXE"), this);
+    auto acLoad = new QAction(QIcon(":/res/document-open.png"), tr("&Load From..."), this);
+    auto acReset = new QAction(QIcon(":/res/edit-clear-list.png"), tr("&Clear All"), this);
     auto acAbout = new QAction(QIcon(":/res/help-about.png"), tr("&About"), this);
 
     auto tools = new QToolBar(right);
@@ -94,10 +94,11 @@ CCHackMain::CCHackMain(QWidget* parent)
     tools->setFloatable(false);
     tools->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     tools->addAction(acSave);
+    tools->addAction(acWriteExe);
+    tools->addSeparator();
     tools->addAction(acLoad);
     tools->addSeparator();
-    tools->addAction(acWriteExe);
-    tools->addAction(acReadExe);
+    tools->addAction(acReset);
     auto tbSpacer = new QWidget(right);
     tbSpacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     tools->addWidget(tbSpacer);
@@ -118,7 +119,8 @@ CCHackMain::CCHackMain(QWidget* parent)
     connect(pager, &QTreeWidget::currentItemChanged, this, &CCHackMain::onChangePage);
 
     connect(acWriteExe, &QAction::triggered, this, &CCHackMain::onWriteExeAction);
-    connect(acReadExe, &QAction::triggered, this, &CCHackMain::onReadExeAction);
+    connect(acLoad, &QAction::triggered, this, &CCHackMain::onLoadFromAction);
+    connect(acReset, &QAction::triggered, this, &CCHackMain::onResetAction);
 
     connect(acAbout, &QAction::triggered, this, [this] {
         AboutDialog about(QStringLiteral("CCHack"), QPixmap(":/icons/sock-48.png"), this);
@@ -157,6 +159,8 @@ void CCHackMain::loadFile(const QString& filename)
         loadExecutable(filename);
     } else if (info.suffix().compare(QLatin1String("ccp"), Qt::CaseInsensitive) == 0) {
         // TODO: Load patch file
+        QMessageBox::critical(this, tr("Not yet implemented"),
+                              tr("This feature is not yet implemented :("));
     } else {
         QMessageBox::critical(this, tr("Invalid filename"),
                               tr("Unsupported file type for %1").arg(filename));
@@ -195,12 +199,14 @@ void CCHackMain::onChangePage(QTreeWidgetItem* page, QTreeWidgetItem*)
     m_container->setCurrentIndex(pageType < m_container->count() ? pageType : 0);
 }
 
-void CCHackMain::onReadExeAction()
+void CCHackMain::onLoadFromAction()
 {
-    QString exeFilename = QFileDialog::getOpenFileName(this, tr("Load from EXE"),
-                                QString(), tr("EXE Files (*.exe)"));
-    if (!exeFilename.isEmpty())
-        loadExecutable(exeFilename);
+    QString filename = QFileDialog::getOpenFileName(this, tr("Load from..."), QString(),
+                                tr("Supported Files (*.EXE *.exe *.ccp);;"
+                                   "EXE Files (*.EXE *.exe);;"
+                                   "CCPatch Files (*.ccp)"));
+    if (!filename.isEmpty())
+        loadFile(filename);
 }
 
 void CCHackMain::onWriteExeAction()
@@ -229,6 +235,19 @@ void CCHackMain::onWriteExeAction()
 
     for (HackPage* page : m_pages)
         page->markClean();
+}
+
+void CCHackMain::onResetAction()
+{
+    auto response = QMessageBox::question(this, tr("Clear All?"),
+                        tr("Are you sure you want to clear all fields and graphics?"));
+    if (response == QMessageBox::Yes) {
+        m_settings.clearAll();
+        for (HackPage* page : m_pages) {
+            page->setValues(&m_settings);
+            page->setDefaults(&m_defaults);
+        }
+    }
 }
 
 
