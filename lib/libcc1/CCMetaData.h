@@ -14,98 +14,82 @@
 #include <vector>
 
 
-namespace CCX
-{
-
+namespace CCX {
 
 struct Levelset;
 
-enum Compatibility
-{
-	COMPAT_UNKNOWN,
-	COMPAT_NO,
-	COMPAT_YES
+enum Compatibility {
+    COMPAT_UNKNOWN,
+    COMPAT_NO,
+    COMPAT_YES,
 };
 
-struct RulesetCompatibility
-{
-	Compatibility eMS, eLynx, ePedantic;
-	
-	RulesetCompatibility()
-		: eMS(COMPAT_UNKNOWN), eLynx(COMPAT_UNKNOWN), ePedantic(COMPAT_UNKNOWN) {}
-		
-	void ReadXML(QDomElement elm);
+struct RulesetCompatibility {
+    Compatibility eMS, eLynx, ePedantic;
+
+    RulesetCompatibility()
+        : eMS(COMPAT_UNKNOWN), eLynx(COMPAT_UNKNOWN), ePedantic(COMPAT_UNKNOWN)
+    { }
+
+    void readXML(const QDomElement& elm);
 };
 
-enum TextFormat
-{
-	TEXT_PLAIN,
-	TEXT_HTML
+enum TextFormat {
+    TEXT_PLAIN,
+    TEXT_HTML,
 };
 
-struct PageProperties
-{
-	TextFormat eFormat;
-	Qt::AlignmentFlag align, valign;
-	QColor color, bgcolor;
-	
-	PageProperties()
-		:
-		eFormat(TEXT_PLAIN),
-		align(Qt::AlignLeft), valign(Qt::AlignTop),
-		color(Qt::white), bgcolor(Qt::black)
-		{}
-	
-	void ReadXML(QDomElement elm);
+struct PageProperties {
+    TextFormat eFormat;
+    Qt::AlignmentFlag align, valign;
+    QColor color, bgcolor;
+
+    PageProperties()
+        : eFormat(TEXT_PLAIN), align(Qt::AlignLeft), valign(Qt::AlignTop),
+          color(Qt::white), bgcolor(Qt::black) { }
+
+    void readXML(const QDomElement& elm);
 };
 
-struct Page
-{
-	QString sText;
-	PageProperties pageProps;
-	
-	void ReadXML(QDomElement elm, const Levelset& levelset);
+struct Page {
+    QString sText;
+    PageProperties pageProps;
+
+    void readXML(const QDomElement& elm, const Levelset& levelset);
 };
 
-struct Text
-{
-	std::vector<Page> vecPages;
-	
-	bool bSeen;
-	
-	Text()
-		: bSeen(false) {}
+struct Text {
+    std::vector<Page> vecPages;
+    bool bSeen;
 
-	void ReadXML(QDomElement elm, const Levelset& levelset);
+    Text() : bSeen() { }
+
+    void readXML(const QDomElement& elm, const Levelset& levelset);
 };
 
-struct Level
-{
-	QString sAuthor;
-	RulesetCompatibility ruleCompat;
-	Text txtPrologue, txtEpilogue;
+struct Level {
+    QString sAuthor;
+    RulesetCompatibility ruleCompat;
+    Text txtPrologue, txtEpilogue;
 
-	void ReadXML(QDomElement elm, const Levelset& levelset);
+    void readXML(const QDomElement& elm, const Levelset& levelset);
 };
 
-struct Levelset
-{
-	QString sDescription;
-	QString sCopyright;
-	QString sAuthor;
-	RulesetCompatibility ruleCompat;
-	PageProperties pageProps;
-	QString sStyleSheet;
+struct Levelset {
+    QString sDescription;
+    QString sCopyright;
+    QString sAuthor;
+    RulesetCompatibility ruleCompat;
+    PageProperties pageProps;
+    QString sStyleSheet;
 
-	std::vector<Level> vecLevels;
+    std::vector<Level> vecLevels;
 
-	void ReadXML(QDomElement elm);
-	bool ReadFile(QString sFilePath, int nLevels);
-	void Clear();
+    void readXML(const QDomElement& elm);
+    bool readFile(const QString& sFilePath, int nLevels);
+    void clear();
 };
-
 
 }
-
 
 #endif

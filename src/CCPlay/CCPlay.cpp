@@ -912,7 +912,7 @@ void CCPlayMain::onLevelsetChanged(QTreeWidgetItem* item, QTreeWidgetItem*)
     CCX::Levelset ccx;
     bool haveCCX = false;
     QString ccxName = filename.left(filename.lastIndexOf('.')) + ".ccx";
-    if (ccx.ReadFile(ccxName, levelset->levelCount()))
+    if (ccx.readFile(ccxName, levelset->levelCount()))
         haveCCX = true;
 
     QString fileid = filename.section(QChar('/'), -1);

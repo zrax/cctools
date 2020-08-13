@@ -877,7 +877,7 @@ void CCEditMain::loadLevelset(const QString& filename)
 
     m_haveCcx = false;
     QString ccxName = filename.left(filename.lastIndexOf('.')) + ".ccx";
-    if (m_ccxFile.ReadFile(ccxName, m_levelset->levelCount()))
+    if (m_ccxFile.readFile(ccxName, m_levelset->levelCount()))
         m_haveCcx = true;
 
     m_actions[ActionSave]->setEnabled(true);
