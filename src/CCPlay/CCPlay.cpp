@@ -941,7 +941,7 @@ void CCPlayMain::onLevelsetChanged(QTreeWidgetItem* item, QTreeWidgetItem*)
         auto item = new QTreeWidgetItem(m_levelList);
         item->setText(0, QString::number(i + 1));
         item->setText(1, level->name().c_str());
-        item->setText(2, haveCCX ? ccx.vecLevels[i + 1].sAuthor : "");
+        item->setText(2, haveCCX ? ccx.m_levels[i].m_author : QString());
         item->setText(3, level->timer() == 0 ? "---" : QString("%1").arg(level->timer()));
         item->setText(4, myTime == 0 ? "---" : QString("%1").arg(myTime));
         item->setText(5, myScore == 0 ? "---" : QString("%1").arg(myScore));

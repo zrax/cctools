@@ -39,7 +39,7 @@ void ccl::DacFile::read(FILE* stream)
 {
     char buffer[1024];
 
-    while (fgets(buffer, 1024, stream) != 0) {
+    while (fgets(buffer, 1024, stream) != nullptr) {
         // strip newline chars
         size_t len = strlen(buffer);
         while (len > 0 && (buffer[len-1] == '\r' || buffer[len-1] == '\n'))
@@ -49,7 +49,7 @@ void ccl::DacFile::read(FILE* stream)
         // Split line into key = value pairs
         char* key = buffer;
         char* value = strchr(buffer, '=');
-        if (value == 0) {
+        if (!value) {
             // Verify line is empty, throw error otherwise
             for (char* ch = buffer; *ch != 0; ++ch) {
                 if (!isspace(*ch))
@@ -86,7 +86,7 @@ void ccl::DacFile::read(FILE* stream)
                 throw ccl::FormatException("Invalid parameter, expected 'ms' or 'lynx'");
         } else if (strcasecmp(key, "lastlevel") == 0) {
             errno = 0;
-            m_lastLevel = (int)strtol(value, NULL, 10);
+            m_lastLevel = (int)strtol(value, nullptr, 10);
             if (m_lastLevel == 0 && errno != 0)
                 throw ccl::FormatException("Invalid parameter, expected integer constant");
         } else if (strcasecmp(key, "fixlynx") == 0) {
@@ -102,7 +102,7 @@ void ccl::DacFile::read(FILE* stream)
     }
 }
 
-void ccl::DacFile::write(FILE* stream)
+void ccl::DacFile::write(FILE* stream) const
 {
     fprintf(stream, "file=%s\n", m_filename.c_str());
     if (!m_usePasswords)

@@ -33,7 +33,7 @@ struct DacFile {
     void setFromLevelset(const Levelset& levelset);
 
     void read(FILE* stream);
-    void write(FILE* stream);
+    void write(FILE* stream) const;
 
     std::string m_filename;
     unsigned int m_ruleset;

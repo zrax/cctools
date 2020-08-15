@@ -5,14 +5,11 @@
 #ifndef CCMETADATA_H
 #define CCMETADATA_H
 
-
 #include <QString>
 #include <QColor>
-
 #include <QDomElement>
 
 #include <vector>
-
 
 namespace CCX {
 
@@ -25,13 +22,17 @@ enum Compatibility {
 };
 
 struct RulesetCompatibility {
-    Compatibility eMS, eLynx, ePedantic;
+    Compatibility m_msCompat, m_lynxCompat, m_pedanticCompat;
 
     RulesetCompatibility()
-        : eMS(COMPAT_UNKNOWN), eLynx(COMPAT_UNKNOWN), ePedantic(COMPAT_UNKNOWN)
+        : m_msCompat(), m_lynxCompat(), m_pedanticCompat()
     { }
 
+    void copyUnique(const RulesetCompatibility& copyFrom,
+                    const RulesetCompatibility& parent);
+
     void readXML(const QDomElement& elm);
+    void writeXML(QDomElement& elm) const;
 };
 
 enum TextFormat {
@@ -40,53 +41,59 @@ enum TextFormat {
 };
 
 struct PageProperties {
-    TextFormat eFormat;
-    Qt::AlignmentFlag align, valign;
-    QColor color, bgcolor;
+    TextFormat m_textFormat;
+    Qt::AlignmentFlag m_align, m_valign;
+    QColor m_color, m_bgcolor;
 
     PageProperties()
-        : eFormat(TEXT_PLAIN), align(Qt::AlignLeft), valign(Qt::AlignTop),
-          color(Qt::white), bgcolor(Qt::black) { }
+        : m_textFormat(TEXT_PLAIN), m_align(Qt::AlignLeft), m_valign(Qt::AlignTop),
+          m_color(Qt::white), m_bgcolor(Qt::black) { }
+
+    void copyUnique(const PageProperties& copyFrom, const PageProperties& parent);
 
     void readXML(const QDomElement& elm);
+    void writeXML(QDomElement& elm) const;
 };
 
 struct Page {
-    QString sText;
-    PageProperties pageProps;
+    QString m_text;
+    PageProperties m_pageProps;
 
     void readXML(const QDomElement& elm, const Levelset& levelset);
+    void writeXML(QDomDocument& doc, QDomElement& elm, const Levelset& levelset) const;
 };
 
 struct Text {
-    std::vector<Page> vecPages;
-    bool bSeen;
-
-    Text() : bSeen() { }
+    std::vector<Page> m_pages;
 
     void readXML(const QDomElement& elm, const Levelset& levelset);
+    void writeXML(QDomDocument& doc, QDomElement& elm, const Levelset& levelset) const;
 };
 
 struct Level {
-    QString sAuthor;
-    RulesetCompatibility ruleCompat;
-    Text txtPrologue, txtEpilogue;
+    QString m_author;
+    RulesetCompatibility m_ruleCompat;
+    Text m_prologue, m_epilogue;
 
     void readXML(const QDomElement& elm, const Levelset& levelset);
+    void writeXML(QDomDocument& doc, QDomElement& elm, const Levelset& levelset) const;
 };
 
 struct Levelset {
-    QString sDescription;
-    QString sCopyright;
-    QString sAuthor;
-    RulesetCompatibility ruleCompat;
-    PageProperties pageProps;
-    QString sStyleSheet;
-
-    std::vector<Level> vecLevels;
+    QString m_description;
+    QString m_copyright;
+    QString m_author;
+    RulesetCompatibility m_ruleCompat;
+    PageProperties m_pageProps;
+    QString m_styleSheet;
+    std::vector<Level> m_levels;
 
     void readXML(const QDomElement& elm);
-    bool readFile(const QString& sFilePath, int nLevels);
+    bool readFile(const QString& filePath, int nLevels);
+
+    void writeXML(QDomDocument& doc, QDomElement& elm) const;
+    bool writeFile(const QString& filePath) const;
+
     void clear();
 };
 
