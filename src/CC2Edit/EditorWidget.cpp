@@ -783,34 +783,118 @@ static uint32_t trackToActive(uint32_t trackModifier)
     return 0;
 }
 
+static cc2::Tile::Direction cloneDirection(uint32_t modifier)
+{
+    if ((modifier & cc2::TileModifier::CloneNorth) != 0)
+        return cc2::Tile::North;
+    if ((modifier & cc2::TileModifier::CloneEast) != 0)
+        return cc2::Tile::East;
+    if ((modifier & cc2::TileModifier::CloneSouth) != 0)
+        return cc2::Tile::South;
+    if ((modifier & cc2::TileModifier::CloneWest) != 0)
+        return cc2::Tile::West;
+    return cc2::Tile::InvalidDir;
+}
+
+static uint32_t cloneModifier(cc2::Tile::Direction dir)
+{
+    switch (dir) {
+    case cc2::Tile::North:
+        return cc2::TileModifier::CloneNorth;
+    case cc2::Tile::East:
+        return cc2::TileModifier::CloneEast;
+    case cc2::Tile::South:
+        return cc2::TileModifier::CloneSouth;
+    case cc2::Tile::West:
+        return cc2::TileModifier::CloneWest;
+    default:
+        return 0;
+    }
+}
+
+static void pushTile(cc2::Tile& destTile, cc2::Tile tile)
+{
+    *tile.lower() = destTile;
+    destTile = std::move(tile);
+
+    // Remove duplicates (if you REALLY want to stack duplicates, use the
+    // tile inspector tool...  Otherwise, this just gets messy)
+    cc2::Tile* tp = destTile.lower();
+    while (tp) {
+        if (tp->type() == destTile.type()) {
+            cc2::Tile* lower = tp->lower();
+            if (lower)
+                *tp = *tp->lower();
+            else
+                *tp = cc2::Tile();
+        } else {
+            tp = tp->lower();
+        }
+    }
+}
+
 void CC2EditorWidget::putTile(const cc2::Tile& tile, int x, int y, CombineMode mode)
 {
     cc2::Tile& curTile = m_map->mapData().tile(x, y);
+    cc2::Tile& baseTile = curTile.bottom();
+    // WARNING: Modifying curTile's layers can invalidate the baseTile reference!
+
     if (mode == Replace) {
         curTile = tile;
     } else if (mode == CombineForce) {
-        if (tile.type() == curTile.bottom().type()) {
+        if (tile.type() == baseTile.type()) {
             // Combine flags on matching tiles
-            curTile.setModifier(curTile.modifier() | tile.modifier());
-            curTile.setTileFlags(curTile.tileFlags() | tile.tileFlags());
+            baseTile.setModifier(baseTile.modifier() | tile.modifier());
+            baseTile.setTileFlags(baseTile.tileFlags() | tile.tileFlags());
         } else if (tile.haveLower()) {
-            cc2::Tile push(tile);
-            *push.lower() = curTile;
-            curTile = push;
+            pushTile(curTile, tile);
         } else {
-            curTile.bottom() = tile;
+            baseTile = tile;
         }
-    } else {
-        // TODO: Make this smarter
-        if ((tile.type() == cc2::Tile::Floor && tile.modifier() != 0
-                && curTile.bottom().type() == cc2::Tile::Floor)
-            || (tile.type() == cc2::Tile::TrainTracks
-                && curTile.bottom().type() == cc2::Tile::TrainTracks)) {
-            // Combine wire tunnels and tracks
-            curTile.setModifier(curTile.modifier() | tile.modifier());
+    } else if ((tile.type() == cc2::Tile::Floor && tile.modifier() != 0
+                    && baseTile.type() == cc2::Tile::Floor)
+                || (tile.type() == cc2::Tile::TrainTracks
+                    && baseTile.type() == cc2::Tile::TrainTracks)) {
+        // Combine wire tunnels and tracks
+        baseTile.setModifier(baseTile.modifier() | tile.modifier());
+    } else if (tile.type() == cc2::Tile::Cloner || tile.type() == cc2::Tile::CC1_Cloner) {
+        if (curTile.isCreature()) {
+            // Adjust the cloner to match the creature's direction
+            *curTile.lower() = tile;
+            curTile.lower()->setModifier(cloneModifier(curTile.direction()));
+        } else if (curTile.isBlock()) {
+            // Adjust the block to match the cloner's direction
+            *curTile.lower() = tile;
+            const cc2::Tile::Direction dir = cloneDirection(tile.modifier());
+            if (dir != cc2::Tile::InvalidDir)
+                curTile.setDirection(dir);
         } else {
+            // Something unclonable was here before...
             curTile = tile;
         }
+    } else if (baseTile.type() == cc2::Tile::Cloner || baseTile.type() == cc2::Tile::CC1_Cloner) {
+        if (tile.isCreature()) {
+            // Remove anything already on the cloner, and adjust the
+            // cloner to match the creature's direction
+            curTile = baseTile;
+            curTile.setModifier(cloneModifier(tile.direction()));
+            pushTile(curTile, tile);
+        } else if (tile.isBlock()) {
+            // Remove anything already on the cloner, and adjust the
+            // block to match the cloner's direction
+            const cc2::Tile::Direction dir = cloneDirection(baseTile.modifier());
+            curTile = baseTile;
+            cc2::Tile dirBlock(tile);
+            if (dir != cc2::Tile::InvalidDir)
+                dirBlock.setDirection(dir);
+            pushTile(curTile, std::move(dirBlock));
+        } else {
+            // Something unclonable is being placed...
+            curTile = tile;
+        }
+    } else {
+        // For everything else: just replace the entire tile
+        curTile = tile;
     }
 
     if (tile.type() == cc2::Tile::TrainTracks) {

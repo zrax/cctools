@@ -330,6 +330,43 @@ bool cc2::Tile::supportsWires(int type)
     }
 }
 
+bool cc2::Tile::isCreature(int type)
+{
+    switch (type) {
+    case cc2::Tile::Walker:
+    case cc2::Tile::Ship:
+    case cc2::Tile::BlueTank:
+    case cc2::Tile::Ant:
+    case cc2::Tile::Centipede:
+    case cc2::Tile::Ball:
+    case cc2::Tile::Blob:
+    case cc2::Tile::AngryTeeth:
+    case cc2::Tile::FireBox:
+    case cc2::Tile::TimidTeeth:
+    case cc2::Tile::YellowTank:
+    case cc2::Tile::MirrorPlayer:
+    case cc2::Tile::MirrorPlayer2:
+    case cc2::Tile::Rover:
+    case cc2::Tile::FloorMimic:
+    case cc2::Tile::Ghost:
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool cc2::Tile::isBlock(int type)
+{
+    switch (type) {
+    case cc2::Tile::DirtBlock:
+    case cc2::Tile::IceBlock:
+    /* case cc2::Tile::DirBlock: -- not for our purposes */
+        return true;
+    default:
+        return false;
+    }
+}
+
 bool cc2::Tile::needArrows() const
 {
     switch (m_type) {

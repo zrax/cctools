@@ -300,10 +300,14 @@ public:
     static bool haveLower(int type);
     static bool haveDirection(int type);
     static bool supportsWires(int type);
+    static bool isCreature(int type);
+    static bool isBlock(int type);
 
     bool haveLower() const { return haveLower(m_type); }
     bool haveDirection() const { return haveDirection(m_type); }
     bool supportsWires() const { return supportsWires(m_type); }
+    bool isCreature() const { return isCreature(m_type); }
+    bool isBlock() const { return isBlock(m_type); }
     bool needArrows() const;
 
     bool needXray() const
