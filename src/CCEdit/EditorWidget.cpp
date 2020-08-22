@@ -811,8 +811,8 @@ void EditorWidget::setDrawMode(DrawMode mode)
 
 void EditorWidget::putTile(tile_t tile, int x, int y, DrawLayer layer)
 {
-    tile_t oldUpper = m_levelData->map().getFG(x, y);
-    tile_t oldLower = m_levelData->map().getBG(x, y);
+    const tile_t oldUpper = m_levelData->map().getFG(x, y);
+    const tile_t oldLower = m_levelData->map().getBG(x, y);
 
     if (layer == LayTop) {
         if (oldUpper == tile)
@@ -843,6 +843,12 @@ void EditorWidget::putTile(tile_t tile, int x, int y, DrawLayer layer)
     } else if ((oldUpper >= ccl::TileFireball_N && oldUpper <= ccl::TileFireball_E)
                && tile == ccl::TileFire) {
         m_levelData->map().setBG(x, y, tile);
+    } else if ((tile == ccl::TileBarrier_S && oldUpper == ccl::TileBarrier_E)
+               || (tile == ccl::TileBarrier_E && oldUpper == ccl::TileBarrier_S)) {
+        m_levelData->map().setFG(x, y, ccl::TileBarrier_SE);
+    } else if ((tile == ccl::TileBarrier_S && oldLower == ccl::TileBarrier_E)
+               || (tile == ccl::TileBarrier_E && oldLower == ccl::TileBarrier_S)) {
+        m_levelData->map().setBG(x, y, ccl::TileBarrier_SE);
     } else if ((tile == ccl::TileBlock || tile == ccl::TileIceBlock)
                && (oldUpper == ccl::TileChip || oldUpper == ccl::TileBarrier_SE ||
                    (oldUpper >= ccl::TileBarrier_N && oldUpper <= ccl::TileBarrier_E) ||

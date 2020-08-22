@@ -857,6 +857,28 @@ void CC2EditorWidget::putTile(const cc2::Tile& tile, int x, int y, CombineMode m
                     && baseTile.type() == cc2::Tile::TrainTracks)) {
         // Combine wire tunnels and tracks
         baseTile.setModifier(baseTile.modifier() | tile.modifier());
+    } else if (tile.type() == cc2::Tile::PanelCanopy) {
+        // Combine panel/canopy flags
+        cc2::Tile* curPanelCanopy = &curTile;
+        while (curPanelCanopy && !curPanelCanopy->isPanelCanopy())
+            curPanelCanopy = curPanelCanopy->lower();
+        if (curPanelCanopy) {
+            if (curPanelCanopy->type() == cc2::Tile::PanelCanopy) {
+                curPanelCanopy->setTileFlags(curPanelCanopy->tileFlags() | tile.tileFlags());
+            } else {
+                // Upgrade CC1 panels to the CC2 equivalent
+                uint8_t panelFlags = tile.tileFlags();
+                if (curPanelCanopy->type() == cc2::Tile::CC1_Barrier_S
+                    || curPanelCanopy->type() == cc2::Tile::CC1_Barrier_SE)
+                    panelFlags |= cc2::Tile::PanelSouth;
+                if (curPanelCanopy->type() == cc2::Tile::CC1_Barrier_E
+                    || curPanelCanopy->type() == cc2::Tile::CC1_Barrier_SE)
+                    panelFlags |= cc2::Tile::PanelEast;
+                *curPanelCanopy = cc2::Tile::panelTile(panelFlags);
+            }
+        } else {
+            pushTile(curTile, tile);
+        }
     } else if (tile.type() == cc2::Tile::Cloner || tile.type() == cc2::Tile::CC1_Cloner) {
         if (curTile.isCreature()) {
             // Adjust the cloner to match the creature's direction

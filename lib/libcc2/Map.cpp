@@ -367,6 +367,19 @@ bool cc2::Tile::isBlock(int type)
     }
 }
 
+bool cc2::Tile::isPanelCanopy(int type)
+{
+    switch (type) {
+    case CC1_Barrier_S:
+    case CC1_Barrier_E:
+    case CC1_Barrier_SE:
+    case PanelCanopy:
+        return true;
+    default:
+        return false;
+    }
+}
+
 bool cc2::Tile::needArrows() const
 {
     switch (m_type) {
