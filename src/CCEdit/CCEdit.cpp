@@ -1051,10 +1051,10 @@ void CCEditMain::keyPressEvent(QKeyEvent* event)
         if (editor) {
             editor->setPaintFlag(EditorWidget::RevealLower);
             event->accept();
+            return;
         }
-    } else {
-        QMainWindow::keyPressEvent(event);
     }
+    QMainWindow::keyPressEvent(event);
 }
 
 void CCEditMain::keyReleaseEvent(QKeyEvent* event)
@@ -1064,10 +1064,10 @@ void CCEditMain::keyReleaseEvent(QKeyEvent* event)
         if (editor) {
             editor->clearPaintFlag(EditorWidget::RevealLower);
             event->accept();
+            return;
         }
-    } else {
-        QMainWindow::keyPressEvent(event);
     }
+    QMainWindow::keyPressEvent(event);
 }
 
 bool CCEditMain::closeLevelset()

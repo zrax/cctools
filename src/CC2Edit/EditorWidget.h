@@ -86,14 +86,20 @@ public:
 
     void setPaintFlag(int flag)
     {
-        m_paintFlags |= flag;
-        update();
+        uint32_t newFlags = m_paintFlags | flag;
+        if (newFlags != m_paintFlags) {
+            m_paintFlags = newFlags;
+            dirtyBuffer();
+        }
     }
 
     void clearPaintFlag(int flag)
     {
-        m_paintFlags &= ~flag;
-        update();
+        uint32_t newFlags = m_paintFlags & ~flag;
+        if (newFlags != m_paintFlags) {
+            m_paintFlags = newFlags;
+            dirtyBuffer();
+        }
     }
 
     void beginEdit(CC2EditHistory::Type type);
@@ -105,7 +111,12 @@ public:
     void resetClean();
 
     void renderTileBuffer();
-    void dirtyBuffer() { m_cacheDirty = true; }
+    void dirtyBuffer()
+    {
+        m_cacheDirty = true;
+        update();
+    }
+
     double zoom() const { return m_zoomFactor; }
 
     void renderTo(QPainter& painter);

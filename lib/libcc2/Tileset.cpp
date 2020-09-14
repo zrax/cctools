@@ -217,7 +217,7 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile,
         }
         break;
     case cc2::Tile::DirtBlock:
-        if (allLayers && tile->haveLower() && tile->lower()->needXray())
+        if (allLayers && tile->lower()->needXray())
             painter.drawPixmap(x, y, m_gfx[cc2::G_DirtBlock_Xray]);
         else
             painter.drawPixmap(x, y, m_gfx[cc2::G_DirtBlock]);
@@ -249,7 +249,7 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile,
         }
         break;
     case cc2::Tile::IceBlock:
-        if (allLayers && tile->haveLower() && tile->lower()->needXray())
+        if (allLayers && tile->lower()->needXray())
             painter.drawPixmap(x, y, m_gfx[cc2::G_IceBlock_Xray]);
         else
             painter.drawPixmap(x, y, m_gfx[cc2::G_IceBlock]);
@@ -799,7 +799,7 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile,
     //    break;
     case cc2::Tile::PanelCanopy:
         if (tile->tileFlags() & cc2::Tile::Canopy) {
-            if (allLayers && tile->haveLower() && tile->lower()->needXray())
+            if (allLayers && lower->needXray())
                 painter.drawPixmap(x, y, m_gfx[cc2::G_Canopy_Xray]);
             else
                 painter.drawPixmap(x, y, m_gfx[cc2::G_Canopy]);

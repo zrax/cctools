@@ -184,9 +184,8 @@ CC2EditorWidget::CC2EditorWidget(QWidget* parent)
 void CC2EditorWidget::setTileset(CC2ETileset* tileset)
 {
     m_tileset = tileset;
-    dirtyBuffer();
     resize(sizeHint());
-    update();
+    dirtyBuffer();
 }
 
 void CC2EditorWidget::setMap(cc2::Map* map)
@@ -202,7 +201,6 @@ void CC2EditorWidget::setMap(cc2::Map* map)
 
     m_undoStack->clear();
     dirtyBuffer();
-    update();
 
     m_selectRect = QRect(-1, -1, -1, -1);
     emit hasSelection(false);
@@ -245,7 +243,6 @@ void CC2EditorWidget::endEdit()
         m_undoCommand = nullptr;
     }
     dirtyBuffer();
-    update();
 }
 
 void CC2EditorWidget::cancelEdit()
@@ -963,9 +960,8 @@ void CC2EditorWidget::putTile(const cc2::Tile& tile, int x, int y, CombineMode m
 void CC2EditorWidget::setZoom(double factor)
 {
     m_zoomFactor = factor;
-    dirtyBuffer();
     resize(sizeHint());
-    update();
+    dirtyBuffer();
 }
 
 void CC2EditorWidget::undo()
@@ -992,6 +988,5 @@ void CC2EditorWidget::updateForUndoCommand(const QUndoCommand* command)
         }
 
         dirtyBuffer();
-        update();
     }
 }
