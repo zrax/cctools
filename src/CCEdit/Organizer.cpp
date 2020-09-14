@@ -242,7 +242,7 @@ void OrganizerDialog::onCopyLevels()
         QMimeData* copyData = new QMimeData();
         copyData->setData(s_clipboardFormat, buffer);
         QApplication::clipboard()->setMimeData(copyData);
-    } catch (std::exception& e) {
+    } catch (const std::exception& e) {
         QMessageBox::critical(this, tr("Error"),
                 tr("Error saving clipboard data: %1").arg(e.what()),
                 QMessageBox::Ok);
@@ -271,7 +271,7 @@ void OrganizerDialog::onPasteLevels()
                 level->read(&cbStream, true);
                 if (cbStream.tell() - start != levelSizes[i])
                     throw ccl::IOException("Corrupt Level Data");
-            } catch (std::exception& ex) {
+            } catch (const std::exception& ex) {
                 QMessageBox::critical(this, tr("Error"),
                         tr("Error reading clipboard data: %1").arg(ex.what()),
                         QMessageBox::Ok);

@@ -79,7 +79,7 @@ load_levelset(const QString& filename, QWidget* self, int* dacLastLevel = nullpt
             levelset = std::make_unique<ccl::Levelset>();
             levelset->read(&stream);
             stream.close();
-        } catch (std::exception& e) {
+        } catch (const std::exception& e) {
             qDebug("Error trying to load %s: %s", qPrintable(filename), e.what());
             QMessageBox::critical(self, self->tr("Error Reading Levelset"),
                     self->tr("Error Reading levelset file %1: %2")
@@ -101,13 +101,13 @@ load_levelset(const QString& filename, QWidget* self, int* dacLastLevel = nullpt
         try {
             dacInfo.read(dac);
             fclose(dac);
-        } catch (ccl::FormatException&) {
+        } catch (const ccl::FormatException&) {
             // Tried to read an invalid levelset file (probably not really
             // a levelset -- e.g. "unins000.dat")
             qDebug("Format error trying to load %s", qPrintable(filename));
             fclose(dac);
             return {};
-        } catch (ccl::Exception& e) {
+        } catch (const ccl::Exception& e) {
             qDebug("Error trying to load %s: %s", qPrintable(filename), e.what());
             QMessageBox::critical(self, self->tr("Error reading levelset"),
                                   self->tr("Error loading levelset descriptor for %1: %2")
@@ -123,7 +123,7 @@ load_levelset(const QString& filename, QWidget* self, int* dacLastLevel = nullpt
                 levelset = std::make_unique<ccl::Levelset>();
                 levelset->read(&stream);
                 stream.close();
-            } catch (std::exception& e) {
+            } catch (const std::exception& e) {
                 qDebug("Error trying to load %s: %s", qPrintable(filename), e.what());
                 QMessageBox::critical(self, self->tr("Error reading levelset"),
                                       self->tr("Error loading levelset: %1").arg(e.what()));
@@ -447,7 +447,7 @@ void CCPlayMain::onPlayMSCC()
     }
     try {
         levelset->write(&stream);
-    } catch (std::exception& e) {
+    } catch (const std::exception& e) {
         QMessageBox::critical(this, tr("Error Creating Test Data File"),
                 tr("Error writing data file: %1").arg(e.what()));
         stream.close();
@@ -546,7 +546,7 @@ void CCPlayMain::onPlayMSCC()
         }
         ini.write(iniStream);
         fclose(iniStream);
-    } catch (std::exception& e) {
+    } catch (const std::exception& e) {
         QMessageBox::critical(this, tr("Error writing CCRun.ini"),
                 tr("Error writing INI file: %1").arg(e.what()));
         fclose(iniStream);
@@ -626,7 +626,7 @@ void CCPlayMain::onPlayMSCC()
                 continue;
             }
         }
-    } catch (std::exception& e) {
+    } catch (const std::exception& e) {
         QMessageBox::critical(this, tr("Error reading CCRun.ini"),
                 tr("Error reading INI file: %1").arg(e.what()));
         fclose(iniStream);
