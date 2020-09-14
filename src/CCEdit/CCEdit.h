@@ -71,7 +71,8 @@ private:
         ActionGenReport, ActionExit, ActionSelect, ActionCut, ActionCopy,
         ActionPaste, ActionClear, ActionUndo, ActionRedo, ActionDrawPencil,
         ActionDrawLine, ActionDrawFill, ActionDrawFlood, ActionPathMaker,
-        ActionConnect, ActionAdvancedMech, ActionToggleWalls, ActionCheckErrors,
+        ActionConnect, ActionAdvancedMech, ActionInspectTiles,
+        ActionToggleWalls, ActionCheckErrors,
         ActionViewButtons, ActionViewMovers, ActionViewActivePlayer,
         ActionViewViewport, ActionViewMonsterPaths, ActionViewErrors,
         ActionZoom100, ActionZoom75, ActionZoom50, ActionZoom25, ActionZoom125,
@@ -147,6 +148,7 @@ private slots:
     void onPathMakerToggled(bool);
     void onConnectToggled(bool);
     void onAdvancedMechAction();
+    void onInspectTilesToggled(bool);
     void onToggleWallsAction();
     void onCheckErrorsAction();
     void onViewButtonsToggled(bool);
@@ -161,6 +163,8 @@ private slots:
     void onTilesetMenu(QAction*);
     void onTestChips();
     void onTestTWorld(unsigned int levelsetType);
+
+    void onTilePicked(int x, int y);
 
     void beginEdit(CCEditHistory::Type type);
     void endEdit();

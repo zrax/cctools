@@ -53,6 +53,7 @@
 #include "AdvancedMechanics.h"
 #include "TestSetup.h"
 #include "ErrorCheck.h"
+#include "TileInspector.h"
 #include "libcc1/IniFile.h"
 #include "libcc1/ChipsHax.h"
 #include "libcc1/GameLogic.h"
@@ -176,6 +177,11 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionAdvancedMech]->setStatusTip(tr("Manually manipulate gameplay mechanics for the current level"));
     m_actions[ActionAdvancedMech]->setShortcut(Qt::CTRL | Qt::Key_K);
     m_actions[ActionAdvancedMech]->setEnabled(false);
+    m_actions[ActionInspectTiles] = new QAction(QIcon(":/res/draw-inspect.png"), tr("&Inspect Tiles"), this);
+    m_actions[ActionInspectTiles]->setStatusTip(tr("Inspect tiles and make advanced modifications"));
+    m_actions[ActionInspectTiles]->setShortcut(Qt::CTRL | Qt::Key_I);
+    m_actions[ActionInspectTiles]->setCheckable(true);
+    m_actions[ActionInspectTiles]->setEnabled(false);
     m_actions[ActionToggleWalls] = new QAction(QIcon(":/res/cctools-gbutton.png"), tr("&Toggle Walls"), this);
     m_actions[ActionToggleWalls]->setStatusTip(tr("Toggle all toggle floors/walls in the current level"));
     m_actions[ActionToggleWalls]->setShortcut(Qt::CTRL | Qt::Key_G);
@@ -561,6 +567,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     toolsMenu->addSeparator();
     toolsMenu->addAction(m_actions[ActionConnect]);
     toolsMenu->addAction(m_actions[ActionAdvancedMech]);
+    toolsMenu->addAction(m_actions[ActionInspectTiles]);
     toolsMenu->addSeparator();
     toolsMenu->addAction(m_actions[ActionToggleWalls]);
     toolsMenu->addSeparator();
@@ -627,6 +634,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     tbarTools->addSeparator();
     tbarTools->addAction(m_actions[ActionConnect]);
     tbarTools->addAction(m_actions[ActionAdvancedMech]);
+    tbarTools->addAction(m_actions[ActionInspectTiles]);
     tbarTools->addSeparator();
     tbarTools->addAction(m_actions[ActionToggleWalls]);
 
@@ -654,6 +662,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionPathMaker], &QAction::toggled, this, &CCEditMain::onPathMakerToggled);
     connect(m_actions[ActionConnect], &QAction::toggled, this, &CCEditMain::onConnectToggled);
     connect(m_actions[ActionAdvancedMech], &QAction::triggered, this, &CCEditMain::onAdvancedMechAction);
+    connect(m_actions[ActionInspectTiles], &QAction::triggered, this, &CCEditMain::onInspectTilesToggled);
     connect(m_actions[ActionToggleWalls], &QAction::triggered, this, &CCEditMain::onToggleWallsAction);
     connect(m_actions[ActionCheckErrors], &QAction::triggered, this, &CCEditMain::onCheckErrorsAction);
     connect(m_actions[ActionViewButtons], &QAction::toggled, this, &CCEditMain::onViewButtonsToggled);
@@ -1264,6 +1273,7 @@ EditorWidget* CCEditMain::addEditor(ccl::LevelData* level)
     connect(editor, &EditorWidget::hasSelection, m_actions[ActionCut], &QAction::setEnabled);
     connect(editor, &EditorWidget::hasSelection, m_actions[ActionCopy], &QAction::setEnabled);
     connect(editor, &EditorWidget::hasSelection, m_actions[ActionClear], &QAction::setEnabled);
+    connect(editor, &EditorWidget::tilePicked, this, &CCEditMain::onTilePicked);
     connect(editor, &EditorWidget::editingStarted, this, [this] {
         beginEdit(CCEditHistory::EditMap);
     });
@@ -1433,6 +1443,7 @@ void CCEditMain::onSelectToggled(bool mode)
         m_actions[ActionDrawFlood]->setChecked(false);
         m_actions[ActionPathMaker]->setChecked(false);
         m_actions[ActionConnect]->setChecked(false);
+        m_actions[ActionInspectTiles]->setChecked(false);
 
         for (int i = 0; i < m_editorTabs->count(); ++i)
             getEditorAt(i)->setDrawMode(m_currentDrawMode);
@@ -1632,6 +1643,7 @@ void CCEditMain::onDrawPencilAction(bool checked)
     m_currentDrawMode = EditorWidget::DrawPencil;
     m_actions[ActionSelect]->setChecked(false);
     m_actions[ActionConnect]->setChecked(false);
+    m_actions[ActionInspectTiles]->setChecked(false);
     for (int i=0; i<m_editorTabs->count(); ++i)
         getEditorAt(i)->setDrawMode(m_currentDrawMode);
 }
@@ -1645,6 +1657,7 @@ void CCEditMain::onDrawLineAction(bool checked)
     m_currentDrawMode = EditorWidget::DrawLine;
     m_actions[ActionSelect]->setChecked(false);
     m_actions[ActionConnect]->setChecked(false);
+    m_actions[ActionInspectTiles]->setChecked(false);
     for (int i=0; i<m_editorTabs->count(); ++i)
         getEditorAt(i)->setDrawMode(m_currentDrawMode);
 }
@@ -1658,6 +1671,7 @@ void CCEditMain::onDrawFillAction(bool checked)
     m_currentDrawMode = EditorWidget::DrawFill;
     m_actions[ActionSelect]->setChecked(false);
     m_actions[ActionConnect]->setChecked(false);
+    m_actions[ActionInspectTiles]->setChecked(false);
     for (int i=0; i<m_editorTabs->count(); ++i)
         getEditorAt(i)->setDrawMode(m_currentDrawMode);
 }
@@ -1671,6 +1685,7 @@ void CCEditMain::onDrawFloodAction(bool checked)
     m_currentDrawMode = EditorWidget::DrawFlood;
     m_actions[ActionSelect]->setChecked(false);
     m_actions[ActionConnect]->setChecked(false);
+    m_actions[ActionInspectTiles]->setChecked(false);
     for (int i = 0; i < m_editorTabs->count(); ++i)
         getEditorAt(i)->setDrawMode(m_currentDrawMode);
 }
@@ -1684,6 +1699,7 @@ void CCEditMain::onPathMakerToggled(bool checked)
     m_currentDrawMode = EditorWidget::DrawPathMaker;
     m_actions[ActionSelect]->setChecked(false);
     m_actions[ActionConnect]->setChecked(false);
+    m_actions[ActionInspectTiles]->setChecked(false);
     for (int i=0; i<m_editorTabs->count(); ++i)
         getEditorAt(i)->setDrawMode(m_currentDrawMode);
 }
@@ -1700,6 +1716,7 @@ void CCEditMain::onConnectToggled(bool mode)
         m_actions[ActionDrawFill]->setChecked(false);
         m_actions[ActionDrawFlood]->setChecked(false);
         m_actions[ActionPathMaker]->setChecked(false);
+        m_actions[ActionInspectTiles]->setChecked(false);
 
         for (int i=0; i<m_editorTabs->count(); ++i)
             getEditorAt(i)->setDrawMode(m_currentDrawMode);
@@ -1719,6 +1736,25 @@ void CCEditMain::onAdvancedMechAction()
         endEdit();
     else
         cancelEdit();
+}
+
+void CCEditMain::onInspectTilesToggled(bool mode)
+{
+    if (!mode && m_currentDrawMode == EditorWidget::DrawInspectTile) {
+        m_actions[m_savedDrawMode]->setChecked(true);
+    } else if (mode) {
+        m_currentDrawMode = EditorWidget::DrawInspectTile;
+        m_actions[ActionSelect]->setChecked(false);
+        m_actions[ActionDrawPencil]->setChecked(false);
+        m_actions[ActionDrawLine]->setChecked(false);
+        m_actions[ActionDrawFill]->setChecked(false);
+        m_actions[ActionDrawFlood]->setChecked(false);
+        m_actions[ActionPathMaker]->setChecked(false);
+        m_actions[ActionConnect]->setChecked(false);
+
+        for (int i = 0; i < m_editorTabs->count(); ++i)
+            getEditorAt(i)->setDrawMode(m_currentDrawMode);
+    }
 }
 
 void CCEditMain::onToggleWallsAction()
@@ -2055,6 +2091,25 @@ void CCEditMain::onTestTWorld(unsigned int levelsetType)
     connect(m_subProc, &QProcess::errorOccurred, this, &CCEditMain::onProcessError);
     m_subProc->start(tworldExe, QStringList{ "-pr", m_tempDat, QString::number(levelNum + 1) });
     QDir::setCurrent(cwd);
+}
+
+void CCEditMain::onTilePicked(int x, int y)
+{
+    EditorWidget* editor = currentEditor();
+    Q_ASSERT(editor);
+
+    if (m_currentDrawMode == EditorWidget::DrawInspectTile) {
+        TileInspector inspector(this);
+        inspector.setTileset(m_currentTileset);
+        ccl::LevelMap& map = editor->levelData()->map();
+        inspector.setTile(map.getFG(x, y), map.getBG(x, y));
+        if (inspector.exec() == QDialog::Accepted) {
+            beginEdit(CCEditHistory::EditMap);
+            map.setFG(x, y, inspector.upper());
+            map.setBG(x, y, inspector.lower());
+            endEdit();
+        }
+    }
 }
 
 void CCEditMain::beginEdit(CCEditHistory::Type type)
@@ -2400,6 +2455,7 @@ void CCEditMain::onTabChanged(int tabIdx)
         m_actions[ActionPaste]->setEnabled(false);
         m_actions[ActionClear]->setEnabled(false);
         m_actions[ActionAdvancedMech]->setEnabled(false);
+        m_actions[ActionInspectTiles]->setEnabled(false);
         m_actions[ActionToggleWalls]->setEnabled(false);
         if (canRunMSCC())
             m_actions[ActionTestChips]->setEnabled(false);
@@ -2427,6 +2483,7 @@ void CCEditMain::onTabChanged(int tabIdx)
     m_actions[ActionPaste]->setEnabled(haveClipboardData());
     m_actions[ActionClear]->setEnabled(hasSelection);
     m_actions[ActionAdvancedMech]->setEnabled(true);
+    m_actions[ActionInspectTiles]->setEnabled(true);
     m_actions[ActionToggleWalls]->setEnabled(true);
     if (canRunMSCC())
         m_actions[ActionTestChips]->setEnabled(true);

@@ -48,7 +48,8 @@ public:
         drawAt(painter, x * m_size, y * m_size,  upper, lower);
     }
 
-    QIcon getIcon(tile_t tile) const { return QIcon(m_base[tile]); }
+    QPixmap getPixmap(tile_t tile) const;
+    QIcon getIcon(tile_t tile) const { return QIcon(getPixmap(tile)); }
     static QString TileName(tile_t tile);
 
 private:

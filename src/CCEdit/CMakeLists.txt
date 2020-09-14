@@ -27,6 +27,7 @@ set(CCEdit_HEADERS
     TestSetup.h
     ErrorCheck.h
     Organizer.h
+    TileInspector.h
 )
 
 set(CCEdit_SOURCES
@@ -40,6 +41,7 @@ set(CCEdit_SOURCES
     TestSetup.cpp
     ErrorCheck.cpp
     Organizer.cpp
+    TileInspector.cpp
 )
 
 if(WIN32)

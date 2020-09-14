@@ -91,6 +91,11 @@ bool CCETileset::load(const QString& filename)
 
 void CCETileset::drawAt(QPainter& painter, int x, int y, tile_t upper, tile_t lower) const
 {
+    if (upper >= ccl::NUM_TILE_TYPES)
+        upper = ccl::Tile_UNUSED_20;
+    if (lower >= ccl::NUM_TILE_TYPES)
+        lower = ccl::Tile_UNUSED_20;
+
     if (lower != 0) {
         painter.drawPixmap(x, y, m_base[lower]);
         painter.drawPixmap(x, y, m_overlay[upper]);
@@ -99,6 +104,12 @@ void CCETileset::drawAt(QPainter& painter, int x, int y, tile_t upper, tile_t lo
     }
 }
 
+QPixmap CCETileset::getPixmap(tile_t tile) const
+{
+    return (tile < ccl::NUM_TILE_TYPES)
+            ? m_base[tile]
+            : m_base[ccl::Tile_UNUSED_20];
+}
 
 #define DIRTILENAME(prefix) \
     prefix " - North", prefix " - West", prefix " - South", prefix " - East"

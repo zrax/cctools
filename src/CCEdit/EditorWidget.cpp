@@ -747,7 +747,9 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
         return;
 
     bool resetOrigin = true;
-    if (m_drawMode == DrawSelect || m_cachedButton == Qt::MidButton) {
+    if (m_drawMode == DrawInspectTile) {
+        emit tilePicked(m_origin.x(), m_origin.y());
+    } else if (m_drawMode == DrawSelect || m_cachedButton == Qt::MidButton) {
         resetOrigin = false;
     } else if (m_drawMode == DrawFlood) {
         if (m_cachedButton == Qt::LeftButton)

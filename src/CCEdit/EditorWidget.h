@@ -29,7 +29,7 @@ class EditorWidget : public QWidget {
 public:
     enum DrawMode {
         DrawPencil, DrawLine, DrawFill, DrawFlood, DrawSelect,
-        DrawButtonConnect, DrawPathMaker,
+        DrawButtonConnect, DrawInspectTile, DrawPathMaker,
     };
 
     enum DrawLayer { LayTop, LayBottom, LayAuto };
@@ -178,6 +178,7 @@ signals:
     void editingStarted();
     void editingFinished();
     void editingCancelled();
+    void tilePicked(int x, int y);
 };
 
 #endif
