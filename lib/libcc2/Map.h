@@ -300,22 +300,39 @@ public:
     static bool haveLower(int type);
     static bool haveDirection(int type);
     static bool supportsWires(int type);
-    static bool isCreature(int type);
-    static bool isBlock(int type);
-    static bool isPanelCanopy(int type);
 
     bool haveLower() const { return haveLower(m_type); }
     bool haveDirection() const { return haveDirection(m_type); }
     bool supportsWires() const { return supportsWires(m_type); }
-    bool isCreature() const { return isCreature(m_type); }
-    bool isBlock() const { return isBlock(m_type); }
-    bool isPanelCanopy() const { return isPanelCanopy(m_type); }
     bool needArrows() const;
 
     bool needXray() const
     {
         return (m_type > Floor) || (m_type == Floor && m_modifier != 0);
     }
+
+    enum TileClass {
+        ClassItem = 0x1,
+        ClassCreature = 0x2,
+        ClassPlayer = 0x4,
+        ClassBlock = 0x8,
+        ClassTerrain = 0x10,
+        ClassPanelCanopy = 0x20,
+        ClassOther = 0x40,
+        ClassInvalid = 0x80,
+    };
+    static TileClass tileClass(int type);
+
+    TileClass tileClass() const { return tileClass(m_type); }
+    bool haveClass(unsigned int classMask) const { return (tileClass() & classMask) != 0; }
+
+    bool isItem() const { return tileClass() == ClassItem; }
+    bool isCreature() const { return tileClass() == ClassCreature; }
+    bool isPlayer() const { return tileClass() == ClassPlayer; }
+    bool isBlock() const { return tileClass() == ClassBlock; }
+    bool isTerrain() const { return tileClass() == ClassTerrain; }
+    bool isPanelCanopy() const { return tileClass() == ClassPanelCanopy; }
+    bool isOtherClass() const { return tileClass() == ClassOther; }
 
     void rotateLeft();
     void rotateRight();

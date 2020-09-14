@@ -812,7 +812,20 @@ static uint32_t cloneModifier(cc2::Tile::Direction dir)
     }
 }
 
-static void pushTile(cc2::Tile& destTile, cc2::Tile tile)
+enum ReplaceMode { REPLACE_NONE, REPLACE_CLASS, REPLACE_TYPE };
+static bool matchTiles(const cc2::Tile& first, const cc2::Tile& second, ReplaceMode mode)
+{
+    switch (mode) {
+    case REPLACE_CLASS:
+        return first.tileClass() == second.tileClass();
+    case REPLACE_TYPE:
+        return first.type() == second.type();
+    default:
+        return false;
+    }
+}
+
+static void pushTile(cc2::Tile& destTile, cc2::Tile tile, ReplaceMode mode)
 {
     *tile.lower() = destTile;
     destTile = std::move(tile);
@@ -821,7 +834,7 @@ static void pushTile(cc2::Tile& destTile, cc2::Tile tile)
     // tile inspector tool...  Otherwise, this just gets messy)
     cc2::Tile* tp = destTile.lower();
     while (tp) {
-        if (tp->type() == destTile.type()) {
+        if (matchTiles(*tp, destTile, mode)) {
             cc2::Tile* lower = tp->lower();
             if (lower)
                 *tp = *tp->lower();
@@ -847,10 +860,13 @@ void CC2EditorWidget::putTile(const cc2::Tile& tile, int x, int y, CombineMode m
             baseTile.setModifier(baseTile.modifier() | tile.modifier());
             baseTile.setTileFlags(baseTile.tileFlags() | tile.tileFlags());
         } else if (tile.haveLower()) {
-            pushTile(curTile, tile);
+            pushTile(curTile, tile, REPLACE_TYPE);
         } else {
             baseTile = tile;
         }
+    } else if (tile.type() == cc2::Tile::Floor && tile.modifier() == 0) {
+        // Floor with no wires should always be a replacement
+        curTile = tile;
     } else if ((tile.type() == cc2::Tile::Floor && tile.modifier() != 0
                     && baseTile.type() == cc2::Tile::Floor)
                 || (tile.type() == cc2::Tile::TrainTracks
@@ -876,8 +892,10 @@ void CC2EditorWidget::putTile(const cc2::Tile& tile, int x, int y, CombineMode m
                     panelFlags |= cc2::Tile::PanelEast;
                 *curPanelCanopy = cc2::Tile::panelTile(panelFlags);
             }
+        } else if (curTile.haveLower()) {
+            pushTile(curTile, tile, REPLACE_CLASS);
         } else {
-            pushTile(curTile, tile);
+            curTile = tile;
         }
     } else if (tile.type() == cc2::Tile::Cloner || tile.type() == cc2::Tile::CC1_Cloner) {
         if (curTile.isCreature()) {
@@ -900,7 +918,7 @@ void CC2EditorWidget::putTile(const cc2::Tile& tile, int x, int y, CombineMode m
             // cloner to match the creature's direction
             curTile = baseTile;
             curTile.setModifier(cloneModifier(tile.direction()));
-            pushTile(curTile, tile);
+            pushTile(curTile, tile, REPLACE_NONE);
         } else if (tile.isBlock()) {
             // Remove anything already on the cloner, and adjust the
             // block to match the cloner's direction
@@ -909,11 +927,15 @@ void CC2EditorWidget::putTile(const cc2::Tile& tile, int x, int y, CombineMode m
             cc2::Tile dirBlock(tile);
             if (dir != cc2::Tile::InvalidDir)
                 dirBlock.setDirection(dir);
-            pushTile(curTile, std::move(dirBlock));
+            pushTile(curTile, std::move(dirBlock), REPLACE_NONE);
         } else {
             // Something unclonable is being placed...
             curTile = tile;
         }
+    } else if (tile.haveLower() && !baseTile.isOtherClass()) {
+        pushTile(curTile, tile, REPLACE_CLASS);
+    } else if (tile.isTerrain()) {
+        baseTile = tile;
     } else {
         // For everything else: just replace the entire tile
         curTile = tile;

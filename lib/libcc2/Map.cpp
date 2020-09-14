@@ -330,53 +330,148 @@ bool cc2::Tile::supportsWires(int type)
     }
 }
 
-bool cc2::Tile::isCreature(int type)
+cc2::Tile::TileClass cc2::Tile::tileClass(int type)
 {
-    switch (type) {
-    case cc2::Tile::Walker:
-    case cc2::Tile::Ship:
-    case cc2::Tile::BlueTank:
-    case cc2::Tile::Ant:
-    case cc2::Tile::Centipede:
-    case cc2::Tile::Ball:
-    case cc2::Tile::Blob:
-    case cc2::Tile::AngryTeeth:
-    case cc2::Tile::FireBox:
-    case cc2::Tile::TimidTeeth:
-    case cc2::Tile::YellowTank:
-    case cc2::Tile::MirrorPlayer:
-    case cc2::Tile::MirrorPlayer2:
-    case cc2::Tile::Rover:
-    case cc2::Tile::FloorMimic:
-    case cc2::Tile::Ghost:
-        return true;
-    default:
-        return false;
-    }
-}
+    // Classification for combine rules (see EditorWidget.cpp)
 
-bool cc2::Tile::isBlock(int type)
-{
     switch (type) {
-    case cc2::Tile::DirtBlock:
-    case cc2::Tile::IceBlock:
-    /* case cc2::Tile::DirBlock: -- not for our purposes */
-        return true;
-    default:
-        return false;
-    }
-}
-
-bool cc2::Tile::isPanelCanopy(int type)
-{
-    switch (type) {
+    case Key_Red:
+    case Key_Blue:
+    case Key_Yellow:
+    case Key_Green:
+    case Chip:
+    case ExtraChip:
+    case IceCleats:
+    case MagnoShoes:
+    case FireShoes:
+    case Flippers:
+    case RedBomb:
+    case TimeBonus:
+    case ToggleClock:
+    case TimeBomb:
+    case Helmet:
+    case HikingBoots:
+    case Lightning:
+    case BowlingBall:
+    case TimePenalty:
+    case RRSign:
+    case Flag10:
+    case Flag100:
+    case Flag1000:
+    case Flag2x:
+    case GreenBomb:
+    case GreenChip:
+    case SteelFoil:
+    case Eye:
+    case Bribe:
+    case SpeedShoes:
+    case Hook:
+        return ClassItem;
+    case Walker:
+    case Ship:
+    case BlueTank:
+    case Ant:
+    case Centipede:
+    case Ball:
+    case Blob:
+    case AngryTeeth:
+    case FireBox:
+    case TimidTeeth:
+    case YellowTank:
+    case MirrorPlayer:
+    case MirrorPlayer2:
+    case Rover:
+    case FloorMimic:
+    case Ghost:
+        return ClassCreature;
+    case Player:
+    case Player2:
+        return ClassPlayer;
+    case DirtBlock:
+    case IceBlock:
+    case DirBlock:
+        return ClassBlock;
+    case Floor:
+    case Ice:
+    case Ice_NE:
+    case Ice_SE:
+    case Ice_SW:
+    case Ice_NW:
+    case Water:
+    case Fire:
+    case Force_N:
+    case Force_E:
+    case Force_S:
+    case Force_W:
+    case ToggleWall:
+    case ToggleFloor:
+    case Slime:
+    case Gravel:
+    case ToggleButton:
+    case TankButton:
+    case PopUpWall:
+    case AppearingWall:
+    case InvisWall:
+    case BlueWall:
+    case BlueFloor:
+    case Dirt:
+    case CloneButton:
+    case TrapButton:
+    case ToolThief:
+    case Trap:
+    case Clue:
+    case Force_Rand:
+    case AreaCtlButton:
+    case RevolvDoor_SW:
+    case RevolvDoor_NW:
+    case RevolvDoor_NE:
+    case RevolvDoor_SE:
+    case Transformer:
+    case TrainTracks:
+    case MaleOnly:
+    case FemaleOnly:
+    case LogicGate:
+    case LogicButton:
+    case FlameJet_Off:
+    case FlameJet_On:
+    case FlameJetButton:
+    case YellowTankCtrl:
+    case StyledFloor:
+    case AsciiGlyph:
+    case LSwitchFloor:
+    case LSwitchWall:
+    case StayUpGWall:
+    case PopDownGWall:
+    case RevLogicButton:
+    case Switch_Off:
+    case Switch_On:
+    case KeyThief:
+    case Turtle:
+        return ClassTerrain;
     case CC1_Barrier_S:
     case CC1_Barrier_E:
     case CC1_Barrier_SE:
     case PanelCanopy:
-        return true;
+        return ClassPanelCanopy;
+    case Wall:
+    case Teleport_Red:
+    case Teleport_Blue:
+    case Teleport_Yellow:
+    case Teleport_Green:
+    case Exit:
+    case Door_Red:
+    case Door_Blue:
+    case Door_Yellow:
+    case Door_Green:
+    case Socket:
+    case CC1_Cloner:
+    case Cloner:
+    case SteelWall:
+    case StyledWall:
+    case Disallow:
+        return ClassOther;
     default:
-        return false;
+        return ClassInvalid;
     }
 }
 
@@ -393,19 +488,15 @@ bool cc2::Tile::needArrows() const
     }
 }
 
-static uint8_t rol4(uint8_t bits)
+static constexpr uint8_t rol4(uint8_t bits)
 {
-    uint8_t rbits = (bits & 0x0f) << 1;
-    if (bits & 0x08)
-        rbits = (rbits & 0x0f) | 0x01;
+    const uint8_t rbits = ((bits << 1) & 0x0f) | ((bits & 0x08) >> 3);
     return (bits & 0xf0) | rbits;
 }
 
-static uint8_t ror4(uint8_t bits)
+static constexpr  uint8_t ror4(uint8_t bits)
 {
-    uint8_t rbits = (bits & 0x0f) >> 1;
-    if (bits & 0x01)
-        rbits |= 0x08;
+    const uint8_t rbits = ((bits >> 1) & 0x07) | ((bits & 0x01) << 3);
     return (bits & 0xf0) | rbits;
 }
 
