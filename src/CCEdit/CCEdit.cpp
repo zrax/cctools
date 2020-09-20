@@ -60,24 +60,6 @@
 #include "CommonWidgets/About.h"
 #include "CommonWidgets/EditorTabWidget.h"
 
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <windows.h>
-static bool canRunMSCC()
-{
-    BOOL isWow64 = FALSE;
-    (void)IsWow64Process(GetCurrentProcess(), &isWow64);
-    return !isWow64;
-}
-#else
-static bool canRunMSCC()
-{
-    // TODO: Only for platforms we know how to do it (e.g. with wine)
-    return true;
-}
-#endif
-
 static const QString s_appTitle = QStringLiteral("CCEdit " CCTOOLS_VERSION);
 static const QString s_clipboardFormat = QStringLiteral("CHIPEDIT MAPSECT");
 
@@ -254,12 +236,10 @@ CCEditMain::CCEditMain(QWidget* parent)
     zoomGroup->addAction(m_actions[ActionZoomCust]);
     zoomGroup->addAction(m_actions[ActionZoomFit]);
 
-    if (canRunMSCC()) {
-        m_actions[ActionTestChips] = new QAction(tr("Test in &MSCC"), this);
-        m_actions[ActionTestChips]->setStatusTip(tr("Test the current level in Chips.exe"));
-        m_actions[ActionTestChips]->setShortcut(Qt::Key_F5);
-        m_actions[ActionTestChips]->setEnabled(false);
-    }
+    m_actions[ActionTestChips] = new QAction(tr("Test in &MSCC"), this);
+    m_actions[ActionTestChips]->setStatusTip(tr("Test the current level in Chips.exe"));
+    m_actions[ActionTestChips]->setShortcut(Qt::Key_F5);
+    m_actions[ActionTestChips]->setEnabled(false);
     m_actions[ActionTestTWorldCC] = new QAction(tr("Test in &Tile World (MSCC)"), this);
     m_actions[ActionTestTWorldCC]->setStatusTip(tr("Test the current level in Tile World with the MSCC Ruleset"));
     m_actions[ActionTestTWorldCC]->setShortcut(Qt::Key_F6);
@@ -598,8 +578,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     zoomMenu->addAction(m_actions[ActionZoomFit]);
 
     QMenu* testMenu = menuBar()->addMenu(tr("Te&st"));
-    if (canRunMSCC())
-        testMenu->addAction(m_actions[ActionTestChips]);
+    testMenu->addAction(m_actions[ActionTestChips]);
     testMenu->addAction(m_actions[ActionTestTWorldCC]);
     testMenu->addAction(m_actions[ActionTestTWorldLynx]);
     testMenu->addSeparator();
@@ -679,8 +658,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionZoom125], &QAction::triggered, this, [this] { setZoomFactor(0.125); });
     connect(m_actions[ActionZoomCust], &QAction::triggered, this, &CCEditMain::onZoomCust);
     connect(m_actions[ActionZoomFit], &QAction::triggered, this, &CCEditMain::onZoomFit);
-    if (canRunMSCC())
-        connect(m_actions[ActionTestChips], &QAction::triggered, this, &CCEditMain::onTestChips);
+    connect(m_actions[ActionTestChips], &QAction::triggered, this, &CCEditMain::onTestChips);
     connect(m_actions[ActionTestTWorldCC], &QAction::triggered, this, [this] {
         onTestTWorld(ccl::Levelset::TypeMS);
     });
@@ -1903,8 +1881,9 @@ void CCEditMain::onTestChips()
                    "Please configure MSCC in the Test Setup dialog."));
         return;
     }
-#ifndef Q_OS_WIN
+
     QString winePath = settings.value("WineExe").toString();
+#ifndef Q_OS_WIN
     if (winePath.isEmpty() || !QFile::exists(winePath)) {
         // Try standard paths
         winePath = QStandardPaths::findExecutable("wine");
@@ -2016,13 +1995,13 @@ void CCEditMain::onTestChips()
     connect(m_subProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, &CCEditMain::onProcessFinished);
     connect(m_subProc, &QProcess::errorOccurred, this, &CCEditMain::onProcessError);
-#ifdef Q_OS_WIN
-    // Native execution
-    m_subProc->start(m_tempExe, QStringList());
-#else
-    // Try to use WINE
-    m_subProc->start(winePath, QStringList{ m_tempExe });
-#endif
+    if (!winePath.isEmpty()) {
+        // Launch with Wine (Unix) or WineVDM (Windows)
+        m_subProc->start(winePath, QStringList{ m_tempExe });
+    } else {
+        // Native execution
+        m_subProc->start(m_tempExe, QStringList());
+    }
     QDir::setCurrent(cwd);
 }
 
@@ -2457,8 +2436,7 @@ void CCEditMain::onTabChanged(int tabIdx)
         m_actions[ActionAdvancedMech]->setEnabled(false);
         m_actions[ActionInspectTiles]->setEnabled(false);
         m_actions[ActionToggleWalls]->setEnabled(false);
-        if (canRunMSCC())
-            m_actions[ActionTestChips]->setEnabled(false);
+        m_actions[ActionTestChips]->setEnabled(false);
         m_actions[ActionTestTWorldCC]->setEnabled(false);
         m_actions[ActionTestTWorldLynx]->setEnabled(false);
         return;
@@ -2485,8 +2463,7 @@ void CCEditMain::onTabChanged(int tabIdx)
     m_actions[ActionAdvancedMech]->setEnabled(true);
     m_actions[ActionInspectTiles]->setEnabled(true);
     m_actions[ActionToggleWalls]->setEnabled(true);
-    if (canRunMSCC())
-        m_actions[ActionTestChips]->setEnabled(true);
+    m_actions[ActionTestChips]->setEnabled(true);
     m_actions[ActionTestTWorldCC]->setEnabled(true);
     m_actions[ActionTestTWorldLynx]->setEnabled(true);
 }

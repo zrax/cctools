@@ -46,23 +46,6 @@
 #define QT_SKIP_EMPTY_PARTS QString::SkipEmptyParts
 #endif
 
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-static bool canRunMSCC()
-{
-    BOOL isWow64 = FALSE;
-    (void)IsWow64Process(GetCurrentProcess(), &isWow64);
-    return !isWow64;
-}
-#else
-static bool canRunMSCC()
-{
-    // TODO: Only for platforms we know how to do it (e.g. with wine)
-    return true;
-}
-#endif
-
 static std::unique_ptr<ccl::Levelset>
 load_levelset(const QString& filename, QWidget* self, int* dacLastLevel = nullptr)
 {
@@ -192,11 +175,9 @@ CCPlayMain::CCPlayMain(QWidget* parent)
     m_levelList->setColumnWidth(5, m_levelList->fontMetrics().boundingRect(tr("My Score")).width() + 16);
     splitLevelsetData->addWidget(m_levelList);
 
-    if (canRunMSCC()) {
-        m_actions[ActionPlayMSCC] = new QAction(QIcon(":/res/play-chips.png"), tr("Play (MSCC)"), this);
-        m_actions[ActionPlayMSCC]->setStatusTip(tr("Play level in CHIPS.EXE (F5)"));
-        m_actions[ActionPlayMSCC]->setShortcut(Qt::Key_F5);
-    }
+    m_actions[ActionPlayMSCC] = new QAction(QIcon(":/res/play-chips.png"), tr("Play (MSCC)"), this);
+    m_actions[ActionPlayMSCC]->setStatusTip(tr("Play level in CHIPS.EXE (F5)"));
+    m_actions[ActionPlayMSCC]->setShortcut(Qt::Key_F5);
     m_actions[ActionPlayTWorld] = new QAction(QIcon(":/res/play-tworld.png"), tr("Play (TWorld)"), this);
     m_actions[ActionPlayTWorld]->setStatusTip(tr("Play level in Tile World (F6)"));
     m_actions[ActionPlayTWorld]->setShortcut(Qt::Key_F6);
@@ -220,8 +201,7 @@ CCPlayMain::CCPlayMain(QWidget* parent)
     m_playButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     m_playButton->setPopupMode(QToolButton::MenuButtonPopup);
     m_playButton->setMenu(new QMenu(m_playButton));
-    if (canRunMSCC())
-        m_playButton->menu()->addAction(m_actions[ActionPlayMSCC]);
+    m_playButton->menu()->addAction(m_actions[ActionPlayMSCC]);
     m_playButton->menu()->addAction(m_actions[ActionPlayTWorld]);
     auto layPlayButton = new QGridLayout(alignPlayButton);
     layPlayButton->setContentsMargins(0, 0, 0, 0);
@@ -257,8 +237,7 @@ CCPlayMain::CCPlayMain(QWidget* parent)
     setCentralWidget(contents);
     statusBar();
 
-    if (canRunMSCC())
-        connect(m_actions[ActionPlayMSCC], &QAction::triggered, this, &CCPlayMain::onPlayMSCC);
+    connect(m_actions[ActionPlayMSCC], &QAction::triggered, this, &CCPlayMain::onPlayMSCC);
     connect(m_actions[ActionPlayTWorld], &QAction::triggered, this, &CCPlayMain::onPlayTWorld);
     connect(m_actions[ActionTool], &QAction::triggered, this, &CCPlayMain::onToolDefault);
     connect(m_openToolButton->menu(), &QMenu::triggered, this, &CCPlayMain::onTool);
@@ -359,10 +338,8 @@ void CCPlayMain::refreshTools()
     const QString defaultGame = settings.value("DefaultGame").toString();
     if (defaultGame == "TWorld2" || defaultGame == "TWorld")
         m_playButton->setDefaultAction(m_actions[ActionPlayTWorld]);
-    else if (canRunMSCC())
-        m_playButton->setDefaultAction(m_actions[ActionPlayMSCC]);
     else
-        m_playButton->setDefaultAction(m_actions[ActionPlayTWorld]);
+        m_playButton->setDefaultAction(m_actions[ActionPlayMSCC]);
 
     QStringList tools = settings.value("EditorNames").toStringList();
     QStringList toolIcons = settings.value("EditorIcons").toStringList();
@@ -417,8 +394,9 @@ void CCPlayMain::onPlayMSCC()
                    "Please configure MSCC in the CCPlay settings."));
         return;
     }
-#ifndef Q_OS_WIN
+
     QString winePath = settings.value("WineExe").toString();
+#ifndef Q_OS_WIN
     if (winePath.isEmpty() || !QFile::exists(winePath)) {
         // Try standard paths
         winePath = QStandardPaths::findExecutable("wine");
@@ -557,13 +535,13 @@ void CCPlayMain::onPlayMSCC()
     }
 
     QDir::setCurrent(exePath.absolutePath());
-#ifdef Q_OS_WIN
-    // Native execution
-    QProcess::execute(tempExe, QStringList());
-#else
-    // Try to use WINE
-    QProcess::execute(winePath, QStringList() << tempExe);
-#endif
+    if (!winePath.isEmpty()) {
+        // Launch with Wine (Unix) or WineVDM (Windows)
+        QProcess::execute(winePath, QStringList{ tempExe });
+    } else {
+        // Native execution
+        QProcess::execute(tempExe, QStringList());
+    }
     QDir::setCurrent(cwd);
 
 

@@ -105,17 +105,21 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     auto exeCompleter = new FileCompleter(EXE_LIST, this);
     auto winExeCompleter = new FileCompleter(QStringList{ "*.exe" }, this);
 
-    QTabWidget* dlgTabs = new QTabWidget(this);
-    QWidget* tabPlay = new QWidget(dlgTabs);
-#ifndef Q_OS_WIN
+    auto dlgTabs = new QTabWidget(this);
+    auto tabPlay = new QWidget(dlgTabs);
     m_winePath = new QLineEdit(settings.value("WineExe").toString(), tabPlay);
     m_winePath->setCompleter(exeCompleter);
-    QLabel* lblWinePath = new QLabel(tr("&WINE Path:"), tabPlay);
+    auto lblWinePath = new QLabel(
+#                           ifdef Q_OS_WIN
+                                  tr("&WineVDM Path:"),
+#                           else
+                                  tr("&WINE Path:"),
+#                           endif
+                                  tabPlay);
     lblWinePath->setBuddy(m_winePath);
-    QToolButton* browseWine = new QToolButton(tabPlay);
+    auto browseWine = new QToolButton(tabPlay);
     browseWine->setIcon(QIcon(":/res/document-open-folder.png"));
     browseWine->setAutoRaise(true);
-#endif
 
     m_msccPath = new QLineEdit(settings.value("ChipsExe").toString(), tabPlay);
     m_msccPath->setCompleter(winExeCompleter);
@@ -152,11 +156,9 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     layPlay->setVerticalSpacing(4);
     layPlay->setHorizontalSpacing(4);
     int row = -1;
-#ifndef Q_OS_WIN
     layPlay->addWidget(lblWinePath, ++row, 0);
     layPlay->addWidget(m_winePath, row, 1);
     layPlay->addWidget(browseWine, row, 2);
-#endif
     layPlay->addWidget(lblMsccPath, ++row, 0);
     layPlay->addWidget(m_msccPath, row, 1);
     layPlay->addWidget(browseChips, row, 2);
@@ -213,7 +215,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
             QDialogButtonBox::Save | QDialogButtonBox::Cancel,
             Qt::Horizontal, this);
 
-    QGridLayout* layout = new QGridLayout(this);
+    auto layout = new QGridLayout(this);
     layout->setContentsMargins(8, 8, 8, 8);
     layout->setVerticalSpacing(8);
     layout->addWidget(dlgTabs, 0, 0);
@@ -222,17 +224,18 @@ SettingsDialog::SettingsDialog(QWidget* parent)
             tr("Note: Leave executable paths empty to try system-installed locations"),
             this), 1, 0);
 #else
-    layout->addWidget(new QLabel(
-            tr("Note: MSCC will not work on 64-bit Windows platforms"),
-            this), 1, 0);
+    auto winevdmLabel = new QLabel(
+            tr("Note: <a href=\"https://github.com/otya128/winevdm\">WineVDM</a>"
+               " is required to run MSCC on 64-bit Windows platforms"),
+            this);
+    winevdmLabel->setOpenExternalLinks(true);
+    layout->addWidget(winevdmLabel, 1, 0);
 #endif
     layout->addWidget(buttons, 2, 0);
 
     connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
     connect(buttons, &QDialogButtonBox::accepted, this, &SettingsDialog::onSaveSettings);
-#ifndef Q_OS_WIN
     connect(browseWine, &QToolButton::clicked, this, &SettingsDialog::onBrowseWine);
-#endif
     connect(browseChips, &QToolButton::clicked, this, &SettingsDialog::onBrowseChips);
     connect(browseTWorld, &QToolButton::clicked, this, &SettingsDialog::onBrowseTWorld);
     connect(m_toolsList, &QListWidget::currentRowChanged, this, &SettingsDialog::onSelectTool);
@@ -253,9 +256,7 @@ void SettingsDialog::refreshTools()
 void SettingsDialog::onSaveSettings()
 {
     QSettings settings("CCTools", "CCPlay");
-#ifndef Q_OS_WIN
     settings.setValue("WineExe", m_winePath->text());
-#endif
     settings.setValue("ChipsExe", m_msccPath->text());
     settings.setValue("TWorldExe", m_tworldPath->text());
     settings.setValue("UseCCPatch", m_useCCPatch->isChecked());
@@ -271,15 +272,18 @@ void SettingsDialog::onSaveSettings()
     accept();
 }
 
-#ifndef Q_OS_WIN
 void SettingsDialog::onBrowseWine()
 {
-    QString path = QFileDialog::getOpenFileName(this, tr("Browse for Wine executable"),
+    QString path = QFileDialog::getOpenFileName(this,
+#ifdef Q_OS_WIN
+                                tr("Browse for WineVDM executable"),
+#else
+                                tr("Browse for Wine executable"),
+#endif
                                 m_winePath->text(), EXE_FILTER);
     if (!path.isEmpty())
         m_winePath->setText(path);
 }
-#endif
 
 void SettingsDialog::onBrowseChips()
 {

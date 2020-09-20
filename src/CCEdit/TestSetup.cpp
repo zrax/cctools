@@ -44,15 +44,19 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     auto exeCompleter = new FileCompleter(EXE_LIST, this);
     auto winExeCompleter = new FileCompleter(QStringList{ "*.exe" }, this);
 
-#ifndef Q_OS_WIN
     m_winePath = new QLineEdit(settings.value("WineExe").toString(), this);
     m_winePath->setCompleter(exeCompleter);
-    QLabel* lblWinePath = new QLabel(tr("&WINE Path:"), this);
+    auto lblWinePath = new QLabel(
+#                           ifdef Q_OS_WIN
+                                  tr("&WineVDM Path:"),
+#                           else
+                                  tr("&WINE Path:"),
+#                           endif
+                                  this);
     lblWinePath->setBuddy(m_winePath);
-    QToolButton* browseWine = new QToolButton(this);
+    auto browseWine = new QToolButton(this);
     browseWine->setIcon(QIcon(":/res/document-open-folder-sm.png"));
     browseWine->setAutoRaise(true);
-#endif
 
     m_msccPath = new QLineEdit(settings.value("ChipsExe").toString(), this);
     m_msccPath->setCompleter(winExeCompleter);
@@ -77,16 +81,14 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     m_usePGPatch = new QCheckBox(tr("MSCC: Use PGChip (Ice Blocks)"), this);
     m_usePGPatch->setChecked(settings.value("TestPGPatch", false).toBool());
 
-    QGridLayout* layout = new QGridLayout(this);
+    auto layout = new QGridLayout(this);
     layout->setContentsMargins(8, 8, 8, 8);
     layout->setVerticalSpacing(4);
     layout->setHorizontalSpacing(4);
     int row = 0;
-#ifndef Q_OS_WIN
     layout->addWidget(lblWinePath, row, 0);
     layout->addWidget(m_winePath, row, 1);
     layout->addWidget(browseWine, row, 2);
-#endif
     layout->addWidget(lblMsccPath, ++row, 0);
     layout->addWidget(m_msccPath, row, 1);
     layout->addWidget(browseChips, row, 2);
@@ -100,9 +102,12 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
             tr("Note: Leave WINE or Tile World paths empty to use system-installed locations"),
             this), ++row, 0, 1, 3);
 #else
-    layout->addWidget(new QLabel(
-            tr("Note: MSCC will not work on 64-bit Windows platforms"),
-            this), ++row, 0, 1, 3);
+    auto winevdmLabel = new QLabel(
+            tr("Note: <a href=\"https://github.com/otya128/winevdm\">WineVDM</a>"
+               " is required to run MSCC on 64-bit Windows platforms"),
+            this);
+    winevdmLabel->setOpenExternalLinks(true);
+    layout->addWidget(winevdmLabel, ++row, 0, 1, 3);
 #endif
     layout->addItem(new QSpacerItem(0, 0, QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding),
                     ++row, 0, 1, 3);
@@ -111,9 +116,7 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
 
     connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
     connect(buttons, &QDialogButtonBox::accepted, this, &TestSetupDialog::onSaveSettings);
-#ifndef Q_OS_WIN
     connect(browseWine, &QToolButton::clicked, this, &TestSetupDialog::onBrowseWine);
-#endif
     connect(browseChips, &QToolButton::clicked, this, &TestSetupDialog::onBrowseChips);
     connect(browseTWorld, &QToolButton::clicked, this, &TestSetupDialog::onBrowseTWorld);
 }
@@ -121,9 +124,7 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
 void TestSetupDialog::onSaveSettings()
 {
     QSettings settings("CCTools", "CCEdit");
-#ifndef Q_OS_WIN
     settings.setValue("WineExe", m_winePath->text());
-#endif
     settings.setValue("ChipsExe", m_msccPath->text());
     settings.setValue("TWorldExe", m_tworldPath->text());
     settings.setValue("TestCCPatch", m_useCCPatch->isChecked());
@@ -131,15 +132,18 @@ void TestSetupDialog::onSaveSettings()
     accept();
 }
 
-#ifndef Q_OS_WIN
 void TestSetupDialog::onBrowseWine()
 {
-    QString path = QFileDialog::getOpenFileName(this, tr("Browse for Wine executable"),
+    QString path = QFileDialog::getOpenFileName(this,
+#ifdef Q_OS_WIN
+                                tr("Browse for WineVDM executable"),
+#else
+                                tr("Browse for Wine executable"),
+#endif
                                 m_winePath->text(), EXE_FILTER);
     if (!path.isEmpty())
         m_winePath->setText(path);
 }
-#endif
 
 void TestSetupDialog::onBrowseChips()
 {

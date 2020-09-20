@@ -37,9 +37,7 @@ public:
     static QIcon IconForTool(const QString& iconName);
 
 private:
-#ifndef Q_OS_WIN
     QLineEdit* m_winePath;
-#endif
     QLineEdit* m_msccPath;
     QLineEdit* m_tworldPath;
     QComboBox* m_defaultGame;
@@ -61,9 +59,7 @@ private:
 
 private slots:
     void onSaveSettings();
-#ifndef Q_OS_WIN
     void onBrowseWine();
-#endif
     void onBrowseChips();
     void onBrowseTWorld();
     void onSelectTool(int);
