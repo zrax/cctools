@@ -310,7 +310,6 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     auto lockLabel = new QLabel(tr("&Lock:"), m_mapProperties);
     lockLabel->setBuddy(m_lockText);
     m_editorVersion = new QLineEdit(m_mapProperties);
-    m_editorVersion->setReadOnly(true);
     auto editorVersionLabel = new QLabel(tr("&Version:"), m_mapProperties);
     editorVersionLabel->setBuddy(m_editorVersion);
 
@@ -2117,7 +2116,7 @@ void CC2EditMain::onEditorVersionChanged(const QString& value)
     cc2::Map* map = editor->map();
     if (map->editorVersion() != value.toLatin1().constData()) {
         editor->beginEdit(CC2EditHistory::EditVersion);
-        map->setVersion(value.toLatin1().constData());
+        map->setEditorVersion(value.toLatin1().constData());
         editor->endEdit();
     }
 }
