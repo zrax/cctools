@@ -986,7 +986,7 @@ void CCEditMain::closeEvent(QCloseEvent* event)
         return;
     }
 
-    if (m_subProc != 0) {
+    if (m_subProc) {
         // Don't handle events after we're exiting.
         // Note that MSCC temp file cleanup will not take place if this happens!
         m_subProc->disconnect();

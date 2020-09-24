@@ -1379,11 +1379,24 @@ void CC2EditMain::closeEvent(QCloseEvent* event)
     // TODO: Check for modification first
     closeAllTabs();
 
-    if (m_subProc != 0) {
+    if (m_subProc) {
         // Don't handle events after we're exiting.
         // Note that temp file cleanup will not take place if this happens!
         m_subProc->disconnect();
     }
+
+    QSettings settings("CCTools", "CC2Edit");
+    settings.setValue("WindowMaximized", (windowState() & Qt::WindowMaximized) != 0);
+    showNormal();
+    settings.setValue("WindowSize", size());
+    settings.setValue("WindowState", saveState());
+    settings.setValue("ZoomFactor", m_zoomFactor);
+    settings.setValue("ViewButtons", m_actions[ActionViewButtons]->isChecked());
+    settings.setValue("ViewActivePlayer", m_actions[ActionViewActivePlayer]->isChecked());
+    settings.setValue("ViewViewport", m_actions[ActionViewViewport]->isChecked());
+    settings.setValue("ViewMonsterPaths", m_actions[ActionViewMonsterPaths]->isChecked());
+    settings.setValue("TilesetName", m_currentTileset->filename());
+    settings.setValue("DialogDir", m_dialogDir);
 }
 
 void CC2EditMain::resizeEvent(QResizeEvent* event)
