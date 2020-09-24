@@ -22,6 +22,7 @@
 #include "TestSetup.h"
 #include "ImportDialog.h"
 #include "ResizeDialog.h"
+#include "HintEdit.h"
 #include "libcc2/GameLogic.h"
 #include "CommonWidgets/About.h"
 #include "CommonWidgets/EditorTabWidget.h"
@@ -1718,12 +1719,11 @@ void CC2EditMain::onTilePicked(int x, int y)
             return;
 
         std::string clue = editor->map()->clueForTile(x, y);
-        bool ok = false;
-        QString clueText = QInputDialog::getMultiLineText(this, tr("Edit Hint Text"),
-                                tr("Hint text for (%1, %2):").arg(x).arg(y),
-                                QString::fromLatin1(clue.c_str()), &ok);
-        if (ok) {
+        HintEditDialog dialog(x, y, this);
+        dialog.setText(QString::fromLatin1(clue.c_str()));
+        if (dialog.exec() == QDialog::Accepted) {
             editor->beginEdit(CC2EditHistory::EditMap);
+            const QString clueText = dialog.text();
             editor->map()->setClueForTile(x, y, clueText.toLatin1().constData());
             editor->endEdit();
             updateMapProperties(editor->map());

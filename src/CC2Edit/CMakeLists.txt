@@ -19,6 +19,7 @@ include_directories(${CCTools_SOURCE_DIR}/lib)
 set(CC2Edit_HEADERS
     CC2Edit.h
     EditorWidget.h
+    HintEdit.h
     History.h
     ImportDialog.h
     ResizeDialog.h
@@ -32,6 +33,7 @@ set(CC2Edit_HEADERS
 set(CC2Edit_SOURCES
     CC2Edit.cpp
     EditorWidget.cpp
+    HintEdit.cpp
     History.cpp
     ImportDialog.cpp
     ResizeDialog.cpp
