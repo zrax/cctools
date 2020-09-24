@@ -180,7 +180,6 @@ private:
 
     EditorTabWidget* m_editorTabs;
 
-    QString m_dialogDir;
     QProcess* m_subProc;
     QString m_testGameDir;
 

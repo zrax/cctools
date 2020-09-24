@@ -108,7 +108,6 @@ private:
     ccl::DacFile m_dacInfo;
     CCX::Levelset m_ccxFile;
     QString m_levelsetFilename;
-    QString m_dialogDir;
     bool m_useDac, m_haveCcx;
     bool m_checkSave;
 

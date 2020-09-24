@@ -719,7 +719,6 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionViewViewport]->setChecked(settings.value("ViewViewport", true).toBool());
     m_actions[ActionViewMonsterPaths]->setChecked(settings.value("ViewMonsterPaths", false).toBool());
     m_actions[ActionViewErrors]->setChecked(settings.value("ViewErrors", true).toBool());
-    m_dialogDir = settings.value("DialogDir").toString();
 
     // Make sure the toolbox docks are visible
     QDockWidget* docks[] = {m_levelManDock, sortedTilesDock, allTilesDock};
@@ -1005,7 +1004,6 @@ void CCEditMain::closeEvent(QCloseEvent* event)
     settings.setValue("ViewMonsterPaths", m_actions[ActionViewMonsterPaths]->isChecked());
     settings.setValue("ViewErrors", m_actions[ActionViewErrors]->isChecked());
     settings.setValue("TilesetName", m_currentTileset->filename());
-    settings.setValue("DialogDir", m_dialogDir);
 }
 
 void CCEditMain::resizeEvent(QResizeEvent* event)
@@ -1295,11 +1293,13 @@ void CCEditMain::createNewLevelset()
 
 void CCEditMain::onOpenAction()
 {
+    QSettings settings("CCTools", "CCEdit");
     QString filename = QFileDialog::getOpenFileName(this, tr("Open Levelset..."),
-                            m_dialogDir, "All Levelsets (*.dat *.dac *.ccl)");
+                            settings.value("DialogDir").toString(),
+                            tr("All Levelsets (*.dat *.dac *.ccl)"));
     if (!filename.isEmpty()) {
         loadLevelset(filename);
-        m_dialogDir = QFileInfo(filename).dir().absolutePath();
+        settings.setValue("DialogDir", QFileInfo(filename).dir().absolutePath());
     }
 }
 
@@ -1313,22 +1313,24 @@ void CCEditMain::onSaveAction()
 
 void CCEditMain::onSaveAsAction()
 {
+    QSettings settings("CCTools", "CCEdit");
     QString filter = m_useDac ? "TWorld Levelsets (*.dac)"
                               : "CC Levelsets (*.dat *.ccl)";
 
     if (m_levelsetFilename.isEmpty())
-        m_levelsetFilename = m_dialogDir;
+        m_levelsetFilename = settings.value("DialogDir").toString();
     QString filename = QFileDialog::getSaveFileName(this, tr("Save Levelset..."),
                                                     m_levelsetFilename, filter);
     if (!filename.isEmpty()) {
         saveLevelset(filename);
-        m_dialogDir = QFileInfo(filename).dir().absolutePath();
+        settings.setValue("DialogDir", QFileInfo(filename).dir().absolutePath());
     }
 }
 
 void CCEditMain::onReportAction()
 {
-    QString reportPath = m_levelsetFilename.isEmpty() ? m_dialogDir
+    QSettings settings("CCTools", "CCEdit");
+    QString reportPath = m_levelsetFilename.isEmpty() ? settings.value("DialogDir").toString()
                        : m_levelsetFilename.left(m_levelsetFilename.lastIndexOf('.')) + ".html";
     QString filename = QFileDialog::getSaveFileName(this, tr("Save Report..."),
                                                     reportPath, "HTML Source (*.html)");

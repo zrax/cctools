@@ -937,7 +937,6 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_actions[ActionViewActivePlayer]->setChecked(settings.value("ViewActivePlayer", false).toBool());
     m_actions[ActionViewViewport]->setChecked(settings.value("ViewViewport", true).toBool());
     m_actions[ActionViewMonsterPaths]->setChecked(settings.value("ViewMonsterPaths", false).toBool());
-    m_dialogDir = settings.value("DialogDir").toString();
 
     // Make sure the toolbox docks are visible
     QDockWidget* docks[] = {m_gamePropsDock, m_mapPropsDock, sortedTilesDock, allTilesDock};
@@ -1396,7 +1395,6 @@ void CC2EditMain::closeEvent(QCloseEvent* event)
     settings.setValue("ViewViewport", m_actions[ActionViewViewport]->isChecked());
     settings.setValue("ViewMonsterPaths", m_actions[ActionViewMonsterPaths]->isChecked());
     settings.setValue("TilesetName", m_currentTileset->filename());
-    settings.setValue("DialogDir", m_dialogDir);
 }
 
 void CC2EditMain::resizeEvent(QResizeEvent* event)
@@ -1419,22 +1417,24 @@ void CC2EditMain::resizeEvent(QResizeEvent* event)
 
 void CC2EditMain::onOpenAction()
 {
+    QSettings settings("CCTools", "CC2Edit");
     QString filename = QFileDialog::getOpenFileName(this, tr("Open Map..."),
-                            m_dialogDir, tr("All supported files (*.c2m *.c2g);;"
-                                            "CC2 Maps (*.c2m);;"
-                                            "CC2 Game Scripts (*.c2g)"));
+                            settings.value("DialogDir").toString(),
+                            tr("All supported files (*.c2m *.c2g);;"
+                               "CC2 Maps (*.c2m);;"
+                               "CC2 Game Scripts (*.c2g)"));
     if (!filename.isEmpty()) {
         loadFile(filename);
-        QDir dir(filename);
-        dir.cdUp();
-        m_dialogDir = dir.absolutePath();
+        settings.setValue("DialogDir", QFileInfo(filename).dir().absolutePath());
     }
 }
 
 void CC2EditMain::onImportCC1Action()
 {
+    QSettings settings("CCTools", "CC2Edit");
     QString filename = QFileDialog::getOpenFileName(this, tr("Import Map..."),
-                            m_dialogDir, tr("CC1 Levelsets (*.ccl *.dat)"));
+                            settings.value("Import/DialogDir").toString(),
+                            tr("CC1 Levelsets (*.ccl *.dat)"));
     if (!filename.isEmpty()) {
         ImportDialog dialog(this);
         dialog.loadLevelset(filename);
@@ -1452,6 +1452,8 @@ void CC2EditMain::onImportCC1Action()
         CC2EditorWidget* editor = addEditor(map, tempName, false);
         editor->resetClean();
         m_mapPropsDock->raise();
+
+        settings.setValue("Import/DialogDir", QFileInfo(filename).dir().absolutePath());
     }
 }
 

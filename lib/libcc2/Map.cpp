@@ -1075,7 +1075,7 @@ static cc2::Tile mapCC1Tile(tile_t type, int& chipsLeft)
     }
 }
 
-void cc2::Map::importFrom(const ccl::LevelData* level)
+void cc2::Map::importFrom(const ccl::LevelData* level, bool autoResize)
 {
     m_version = "7";
     m_lock = std::string();
@@ -1106,6 +1106,71 @@ void cc2::Map::importFrom(const ccl::LevelData* level)
             if (lower)
                 *lower = mapCC1Tile(level->map().getBG(x, y), chipsLeft);
         }
+    }
+
+    if (autoResize) {
+        const Tile blankTile;
+        int blankRows = 0;
+        for (int y = 0; y < m_mapData.height(); ++y, ++blankRows) {
+            bool rowEmpty = true;
+            for (int x = 0; rowEmpty && x < m_mapData.width(); ++x) {
+                if (m_mapData.tile(x, y) != blankTile)
+                    rowEmpty = false;
+            }
+            if (!rowEmpty)
+                break;
+        }
+        if (blankRows) {
+            // Move tiles up blankCount rows
+            for (int y = 0; y < m_mapData.height() - blankRows; ++y) {
+                for (int x = 0; x < m_mapData.width(); ++x)
+                    m_mapData.tile(x, y) = m_mapData.tile(x, y + blankRows);
+            }
+            m_mapData.resize(m_mapData.width(), m_mapData.height() - blankRows);
+        }
+
+        int blankCols = 0;
+        for (int x = 0; x < m_mapData.width(); ++x, ++blankCols) {
+            bool colEmpty = true;
+            for (int y = 0; colEmpty && y < m_mapData.height(); ++y) {
+                if (m_mapData.tile(x, y) != blankTile)
+                    colEmpty = false;
+            }
+            if (!colEmpty)
+                break;
+        }
+        if (blankCols) {
+            // Move tiles left blankCount columns
+            for (int x = 0; x < m_mapData.width() - blankCols; ++x) {
+                for (int y = 0; y < m_mapData.height(); ++y)
+                    m_mapData.tile(x, y) = m_mapData.tile(x + blankCols, y);
+            }
+            m_mapData.resize(m_mapData.width() - blankCols, m_mapData.height());
+        }
+
+        blankRows = 0;
+        blankCols = 0;
+        for (int y = m_mapData.height() - 1; y > 0; --y, ++blankRows) {
+            bool rowEmpty = true;
+            for (int x = 0; rowEmpty && x < m_mapData.width(); ++x) {
+                if (m_mapData.tile(x, y) != blankTile)
+                    rowEmpty = false;
+            }
+            if (!rowEmpty)
+                break;
+        }
+        for (int x = m_mapData.width() - 1; x > 0; --x, ++blankCols) {
+            bool colEmpty = true;
+            for (int y = 0; colEmpty && y < m_mapData.height(); ++y) {
+                if (m_mapData.tile(x, y) != blankTile)
+                    colEmpty = false;
+            }
+            if (!colEmpty)
+                break;
+        }
+        // Ensure 10x10 minimum size even with blank area removal
+        m_mapData.resize(std::max(10, m_mapData.width() - blankCols),
+                         std::max(10, m_mapData.height() - blankRows));
     }
 }
 

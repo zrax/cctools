@@ -22,18 +22,25 @@
 
 #include <QLabel>
 #include <QComboBox>
+#include <QCheckBox>
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QMessageBox>
+#include <QSettings>
 
 ImportDialog::ImportDialog(QWidget* parent)
     : QDialog(parent), m_levelset()
 {
     setWindowTitle(tr("Import CC1 Map"));
 
+    QSettings settings("CCTools", "CC2Edit");
+
     auto levelLabel = new QLabel(tr("&Level:"), this);
     m_levelSelect = new QComboBox(this);
     levelLabel->setBuddy(m_levelSelect);
+
+    m_resizeLevel = new QCheckBox(tr("&Resize level to fit non-blank area"), this);
+    m_resizeLevel->setChecked(settings.value("Import/AutoResize", false).toBool());
 
     auto warningLabel = new QLabel(tr(
             "Warning:  Certain Level features, such as non-standard button "
@@ -53,6 +60,7 @@ ImportDialog::ImportDialog(QWidget* parent)
     int row = 0;
     layout->addWidget(levelLabel, ++row, 0);
     layout->addWidget(m_levelSelect, row, 1);
+    layout->addWidget(m_resizeLevel, ++row, 1);
     layout->addWidget(warningLabel, ++row, 0, 1, 2);
     layout->addItem(new QSpacerItem(0, 0, QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding),
                     ++row, 0, 1, 2);
@@ -64,6 +72,9 @@ ImportDialog::ImportDialog(QWidget* parent)
 
 ImportDialog::~ImportDialog()
 {
+    QSettings settings("CCTools", "CC2Edit");
+    settings.setValue("Import/AutoResize", m_resizeLevel->isChecked());
+
     delete m_levelset;
 }
 
@@ -104,6 +115,6 @@ cc2::Map* ImportDialog::importMap(int* levelNum)
         *levelNum = m_levelSelect->currentIndex();
     const ccl::LevelData* level = m_levelset->level(m_levelSelect->currentIndex());
     auto map = new cc2::Map;
-    map->importFrom(level);
+    map->importFrom(level, m_resizeLevel->isChecked());
     return map;
 }

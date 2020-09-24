@@ -407,7 +407,7 @@ public:
     Map& operator=(const Map&) = delete;
 
     void copyFrom(const cc2::Map* map);
-    void importFrom(const ccl::LevelData* level);
+    void importFrom(const ccl::LevelData* level, bool autoResize);
 
     void read(ccl::Stream* stream);
     void write(ccl::Stream* stream) const;

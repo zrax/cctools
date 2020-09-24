@@ -24,6 +24,7 @@ namespace ccl { class Levelset; }
 namespace cc2 { class Map; }
 
 class QComboBox;
+class QCheckBox;
 
 class ImportDialog : public QDialog {
     Q_OBJECT;
@@ -38,6 +39,7 @@ public:
 private:
     ccl::Levelset* m_levelset;
     QComboBox* m_levelSelect;
+    QCheckBox* m_resizeLevel;
 };
 
 #endif
