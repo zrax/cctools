@@ -56,6 +56,8 @@ CCHack::PageGeneral::PageGeneral(QWidget* parent)
     m_alwaysFirstTry->setTristate(true);
     m_ccPatch = new QCheckBox(tr("CCPatch (fixes crash while walking over squares with two masked tiles)"), this);
     m_ccPatch->setTristate(true);
+    m_fullSec = new QCheckBox(tr("FullSec (always start with a full first second, and enable even/odd step control)"), this);
+    m_fullSec->setTristate(true);
     m_pgChips = new QCheckBox(tr("PGChips (adds Ice Block support to the game)"), this);
     m_pgChips->setTristate(true);
 
@@ -74,33 +76,35 @@ CCHack::PageGeneral::PageGeneral(QWidget* parent)
     m_defRealLastLevel->setEnabled(false);
 
     auto layout = new QGridLayout(this);
-    layout->addWidget(new QLabel(tr("Override"), this), 0, 1);
-    layout->addWidget(new QLabel(tr("Default"), this), 0, 2);
-    layout->addWidget(m_cbTitle, 1, 0);
-    layout->addWidget(m_title, 1, 1);
-    layout->addWidget(m_defTitle, 1, 2);
-    layout->addWidget(m_cbIniFile, 2, 0);
-    layout->addWidget(m_iniFile, 2, 1);
-    layout->addWidget(m_defIniFile, 2, 2);
-    layout->addWidget(m_cbIniEntry, 3, 0);
-    layout->addWidget(m_iniEntry, 3, 1);
-    layout->addWidget(m_defIniEntry, 3, 2);
-    layout->addWidget(m_cbDatFile, 4, 0);
-    layout->addWidget(m_datFile, 4, 1);
-    layout->addWidget(m_defDatFile, 4, 2);
-    layout->addItem(new QSpacerItem(0, 20, QSizePolicy::Maximum, QSizePolicy::Fixed), 5, 0, 1, 3);
-    layout->addWidget(new QLabel(tr("Code Patches:"), this), 6, 0, 1, 3);
-    layout->addWidget(m_alwaysFirstTry, 7, 0, 1, 3);
-    layout->addWidget(m_ccPatch, 8, 0, 1, 3);
-    layout->addWidget(m_pgChips, 9, 0, 1, 3);
-    layout->addItem(new QSpacerItem(0, 20, QSizePolicy::Maximum, QSizePolicy::Fixed), 10, 0, 1, 3);
-    layout->addWidget(m_cbFakeLastLevel, 11, 0);
-    layout->addWidget(m_fakeLastLevel, 11, 1);
-    layout->addWidget(m_defFakeLastLevel, 11, 2);
-    layout->addWidget(m_cbRealLastLevel, 12, 0);
-    layout->addWidget(m_realLastLevel, 12, 1);
-    layout->addWidget(m_defRealLastLevel, 12, 2);
-    layout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding), 13, 0, 1, 3);
+    int row = 0;
+    layout->addWidget(new QLabel(tr("Override"), this), row, 1);
+    layout->addWidget(new QLabel(tr("Default"), this), row, 2);
+    layout->addWidget(m_cbTitle, ++row, 0);
+    layout->addWidget(m_title, row, 1);
+    layout->addWidget(m_defTitle, row, 2);
+    layout->addWidget(m_cbIniFile, ++row, 0);
+    layout->addWidget(m_iniFile, row, 1);
+    layout->addWidget(m_defIniFile, row, 2);
+    layout->addWidget(m_cbIniEntry, ++row, 0);
+    layout->addWidget(m_iniEntry, row, 1);
+    layout->addWidget(m_defIniEntry, row, 2);
+    layout->addWidget(m_cbDatFile, ++row, 0);
+    layout->addWidget(m_datFile, row, 1);
+    layout->addWidget(m_defDatFile, row, 2);
+    layout->addItem(new QSpacerItem(0, 20, QSizePolicy::Maximum, QSizePolicy::Fixed), ++row, 0, 1, 3);
+    layout->addWidget(new QLabel(tr("Code Patches:"), this), ++row, 0, 1, 3);
+    layout->addWidget(m_alwaysFirstTry, ++row, 0, 1, 3);
+    layout->addWidget(m_ccPatch, ++row, 0, 1, 3);
+    layout->addWidget(m_fullSec, ++row, 0, 1, 3);
+    layout->addWidget(m_pgChips, ++row, 0, 1, 3);
+    layout->addItem(new QSpacerItem(0, 20, QSizePolicy::Maximum, QSizePolicy::Fixed), ++row, 0, 1, 3);
+    layout->addWidget(m_cbFakeLastLevel, ++row, 0);
+    layout->addWidget(m_fakeLastLevel, row, 1);
+    layout->addWidget(m_defFakeLastLevel, row, 2);
+    layout->addWidget(m_cbRealLastLevel, ++row, 0);
+    layout->addWidget(m_realLastLevel, row, 1);
+    layout->addWidget(m_defRealLastLevel, row, 2);
+    layout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding), ++row, 0, 1, 3);
 
     connect(m_cbTitle, &QCheckBox::toggled, m_title, &QWidget::setEnabled);
     connect(m_cbIniFile, &QCheckBox::toggled, m_iniFile, &QWidget::setEnabled);
@@ -128,6 +132,10 @@ void CCHack::PageGeneral::setValues(HackSettings* settings)
         m_ccPatch->setChecked(settings->get_ccPatch());
     else
         m_ccPatch->setCheckState(Qt::PartiallyChecked);
+    if (settings->have_fullSec())
+        m_fullSec->setChecked(settings->get_fullSec());
+    else
+        m_fullSec->setCheckState(Qt::PartiallyChecked);
     if (settings->have_pgChips())
         m_pgChips->setChecked(settings->get_pgChips());
     else
@@ -162,6 +170,8 @@ void CCHack::PageGeneral::saveTo(HackSettings* settings)
         settings->set_alwaysFirstTry(m_alwaysFirstTry->isChecked());
     if (m_ccPatch->checkState() != Qt::PartiallyChecked)
         settings->set_ccPatch(m_ccPatch->isChecked());
+    if (m_fullSec->checkState() != Qt::PartiallyChecked)
+        settings->set_fullSec(m_fullSec->isChecked());
     if (m_pgChips->checkState() != Qt::PartiallyChecked)
         settings->set_pgChips(m_pgChips->isChecked());
     if (m_cbFakeLastLevel->isChecked())

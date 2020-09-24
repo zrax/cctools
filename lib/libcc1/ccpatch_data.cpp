@@ -18,7 +18,7 @@
 #define CCPATCH_SIZE    82
 #define CCPATCH_ADDR    0x7C93
 
-static uint8_t ccpatch_orig[] = {
+static const uint8_t ccpatch_orig[] = {
     //cseg03:1A93
     0x8A, 0xD8,                 // mov      bl, al
     0x2A, 0xFF,                 // sub      bh, bh
@@ -64,7 +64,7 @@ static uint8_t ccpatch_orig[] = {
 };
 static_assert(sizeof(ccpatch_orig) == CCPATCH_SIZE, "CCPatch content size mismatch");
 
-static uint8_t ccpatch_patch[] = {
+static const uint8_t ccpatch_patch[] = {
     //cseg03:1A93
     0xB3, 0x06,                 // mov      bl, 6
     0xF6, 0xE3,                 // mul      bl

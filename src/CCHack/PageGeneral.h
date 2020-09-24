@@ -46,6 +46,7 @@ private:
 
     QCheckBox* m_alwaysFirstTry;
     QCheckBox* m_ccPatch;
+    QCheckBox* m_fullSec;
     QCheckBox* m_pgChips;
 
     QCheckBox* m_cbFakeLastLevel;

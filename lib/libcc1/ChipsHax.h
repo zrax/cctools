@@ -133,7 +133,13 @@ public:
     void set_CCPatch(CCPatchState state);
     CCPatchState get_CCPatch();
 
+    // CCExplore's patch for enabling a full first second at the start of most
+    // levels (see http://davidstolp.com/old/chips/patches/fullsec.html)
+    void set_FullSec(CCPatchState state);
+    CCPatchState get_FullSec();
+
     // Patch for PGChips (PieGuy's modification enabling the use of Ice blocks)
+    // (see http://davidstolp.com/old/chips/patches/pgchip.html)
     void set_PGChips(CCPatchState state);
     CCPatchState get_PGChips();
     CCPatchState validate_PGChips();

@@ -67,6 +67,7 @@ public:
     MAKE_SETTING_OBJ(std::string,   datFile);
     MAKE_SETTING(bool,              alwaysFirstTry);
     MAKE_SETTING(bool,              ccPatch);
+    MAKE_SETTING(bool,              fullSec);
     MAKE_SETTING(bool,              pgChips);
     MAKE_SETTING(int,               fakeLastLevel);
     MAKE_SETTING(int,               realLastLevel);

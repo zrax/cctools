@@ -17,6 +17,8 @@
 
 #include "ChipsHax.h"
 
+#include <vector>
+
 void ccl::ChipsHax::set_LastLevel(int level)
 {
     uint16_t levelValue = level;
@@ -109,6 +111,51 @@ ccl::CCPatchState ccl::ChipsHax::get_CCPatch()
     if (memcmp(buffer, ccpatch_patch, CCPATCH_SIZE) == 0)
         return CCPatchPatched;
     return CCPatchOther;
+}
+
+
+#include "fullsec_data.cpp"
+
+void ccl::ChipsHax::set_FullSec(CCPatchState state)
+{
+    for (const FSPatchChunk& chunk : fullsec_patch) {
+        m_stream->seek(chunk.address, SEEK_SET);
+        switch (state) {
+        case CCPatchOriginal:
+            m_stream->write(chunk.orig, 1, chunk.size);
+            break;
+        case CCPatchPatched:
+            m_stream->write(chunk.patch, 1, chunk.size);
+            break;
+        default:
+            throw ccl::Exception("Invalid patch state parameter");
+        }
+    }
+}
+
+ccl::CCPatchState ccl::ChipsHax::get_FullSec()
+{
+    std::vector<uint8_t> buffer;
+    int state = -1;
+    for (const FSPatchChunk& chunk : fullsec_patch) {
+        m_stream->seek(chunk.address, SEEK_SET);
+        buffer.resize(chunk.size);
+        m_stream->read(&buffer[0], 1, chunk.size);
+
+        int chunkState = CCPatchOther;
+        if (memcmp(&buffer[0], chunk.orig, chunk.size) == 0)
+            chunkState = CCPatchOriginal;
+        else if (memcmp(&buffer[0], chunk.patch, chunk.size) == 0)
+            chunkState = CCPatchPatched;
+        else
+            return CCPatchOther;
+
+        if (state < 0)
+            state = chunkState;
+        else if (state != chunkState)
+            return CCPatchOther;    // Mixed patch states
+    }
+    return static_cast<CCPatchState>(state);
 }
 
 

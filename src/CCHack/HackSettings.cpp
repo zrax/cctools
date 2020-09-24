@@ -33,6 +33,7 @@ void HackSettings::setKnownDefaults()
     set_datFile("CHIPS.DAT");
     set_alwaysFirstTry(false);
     set_ccPatch(false);
+    set_fullSec(false);
     set_pgChips(false);
     set_fakeLastLevel(144);
     set_realLastLevel(149);
@@ -73,6 +74,7 @@ void HackSettings::clearAll()
     clear_datFile();
     clear_alwaysFirstTry();
     clear_ccPatch();
+    clear_fullSec();
     clear_pgChips();
     clear_fakeLastLevel();
     clear_realLastLevel();
@@ -114,8 +116,10 @@ bool HackSettings::loadFromExe(const QString& filename)
 
     hax.open(&exeStream);
     ccl::CCPatchState state = hax.get_CCPatch();
+    ccl::CCPatchState fs_state = hax.get_FullSec();
     ccl::CCPatchState pg_state = hax.get_PGChips();
-    if (state == ccl::CCPatchOther || pg_state == ccl::CCPatchOther)
+    if (state == ccl::CCPatchOther || fs_state == ccl::CCPatchOther
+            || pg_state == ccl::CCPatchOther)
         throw std::runtime_error("Unrecognized EXE format");
 
     // General settings
@@ -125,6 +129,7 @@ bool HackSettings::loadFromExe(const QString& filename)
     set_datFile(hax.get_DataFilename());
     set_alwaysFirstTry(hax.get_AlwaysFirstTry());
     set_ccPatch(state == ccl::CCPatchPatched);
+    set_fullSec(fs_state == ccl::CCPatchPatched);
     set_pgChips(pg_state == ccl::CCPatchPatched);
     set_fakeLastLevel(hax.get_FakeLastLevel());
     set_realLastLevel(hax.get_LastLevel());
@@ -186,6 +191,7 @@ static const QString ccp_IniEntry = QStringLiteral("EntPackEntry");
 static const QString ccp_DatFile = QStringLiteral("ChipsDAT");
 static const QString ccp_AlwaysFirstTry = QStringLiteral("Code Patches/AlwaysFirstTry");
 static const QString ccp_CCPatch = QStringLiteral("Code Patches/CCPatch");
+static const QString ccp_FullSec = QStringLiteral("Code Patches/FullSec");
 static const QString ccp_PGChips = QStringLiteral("Code Patches/PGChips");
 static const QString ccp_FakeLastLevel = QStringLiteral("End Game/FLevNum");
 static const QString ccp_RealLastLevel = QStringLiteral("End Game/LevNum");
@@ -280,6 +286,8 @@ bool HackSettings::loadFromPatch(const QString& filename)
         set_alwaysFirstTry(patch.value(ccp_AlwaysFirstTry).toBool());
     if (patch.contains(ccp_CCPatch))
         set_ccPatch(patch.value(ccp_CCPatch).toBool());
+    if (patch.contains(ccp_FullSec))
+        set_fullSec(patch.value(ccp_FullSec).toBool());
     if (patch.contains(ccp_PGChips))
         set_pgChips(patch.value(ccp_PGChips).toBool());
     if (validInt(patch, ccp_FakeLastLevel))
@@ -376,15 +384,14 @@ bool HackSettings::writeToExe(const QString& filename) const
         return false;
 
     hax.open(&exeStream);
-    ccl::CCPatchState state = hax.get_CCPatch();
-    ccl::CCPatchState pg_state = hax.get_PGChips();
-    if (state == ccl::CCPatchOther || pg_state == ccl::CCPatchOther)
+    if (hax.get_CCPatch() == ccl::CCPatchOther || hax.get_FullSec() == ccl::CCPatchOther
+            || hax.get_PGChips() == ccl::CCPatchOther)
         throw std::runtime_error("Unrecognized EXE format");
 
     if (have_pgChips()) {
         // We do this first (before writing graphics) so the graphics patch
         // has a chance of applying cleanly.
-        pg_state = hax.validate_PGChips();
+        ccl::CCPatchState pg_state = hax.validate_PGChips();
         if (pg_state == ccl::CCPatchOther) {
             QMessageBox::warning(nullptr, QObject::tr("Cannot apply patch"),
                     QObject::tr("Cannot apply PGChips Patch -- the executable doesn't "
@@ -397,6 +404,9 @@ bool HackSettings::writeToExe(const QString& filename) const
 
     if (have_ccPatch())
         hax.set_CCPatch(get_ccPatch() ? ccl::CCPatchPatched : ccl::CCPatchOriginal);
+
+    if (have_fullSec())
+        hax.set_FullSec(get_fullSec() ? ccl::CCPatchPatched : ccl::CCPatchOriginal);
 
     // General settings
     if (have_title()) {
@@ -511,6 +521,8 @@ bool HackSettings::writeToPatch(const QString& filename) const
         patch.setValue(ccp_AlwaysFirstTry, get_alwaysFirstTry());
     if (have_ccPatch())
         patch.setValue(ccp_CCPatch, get_ccPatch());
+    if (have_fullSec())
+        patch.setValue(ccp_FullSec, get_fullSec());
     if (have_pgChips())
         patch.setValue(ccp_PGChips, get_pgChips());
     if (have_fakeLastLevel())
