@@ -409,7 +409,7 @@ void ccl::BufferStream::seek(long offset, int whence)
     else if (whence == SEEK_END)
         m_offs = m_size - offset;
     else
-        throw ccl::Exception("Invalid whence parameter");
+        throw std::runtime_error("Invalid whence parameter");
 
     if ((long)m_offs < 0)
         m_offs = 0;

@@ -823,7 +823,7 @@ void CCEditMain::loadLevelset(const QString& filename)
         try {
             m_dacInfo.read(dac);
             fclose(dac);
-        } catch (const ccl::Exception& e) {
+        } catch (const std::runtime_error& e) {
             QMessageBox::critical(this, tr("Error reading levelset"),
                                     tr("Error loading levelset descriptor: %1")
                                     .arg(e.what()));
@@ -925,7 +925,7 @@ void CCEditMain::saveLevelset(const QString& filename)
             try {
                 m_dacInfo.write(dac);
                 fclose(dac);
-            } catch (const ccl::Exception& e) {
+            } catch (const std::runtime_error& e) {
                 QMessageBox::critical(this, tr("Error saving levelset"),
                                       tr("Error saving levelset descriptor: %1")
                                       .arg(e.what()));
@@ -940,7 +940,7 @@ void CCEditMain::saveLevelset(const QString& filename)
             if (set.open(searchPath.absoluteFilePath(m_dacInfo.m_filename.c_str()).toUtf8().constData(), "wb")) {
                 try {
                     m_levelset->write(&set);
-                } catch (const ccl::Exception& e) {
+                } catch (const std::runtime_error& e) {
                     QMessageBox::critical(this, tr("Error saving levelset"),
                                           tr("Error saving levelset: %1").arg(e.what()));
                     return;
@@ -961,7 +961,7 @@ void CCEditMain::saveLevelset(const QString& filename)
         if (set.open(filename.toUtf8(), "wb")) {
             try {
                 m_levelset->write(&set);
-            } catch (const ccl::Exception& e) {
+            } catch (const std::runtime_error& e) {
                 QMessageBox::critical(this, tr("Error saving levelset"),
                                       tr("Error saving levelset: %1").arg(e.what()));
                 return;

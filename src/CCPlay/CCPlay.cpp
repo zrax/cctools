@@ -90,7 +90,7 @@ load_levelset(const QString& filename, QWidget* self, int* dacLastLevel = nullpt
             qDebug("Format error trying to load %s", qPrintable(filename));
             fclose(dac);
             return {};
-        } catch (const ccl::Exception& e) {
+        } catch (const std::runtime_error& e) {
             qDebug("Error trying to load %s: %s", qPrintable(filename), e.what());
             QMessageBox::critical(self, self->tr("Error reading levelset"),
                                   self->tr("Error loading levelset descriptor for %1: %2")

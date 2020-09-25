@@ -96,7 +96,7 @@ void ccl::ChipsHax::set_CCPatch(CCPatchState state)
         m_stream->write(ccpatch_patch, 1, CCPATCH_SIZE);
         break;
     default:
-        throw ccl::Exception("Invalid patch state parameter");
+        throw std::runtime_error("Invalid patch state parameter");
     }
 }
 
@@ -128,7 +128,7 @@ void ccl::ChipsHax::set_FullSec(CCPatchState state)
             m_stream->write(chunk.patch, 1, chunk.size);
             break;
         default:
-            throw ccl::Exception("Invalid patch state parameter");
+            throw std::runtime_error("Invalid patch state parameter");
         }
     }
 }
@@ -172,7 +172,7 @@ void ccl::ChipsHax::set_PGChips(CCPatchState state)
         data = pg_patch;
         break;
     default:
-        throw ccl::Exception("Invalid patch state parameter");
+        throw std::runtime_error("Invalid patch state parameter");
     }
 
     m_stream->seek(0, SEEK_SET);

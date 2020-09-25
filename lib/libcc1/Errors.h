@@ -23,19 +23,14 @@
 
 namespace ccl {
 
-class Exception : public std::runtime_error {
+class IOException : public std::runtime_error {
 public:
-    explicit Exception(const char* msg) : std::runtime_error(msg) { }
+    explicit IOException(const char* msg) : std::runtime_error(msg) { }
 };
 
-class IOException : public ccl::Exception {
+class FormatException : public std::runtime_error {
 public:
-    explicit IOException(const char* msg) : ccl::Exception(msg) { }
-};
-
-class FormatException : public ccl::Exception {
-public:
-    explicit FormatException(const char* msg) : ccl::Exception(msg) { }
+    explicit FormatException(const char* msg) : std::runtime_error(msg) { }
 };
 
 }
