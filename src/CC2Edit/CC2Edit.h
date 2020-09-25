@@ -50,6 +50,10 @@ public:
     bool loadScript(const QString& filename);
     void editScript(const QString& filename);
     void closeScript();
+    bool saveTab(int index);
+    bool saveTabAs(int index);
+    bool saveMap(cc2::Map* map, const QString& filename);
+    bool saveScript(const QString& script, const QString& filename);
 
     void findTilesets();
     void loadTileset(CC2ETileset* tileset);
@@ -74,6 +78,8 @@ protected:
 private slots:
     void onOpenAction();
     void onImportCC1Action();
+    void onSaveAction();
+    void onSaveAsAction();
     void onSelectToggled(bool);
     void onCutAction();
     void onCopyAction();
@@ -101,6 +107,7 @@ private slots:
     void onTilesetMenu(QAction*);
     void onTestChips2();
 
+    void onTabClosed(int);
     void onTabChanged(int);
     void updateMapProperties(cc2::Map* map);
 

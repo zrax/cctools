@@ -112,9 +112,9 @@ void EditorTabWidget::addFloatingTab(QWidget *tabWidget, const QString &label)
         tabBar()->moveTab(newIndex, floatingTab);
 }
 
-void EditorTabWidget::promoteTab()
+void EditorTabWidget::promoteTab(int index)
 {
-    if (tabBar()->tabData(currentIndex()).toInt() == TabFloating) {
+    if (tabBar()->tabData(index).toInt() == TabFloating) {
         tabBar()->setTabData(currentIndex(), TabNormal);
         tabBar()->update();
     }

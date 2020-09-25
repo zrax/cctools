@@ -31,6 +31,8 @@ public:
 
     bool canUndo() const;
     bool canRedo() const;
+    bool isModified() const;
+    void setClean();
 
 private:
     QString m_filename;

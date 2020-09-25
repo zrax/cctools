@@ -28,7 +28,8 @@ public:
     explicit EditorTabWidget(QWidget* parent = nullptr);
 
     void addFloatingTab(QWidget* widget, const QString& label);
-    void promoteTab();
+    void promoteTab() { promoteTab(currentIndex()); }
+    void promoteTab(int index);
 };
 
 #endif

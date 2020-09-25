@@ -98,12 +98,12 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_actions[ActionSaveAs]->setStatusTip(tr("Save the current document to a new file or location"));
     m_actions[ActionSaveAs]->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_S);
     m_actions[ActionSaveAs]->setEnabled(false);
-    m_actions[ActionClose] = new QAction(tr("&Close Script"), this);
-    m_actions[ActionClose]->setStatusTip(tr("Close the currently open game script"));
+    m_actions[ActionClose] = new QAction(tr("&Close Game"), this);
+    m_actions[ActionClose]->setStatusTip(tr("Close the currently open game"));
     m_actions[ActionClose]->setShortcut(Qt::CTRL | Qt::Key_W);
     m_actions[ActionClose]->setEnabled(false);
     m_actions[ActionGenReport] = new QAction(tr("Generate &Report"), this);
-    m_actions[ActionGenReport]->setStatusTip(tr("Generate an HTML report of the current game script"));
+    m_actions[ActionGenReport]->setStatusTip(tr("Generate an HTML report of the current game"));
     m_actions[ActionGenReport]->setEnabled(false);
     m_actions[ActionExit] = new QAction(QIcon(":/res/application-exit.png"), tr("E&xit"), this);
     m_actions[ActionExit]->setStatusTip(tr("Close CC2Edit"));
@@ -868,6 +868,8 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     connect(m_actions[ActionNewScript], &QAction::triggered, this, &CC2EditMain::createNewScript);
     connect(m_actions[ActionOpen], &QAction::triggered, this, &CC2EditMain::onOpenAction);
     connect(m_actions[ActionImportCC1], &QAction::triggered, this, &CC2EditMain::onImportCC1Action);
+    connect(m_actions[ActionSave], &QAction::triggered, this, &CC2EditMain::onSaveAction);
+    connect(m_actions[ActionSaveAs], &QAction::triggered, this, &CC2EditMain::onSaveAsAction);
     connect(m_actions[ActionClose], &QAction::triggered, this, &CC2EditMain::closeScript);
 
     connect(m_actions[ActionSelect], &QAction::toggled, this, &CC2EditMain::onSelectToggled);
@@ -920,9 +922,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
             editScript(m_currentGameScript);
     });
 
-    connect(m_editorTabs, &QTabWidget::tabCloseRequested, this, [this](int index) {
-        m_editorTabs->widget(index)->deleteLater();
-    });
+    connect(m_editorTabs, &QTabWidget::tabCloseRequested, this, &CC2EditMain::onTabClosed);
     connect(m_editorTabs, &QTabWidget::currentChanged, this, &CC2EditMain::onTabChanged);
 
     // Load window settings and defaults
@@ -1155,6 +1155,118 @@ void CC2EditMain::closeScript()
     m_actions[ActionGenReport]->setEnabled(false);
 }
 
+bool CC2EditMain::saveTab(int index)
+{
+    CC2EditorWidget* mapEditor = getEditorAt(index);
+    CC2ScriptEditor* scriptEditor = getScriptEditorAt(index);
+
+    QString filename = mapEditor ? mapEditor->filename()
+                     : scriptEditor ? scriptEditor->filename()
+                     : QString();
+    if (filename.isEmpty())
+        return saveTabAs(index);
+
+    bool result = false;
+    if (mapEditor) {
+        result = saveMap(mapEditor->map(), filename);
+        if (result)
+            mapEditor->setClean();
+    }
+    if (scriptEditor) {
+        result = saveScript(scriptEditor->toPlainText(), filename);
+        if (result)
+            scriptEditor->setClean();
+    }
+
+    if (result)
+        m_editorTabs->promoteTab(index);
+    return result;
+}
+
+bool CC2EditMain::saveTabAs(int index)
+{
+    CC2EditorWidget* mapEditor = getEditorAt(index);
+    CC2ScriptEditor* scriptEditor = getScriptEditorAt(index);
+    if (!mapEditor && !scriptEditor)
+        return false;
+
+    QSettings settings("CCTools", "CC2Edit");
+    QString filename = mapEditor ? mapEditor->filename()
+                     : scriptEditor ? scriptEditor->filename()
+                     : QString();
+    if (filename.isEmpty())
+        filename = settings.value("DialogDir").toString();
+
+    bool result = false;
+    if (mapEditor) {
+        filename = QFileDialog::getSaveFileName(this, tr("Save Map..."),
+                                                filename, tr("CC2 Maps (*.c2m)"));
+        if (!filename.isEmpty())
+            result = saveMap(mapEditor->map(), filename);
+        if (result)
+            mapEditor->setClean();
+    }
+    if (scriptEditor) {
+        filename = QFileDialog::getSaveFileName(this, tr("Save Game Script..."),
+                                                filename, tr("CC2 Game Scripts (*.c2g)"));
+        if (!filename.isEmpty())
+            result = saveScript(scriptEditor->toPlainText(), filename);
+        if (result)
+            scriptEditor->setClean();
+    }
+
+    if (result) {
+        QFileInfo info(filename);
+        m_editorTabs->setTabText(index, info.fileName());
+        m_editorTabs->promoteTab(index);
+        settings.setValue("DialogDir", info.dir().absolutePath());
+    }
+    return result;
+}
+
+bool CC2EditMain::saveMap(cc2::Map* map, const QString& filename)
+{
+    ccl::FileStream fs;
+    if (!fs.open(filename.toLocal8Bit().constData(), "wb")) {
+        QMessageBox::critical(this, tr("Error"),
+                        tr("Could not open %1 for writing.").arg(filename));
+        return false;
+    }
+    try {
+        map->write(&fs);
+    } catch (const std::runtime_error& err) {
+        QMessageBox::critical(this, tr("Error"),
+                        tr("Failed to write map to %1: %2")
+                        .arg(filename).arg(err.what()));
+        return false;
+    }
+    fs.close();
+    return true;
+}
+
+bool CC2EditMain::saveScript(const QString& script, const QString& filename)
+{
+    QFile file(filename);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QMessageBox::critical(this, tr("Error"),
+                        tr("Could not open %1 for writing.").arg(filename));
+        return false;
+    }
+    const QByteArray scriptBytes = script.toLatin1();
+    if (file.write(scriptBytes) != scriptBytes.size()) {
+        QMessageBox::critical(this, tr("Error"),
+                        tr("Failed to write script to %1.").arg(filename));
+        return false;
+    }
+    file.close();
+
+    // Reload the open game script if we're saving over it.
+    if (QFileInfo(m_currentGameScript) == QFileInfo(filename))
+        loadScript(filename);
+
+    return true;
+}
+
 void CC2EditMain::registerTileset(const QString& filename)
 {
     auto tileset = new CC2ETileset(this);
@@ -1375,7 +1487,32 @@ void CC2EditMain::closeAllTabs()
 
 void CC2EditMain::closeEvent(QCloseEvent* event)
 {
-    // TODO: Check for modification first
+    QList<int> modifiedTabs;
+    for (int i = 0; i < m_editorTabs->count(); ++i) {
+        CC2EditorWidget* editor = getEditorAt(i);
+        CC2ScriptEditor* scriptEditor = getScriptEditorAt(i);
+        if ((editor && !editor->isClean()) || (scriptEditor && scriptEditor->isModified()))
+            modifiedTabs.push_back(i);
+    }
+    if (!modifiedTabs.empty()) {
+        int response = QMessageBox::question(this, tr("Close all"),
+                              tr("%n open file(s) have unsaved changes."
+                                 "  Would you like to save before closing?", "",
+                                 modifiedTabs.size()),
+                              QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+        if (response == QMessageBox::Cancel) {
+            event->setAccepted(false);
+            return;
+        }
+        if (response == QMessageBox::Yes) {
+            for (int tabIndex : modifiedTabs) {
+                if (!saveTab(tabIndex)) {
+                    event->setAccepted(false);
+                    return;
+                }
+            }
+        }
+    }
     closeAllTabs();
 
     if (m_subProc) {
@@ -1455,6 +1592,16 @@ void CC2EditMain::onImportCC1Action()
 
         settings.setValue("Import/DialogDir", QFileInfo(filename).dir().absolutePath());
     }
+}
+
+void CC2EditMain::onSaveAction()
+{
+    saveTab(m_editorTabs->currentIndex());
+}
+
+void CC2EditMain::onSaveAsAction()
+{
+    saveTabAs(m_editorTabs->currentIndex());
 }
 
 void CC2EditMain::onSelectToggled(bool mode)
@@ -1842,30 +1989,17 @@ void CC2EditMain::onTestChips2()
         return;
     }
     chips2Dir.cd("CC2Edit-playtest");
-    QFile testScript(chips2Dir.absoluteFilePath("playtest.c2g"));
-    if (!testScript.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QMessageBox::critical(this, tr("Error setting up playtest"),
-                tr("Could not create playtest script at %1.  Do you have write access?")
-                .arg(chips2Dir.absoluteFilePath("playtest.c2g")));
+    QString testScript = QStringLiteral(
+        "game \"CC2Edit-playtest\"\n"
+        "0 flags =\n"
+        "0 score =\n"
+        "0 hispeed =\n"
+        "1 level =\n"
+        "map \"playtest.c2m\"\n");
+    if (!saveScript(testScript, chips2Dir.absoluteFilePath("playtest.c2g")))
         return;
-    }
-    testScript.write("game \"CC2Edit-playtest\"\n"
-                     "0 flags =\n"
-                     "0 score =\n"
-                     "0 hispeed =\n"
-                     "1 level =\n"
-                     "map \"playtest.c2m\"\n");
-    testScript.close();
-
-    ccl::FileStream fs;
-    if (!fs.open(chips2Dir.absoluteFilePath("playtest.c2m").toLocal8Bit().constData(), "wb")) {
-        QMessageBox::critical(this, tr("Error setting up playtest"),
-                tr("Could not create playtest map at %1.  Do you have write access?")
-                .arg(chips2Dir.absoluteFilePath("playtest.c2m")));
+    if (!saveMap(editor->map(), chips2Dir.absoluteFilePath("playtest.c2m")))
         return;
-    }
-    editor->map()->write(&fs);
-    fs.close();
 
     // Write a save and high score file, so we can jump directly into the map.
     cc2::CC2Save save;
@@ -1887,8 +2021,8 @@ void CC2EditMain::onTestChips2()
 
     QDir savesDir(m_testGameDir);
     if (!savesDir.cd("data/saves")) {
-        QMessageBox::critical(this, tr("Could not find save data"),
-                              tr("Could not find save data relative to Chips2 executable."));
+        QMessageBox::critical(this, tr("Error"),
+                        tr("Could not find save data relative to Chips2 executable."));
         return;
     }
 
@@ -1897,29 +2031,44 @@ void CC2EditMain::onTestChips2()
         savesDir.cdUp();
     }
     if (!savesDir.mkdir("CC2Edit-playtest")) {
-        QMessageBox::critical(this, tr("Error setting up playtest"),
-                tr("Could not create playtest saves directory in %1.  Do you have write access?")
-                .arg(savesDir.absoluteFilePath("CC2Edit-playtest")));
+        QMessageBox::critical(this, tr("Error"),
+                        tr("Could not create playtest saves directory at %1.")
+                        .arg(savesDir.absoluteFilePath("CC2Edit-playtest")));
         return;
     }
     savesDir.cd("CC2Edit-playtest");
 
-    if (!fs.open(savesDir.absoluteFilePath("save.c2s").toLocal8Bit().constData(), "wb")) {
-        QMessageBox::critical(this, tr("Error setting up playtest"),
-                tr("Could not create playtest save data at %1.  Do you have write access?")
-                .arg(savesDir.absoluteFilePath("save.c2s")));
+    ccl::FileStream fs;
+    const QString saveFilename = savesDir.absoluteFilePath("save.c2s");
+    if (!fs.open(saveFilename.toLocal8Bit().constData(), "wb")) {
+        QMessageBox::critical(this, tr("Error"),
+                        tr("Could not open %1 for writing.").arg(saveFilename));
         return;
     }
-    save.write(&fs);
+    try {
+        save.write(&fs);
+    } catch (const std::runtime_error& err) {
+        QMessageBox::critical(this, tr("Error"),
+                        tr("Failed to write save data to %1: %2")
+                        .arg(saveFilename).arg(err.what()));
+        return;
+    }
     fs.close();
 
-    if (!fs.open(savesDir.absoluteFilePath("save.c2h").toLocal8Bit().constData(), "wb")) {
-        QMessageBox::critical(this, tr("Error setting up playtest"),
-                tr("Could not create playtest highscore data at %1.  Do you have write access?")
-                .arg(savesDir.absoluteFilePath("save.c2h")));
+    const QString scoreFilename = savesDir.absoluteFilePath("save.c2h");
+    if (!fs.open(scoreFilename.toLocal8Bit().constData(), "wb")) {
+        QMessageBox::critical(this, tr("Error"),
+                tr("Could not open %1 for writing.").arg(scoreFilename));
         return;
     }
-    highScore.write(&fs);
+    try {
+        highScore.write(&fs);
+    } catch (const std::runtime_error& err) {
+        QMessageBox::critical(this, tr("Error"),
+                        tr("Failed to write high score data to %1: %2")
+                        .arg(scoreFilename).arg(err.what()));
+        return;
+    }
     fs.close();
 
     // Indicate the currently active game
@@ -1928,9 +2077,8 @@ void CC2EditMain::onTestChips2()
         chips2Dir.rename("save.c2l", "save.c2l.CC2Edit-backup");
     QFile listFile(chips2Dir.absoluteFilePath("save.c2l"));
     if (!listFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QMessageBox::critical(this, tr("Error setting up playtest"),
-                tr("Could not create file at %1.  Do you have write access?")
-                .arg(chips2Dir.absoluteFilePath("save.c2l")));
+        QMessageBox::critical(this, tr("Error"),
+                tr("Could not open %1 for writing.").arg(listFile.fileName()));
         return;
     }
     listFile.write("CC2Edit-playtest/save.c2s");
@@ -1942,8 +2090,8 @@ void CC2EditMain::onTestChips2()
         // This enables the game to work without being launched from Steam
         QFile appidFile(chips2Dir.absoluteFilePath("steam_appid.txt"));
         if (!appidFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
-            QMessageBox::critical(this, tr("Error setting up playtest"),
-                    tr("Could not write steam_appid.txt.  Do you have write access?"));
+            QMessageBox::critical(this, tr("Error"),
+                    tr("Could not open steam_appid.txt for writing."));
             return;
         }
         if (chips2Exe.contains(QLatin1String("chips2"), Qt::CaseInsensitive)) {
@@ -1963,6 +2111,37 @@ void CC2EditMain::onTestChips2()
     connect(m_subProc, &QProcess::errorOccurred, this, &CC2EditMain::onProcessError);
     m_subProc->start(chips2Exe, QStringList());
     QDir::setCurrent(cwd);
+}
+
+void CC2EditMain::onTabClosed(int index)
+{
+    CC2EditorWidget* mapEditor = getEditorAt(index);
+    CC2ScriptEditor* scriptEditor = getScriptEditorAt(index);
+
+    QString filename;
+    int response = QMessageBox::NoButton;
+    if (mapEditor && !mapEditor->isClean()) {
+        filename = mapEditor->filename();
+        response = QMessageBox::question(this, tr("Save Map"),
+                            tr("Save changes to %1 before closing?")
+                            .arg(filename.isEmpty() ? tr("new map") : QFileInfo(filename).fileName()),
+                            QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+    } else if (scriptEditor && scriptEditor->isModified()) {
+        filename = scriptEditor->filename();
+        response = QMessageBox::question(this, tr("Save Script"),
+                            tr("Save changes to %1 before closing?")
+                            .arg(filename.isEmpty() ? tr("new script") : QFileInfo(filename).fileName()),
+                            QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+    }
+
+    if (response == QMessageBox::Cancel)
+        return;
+    if (response == QMessageBox::Yes) {
+        if (!saveTab(index))
+            return;
+    }
+
+    m_editorTabs->widget(index)->deleteLater();
 }
 
 void CC2EditMain::onTabChanged(int index)

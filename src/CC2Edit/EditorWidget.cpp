@@ -253,6 +253,11 @@ void CC2EditorWidget::cancelEdit()
     }
 }
 
+void CC2EditorWidget::setClean()
+{
+    m_undoStack->setClean();
+}
+
 void CC2EditorWidget::resetClean()
 {
     m_undoStack->resetClean();

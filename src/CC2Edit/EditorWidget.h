@@ -108,6 +108,8 @@ public:
 
     bool canUndo() const { return m_undoStack->canUndo(); }
     bool canRedo() const { return m_undoStack->canRedo(); }
+    bool isClean() const { return m_undoStack->isClean(); }
+    void setClean();
     void resetClean();
 
     void renderTileBuffer();

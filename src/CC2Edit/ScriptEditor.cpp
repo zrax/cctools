@@ -73,3 +73,13 @@ bool CC2ScriptEditor::canRedo() const
 {
     return document()->isRedoAvailable();
 }
+
+bool CC2ScriptEditor::isModified() const
+{
+    return document()->isModified();
+}
+
+void CC2ScriptEditor::setClean()
+{
+    document()->setModified(false);
+}
