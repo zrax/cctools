@@ -191,12 +191,6 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     drawModeGroup->addAction(m_actions[ActionDrawWire]);
     m_actions[ActionDrawPencil]->setChecked(true);
 
-    m_actions[ActionViewButtons] = new QAction(tr("Show &Button Connections"), this);
-    m_actions[ActionViewButtons]->setStatusTip(tr("Draw lines between connected buttons/traps/cloning machines in editor"));
-    m_actions[ActionViewButtons]->setCheckable(true);
-    m_actions[ActionViewActivePlayer] = new QAction(tr("Show &Player Starting Position"), this);
-    m_actions[ActionViewActivePlayer]->setStatusTip(tr("Highlight the Player's start position"));
-    m_actions[ActionViewActivePlayer]->setCheckable(true);
     m_actions[ActionViewViewport] = new QAction(tr("Show Game &Viewport"), this);
     m_actions[ActionViewViewport]->setStatusTip(tr("Show a viewport bounding box around the cursor"));
     m_actions[ActionViewViewport]->setCheckable(true);
@@ -801,8 +795,6 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     toolsMenu->addAction(m_actions[ActionToggleGreens]);
 
     QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
-    viewMenu->addAction(m_actions[ActionViewButtons]);
-    viewMenu->addAction(m_actions[ActionViewActivePlayer]);
     viewMenu->addAction(m_actions[ActionViewViewport]);
     viewMenu->addAction(m_actions[ActionViewMonsterPaths]);
     viewMenu->addSeparator();
@@ -933,8 +925,6 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     if (settings.contains("WindowState"))
         restoreState(settings.value("WindowState").toByteArray());
     m_zoomFactor = settings.value("ZoomFactor", 1.0).toDouble();
-    m_actions[ActionViewButtons]->setChecked(settings.value("ViewButtons", true).toBool());
-    m_actions[ActionViewActivePlayer]->setChecked(settings.value("ViewActivePlayer", false).toBool());
     m_actions[ActionViewViewport]->setChecked(settings.value("ViewViewport", true).toBool());
     m_actions[ActionViewMonsterPaths]->setChecked(settings.value("ViewMonsterPaths", false).toBool());
 
@@ -1386,10 +1376,6 @@ CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename, 
     scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     scroll->setWidget(editor);
-    if (m_actions[ActionViewButtons]->isChecked())
-        editor->setPaintFlag(CC2EditorWidget::ShowButtons);
-    if (m_actions[ActionViewActivePlayer]->isChecked())
-        editor->setPaintFlag(CC2EditorWidget::ShowPlayer);
     if (m_actions[ActionViewViewport]->isChecked())
         editor->setPaintFlag(CC2EditorWidget::ShowViewBox);
     if (m_actions[ActionViewMonsterPaths]->isChecked())
@@ -1527,8 +1513,6 @@ void CC2EditMain::closeEvent(QCloseEvent* event)
     settings.setValue("WindowSize", size());
     settings.setValue("WindowState", saveState());
     settings.setValue("ZoomFactor", m_zoomFactor);
-    settings.setValue("ViewButtons", m_actions[ActionViewButtons]->isChecked());
-    settings.setValue("ViewActivePlayer", m_actions[ActionViewActivePlayer]->isChecked());
     settings.setValue("ViewViewport", m_actions[ActionViewViewport]->isChecked());
     settings.setValue("ViewMonsterPaths", m_actions[ActionViewMonsterPaths]->isChecked());
     settings.setValue("TilesetName", m_currentTileset->filename());
