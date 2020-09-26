@@ -194,6 +194,9 @@ private:
                      m_map->mapData().height() * m_tileset->size() * m_zoomFactor);
     }
 
+    void addWire(cc2::Tile& tile, cc2::Tile::Direction direction);
+    void addWireTunnel(cc2::Tile& tile, cc2::Tile::Direction direction);
+
     void updateForUndoCommand(const QUndoCommand* command);
 };
 

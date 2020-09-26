@@ -139,6 +139,13 @@ static cc2::Tile::Direction calc_dir(const QPoint& from, const QPoint& to)
     return cc2::Tile::InvalidDir;
 }
 
+static cc2::Tile::Direction rot_180(cc2::Tile::Direction dir)
+{
+    if (dir == cc2::Tile::InvalidDir)
+        return dir;
+    return cc2::Tile::Direction((int(dir) + 2) % 4);
+}
+
 static cc2::Tile directionalize(const cc2::Tile& tile, cc2::Tile::Direction dir)
 {
     if (dir == cc2::Tile::InvalidDir) {
@@ -463,6 +470,76 @@ static QPoint diamondClosest(const QVector<cc2::Tile::Type>& controlTypes,
     return QPoint(-1, -1);
 }
 
+void CC2EditorWidget::addWire(cc2::Tile& tile, cc2::Tile::Direction direction)
+{
+    cc2::Tile& baseTile = tile.bottom();
+    if (!baseTile.supportsWires())
+        return;
+
+    switch (direction) {
+    case cc2::Tile::North:
+        baseTile.setModifier((baseTile.modifier()
+                             & ~cc2::TileModifier::WireTunnelNorth)
+                             | cc2::TileModifier::WireNorth);
+        break;
+    case cc2::Tile::East:
+        baseTile.setModifier((baseTile.modifier()
+                             & ~cc2::TileModifier::WireTunnelEast)
+                             | cc2::TileModifier::WireEast);
+        break;
+    case cc2::Tile::South:
+        baseTile.setModifier((baseTile.modifier()
+                             & ~cc2::TileModifier::WireTunnelSouth)
+                             | cc2::TileModifier::WireSouth);
+        break;
+    case cc2::Tile::West:
+        baseTile.setModifier((baseTile.modifier()
+                             & ~cc2::TileModifier::WireTunnelWest)
+                             | cc2::TileModifier::WireWest);
+        break;
+    default:
+        // No change on invalid direction
+        return;
+    }
+
+    dirtyBuffer();
+}
+
+void CC2EditorWidget::addWireTunnel(cc2::Tile& tile, cc2::Tile::Direction direction)
+{
+    cc2::Tile& baseTile = tile.bottom();
+    if (!baseTile.supportsWires())
+        return;
+
+    switch (direction) {
+    case cc2::Tile::North:
+        baseTile.setModifier((baseTile.modifier()
+                             | cc2::TileModifier::WireTunnelNorth)
+                             | cc2::TileModifier::WireNorth);
+        break;
+    case cc2::Tile::East:
+        baseTile.setModifier((baseTile.modifier()
+                             | cc2::TileModifier::WireTunnelEast)
+                             | cc2::TileModifier::WireEast);
+        break;
+    case cc2::Tile::South:
+        baseTile.setModifier((baseTile.modifier()
+                             | cc2::TileModifier::WireTunnelSouth)
+                             | cc2::TileModifier::WireSouth);
+        break;
+    case cc2::Tile::West:
+        baseTile.setModifier((baseTile.modifier()
+                             | cc2::TileModifier::WireTunnelWest)
+                             | cc2::TileModifier::WireWest);
+        break;
+    default:
+        // No change on invalid direction
+        return;
+    }
+
+    dirtyBuffer();
+}
+
 void CC2EditorWidget::mouseMoveEvent(QMouseEvent* event)
 {
     if (!m_tileset || !m_map || !rect().contains(event->pos()))
@@ -575,6 +652,15 @@ void CC2EditorWidget::mouseMoveEvent(QMouseEvent* event)
                 m_lastDir = cc2::Tile::InvalidDir;
             }
             m_lastPathTile = oldTile;
+        } else if (m_drawMode == DrawWires && m_origin != m_current) {
+            cc2::Tile::Direction dir = calc_dir(m_origin, m_current);
+            if (event->modifiers() & Qt::ShiftModifier) {
+                addWireTunnel(m_map->mapData().tile(m_origin.x(), m_origin.y()), dir);
+            } else {
+                addWire(m_map->mapData().tile(m_origin.x(), m_origin.y()), dir);
+                addWire(m_map->mapData().tile(posX, posY), rot_180(dir));
+            }
+            m_origin = m_current;
         } else if (m_drawMode == DrawSelect && m_origin != QPoint(-1, -1)) {
             int lowX = std::min(m_origin.x(), m_current.x());
             int lowY = std::min(m_origin.y(), m_current.y());
