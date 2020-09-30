@@ -2389,12 +2389,18 @@ void CCEditMain::onHintChanged(const QString& value)
 
 void CCEditMain::setLeftTile(tile_t tile)
 {
+    // Return to normal drawing mode if necessary
+    m_actions[m_savedDrawMode]->setChecked(true);
+
     m_leftTile = tile;
     emit leftTileChanged(tile);
 }
 
 void CCEditMain::setRightTile(tile_t tile)
 {
+    // Return to normal drawing mode if necessary
+    m_actions[m_savedDrawMode]->setChecked(true);
+
     m_rightTile = tile;
     emit rightTileChanged(tile);
 }

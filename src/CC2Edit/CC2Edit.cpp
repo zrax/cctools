@@ -2203,12 +2203,18 @@ void CC2EditMain::updateMapProperties(cc2::Map* map)
 
 void CC2EditMain::setLeftTile(const cc2::Tile& tile)
 {
+    // Return to normal drawing mode if necessary
+    m_actions[m_savedDrawMode]->setChecked(true);
+
     m_leftTile = tile;
     emit leftTileChanged(tile);
 }
 
 void CC2EditMain::setRightTile(const cc2::Tile& tile)
 {
+    // Return to normal drawing mode if necessary
+    m_actions[m_savedDrawMode]->setChecked(true);
+
     m_rightTile = tile;
     emit rightTileChanged(tile);
 }
