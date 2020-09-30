@@ -540,6 +540,41 @@ void CC2EditorWidget::addWireTunnel(cc2::Tile& tile, cc2::Tile::Direction direct
     dirtyBuffer();
 }
 
+void CC2EditorWidget::delWire(cc2::Tile& tile, cc2::Tile::Direction direction)
+{
+    cc2::Tile& baseTile = tile.bottom();
+    if (!baseTile.supportsWires())
+        return;
+
+    switch (direction) {
+    case cc2::Tile::North:
+        baseTile.setModifier(baseTile.modifier()
+                             & ~(cc2::TileModifier::WireTunnelNorth
+                                | cc2::TileModifier::WireNorth));
+        break;
+    case cc2::Tile::East:
+        baseTile.setModifier(baseTile.modifier()
+                             & ~(cc2::TileModifier::WireTunnelEast
+                                | cc2::TileModifier::WireEast));
+        break;
+    case cc2::Tile::South:
+        baseTile.setModifier(baseTile.modifier()
+                             & ~(cc2::TileModifier::WireTunnelSouth
+                                | cc2::TileModifier::WireSouth));
+        break;
+    case cc2::Tile::West:
+        baseTile.setModifier(baseTile.modifier()
+                             & ~(cc2::TileModifier::WireTunnelWest
+                                | cc2::TileModifier::WireWest));
+        break;
+    default:
+        // No change on invalid direction
+        return;
+    }
+
+    dirtyBuffer();
+}
+
 void CC2EditorWidget::mouseMoveEvent(QMouseEvent* event)
 {
     if (!m_tileset || !m_map || !rect().contains(event->pos()))
@@ -654,7 +689,10 @@ void CC2EditorWidget::mouseMoveEvent(QMouseEvent* event)
             m_lastPathTile = oldTile;
         } else if (m_drawMode == DrawWires && m_origin != m_current) {
             cc2::Tile::Direction dir = calc_dir(m_origin, m_current);
-            if (event->modifiers() & Qt::ShiftModifier) {
+            if (m_cachedButton == Qt::RightButton) {
+                delWire(m_map->mapData().tile(m_origin.x(), m_origin.y()), dir);
+                delWire(m_map->mapData().tile(posX, posY), rot_180(dir));
+            } else if (event->modifiers() & Qt::ShiftModifier) {
                 addWireTunnel(m_map->mapData().tile(m_origin.x(), m_origin.y()), dir);
             } else {
                 addWire(m_map->mapData().tile(m_origin.x(), m_origin.y()), dir);

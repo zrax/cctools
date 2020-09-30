@@ -196,6 +196,7 @@ private:
 
     void addWire(cc2::Tile& tile, cc2::Tile::Direction direction);
     void addWireTunnel(cc2::Tile& tile, cc2::Tile::Direction direction);
+    void delWire(cc2::Tile& tile, cc2::Tile::Direction direction);
 
     void updateForUndoCommand(const QUndoCommand* command);
 };
