@@ -163,7 +163,6 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionInspectTiles]->setStatusTip(tr("Inspect tiles and make advanced modifications"));
     m_actions[ActionInspectTiles]->setShortcut(Qt::CTRL | Qt::Key_I);
     m_actions[ActionInspectTiles]->setCheckable(true);
-    m_actions[ActionInspectTiles]->setEnabled(false);
     m_actions[ActionToggleWalls] = new QAction(QIcon(":/res/cctools-gbutton.png"), tr("&Toggle Walls"), this);
     m_actions[ActionToggleWalls]->setStatusTip(tr("Toggle all toggle floors/walls in the current level"));
     m_actions[ActionToggleWalls]->setShortcut(Qt::CTRL | Qt::Key_G);
@@ -172,13 +171,20 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionCheckErrors]->setStatusTip(tr("Check for errors in the current levelset or a specific level"));
     m_actions[ActionCheckErrors]->setShortcut(Qt::CTRL | Qt::Key_E);
     m_actions[ActionCheckErrors]->setEnabled(false);
-    auto drawModeGroup = new QActionGroup(this);
-    drawModeGroup->addAction(m_actions[ActionDrawPencil]);
-    drawModeGroup->addAction(m_actions[ActionDrawLine]);
-    drawModeGroup->addAction(m_actions[ActionDrawFill]);
-    drawModeGroup->addAction(m_actions[ActionDrawFlood]);
-    drawModeGroup->addAction(m_actions[ActionPathMaker]);
+    m_drawModeGroup = new QActionGroup(this);
+    m_drawModeGroup->addAction(m_actions[ActionDrawPencil]);
+    m_drawModeGroup->addAction(m_actions[ActionDrawLine]);
+    m_drawModeGroup->addAction(m_actions[ActionDrawFill]);
+    m_drawModeGroup->addAction(m_actions[ActionDrawFlood]);
+    m_drawModeGroup->addAction(m_actions[ActionPathMaker]);
     m_actions[ActionDrawPencil]->setChecked(true);
+    m_modalToolGroup = new QActionGroup(this);
+    m_modalToolGroup->setExclusive(false);
+    m_modalToolGroup->addAction(m_actions[ActionSelect]);
+    m_modalToolGroup->addAction(m_actions[ActionConnect]);
+    m_modalToolGroup->addAction(m_actions[ActionInspectTiles]);
+    m_drawModeGroup->setEnabled(false);
+    m_modalToolGroup->setEnabled(false);
 
     m_actions[ActionViewButtons] = new QAction(tr("Show &Button Connections"), this);
     m_actions[ActionViewButtons]->setStatusTip(tr("Draw lines between connected buttons/traps/cloning machines in editor"));
@@ -1411,19 +1417,22 @@ void CCEditMain::onReportAction()
             .arg(timer.elapsed() / 1000., 0, 'f', 2));
 }
 
+static void uncheckAll(QActionGroup* group, QAction* exceptFor = nullptr)
+{
+    for (QAction* action : group->actions()) {
+        if (action != exceptFor)
+            action->setChecked(false);
+    }
+}
+
 void CCEditMain::onSelectToggled(bool mode)
 {
     if (!mode && m_currentDrawMode == EditorWidget::DrawSelect) {
         m_actions[m_savedDrawMode]->setChecked(true);
     } else if (mode) {
         m_currentDrawMode = EditorWidget::DrawSelect;
-        m_actions[ActionDrawPencil]->setChecked(false);
-        m_actions[ActionDrawLine]->setChecked(false);
-        m_actions[ActionDrawFill]->setChecked(false);
-        m_actions[ActionDrawFlood]->setChecked(false);
-        m_actions[ActionPathMaker]->setChecked(false);
-        m_actions[ActionConnect]->setChecked(false);
-        m_actions[ActionInspectTiles]->setChecked(false);
+        uncheckAll(m_drawModeGroup);
+        uncheckAll(m_modalToolGroup, m_actions[ActionSelect]);
 
         for (int i = 0; i < m_editorTabs->count(); ++i)
             getEditorAt(i)->setDrawMode(m_currentDrawMode);
@@ -1621,10 +1630,9 @@ void CCEditMain::onDrawPencilAction(bool checked)
 
     m_savedDrawMode = ActionDrawPencil;
     m_currentDrawMode = EditorWidget::DrawPencil;
-    m_actions[ActionSelect]->setChecked(false);
-    m_actions[ActionConnect]->setChecked(false);
-    m_actions[ActionInspectTiles]->setChecked(false);
-    for (int i=0; i<m_editorTabs->count(); ++i)
+    uncheckAll(m_modalToolGroup);
+
+    for (int i = 0; i < m_editorTabs->count(); ++i)
         getEditorAt(i)->setDrawMode(m_currentDrawMode);
 }
 
@@ -1635,10 +1643,9 @@ void CCEditMain::onDrawLineAction(bool checked)
 
     m_savedDrawMode = ActionDrawLine;
     m_currentDrawMode = EditorWidget::DrawLine;
-    m_actions[ActionSelect]->setChecked(false);
-    m_actions[ActionConnect]->setChecked(false);
-    m_actions[ActionInspectTiles]->setChecked(false);
-    for (int i=0; i<m_editorTabs->count(); ++i)
+    uncheckAll(m_modalToolGroup);
+
+    for (int i = 0; i < m_editorTabs->count(); ++i)
         getEditorAt(i)->setDrawMode(m_currentDrawMode);
 }
 
@@ -1649,10 +1656,9 @@ void CCEditMain::onDrawFillAction(bool checked)
 
     m_savedDrawMode = ActionDrawFill;
     m_currentDrawMode = EditorWidget::DrawFill;
-    m_actions[ActionSelect]->setChecked(false);
-    m_actions[ActionConnect]->setChecked(false);
-    m_actions[ActionInspectTiles]->setChecked(false);
-    for (int i=0; i<m_editorTabs->count(); ++i)
+    uncheckAll(m_modalToolGroup);
+
+    for (int i = 0; i < m_editorTabs->count(); ++i)
         getEditorAt(i)->setDrawMode(m_currentDrawMode);
 }
 
@@ -1663,9 +1669,8 @@ void CCEditMain::onDrawFloodAction(bool checked)
 
     m_savedDrawMode = ActionDrawFlood;
     m_currentDrawMode = EditorWidget::DrawFlood;
-    m_actions[ActionSelect]->setChecked(false);
-    m_actions[ActionConnect]->setChecked(false);
-    m_actions[ActionInspectTiles]->setChecked(false);
+    uncheckAll(m_modalToolGroup);
+
     for (int i = 0; i < m_editorTabs->count(); ++i)
         getEditorAt(i)->setDrawMode(m_currentDrawMode);
 }
@@ -1677,10 +1682,9 @@ void CCEditMain::onPathMakerToggled(bool checked)
 
     m_savedDrawMode = ActionPathMaker;
     m_currentDrawMode = EditorWidget::DrawPathMaker;
-    m_actions[ActionSelect]->setChecked(false);
-    m_actions[ActionConnect]->setChecked(false);
-    m_actions[ActionInspectTiles]->setChecked(false);
-    for (int i=0; i<m_editorTabs->count(); ++i)
+    uncheckAll(m_modalToolGroup);
+
+    for (int i = 0; i < m_editorTabs->count(); ++i)
         getEditorAt(i)->setDrawMode(m_currentDrawMode);
 }
 
@@ -1690,15 +1694,10 @@ void CCEditMain::onConnectToggled(bool mode)
         m_actions[m_savedDrawMode]->setChecked(true);
     } else if (mode) {
         m_currentDrawMode = EditorWidget::DrawButtonConnect;
-        m_actions[ActionSelect]->setChecked(false);
-        m_actions[ActionDrawPencil]->setChecked(false);
-        m_actions[ActionDrawLine]->setChecked(false);
-        m_actions[ActionDrawFill]->setChecked(false);
-        m_actions[ActionDrawFlood]->setChecked(false);
-        m_actions[ActionPathMaker]->setChecked(false);
-        m_actions[ActionInspectTiles]->setChecked(false);
+        uncheckAll(m_drawModeGroup);
+        uncheckAll(m_modalToolGroup, m_actions[ActionConnect]);
 
-        for (int i=0; i<m_editorTabs->count(); ++i)
+        for (int i = 0; i < m_editorTabs->count(); ++i)
             getEditorAt(i)->setDrawMode(m_currentDrawMode);
     }
 }
@@ -1724,13 +1723,8 @@ void CCEditMain::onInspectTilesToggled(bool mode)
         m_actions[m_savedDrawMode]->setChecked(true);
     } else if (mode) {
         m_currentDrawMode = EditorWidget::DrawInspectTile;
-        m_actions[ActionSelect]->setChecked(false);
-        m_actions[ActionDrawPencil]->setChecked(false);
-        m_actions[ActionDrawLine]->setChecked(false);
-        m_actions[ActionDrawFill]->setChecked(false);
-        m_actions[ActionDrawFlood]->setChecked(false);
-        m_actions[ActionPathMaker]->setChecked(false);
-        m_actions[ActionConnect]->setChecked(false);
+        uncheckAll(m_drawModeGroup);
+        uncheckAll(m_modalToolGroup, m_actions[ActionInspectTiles]);
 
         for (int i = 0; i < m_editorTabs->count(); ++i)
             getEditorAt(i)->setDrawMode(m_currentDrawMode);
@@ -2436,11 +2430,12 @@ void CCEditMain::onTabChanged(int tabIdx)
         m_actions[ActionPaste]->setEnabled(false);
         m_actions[ActionClear]->setEnabled(false);
         m_actions[ActionAdvancedMech]->setEnabled(false);
-        m_actions[ActionInspectTiles]->setEnabled(false);
         m_actions[ActionToggleWalls]->setEnabled(false);
         m_actions[ActionTestChips]->setEnabled(false);
         m_actions[ActionTestTWorldCC]->setEnabled(false);
         m_actions[ActionTestTWorldLynx]->setEnabled(false);
+        m_drawModeGroup->setEnabled(false);
+        m_modalToolGroup->setEnabled(false);
         return;
     }
 
@@ -2463,11 +2458,12 @@ void CCEditMain::onTabChanged(int tabIdx)
     m_actions[ActionPaste]->setEnabled(haveClipboardData());
     m_actions[ActionClear]->setEnabled(hasSelection);
     m_actions[ActionAdvancedMech]->setEnabled(true);
-    m_actions[ActionInspectTiles]->setEnabled(true);
     m_actions[ActionToggleWalls]->setEnabled(true);
     m_actions[ActionTestChips]->setEnabled(true);
     m_actions[ActionTestTWorldCC]->setEnabled(true);
     m_actions[ActionTestTWorldLynx]->setEnabled(true);
+    m_drawModeGroup->setEnabled(true);
+    m_modalToolGroup->setEnabled(true);
 }
 
 void CCEditMain::onProcessFinished(int, QProcess::ExitStatus)

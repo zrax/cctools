@@ -120,7 +120,6 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_actions[ActionSelect]->setStatusTip(tr("Enter selection mode"));
     m_actions[ActionSelect]->setShortcut(Qt::CTRL | Qt::Key_A);
     m_actions[ActionSelect]->setCheckable(true);
-    m_actions[ActionSelect]->setEnabled(false);
     m_actions[ActionCut] = new QAction(QIcon(":/res/edit-cut.png"), tr("Cu&t"), this);
     m_actions[ActionCut]->setStatusTip(tr("Put the selection in the clipboard and clear it from the editor"));
     m_actions[ActionCut]->setShortcut(Qt::CTRL | Qt::Key_X);
@@ -142,53 +141,53 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_actions[ActionDrawPencil]->setStatusTip(tr("Draw tiles with the pencil tool"));
     m_actions[ActionDrawPencil]->setShortcut(Qt::CTRL | Qt::Key_P);
     m_actions[ActionDrawPencil]->setCheckable(true);
-    m_actions[ActionDrawPencil]->setEnabled(false);
     m_actions[ActionDrawLine] = new QAction(QIcon(":/res/draw-line.png"), tr("&Line"), this);
     m_actions[ActionDrawLine]->setStatusTip(tr("Draw tiles with the line tool"));
     m_actions[ActionDrawLine]->setShortcut(Qt::CTRL | Qt::Key_L);
     m_actions[ActionDrawLine]->setCheckable(true);
-    m_actions[ActionDrawLine]->setEnabled(false);
     m_actions[ActionDrawFill] = new QAction(QIcon(":/res/draw-box.png"), tr("&Box"), this);
     m_actions[ActionDrawFill]->setStatusTip(tr("Draw tiles with the box fill tool"));
     m_actions[ActionDrawFill]->setShortcut(Qt::CTRL | Qt::Key_B);
     m_actions[ActionDrawFill]->setCheckable(true);
-    m_actions[ActionDrawFill]->setEnabled(false);
     m_actions[ActionDrawFlood] = new QAction(QIcon(":/res/draw-fill.png"), tr("&Flood Fill"), this);
     m_actions[ActionDrawFlood]->setStatusTip(tr("Draw tiles with the flood fill tool"));
     m_actions[ActionDrawFlood]->setShortcut(Qt::CTRL | Qt::Key_F);
     m_actions[ActionDrawFlood]->setCheckable(true);
-    m_actions[ActionDrawFlood]->setEnabled(false);
     m_actions[ActionPathMaker] = new QAction(QIcon(":/res/draw-path.png"), tr("Path &Maker"), this);
     m_actions[ActionPathMaker]->setStatusTip(tr("Draw a directional path of tiles"));
     m_actions[ActionPathMaker]->setShortcut(Qt::CTRL | Qt::Key_M);
     m_actions[ActionPathMaker]->setCheckable(true);
-    m_actions[ActionPathMaker]->setEnabled(false);
     m_actions[ActionDrawWire] = new QAction(QIcon(":/res/draw-wire.png"), tr("Draw &Wires"), this);
     m_actions[ActionDrawWire]->setStatusTip(tr("Draw logic wires"));
     m_actions[ActionDrawWire]->setShortcut(Qt::CTRL | Qt::Key_T);
     m_actions[ActionDrawWire]->setCheckable(true);
-    m_actions[ActionDrawWire]->setEnabled(false);
     m_actions[ActionInspectHints] = new QAction(QIcon(":/res/draw-hints.png"), tr("Edit &Hints"), this);
     m_actions[ActionInspectHints]->setStatusTip(tr("Directly edit hint tiles"));
     m_actions[ActionInspectHints]->setShortcut(Qt::CTRL | Qt::Key_H);
     m_actions[ActionInspectHints]->setCheckable(true);
-    m_actions[ActionInspectHints]->setEnabled(false);
     m_actions[ActionInspectTiles] = new QAction(QIcon(":/res/draw-inspect.png"), tr("&Inspect Tiles"), this);
     m_actions[ActionInspectTiles]->setStatusTip(tr("Inspect tiles and make advanced modifications"));
     m_actions[ActionInspectTiles]->setShortcut(Qt::CTRL | Qt::Key_I);
     m_actions[ActionInspectTiles]->setCheckable(true);
-    m_actions[ActionInspectTiles]->setEnabled(false);
     m_actions[ActionToggleGreens] = new QAction(QIcon(":/res/cctools-gbutton.png"), tr("&Toggle "), this);
     m_actions[ActionToggleGreens]->setStatusTip(tr("Toggle all toggle doors and chips in the current level"));
     m_actions[ActionToggleGreens]->setShortcut(Qt::CTRL | Qt::Key_G);
     m_actions[ActionToggleGreens]->setEnabled(false);
-    auto drawModeGroup = new QActionGroup(this);
-    drawModeGroup->addAction(m_actions[ActionDrawPencil]);
-    drawModeGroup->addAction(m_actions[ActionDrawLine]);
-    drawModeGroup->addAction(m_actions[ActionDrawFill]);
-    drawModeGroup->addAction(m_actions[ActionDrawFlood]);
-    drawModeGroup->addAction(m_actions[ActionPathMaker]);
+    m_drawModeGroup = new QActionGroup(this);
+    m_drawModeGroup->addAction(m_actions[ActionDrawPencil]);
+    m_drawModeGroup->addAction(m_actions[ActionDrawLine]);
+    m_drawModeGroup->addAction(m_actions[ActionDrawFill]);
+    m_drawModeGroup->addAction(m_actions[ActionDrawFlood]);
+    m_drawModeGroup->addAction(m_actions[ActionPathMaker]);
     m_actions[ActionDrawPencil]->setChecked(true);
+    m_modalToolGroup = new QActionGroup(this);
+    m_modalToolGroup->setExclusive(false);
+    m_modalToolGroup->addAction(m_actions[ActionSelect]);
+    m_modalToolGroup->addAction(m_actions[ActionDrawWire]);
+    m_modalToolGroup->addAction(m_actions[ActionInspectHints]);
+    m_modalToolGroup->addAction(m_actions[ActionInspectTiles]);
+    m_drawModeGroup->setEnabled(false);
+    m_modalToolGroup->setEnabled(false);
 
     m_actions[ActionViewViewport] = new QAction(tr("Show Game &Viewport"), this);
     m_actions[ActionViewViewport]->setStatusTip(tr("Show a viewport bounding box around the cursor"));
@@ -1587,20 +1586,22 @@ void CC2EditMain::onSaveAsAction()
     saveTabAs(m_editorTabs->currentIndex());
 }
 
+static void uncheckAll(QActionGroup* group, QAction* exceptFor = nullptr)
+{
+    for (QAction* action : group->actions()) {
+        if (action != exceptFor)
+            action->setChecked(false);
+    }
+}
+
 void CC2EditMain::onSelectToggled(bool mode)
 {
     if (!mode && m_currentDrawMode == CC2EditorWidget::DrawSelect) {
         m_actions[m_savedDrawMode]->setChecked(true);
     } else if (mode) {
         m_currentDrawMode = CC2EditorWidget::DrawSelect;
-        m_actions[ActionDrawPencil]->setChecked(false);
-        m_actions[ActionDrawLine]->setChecked(false);
-        m_actions[ActionDrawFill]->setChecked(false);
-        m_actions[ActionDrawFlood]->setChecked(false);
-        m_actions[ActionPathMaker]->setChecked(false);
-        m_actions[ActionDrawWire]->setChecked(false);
-        m_actions[ActionInspectHints]->setChecked(false);
-        m_actions[ActionInspectTiles]->setChecked(false);
+        uncheckAll(m_drawModeGroup);
+        uncheckAll(m_modalToolGroup, m_actions[ActionSelect]);
 
         CC2EditorWidget* editor = currentEditor();
         if (editor)
@@ -1689,10 +1690,7 @@ void CC2EditMain::onDrawPencilAction(bool checked)
 
     m_savedDrawMode = ActionDrawPencil;
     m_currentDrawMode = CC2EditorWidget::DrawPencil;
-    m_actions[ActionSelect]->setChecked(false);
-    m_actions[ActionDrawWire]->setChecked(false);
-    m_actions[ActionInspectHints]->setChecked(false);
-    m_actions[ActionInspectTiles]->setChecked(false);
+    uncheckAll(m_modalToolGroup);
 
     CC2EditorWidget* editor = currentEditor();
     if (editor)
@@ -1706,10 +1704,7 @@ void CC2EditMain::onDrawLineAction(bool checked)
 
     m_savedDrawMode = ActionDrawLine;
     m_currentDrawMode = CC2EditorWidget::DrawLine;
-    m_actions[ActionSelect]->setChecked(false);
-    m_actions[ActionDrawWire]->setChecked(false);
-    m_actions[ActionInspectHints]->setChecked(false);
-    m_actions[ActionInspectTiles]->setChecked(false);
+    uncheckAll(m_modalToolGroup);
 
     CC2EditorWidget* editor = currentEditor();
     if (editor)
@@ -1723,10 +1718,7 @@ void CC2EditMain::onDrawFillAction(bool checked)
 
     m_savedDrawMode = ActionDrawFill;
     m_currentDrawMode = CC2EditorWidget::DrawFill;
-    m_actions[ActionSelect]->setChecked(false);
-    m_actions[ActionDrawWire]->setChecked(false);
-    m_actions[ActionInspectHints]->setChecked(false);
-    m_actions[ActionInspectTiles]->setChecked(false);
+    uncheckAll(m_modalToolGroup);
 
     CC2EditorWidget* editor = currentEditor();
     if (editor)
@@ -1740,10 +1732,7 @@ void CC2EditMain::onDrawFloodAction(bool checked)
 
     m_savedDrawMode = ActionDrawFlood;
     m_currentDrawMode = CC2EditorWidget::DrawFlood;
-    m_actions[ActionSelect]->setChecked(false);
-    m_actions[ActionDrawWire]->setChecked(false);
-    m_actions[ActionInspectHints]->setChecked(false);
-    m_actions[ActionInspectTiles]->setChecked(false);
+    uncheckAll(m_modalToolGroup);
 
     CC2EditorWidget* editor = currentEditor();
     if (editor)
@@ -1757,10 +1746,7 @@ void CC2EditMain::onPathMakerAction(bool checked)
 
     m_savedDrawMode = ActionPathMaker;
     m_currentDrawMode = CC2EditorWidget::DrawPathMaker;
-    m_actions[ActionSelect]->setChecked(false);
-    m_actions[ActionDrawWire]->setChecked(false);
-    m_actions[ActionInspectHints]->setChecked(false);
-    m_actions[ActionInspectTiles]->setChecked(false);
+    uncheckAll(m_modalToolGroup);
 
     CC2EditorWidget* editor = currentEditor();
     if (editor)
@@ -1773,14 +1759,8 @@ void CC2EditMain::onDrawWireAction(bool mode)
         m_actions[m_savedDrawMode]->setChecked(true);
     } else if (mode) {
         m_currentDrawMode = CC2EditorWidget::DrawWires;
-        m_actions[ActionSelect]->setChecked(false);
-        m_actions[ActionDrawPencil]->setChecked(false);
-        m_actions[ActionDrawLine]->setChecked(false);
-        m_actions[ActionDrawFill]->setChecked(false);
-        m_actions[ActionDrawFlood]->setChecked(false);
-        m_actions[ActionPathMaker]->setChecked(false);
-        m_actions[ActionInspectHints]->setChecked(false);
-        m_actions[ActionInspectTiles]->setChecked(false);
+        uncheckAll(m_drawModeGroup);
+        uncheckAll(m_modalToolGroup, m_actions[ActionDrawWire]);
 
         CC2EditorWidget* editor = currentEditor();
         if (editor)
@@ -1794,14 +1774,8 @@ void CC2EditMain::onInspectHints(bool mode)
         m_actions[m_savedDrawMode]->setChecked(true);
     } else if (mode) {
         m_currentDrawMode = CC2EditorWidget::DrawInspectHint;
-        m_actions[ActionSelect]->setChecked(false);
-        m_actions[ActionDrawPencil]->setChecked(false);
-        m_actions[ActionDrawLine]->setChecked(false);
-        m_actions[ActionDrawFill]->setChecked(false);
-        m_actions[ActionDrawFlood]->setChecked(false);
-        m_actions[ActionPathMaker]->setChecked(false);
-        m_actions[ActionDrawWire]->setChecked(false);
-        m_actions[ActionInspectTiles]->setChecked(false);
+        uncheckAll(m_drawModeGroup);
+        uncheckAll(m_modalToolGroup, m_actions[ActionInspectHints]);
 
         CC2EditorWidget* editor = currentEditor();
         if (editor)
@@ -1815,14 +1789,8 @@ void CC2EditMain::onInspectTiles(bool mode)
         m_actions[m_savedDrawMode]->setChecked(true);
     } else if (mode) {
         m_currentDrawMode = CC2EditorWidget::DrawInspectTile;
-        m_actions[ActionSelect]->setChecked(false);
-        m_actions[ActionDrawPencil]->setChecked(false);
-        m_actions[ActionDrawLine]->setChecked(false);
-        m_actions[ActionDrawFill]->setChecked(false);
-        m_actions[ActionDrawFlood]->setChecked(false);
-        m_actions[ActionPathMaker]->setChecked(false);
-        m_actions[ActionDrawWire]->setChecked(false);
-        m_actions[ActionInspectHints]->setChecked(false);
+        uncheckAll(m_drawModeGroup);
+        uncheckAll(m_modalToolGroup, m_actions[ActionInspectTiles]);
 
         CC2EditorWidget* editor = currentEditor();
         if (editor)
@@ -2165,21 +2133,14 @@ void CC2EditMain::onTabChanged(int index)
     m_actions[ActionSaveAs]->setEnabled(scriptEditor || mapEditor);
     m_actions[ActionUndo]->setEnabled(false);
     m_actions[ActionRedo]->setEnabled(false);
-    m_actions[ActionSelect]->setEnabled(!!mapEditor);
     m_actions[ActionCut]->setEnabled(false);
     m_actions[ActionCopy]->setEnabled(false);
     m_actions[ActionPaste]->setEnabled(false);
     m_actions[ActionClear]->setEnabled(false);
-    m_actions[ActionDrawPencil]->setEnabled(!!mapEditor);
-    m_actions[ActionDrawLine]->setEnabled(!!mapEditor);
-    m_actions[ActionDrawFill]->setEnabled(!!mapEditor);
-    m_actions[ActionDrawFlood]->setEnabled(!!mapEditor);
-    m_actions[ActionPathMaker]->setEnabled(!!mapEditor);
-    m_actions[ActionDrawWire]->setEnabled(!!mapEditor);
-    m_actions[ActionInspectHints]->setEnabled(!!mapEditor);
-    m_actions[ActionInspectTiles]->setEnabled(!!mapEditor);
     m_actions[ActionToggleGreens]->setEnabled(!!mapEditor);
     m_actions[ActionTest]->setEnabled(!!mapEditor);
+    m_drawModeGroup->setEnabled(!!mapEditor);
+    m_modalToolGroup->setEnabled(!!mapEditor);
 
     if (scriptEditor) {
         m_actions[ActionUndo]->setEnabled(scriptEditor->canUndo());
