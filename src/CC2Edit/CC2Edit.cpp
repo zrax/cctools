@@ -1651,7 +1651,12 @@ void CC2EditMain::onClearAction()
     auto scriptEditor = currentScriptEditor();
 
     if (mapEditor) {
-        // TODO
+        mapEditor->beginEdit(CC2EditHistory::EditMap);
+        for (int y = mapEditor->selection().top(); y <= mapEditor->selection().bottom(); ++y) {
+            for (int x = mapEditor->selection().left(); x <= mapEditor->selection().right(); ++x)
+                mapEditor->putTile(cc2::Tile(), x, y, CC2EditorWidget::Replace);
+        }
+        mapEditor->endEdit();
     } else if (scriptEditor) {
         scriptEditor->deleteSelection();
     }
