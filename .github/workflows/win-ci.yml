@@ -1,0 +1,89 @@
+name: Win32-CI
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+env:
+  KF5_VERSION: "5.74"
+  KF5_FULLVER: "5.74.0"
+  QT_VERSION: "5.15.1"
+  CM_GENERATOR: "Visual Studio 16 2019"
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          submodules: true
+      - name: Install Qt5
+        uses: jurplel/install-qt-action@v2
+        with:
+          arch: win32_msvc2019
+          version: ${{ env.QT_VERSION }}
+      - name: Build Qt5 Libs
+        run: |
+          mkdir build_deps
+          cd build_deps
+          curl -LO https://download.kde.org/stable/frameworks/${Env:KF5_VERSION}/extra-cmake-modules-${Env:KF5_FULLVER}.zip
+          curl -LO https://download.kde.org/stable/frameworks/${Env:KF5_VERSION}/syntax-highlighting-${Env:KF5_FULLVER}.zip
+          cmake -E tar xf extra-cmake-modules-${Env:KF5_FULLVER}.zip
+          cd extra-cmake-modules-${Env:KF5_FULLVER}
+          mkdir build
+          cd build
+          cmake -G "${Env:CM_GENERATOR}" -A Win32 `
+              "-DCMAKE_PREFIX_PATH=${Env:RUNNER_WORKSPACE}/Qt/${Env:QT_VERSION}/msvc2019" `
+              "-DCMAKE_INSTALL_PREFIX=${Env:RUNNER_WORKSPACE}/Qt/${Env:QT_VERSION}/msvc2019" `
+              -DCMAKE_BUILD_TYPE=Release ..
+          cmake --build . --config Release --target install
+          cd ..\..
+          cmake -E tar xf syntax-highlighting-${Env:KF5_FULLVER}.zip
+          cd syntax-highlighting-${Env:KF5_FULLVER}
+          mkdir build && cd build
+          cmake -G "${Env:CM_GENERATOR}" -A Win32 `
+              "-DCMAKE_PREFIX_PATH=${Env:RUNNER_WORKSPACE}/Qt/${Env:QT_VERSION}/msvc2019" `
+              "-DCMAKE_INSTALL_PREFIX=${Env:RUNNER_WORKSPACE}/Qt/${Env:QT_VERSION}/msvc2019" `
+              -DCMAKE_BUILD_TYPE=Release ..
+          cmake --build . --config Release
+          cmake --build . --config Release --target install
+      - name: Build cctools
+        run: |
+          mkdir build
+          cd build
+          cmake -G "${Env:CM_GENERATOR}" -A Win32 `
+            "-DCMAKE_PREFIX_PATH=${Env:RUNNER_WORKSPACE}/Qt/${Env:QT_VERSION}/msvc2019" `
+            "-DCMAKE_INSTALL_PREFIX=${Env:GITHUB_WORKSPACE}/Dist" `
+            -DCMAKE_BUILD_TYPE=Release ..
+          cmake --build . --config Release
+          cmake --build . --config Release --target install
+      - name: Package cctools
+        run: |
+          $buildver = ((git describe --tags --dirty) | Out-String).Trim()
+          $Env:VCINSTALLDIR = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC"
+          cd "${Env:GITHUB_WORKSPACE}\Dist"
+          windeployqt CCEdit.exe --release --no-angle --no-opengl-sw
+          windeployqt CC2Edit.exe --release --no-angle --no-opengl-sw
+          windeployqt CCHack.exe --release --no-angle --no-opengl-sw
+          windeployqt CCPlay.exe --release --no-angle --no-opengl-sw
+          cmake -E copy "${Env:GITHUB_WORKSPACE}\LICENSE" `
+              "${Env:GITHUB_WORKSPACE}\LICENSE-oxygen-icon-theme" `
+              "${Env:GITHUB_WORKSPACE}\changelog.txt" `
+              "${Env:RUNNER_WORKSPACE}\Qt\${Env:QT_VERSION}\msvc2019\bin\KF5SyntaxHighlighting.dll" `
+              .
+          windeployqt KF5SyntaxHighlighting.dll --release --no-angle --no-opengl-sw
+          cmake -E tar cf "..\cctools-${buildver}.zip" --format=zip `
+              CCEdit.exe CC2Edit.exe CCHack.exe CCPlay.exe `
+              KF5SyntaxHighlighting.dll Qt5Core.dll Qt5Gui.dll Qt5Network.dll `
+              Qt5Sql.dll Qt5Widgets.dll Qt5Xml.dll `
+              WEP.tis TW32.tis CC2.tis `
+              bearer imageformats platforms sqldrivers styles translations `
+              LICENSE LICENSE-oxygen-icon-theme changelog.txt `
+              vc_redist.x86.exe
+          iscc setup.iss
+          cmake -E rename CCTools.exe "..\CCTools-${buildver}.exe"
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: CCTools
+          path: CCTools-*.*
