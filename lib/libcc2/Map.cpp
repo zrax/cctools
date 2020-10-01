@@ -1653,7 +1653,7 @@ void cc2::CC2Save::write(ccl::Stream* stream) const
 
     writeTaggedString(stream, "FILE", m_filename);
     writeTaggedString(stream, "PATH", m_gamePath);
-    writeTagged(stream, "SAVE", [&] { m_save.write(stream); });
+    writeTagged(stream, "GAME", [&] { m_save.write(stream); });
 
     // End of tagged data
     writeTaggedBlock<0>(stream, "END ");
