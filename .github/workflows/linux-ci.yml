@@ -1,0 +1,22 @@
+name: Linux-CI
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install qtbase5-dev libkf5syntaxhighlighting-dev
+      - name: Build cctools
+        run: |
+          mkdir build && cd build
+          cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/dist-linux ..
+          make -j2 && make install
