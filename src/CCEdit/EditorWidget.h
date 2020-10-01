@@ -109,7 +109,8 @@ public:
     double zoom() const { return m_zoomFactor; }
 
     void renderTo(QPainter& painter);
-    QPixmap renderReport();
+    QImage renderReport();
+    QImage renderSelection();
 
 public slots:
     void putTile(tile_t tile, int x, int y, DrawLayer layer);

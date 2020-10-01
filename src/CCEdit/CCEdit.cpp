@@ -1402,7 +1402,7 @@ void CCEditMain::onReportAction()
         reportDummy.setVisible(false);
         reportDummy.setTileset(m_currentTileset);
         reportDummy.setLevelData(level);
-        QPixmap levelImage = reportDummy.renderReport();
+        QImage levelImage = reportDummy.renderReport();
         levelImage.save(QStringLiteral("%1/level%2.png").arg(imgdir).arg(i + 1), "PNG");
 
         proDlg.setValue(i + 1);
@@ -1495,6 +1495,7 @@ void CCEditMain::onCopyAction()
 
         auto copyData = new QMimeData;
         copyData->setData(s_clipboardFormat, buffer);
+        copyData->setImageData(editor->renderSelection());
         QApplication::clipboard()->setMimeData(copyData);
     } catch (const std::exception& e) {
         QMessageBox::critical(this, tr("Error"),

@@ -437,16 +437,33 @@ void EditorWidget::renderTo(QPainter& painter)
 /* This is only used to generate special reports, so no old draw/render state
  * data needs to be saved.
  */
-QPixmap EditorWidget::renderReport()
+QImage EditorWidget::renderReport()
 {
     m_paintFlags = ShowAll;
     m_zoomFactor = 1.0;
     m_cacheDirty = true;
     m_current = find_player(m_levelData);
 
-    QPixmap output(m_tileset->size() * 32, m_tileset->size() * 32);
+    QImage output(m_tileset->size() * 32, m_tileset->size() * 32, QImage::Format_RGB32);
     QPainter painter(&output);
     renderTo(painter);
+    return output;
+}
+
+QImage EditorWidget::renderSelection()
+{
+    if (m_selectRect == QRect(-1, -1, -1, -1))
+        return QImage();
+
+    QImage output(m_tileset->size() * m_selectRect.width(),
+                  m_tileset->size() * m_selectRect.height(),
+                  QImage::Format_RGB32);
+    QPainter painter(&output);
+    painter.drawPixmap(0, 0, m_tileBuffer,
+                       m_selectRect.x() * m_tileset->size(),
+                       m_selectRect.y() * m_tileset->size(),
+                       m_selectRect.width() * m_tileset->size(),
+                       m_selectRect.height() * m_tileset->size());
     return output;
 }
 

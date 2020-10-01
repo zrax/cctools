@@ -35,8 +35,8 @@ namespace ccl {
 struct Point {
     int X, Y;
 
-    bool operator==(const Point& other) { return X == other.X && Y == other.Y; }
-    bool operator!=(const Point& other) { return X != other.X || Y != other.Y; }
+    bool operator==(const Point& other) const { return X == other.X && Y == other.Y; }
+    bool operator!=(const Point& other) const { return X != other.X || Y != other.Y; }
 };
 
 struct Trap     { Point button, trap; };
