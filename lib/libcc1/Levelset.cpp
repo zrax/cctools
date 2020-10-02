@@ -17,6 +17,7 @@
 
 #include "Levelset.h"
 
+#include <algorithm>
 #include <cstring>
 #include <cstdlib>
 
@@ -40,10 +41,13 @@ ccl::LevelMap& ccl::LevelMap::operator=(const ccl::LevelMap& source)
 void ccl::LevelMap::copyFrom(const ccl::LevelMap& source, int srcX, int srcY,
                              int destX, int destY, int width, int height)
 {
-    if (destX + width > CCL_WIDTH)
-        width = CCL_WIDTH - destX;
-    if (destY + height > CCL_HEIGHT)
-        height = CCL_HEIGHT - destY;
+    if (srcX < 0 || srcX >= CCL_WIDTH || srcY < 0 || srcY >= CCL_HEIGHT)
+        return;
+    if (destX < 0 || destX >= CCL_WIDTH || destY < 0 || destY >= CCL_HEIGHT)
+        return;
+
+    width = std::min(width, CCL_WIDTH - destX);
+    height = std::min(height, CCL_HEIGHT - destY);
 
     for (int x = 0; x < width; ++x) {
         for (int y = 0; y < height; ++y) {
@@ -515,4 +519,29 @@ ccl::LevelsetType ccl::DetermineLevelsetType(const char* filename)
         || magic == Levelset::TypePG || magic == Levelset::TypeLynxPG)
         return LevelsetCcl;
     return LevelsetDac;
+}
+
+
+void ccl::ClipboardData::read(Stream* stream)
+{
+    m_width = stream->read32();
+    m_height = stream->read32();
+    (void)stream->read16();
+    (void)stream->read32();
+    m_levelData->read(stream, true);
+}
+
+void ccl::ClipboardData::write(Stream* stream) const
+{
+    // We only support writing to the beginning of seekable streams for now
+    if (stream->tell() != 0L)
+        throw std::runtime_error("Cannot write clipboard data to the middle of a stream");
+
+    stream->write32(m_width);
+    stream->write32(m_height);
+    stream->write16(0);    // Revisit after writing data
+    stream->write32(0);
+    m_levelData->write(stream, true);
+    stream->seek(8, SEEK_SET);
+    stream->write16(stream->size() - 14); // Size of data buffer
 }

@@ -81,6 +81,7 @@ private slots:
     void onSaveAction();
     void onSaveAsAction();
     void onSelectToggled(bool);
+    void onClipboardDataChanged();
     void onCutAction();
     void onCopyAction();
     void onPasteAction();

@@ -1451,46 +1451,42 @@ void CCEditMain::onCopyAction()
     if (!editor || editor->selection() == QRect(-1, -1, -1, -1))
         return;
 
-    auto copyRegion = new ccl::LevelData();
+    const QRect selection = editor->selection();
+    ccl::ClipboardData cbData(selection.width(), selection.height());
+    ccl::LevelData* copyRegion = cbData.levelData();
     ccl::LevelData* current = editor->levelData();
     copyRegion->map().copyFrom(editor->levelData()->map(),
-        editor->selection().left(), editor->selection().top(),
-        0, 0, editor->selection().width(), editor->selection().height());
+                               selection.x(), selection.y(), 0, 0,
+                               selection.width(), selection.height());
 
     // Gather any mechanics that are completely encompassed by this region
     for (const ccl::Trap& trap_iter : current->traps()) {
-        if (editor->selection().contains(trap_iter.button.X, trap_iter.button.Y)
-            && editor->selection().contains(trap_iter.trap.X, trap_iter.trap.Y))
-            copyRegion->trapConnect(trap_iter.button.X - editor->selection().left(),
-                                    trap_iter.button.Y - editor->selection().top(),
-                                    trap_iter.trap.X - editor->selection().left(),
-                                    trap_iter.trap.Y - editor->selection().top());
+        if (selection.contains(trap_iter.button.X, trap_iter.button.Y)
+            && selection.contains(trap_iter.trap.X, trap_iter.trap.Y))
+            copyRegion->trapConnect(trap_iter.button.X - selection.x(),
+                                    trap_iter.button.Y - selection.y(),
+                                    trap_iter.trap.X - selection.x(),
+                                    trap_iter.trap.Y - selection.y());
     }
 
     for (const ccl::Clone& clone_iter : current->clones()) {
-        if (editor->selection().contains(clone_iter.button.X, clone_iter.button.Y)
-            && editor->selection().contains(clone_iter.clone.X, clone_iter.clone.Y))
-            copyRegion->cloneConnect(clone_iter.button.X - editor->selection().left(),
-                                     clone_iter.button.Y - editor->selection().top(),
-                                     clone_iter.clone.X - editor->selection().left(),
-                                     clone_iter.clone.Y - editor->selection().top());
+        if (selection.contains(clone_iter.button.X, clone_iter.button.Y)
+            && selection.contains(clone_iter.clone.X, clone_iter.clone.Y))
+            copyRegion->cloneConnect(clone_iter.button.X - selection.x(),
+                                     clone_iter.button.Y - selection.y(),
+                                     clone_iter.clone.X - selection.x(),
+                                     clone_iter.clone.Y - selection.y());
     }
 
     for (const ccl::Point& move_iter : current->moveList()) {
-        if (editor->selection().contains(move_iter.X, move_iter.Y))
-            copyRegion->addMover(move_iter.X - editor->selection().left(),
-                                 move_iter.Y - editor->selection().top());
+        if (selection.contains(move_iter.X, move_iter.Y))
+            copyRegion->addMover(move_iter.X - selection.x(),
+                                 move_iter.Y - selection.y());
     }
 
     try {
         ccl::BufferStream cbStream;
-        cbStream.write32(editor->selection().width());
-        cbStream.write32(editor->selection().height());
-        cbStream.write16(0);    // Revisit after writing data
-        cbStream.write32(0);
-        copyRegion->write(&cbStream, true);
-        cbStream.seek(8, SEEK_SET);
-        cbStream.write16(cbStream.size() - 14); // Size of data buffer
+        cbData.write(&cbStream);
         QByteArray buffer((const char*)cbStream.buffer(), cbStream.size());
 
         auto copyData = new QMimeData;
@@ -1502,7 +1498,6 @@ void CCEditMain::onCopyAction()
                 tr("Error saving clipboard data: %1").arg(e.what()),
                 QMessageBox::Ok);
     }
-    copyRegion->unref();
 }
 
 void CCEditMain::onPasteAction()
@@ -1511,25 +1506,19 @@ void CCEditMain::onPasteAction()
     if (!editor)
         return;
 
-    const QMimeData* cbData = QApplication::clipboard()->mimeData();
-    if (cbData->hasFormat(s_clipboardFormat)) {
-        QByteArray buffer = cbData->data(s_clipboardFormat);
+    const QMimeData* pasteData = QApplication::clipboard()->mimeData();
+    if (pasteData->hasFormat(s_clipboardFormat)) {
+        QByteArray buffer = pasteData->data(s_clipboardFormat);
         ccl::BufferStream cbStream;
         cbStream.setFrom(buffer.constData(), buffer.size());
 
-        int width, height;
-        auto copyRegion = new ccl::LevelData;
+        ccl::ClipboardData cbData;
         try {
-            width = cbStream.read32();
-            height = cbStream.read32();
-            cbStream.read16();
-            cbStream.read32();
-            copyRegion->read(&cbStream, true);
+            cbData.read(&cbStream);
         } catch (const std::exception& e) {
             QMessageBox::critical(this, tr("Error"),
                     tr("Error parsing clipboard data: %1").arg(e.what()),
                     QMessageBox::Ok);
-            copyRegion->unref();
             return;
         }
 
@@ -1541,15 +1530,14 @@ void CCEditMain::onPasteAction()
             destX = editor->selection().left();
             destY = editor->selection().top();
         }
-        if (destX + width > CCL_WIDTH)
-            width = CCL_WIDTH - destX;
-        if (destY + height > CCL_HEIGHT)
-            height = CCL_HEIGHT - destY;
+        const int width = std::min(cbData.width(), CCL_WIDTH - destX);
+        const int height = std::min(cbData.height(), CCL_HEIGHT - destY);
 
         beginEdit(CCEditHistory::EditMap);
         editor->selectRegion(destX, destY, width, height);
         onClearAction();
         ccl::LevelData* current = editor->levelData();
+        ccl::LevelData* copyRegion = cbData.levelData();
         current->map().copyFrom(copyRegion->map(), 0, 0, destX, destY, width, height);
 
         for (const ccl::Trap& trap_iter : copyRegion->traps()) {
@@ -1575,7 +1563,6 @@ void CCEditMain::onPasteAction()
         }
 
         endEdit();
-        copyRegion->unref();
     }
 }
 

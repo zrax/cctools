@@ -360,6 +360,11 @@ public:
     MapData(const MapData& other);
     MapData& operator=(const MapData& other);
 
+    void copyFrom(const MapData& source, int srcX = 0, int srcY = 0,
+                  int destX = 0, int destY = 0,
+                  int width = 100, int height = 100);
+    void importFrom(const ccl::LevelData* level, bool autoResize);
+
     void read(ccl::Stream* stream, size_t size);
     void write(ccl::Stream* stream) const;
 
@@ -480,6 +485,20 @@ private:
     bool m_readOnly;
 
     std::vector<CC2FieldStorage> m_unknown;
+};
+
+class ClipboardMap {
+public:
+    ClipboardMap() = default;
+
+    MapData& mapData() { return m_mapData; }
+    const MapData& mapData() const { return m_mapData; }
+
+    void read(ccl::Stream* stream);
+    void write(ccl::Stream* stream) const;
+
+private:
+    MapData m_mapData;
 };
 
 class SaveData {

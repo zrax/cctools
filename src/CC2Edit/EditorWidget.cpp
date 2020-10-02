@@ -335,6 +335,23 @@ void CC2EditorWidget::renderTo(QPainter& painter)
         painter.drawRect(calcTileRect(hi.x(), hi.y()));
 }
 
+QImage CC2EditorWidget::renderSelection()
+{
+    if (m_selectRect == QRect(-1, -1, -1, -1))
+        return QImage();
+
+    QImage output(m_tileset->size() * m_selectRect.width(),
+                  m_tileset->size() * m_selectRect.height(),
+                  QImage::Format_RGB32);
+    QPainter painter(&output);
+    painter.drawPixmap(0, 0, m_tileBuffer,
+                       m_selectRect.x() * m_tileset->size(),
+                       m_selectRect.y() * m_tileset->size(),
+                       m_selectRect.width() * m_tileset->size(),
+                       m_selectRect.height() * m_tileset->size());
+    return output;
+}
+
 static QPoint scanForR(cc2::Tile::Type type, int x, int y, const cc2::MapData& map)
 {
     int sx = x, sy = y;

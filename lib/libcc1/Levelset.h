@@ -52,17 +52,11 @@ public:
                   int destX = 0, int destY = 0,
                   int width = CCL_WIDTH, int height = CCL_HEIGHT);
 
-    tile_t getFG(int x, int y) const
-    { return m_fgTiles[(CCL_WIDTH*y) + x]; }
+    tile_t getFG(int x, int y) const { return m_fgTiles[(CCL_WIDTH*y) + x]; }
+    tile_t getBG(int x, int y) const { return m_bgTiles[(CCL_WIDTH*y) + x]; }
 
-    tile_t getBG(int x, int y) const
-    { return m_bgTiles[(CCL_WIDTH*y) + x]; }
-
-    void setFG(int x, int y, tile_t tile)
-    { m_fgTiles[(CCL_WIDTH*y) + x] = tile; }
-
-    void setBG(int x, int y, tile_t tile)
-    { m_bgTiles[(CCL_WIDTH*y) + x] = tile; }
+    void setFG(int x, int y, tile_t tile) { m_fgTiles[(CCL_WIDTH*y) + x] = tile; }
+    void setBG(int x, int y, tile_t tile) { m_bgTiles[(CCL_WIDTH*y) + x] = tile; }
 
     void push(int x, int y, tile_t tile);
     tile_t pop(int x, int y);
@@ -192,6 +186,29 @@ private:
 
 enum LevelsetType { LevelsetError, LevelsetDac, LevelsetCcl };
 LevelsetType DetermineLevelsetType(const char* filename);
+
+
+class ClipboardData {
+public:
+    ClipboardData() : m_width(), m_height(), m_levelData(new LevelData) { }
+    ClipboardData(int width, int height)
+        : m_width(width), m_height(height), m_levelData(new LevelData) { }
+    ~ClipboardData() { m_levelData->unref(); }
+
+    int width() const { return m_width; }
+    int height() const { return m_height; }
+
+    ccl::LevelData* levelData() { return m_levelData; }
+    const ccl::LevelData* levelData() const { return m_levelData; }
+
+    void read(Stream* stream);
+    void write(Stream* stream) const;
+
+private:
+    int m_width, m_height;
+    ccl::LevelData* m_levelData;
+};
+
 
 enum Direction { DirInvalid, DirNorth, DirWest, DirSouth, DirEast };
 

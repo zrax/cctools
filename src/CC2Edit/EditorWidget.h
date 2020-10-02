@@ -120,6 +120,7 @@ public:
     double zoom() const { return m_zoomFactor; }
 
     void renderTo(QPainter& painter);
+    QImage renderSelection();
 
 signals:
     void mouseInfo(const QString& text, int timeout = 0);

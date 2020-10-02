@@ -23,6 +23,7 @@
 #include "ImportDialog.h"
 #include "ResizeDialog.h"
 #include "HintEdit.h"
+#include "libcc1/Levelset.h"
 #include "libcc2/GameLogic.h"
 #include "CommonWidgets/About.h"
 #include "CommonWidgets/EditorTabWidget.h"
@@ -31,6 +32,8 @@
 #include <QSettings>
 #include <QDir>
 #include <QStandardPaths>
+#include <QClipboard>
+#include <QMimeData>
 #include <QAction>
 #include <QDesktopWidget>
 #include <QDockWidget>
@@ -915,6 +918,9 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     connect(m_editorTabs, &QTabWidget::tabCloseRequested, this, &CC2EditMain::onTabClosed);
     connect(m_editorTabs, &QTabWidget::currentChanged, this, &CC2EditMain::onTabChanged);
 
+    connect(QApplication::clipboard(), &QClipboard::dataChanged,
+            this, &CC2EditMain::onClipboardDataChanged);
+
     // Load window settings and defaults
     QSettings settings("CCTools", "CC2Edit");
     resize(settings.value("WindowSize", QSize(1024, 768)).toSize());
@@ -992,6 +998,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     setRightTile(defTile);
 
     setGameName(QString());
+    onClipboardDataChanged();
 }
 
 void CC2EditMain::createNewMap()
@@ -1609,13 +1616,38 @@ void CC2EditMain::onSelectToggled(bool mode)
     }
 }
 
+static const QString s_chipeditFormat = QStringLiteral("CHIPEDIT MAPSECT");
+static const QString s_cc2eFormat = QStringLiteral("CC2Edit MapData");
+
+//TODO: Need to figure out the mapping from CCCreator's tile format to CC2's
+//static const QString s_cccreFormat = QStringLiteral("CCS Map");
+
+static bool haveMapClipboardData()
+{
+    const QMimeData* cbData = QApplication::clipboard()->mimeData();
+    return cbData->hasFormat(s_chipeditFormat) || cbData->hasFormat(s_cc2eFormat)
+        /*|| cbData->hasFormat(s_cccreFormat)*/;
+}
+
+void CC2EditMain::onClipboardDataChanged()
+{
+    CC2EditorWidget* mapEditor = currentEditor();
+    CC2ScriptEditor* scriptEditor = currentScriptEditor();
+
+    if (mapEditor)
+        m_actions[ActionPaste]->setEnabled(haveMapClipboardData());
+    else if (scriptEditor)
+        m_actions[ActionPaste]->setEnabled(scriptEditor->canPaste());
+}
+
 void CC2EditMain::onCutAction()
 {
     auto mapEditor = currentEditor();
     auto scriptEditor = currentScriptEditor();
 
     if (mapEditor) {
-        // TODO
+        onCopyAction();
+        onClearAction();
     } else if (scriptEditor) {
         scriptEditor->cut();
     }
@@ -1627,7 +1659,31 @@ void CC2EditMain::onCopyAction()
     auto scriptEditor = currentScriptEditor();
 
     if (mapEditor) {
-        // TODO
+        if (mapEditor->selection() == QRect(-1, -1, -1, -1))
+            return;
+
+        cc2::ClipboardMap cbMap;
+        const QRect selection = mapEditor->selection();
+        cbMap.mapData().resize(selection.width(), selection.height());
+        cbMap.mapData().copyFrom(mapEditor->map()->mapData(),
+                                 selection.x(), selection.y(), 0, 0,
+                                 selection.width(), selection.height());
+
+        try {
+            ccl::BufferStream cbStream;
+            cbMap.write(&cbStream);
+            QByteArray buffer((const char*)cbStream.buffer(), cbStream.size());
+
+            auto copyData = new QMimeData;
+            copyData->setData(s_cc2eFormat, buffer);
+            //TODO: set CC1 map data
+            copyData->setImageData(mapEditor->renderSelection());
+            QApplication::clipboard()->setMimeData(copyData);
+        } catch (const std::runtime_error& err) {
+            QMessageBox::critical(this, tr("Error"),
+                    tr("Error saving clipboard data: %1").arg(err.what()),
+                    QMessageBox::Ok);
+        }
     } else if (scriptEditor) {
         scriptEditor->copy();
     }
@@ -1639,7 +1695,61 @@ void CC2EditMain::onPasteAction()
     auto scriptEditor = currentScriptEditor();
 
     if (mapEditor) {
-        // TODO
+        const QMimeData* cbData = QApplication::clipboard()->mimeData();
+        cc2::ClipboardMap cbMap;
+        if (cbData->hasFormat(s_cc2eFormat)) {
+            QByteArray buffer = cbData->data(s_cc2eFormat);
+            ccl::BufferStream cbStream;
+            cbStream.setFrom(buffer.constData(), buffer.size());
+
+            try {
+                cbMap.read(&cbStream);
+            } catch (const std::runtime_error& err) {
+                QMessageBox::critical(this, tr("Error"),
+                        tr("Error parsing clipboard data: %1").arg(err.what()),
+                        QMessageBox::Ok);
+                return;
+            }
+        } else if (cbData->hasFormat(s_chipeditFormat)) {
+            QByteArray buffer = cbData->data(s_chipeditFormat);
+            ccl::BufferStream cbStream;
+            cbStream.setFrom(buffer.constData(), buffer.size());
+
+            ccl::ClipboardData cc1Map;
+            try {
+                cc1Map.read(&cbStream);
+            } catch (const std::runtime_error& err) {
+                QMessageBox::critical(this, tr("Error"),
+                        tr("Error parsing clipboard data: %1").arg(err.what()),
+                        QMessageBox::Ok);
+                return;
+            }
+
+            cbMap.mapData().importFrom(cc1Map.levelData(), false);
+            cbMap.mapData().resize(cc1Map.width(), cc1Map.height());
+        } else {
+            // No recognized clipboard formats
+            return;
+        }
+
+        int destX, destY;
+        if (mapEditor->selection() == QRect(-1, -1, -1, -1)) {
+            destX = 0;
+            destY = 0;
+        } else {
+            destX = mapEditor->selection().left();
+            destY = mapEditor->selection().top();
+        }
+
+        int width = std::min((int)cbMap.mapData().width(),
+                             mapEditor->map()->mapData().width() - destX);
+        int height = std::min((int)cbMap.mapData().height(),
+                              mapEditor->map()->mapData().height() - destY);
+
+        mapEditor->beginEdit(CC2EditHistory::EditMap);
+        mapEditor->selectRegion(destX, destY, width, height);
+        mapEditor->map()->mapData().copyFrom(cbMap.mapData(), 0, 0, destX, destY, width, height);
+        mapEditor->endEdit();
     } else if (scriptEditor) {
         scriptEditor->paste();
     }
@@ -2162,13 +2272,11 @@ void CC2EditMain::onTabChanged(int index)
         mapEditor->update();
         mapEditor->setDrawMode(m_currentDrawMode);
 
-        /*
-        bool hasSelection = editor->selection() != QRect(-1, -1, -1, -1);
+        const bool hasSelection = mapEditor->selection() != QRect(-1, -1, -1, -1);
         m_actions[ActionCut]->setEnabled(hasSelection);
         m_actions[ActionCopy]->setEnabled(hasSelection);
-        m_actions[ActionPaste]->setEnabled(...);
+        m_actions[ActionPaste]->setEnabled(haveMapClipboardData());
         m_actions[ActionClear]->setEnabled(hasSelection);
-        */
 
         // Update the map properties page
         auto map = mapEditor->map();
