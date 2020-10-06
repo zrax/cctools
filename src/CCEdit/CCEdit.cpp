@@ -712,7 +712,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_editorTabs, &QTabWidget::currentChanged, this, &CCEditMain::onTabChanged);
 
     // Load window settings and defaults
-    QSettings settings("CCTools", "CCEdit");
+    QSettings settings;
     resize(settings.value("WindowSize", QSize(1024, 768)).toSize());
     if (settings.value("WindowMaximized", false).toBool())
         showMaximized();
@@ -997,7 +997,7 @@ void CCEditMain::closeEvent(QCloseEvent* event)
         m_subProc->disconnect();
     }
 
-    QSettings settings("CCTools", "CCEdit");
+    QSettings settings;
     settings.setValue("WindowMaximized", (windowState() & Qt::WindowMaximized) != 0);
     showNormal();
     settings.setValue("WindowSize", size());
@@ -1299,7 +1299,7 @@ void CCEditMain::createNewLevelset()
 
 void CCEditMain::onOpenAction()
 {
-    QSettings settings("CCTools", "CCEdit");
+    QSettings settings;
     QString filename = QFileDialog::getOpenFileName(this, tr("Open Levelset..."),
                             settings.value("DialogDir").toString(),
                             tr("All Levelsets (*.dat *.dac *.ccl)"));
@@ -1319,7 +1319,7 @@ void CCEditMain::onSaveAction()
 
 void CCEditMain::onSaveAsAction()
 {
-    QSettings settings("CCTools", "CCEdit");
+    QSettings settings;
     QString filter = m_useDac ? "TWorld Levelsets (*.dac)"
                               : "CC Levelsets (*.dat *.ccl)";
 
@@ -1335,7 +1335,7 @@ void CCEditMain::onSaveAsAction()
 
 void CCEditMain::onReportAction()
 {
-    QSettings settings("CCTools", "CCEdit");
+    QSettings settings;
     QString reportPath = m_levelsetFilename.isEmpty() ? settings.value("DialogDir").toString()
                        : m_levelsetFilename.left(m_levelsetFilename.lastIndexOf('.')) + ".html";
     QString filename = QFileDialog::getSaveFileName(this, tr("Save Report..."),
@@ -1857,7 +1857,7 @@ void CCEditMain::onTestChips()
         return;
     }
 
-    QSettings settings("CCTools", "CCEdit");
+    QSettings settings;
     QString chipsExe = settings.value("ChipsExe").toString();
     if (chipsExe.isEmpty() || !QFile::exists(chipsExe)) {
         QMessageBox::critical(this, tr("Could not find CHIPS.EXE"),
@@ -2006,7 +2006,7 @@ void CCEditMain::onTestTWorld(unsigned int levelsetType)
         return;
     }
 
-    QSettings settings("CCTools", "CCEdit");
+    QSettings settings;
     QString tworldExe = settings.value("TWorldExe").toString();
     if (tworldExe.isEmpty() || !QFile::exists(tworldExe)) {
         // Try standard paths
@@ -2492,6 +2492,8 @@ int main(int argc, char* argv[])
     srand(time(NULL));
 
     QApplication app(argc, argv);
+    app.setOrganizationName(QStringLiteral("CCTools"));
+    app.setApplicationName(QStringLiteral("CCEdit"));
 
     QIcon appicon(":/icons/boot-48.png");
     appicon.addFile(":/icons/boot-32.png");

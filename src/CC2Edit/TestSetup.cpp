@@ -42,7 +42,7 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
 {
     setWindowTitle(tr("Setup testing parameters"));
 
-    QSettings settings("CCTools", "CC2Edit");
+    QSettings settings;
     auto exeCompleter = new FileCompleter(EXE_LIST, this);
     auto winExeCompleter = new FileCompleter(QStringList{ "*.exe" }, this);
 
@@ -108,7 +108,7 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
 
 void TestSetupDialog::onSaveSettings()
 {
-    QSettings settings("CCTools", "CC2Edit");
+    QSettings settings;
 #ifndef Q_OS_WIN
     settings.setValue("WineExe", m_winePath->text());
 #endif

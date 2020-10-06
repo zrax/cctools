@@ -922,7 +922,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
             this, &CC2EditMain::onClipboardDataChanged);
 
     // Load window settings and defaults
-    QSettings settings("CCTools", "CC2Edit");
+    QSettings settings;
     resize(settings.value("WindowSize", QSize(1024, 768)).toSize());
     if (settings.value("WindowMaximized", false).toBool())
         showMaximized();
@@ -1185,7 +1185,7 @@ bool CC2EditMain::saveTabAs(int index)
     if (!mapEditor && !scriptEditor)
         return false;
 
-    QSettings settings("CCTools", "CC2Edit");
+    QSettings settings;
     QString filename = mapEditor ? mapEditor->filename()
                      : scriptEditor ? scriptEditor->filename()
                      : QString();
@@ -1512,7 +1512,7 @@ void CC2EditMain::closeEvent(QCloseEvent* event)
         m_subProc->disconnect();
     }
 
-    QSettings settings("CCTools", "CC2Edit");
+    QSettings settings;
     settings.setValue("WindowMaximized", (windowState() & Qt::WindowMaximized) != 0);
     showNormal();
     settings.setValue("WindowSize", size());
@@ -1543,7 +1543,7 @@ void CC2EditMain::resizeEvent(QResizeEvent* event)
 
 void CC2EditMain::onOpenAction()
 {
-    QSettings settings("CCTools", "CC2Edit");
+    QSettings settings;
     QString filename = QFileDialog::getOpenFileName(this, tr("Open Map..."),
                             settings.value("DialogDir").toString(),
                             tr("All supported files (*.c2m *.c2g);;"
@@ -1557,7 +1557,7 @@ void CC2EditMain::onOpenAction()
 
 void CC2EditMain::onImportCC1Action()
 {
-    QSettings settings("CCTools", "CC2Edit");
+    QSettings settings;
     QString filename = QFileDialog::getOpenFileName(this, tr("Import Map..."),
                             settings.value("Import/DialogDir").toString(),
                             tr("CC1 Levelsets (*.ccl *.dat)"));
@@ -2023,7 +2023,7 @@ void CC2EditMain::onTestChips2()
         return;
     }
 
-    QSettings settings("CCTools", "CC2Edit");
+    QSettings settings;
     QString chips2Exe = settings.value("Chips2Exe").toString();
     if (chips2Exe.isEmpty() || !QFile::exists(chips2Exe)) {
         QMessageBox::critical(this, tr("Could not find Chips2 executable"),
@@ -2573,6 +2573,8 @@ void CC2EditMain::setGameName(const QString& name)
 int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
+    app.setOrganizationName(QStringLiteral("CCTools"));
+    app.setApplicationName(QStringLiteral("CC2Edit"));
 
     QIcon appicon(":/icons/boot-32.png");
     appicon.addFile(":/icons/boot-24.png");

@@ -101,7 +101,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     m_actions[ActionToolDown]->setShortcut(Qt::CTRL | Qt::Key_Down);
     m_actions[ActionToolDown]->setEnabled(false);
 
-    QSettings settings("CCTools", "CCPlay");
+    QSettings settings;
     auto exeCompleter = new FileCompleter(EXE_LIST, this);
     auto winExeCompleter = new FileCompleter(QStringList{ "*.exe" }, this);
 
@@ -255,7 +255,7 @@ void SettingsDialog::refreshTools()
 
 void SettingsDialog::onSaveSettings()
 {
-    QSettings settings("CCTools", "CCPlay");
+    QSettings settings;
     settings.setValue("WineExe", m_winePath->text());
     settings.setValue("ChipsExe", m_msccPath->text());
     settings.setValue("TWorldExe", m_tworldPath->text());

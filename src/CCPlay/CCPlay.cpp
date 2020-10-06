@@ -249,7 +249,7 @@ CCPlayMain::CCPlayMain(QWidget* parent)
     connect(m_levelsetList, &QTreeWidget::currentItemChanged,
             this, &CCPlayMain::onLevelsetChanged);
 
-    QSettings settings("CCTools", "CCPlay");
+    QSettings settings;
     resize(settings.value("WindowSize", QSize(520, 400)).toSize());
     if (settings.value("WindowMaximized", false).toBool())
         showMaximized();
@@ -323,7 +323,7 @@ bool CCPlayMain::initDatabase()
 
 void CCPlayMain::closeEvent(QCloseEvent*)
 {
-    QSettings settings("CCTools", "CCPlay");
+    QSettings settings;
     settings.setValue("WindowMaximized", (windowState() & Qt::WindowMaximized) != 0);
     showNormal();
     settings.setValue("WindowSize", size());
@@ -333,7 +333,7 @@ void CCPlayMain::closeEvent(QCloseEvent*)
 
 void CCPlayMain::refreshTools()
 {
-    QSettings settings("CCTools", "CCPlay");
+    QSettings settings;
 
     const QString defaultGame = settings.value("DefaultGame").toString();
     if (defaultGame == "TWorld2" || defaultGame == "TWorld")
@@ -386,7 +386,7 @@ void CCPlayMain::onPlayMSCC()
 
     QString filename = m_levelsetList->currentItem()->data(0, Qt::UserRole).toString();
 
-    QSettings settings("CCTools", "CCPlay");
+    QSettings settings;
     QString chipsExe = settings.value("ChipsExe").toString();
     if (chipsExe.isEmpty() || !QFile::exists(chipsExe)) {
         QMessageBox::critical(this, tr("Could not find CHIPS.EXE"),
@@ -629,7 +629,7 @@ void CCPlayMain::onPlayTWorld()
 
     QString filename = m_levelsetList->currentItem()->data(0, Qt::UserRole).toString();
 
-    QSettings settings("CCTools", "CCPlay");
+    QSettings settings;
     QString tworldExe = settings.value("TWorldExe").toString();
     if (tworldExe.isEmpty() || !QFile::exists(tworldExe)) {
         // Try standard paths
@@ -935,6 +935,8 @@ void CCPlayMain::onLevelsetChanged(QTreeWidgetItem* item, QTreeWidgetItem*)
 int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
+    app.setOrganizationName(QStringLiteral("CCTools"));
+    app.setApplicationName(QStringLiteral("CCPlay"));
 
     QIcon appicon(":/icons/chip-48.png");
     appicon.addFile(":/icons/chip-32.png");

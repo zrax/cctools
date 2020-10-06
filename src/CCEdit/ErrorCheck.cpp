@@ -30,7 +30,7 @@ ErrorCheckDialog::ErrorCheckDialog(QWidget* parent)
                 : QDialog(parent), m_levelset(0), m_dacFile(0)
 {
     setWindowTitle(tr("Check for Errors"));
-    QSettings settings("CCTools", "CCEdit");
+    QSettings settings;
 
     m_checkMode = new QComboBox(this);
     m_checkMode->addItems(QStringList() << tr("MSCC (Unmodified)")
@@ -76,7 +76,7 @@ ErrorCheckDialog::ErrorCheckDialog(QWidget* parent)
 
 ErrorCheckDialog::~ErrorCheckDialog()
 {
-    QSettings settings("CCTools", "CCEdit");
+    QSettings settings;
     settings.setValue("LevelsetCheckMode", m_checkMode->currentIndex());
 }
 

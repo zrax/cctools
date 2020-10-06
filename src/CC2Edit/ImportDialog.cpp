@@ -33,7 +33,7 @@ ImportDialog::ImportDialog(QWidget* parent)
 {
     setWindowTitle(tr("Import CC1 Map"));
 
-    QSettings settings("CCTools", "CC2Edit");
+    QSettings settings;
 
     auto levelLabel = new QLabel(tr("&Level:"), this);
     m_levelSelect = new QComboBox(this);
@@ -72,7 +72,7 @@ ImportDialog::ImportDialog(QWidget* parent)
 
 ImportDialog::~ImportDialog()
 {
-    QSettings settings("CCTools", "CC2Edit");
+    QSettings settings;
     settings.setValue("Import/AutoResize", m_resizeLevel->isChecked());
 
     delete m_levelset;
