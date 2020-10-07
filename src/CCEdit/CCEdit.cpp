@@ -901,7 +901,7 @@ void CCEditMain::doLevelsetLoad()
     for (int i = 0; i < m_levelset->levelCount(); ++i) {
         // Use iterator for level number since stored level numbers may
         // be meaningless until saved...
-        m_levelList->item(i)->setText(QString("%1 - %2").arg(i + 1)
+        m_levelList->item(i)->setText(QStringLiteral("%1 - %2").arg(i + 1)
                 .arg(QString::fromLatin1(m_levelset->level(i)->name().c_str())));
     }
     if (!m_levelList->currentItem() && m_levelset->levelCount() > 0)
@@ -1959,7 +1959,7 @@ void CCEditMain::onTestChips()
         ini.read(iniStream);
         ini.setSection("CCEdit Playtest");
         ini.setInt("Current Level", levelNum + 1);
-        ini.setString(QString("Level%1").arg(levelNum + 1).toLatin1().constData(),
+        ini.setString(QStringLiteral("Level%1").arg(levelNum + 1).toLatin1().constData(),
                       editor->levelData()->password());
         ini.write(iniStream);
         fclose(iniStream);
@@ -2216,7 +2216,7 @@ void CCEditMain::onPropertiesAction()
         }
         if (props.useDac() != m_useDac) {
             // Fix filename
-            QString fnameNoSuffix = m_levelsetFilename.left(m_levelsetFilename.lastIndexOf(QChar('.')));
+            QString fnameNoSuffix = m_levelsetFilename.left(m_levelsetFilename.lastIndexOf(QLatin1Char('.')));
             if (!fnameNoSuffix.isEmpty())
                 m_levelsetFilename = fnameNoSuffix + (props.useDac() ? ".dac" : ".dat");
             setLevelsetFilename(m_levelsetFilename);
@@ -2311,7 +2311,7 @@ void CCEditMain::onNameChanged(const QString& value)
     const int levelNum = levelIndex(editor->levelData());
     QListWidgetItem* levelListItem = m_levelList->item(levelNum);
     if (levelListItem)
-        levelListItem->setText(QString("%1 - %2").arg(levelNum + 1).arg(value));
+        levelListItem->setText(QStringLiteral("%1 - %2").arg(levelNum + 1).arg(value));
 
     for (int i=0; i<m_editorTabs->count(); ++i) {
         if (getEditorAt(i)->levelData() == level)

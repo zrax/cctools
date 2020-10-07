@@ -88,7 +88,7 @@ void ErrorCheckDialog::setLevelsetInfo(ccl::Levelset* levelset, ccl::DacFile* da
     m_checkTarget->clear();
     m_checkTarget->addItem(tr("(Entire levelset)"));
     for (int i=0; i<m_levelset->levelCount(); ++i) {
-        m_checkTarget->addItem(QString("%1 - %2").arg(i + 1)
+        m_checkTarget->addItem(QStringLiteral("%1 - %2").arg(i + 1)
                                .arg(QString::fromLatin1(m_levelset->level(i)->name().c_str())));
     }
 }
@@ -96,7 +96,7 @@ void ErrorCheckDialog::setLevelsetInfo(ccl::Levelset* levelset, ccl::DacFile* da
 void ErrorCheckDialog::reportError(int level, QString text)
 {
     QString section = (level < 0) ? "Levelset"
-                    : QString("%1 - %2").arg(level + 1)
+                    : QStringLiteral("%1 - %2").arg(level + 1)
                       .arg(QString::fromLatin1(m_levelset->level(level)->name().c_str()));
 
     QTreeWidgetItem* sectionItem;
@@ -166,21 +166,21 @@ void ErrorCheckDialog::checkLevel(int level)
             if ((fg & 0xFC) == ccl::TilePlayer_N)
                 ++players;
             if ((bg & 0xFC) == ccl::TilePlayer_N)
-                reportError(level, QString("[Invalid Tile Combo]\n"
-                                           "Buried player tile at (%1, %2)")
+                reportError(level, QStringLiteral("[Invalid Tile Combo]\n"
+                                                  "Buried player tile at (%1, %2)")
                                    .arg(x).arg(y));
             if (m_levelset->type() != ccl::Levelset::TypePG &&
                 m_levelset->type() != ccl::Levelset::TypeLynxPG &&
                 (fg == ccl::TileIceBlock || bg == ccl::TileIceBlock))
-                reportError(level, QString("[Invalid Tile]\n"
-                                           "Use of ice block at (%1, %2) in non-PGChips levelset")
+                reportError(level, QStringLiteral("[Invalid Tile]\n"
+                                                  "Use of ice block at (%1, %2) in non-PGChips levelset")
                                    .arg(x).arg(y));
             if (fg == ccl::Tile_UNUSED_20 || (fg >= ccl::TilePlayerSplash &&
                 fg <= ccl::TilePlayerSwim_E && fg != ccl::TileIceBlock) ||
                 bg == ccl::Tile_UNUSED_20 || (bg >= ccl::TilePlayerSplash &&
                 bg <= ccl::TilePlayerSwim_E && bg != ccl::TileIceBlock))
-                reportError(level, QString("[Invalid Tile]\n"
-                                           "Use of reserved tile at (%1, %2)")
+                reportError(level, QStringLiteral("[Invalid Tile]\n"
+                                                  "Use of reserved tile at (%1, %2)")
                                    .arg(x).arg(y));
         }
     }
@@ -189,8 +189,8 @@ void ErrorCheckDialog::checkLevel(int level)
         reportError(level, "[Unsolvable]\n"
                            "No exit tile is present in the level");
     if (chips < levelData->chips())
-        reportError(level, QString("[Possibly Unsolvable]\n"
-                                   "Not enough chips to meet goal (need %1 more)")
+        reportError(level, QStringLiteral("[Possibly Unsolvable]\n"
+                                          "Not enough chips to meet goal (need %1 more)")
                            .arg(levelData->chips() - chips));
     if (players == 0)
         reportError(level, "[Design Warning]\n"
@@ -203,23 +203,23 @@ void ErrorCheckDialog::checkLevel(int level)
     for (trap_iter = levelData->traps().begin(); trap_iter != levelData->traps().end(); ++trap_iter) {
         if (trap_iter->button.X < 0 || trap_iter->button.X > 31 ||
             trap_iter->button.Y < 0 || trap_iter->button.Y > 31)
-            reportError(level, QString("[Invalid Trap]\n"
-                                       "Trap button is outside of level region (%1, %2)")
+            reportError(level, QStringLiteral("[Invalid Trap]\n"
+                                              "Trap button is outside of level region (%1, %2)")
                                .arg(trap_iter->button.X).arg(trap_iter->button.Y));
         if (trap_iter->trap.X < 0 || trap_iter->trap.X > 31 ||
             trap_iter->trap.Y < 0 || trap_iter->trap.Y > 31)
-            reportError(level, QString("[Invalid Trap]\n"
-                                       "Trap target is outside of level region (%1, %2)")
+            reportError(level, QStringLiteral("[Invalid Trap]\n"
+                                              "Trap target is outside of level region (%1, %2)")
                                .arg(trap_iter->trap.X).arg(trap_iter->trap.Y));
         if (levelData->map().getFG(trap_iter->button.X, trap_iter->button.Y) != ccl::TileTrapButton &&
             levelData->map().getBG(trap_iter->button.X, trap_iter->button.Y) != ccl::TileTrapButton)
-            reportError(level, QString("[Invalid Trap]\n"
-                                       "Trap button points to invalid tile at (%1, %2)")
+            reportError(level, QStringLiteral("[Invalid Trap]\n"
+                                              "Trap button points to invalid tile at (%1, %2)")
                                .arg(trap_iter->button.X).arg(trap_iter->button.Y));
         if (levelData->map().getFG(trap_iter->trap.X, trap_iter->trap.Y) != ccl::TileTrap &&
             levelData->map().getBG(trap_iter->trap.X, trap_iter->trap.Y) != ccl::TileTrap)
-            reportError(level, QString("[Invalid Trap]\n"
-                                       "Trap target points to invalid tile at (%1, %2)")
+            reportError(level, QStringLiteral("[Invalid Trap]\n"
+                                              "Trap target points to invalid tile at (%1, %2)")
                                .arg(trap_iter->trap.X).arg(trap_iter->trap.Y));
     }
 
@@ -227,23 +227,23 @@ void ErrorCheckDialog::checkLevel(int level)
     for (clone_iter = levelData->clones().begin(); clone_iter != levelData->clones().end(); ++clone_iter) {
         if (clone_iter->button.X < 0 || clone_iter->button.X > 31 ||
             clone_iter->button.Y < 0 || clone_iter->button.Y > 31)
-            reportError(level, QString("[Invalid Cloner]\n"
-                                       "Clone button is outside of level region (%1, %2)")
+            reportError(level, QStringLiteral("[Invalid Cloner]\n"
+                                              "Clone button is outside of level region (%1, %2)")
                                .arg(clone_iter->button.X).arg(clone_iter->button.Y));
         if (clone_iter->clone.X < 0 || clone_iter->clone.X > 31 ||
             clone_iter->clone.Y < 0 || clone_iter->clone.Y > 31)
-            reportError(level, QString("[Invalid Cloner]\n"
-                                       "Cloner target is outside of level region (%1, %2)")
+            reportError(level, QStringLiteral("[Invalid Cloner]\n"
+                                              "Cloner target is outside of level region (%1, %2)")
                                .arg(clone_iter->clone.X).arg(clone_iter->clone.Y));
         if (levelData->map().getFG(clone_iter->button.X, clone_iter->button.Y) != ccl::TileCloneButton &&
             levelData->map().getBG(clone_iter->button.X, clone_iter->button.Y) != ccl::TileCloneButton)
-            reportError(level, QString("[Invalid Cloner]\n"
-                                       "Clone button points to invalid tile at (%1, %2)")
+            reportError(level, QStringLiteral("[Invalid Cloner]\n"
+                                              "Clone button points to invalid tile at (%1, %2)")
                                .arg(clone_iter->button.X).arg(clone_iter->button.Y));
         if (levelData->map().getFG(clone_iter->clone.X, clone_iter->clone.Y) != ccl::TileCloner &&
             levelData->map().getBG(clone_iter->clone.X, clone_iter->clone.Y) != ccl::TileCloner)
-            reportError(level, QString("[Invalid Cloner]\n"
-                                       "Cloner target points to invalid tile at (%1, %2)")
+            reportError(level, QStringLiteral("[Invalid Cloner]\n"
+                                              "Cloner target points to invalid tile at (%1, %2)")
                                .arg(clone_iter->clone.X).arg(clone_iter->clone.Y));
     }
 
@@ -251,15 +251,15 @@ void ErrorCheckDialog::checkLevel(int level)
     for (move_iter = levelData->moveList().begin(); move_iter != levelData->moveList().end(); ++move_iter) {
         if (move_iter->X < 0 || move_iter->X > 31 ||
             move_iter->Y < 0 || move_iter->Y > 31)
-            reportError(level, QString("[Invalid Mover]\n"
-                                       "Monster position is outside of level region (%1, %2)")
+            reportError(level, QStringLiteral("[Invalid Mover]\n"
+                                              "Monster position is outside of level region (%1, %2)")
                                .arg(move_iter->X).arg(move_iter->Y));
         if ((levelData->map().getFG(move_iter->X, move_iter->Y) < ccl::MONSTER_FIRST ||
             levelData->map().getFG(move_iter->X, move_iter->Y) > ccl::MONSTER_LAST) &&
             (levelData->map().getBG(move_iter->X, move_iter->Y) < ccl::MONSTER_FIRST ||
             levelData->map().getBG(move_iter->X, move_iter->Y) > ccl::MONSTER_LAST))
-            reportError(level, QString("[Invalid Mover]\n"
-                                       "Invalid monster tile at mover position (%1, %2)")
+            reportError(level, QStringLiteral("[Invalid Mover]\n"
+                                              "Invalid monster tile at mover position (%1, %2)")
                                .arg(move_iter->X).arg(move_iter->Y));
     }
 
@@ -270,15 +270,15 @@ void ErrorCheckDialog::checkLevel(int level)
                     || levelData->map().getBG(x, y) == ccl::TileTrapButton) {
                     std::list<ccl::Point> targets = levelData->linkedTraps(x, y);
                     if (targets.size() == 0) {
-                        reportError(level, QString("[Invalid Trap]\n"
+                        reportError(level, QStringLiteral("[Invalid Trap]\n"
                                     "Trap button at (%1, %2) has no connections")
                                     .arg(x).arg(y));
                     } else  if (targets.size() > 1) {
-                        reportError(level, QString("[Invalid Trap]\n"
+                        reportError(level, QStringLiteral("[Invalid Trap]\n"
                                     "Trap buttons at (%1, %2) has multiple connections")
                                     .arg(x).arg(y));
                     } else if (targets.front() != levelData->map().findNext(x, y, ccl::TileTrap)) {
-                        reportError(level, QString("[Invalid Trap]\n"
+                        reportError(level, QStringLiteral("[Invalid Trap]\n"
                                     "Trap connection for (%1, %2) violates the reading-order rule")
                                     .arg(x).arg(y));
                     }
@@ -287,15 +287,15 @@ void ErrorCheckDialog::checkLevel(int level)
                     || levelData->map().getBG(x, y) == ccl::TileCloneButton) {
                     std::list<ccl::Point> targets = levelData->linkedCloners(x, y);
                     if (targets.size() == 0) {
-                        reportError(level, QString("[Invalid Cloner]\n"
+                        reportError(level, QStringLiteral("[Invalid Cloner]\n"
                                     "Clone button at (%1, %2) has no connections")
                                     .arg(x).arg(y));
                     } else  if (targets.size() > 1) {
-                        reportError(level, QString("[Invalid Cloner]\n"
+                        reportError(level, QStringLiteral("[Invalid Cloner]\n"
                                     "Clone button at (%1, %2) has multiple connections")
                                     .arg(x).arg(y));
                     } else  if (targets.front() != levelData->map().findNext(x, y, ccl::TileCloner)) {
-                        reportError(level, QString("[Invalid Cloner]\n"
+                        reportError(level, QStringLiteral("[Invalid Cloner]\n"
                                     "Cloner connections for (%1, %2) violates the reading-order rule")
                                     .arg(x).arg(y));
                     }
@@ -305,7 +305,7 @@ void ErrorCheckDialog::checkLevel(int level)
                     && levelData->map().getBG(x, y) != ccl::TileCloner
                     && levelData->map().getBG(x, y) != ccl::TileTrap
                     && !levelData->checkMove(x, y)) {
-                    reportError(level, QString("[Non-Moving Monster]\n"
+                    reportError(level, QStringLiteral("[Non-Moving Monster]\n"
                                 "Monster at (%1, %2) does not move").arg(x).arg(y));
                 }
             } /* CheckLynxPedantic */

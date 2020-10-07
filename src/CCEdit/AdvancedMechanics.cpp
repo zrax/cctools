@@ -138,7 +138,7 @@ private:
 
 static QString pointToStr(const ccl::Point& point)
 {
-    return QString("(%1, %2)").arg(point.X).arg(point.Y);
+    return QStringLiteral("(%1, %2)").arg(point.X).arg(point.Y);
 }
 
 static bool isValidPoint(const ccl::Point& point)
@@ -323,7 +323,7 @@ QTreeWidgetItem* AdvancedMechanicsDialog::addMoverItem(const ccl::Point& mover)
         if (m_levelData->map().getBG(mover.X, mover.Y) == ccl::TileFloor) {
             item->setText(2, CCETileset::TileName(m_levelData->map().getFG(mover.X, mover.Y)));
         } else {
-            item->setText(2, QString("%1 / %2")
+            item->setText(2, QStringLiteral("%1 / %2")
                     .arg(CCETileset::TileName(m_levelData->map().getFG(mover.X, mover.Y)))
                     .arg(CCETileset::TileName(m_levelData->map().getBG(mover.X, mover.Y))));
         }

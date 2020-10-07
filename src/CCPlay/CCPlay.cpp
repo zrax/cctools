@@ -473,9 +473,9 @@ void CCPlayMain::onPlayMSCC()
     exePath.cdUp();
 
     QSqlQuery query;
-    QString setName = filename.section(QChar('/'), -1);
-    query.exec(QString("SELECT idx, high_level, cur_level FROM levelsets"
-                       "  WHERE name='%1'").arg(setName));
+    QString setName = filename.section(QLatin1Char('/'), -1);
+    query.exec(QStringLiteral("SELECT idx, high_level, cur_level FROM levelsets"
+                              "  WHERE name='%1'").arg(setName));
     int setid = 0;
     int highLevel = 1, curLevel = 1;
     if (query.first()) {
@@ -504,22 +504,22 @@ void CCPlayMain::onPlayMSCC()
         bool haveCurLevel = false;
         if (setid > 0) {
             for (int i=0; i<levelset->levelCount(); ++i) {
-                query.exec(QString("SELECT my_time, my_score FROM scores"
-                                   "  WHERE levelset=%1 AND level_num=%2")
-                                   .arg(setid).arg(i + 1));
+                query.exec(QStringLiteral("SELECT my_time, my_score FROM scores"
+                                          "  WHERE levelset=%1 AND level_num=%2")
+                                          .arg(setid).arg(i + 1));
                 if (!query.first())
                     continue;
-                ini.setString(QString("Level%1").arg(i + 1).toLatin1().constData(),
-                              QString("%1,%2,%3").arg(levelset->level(i)->password().c_str())
-                                                 .arg(query.value(0).toInt())
-                                                 .arg(query.value(1).toInt())
-                                                 .toLatin1().constData());
+                ini.setString(QStringLiteral("Level%1").arg(i + 1).toLatin1().constData(),
+                              QStringLiteral("%1,%2,%3").arg(levelset->level(i)->password().c_str())
+                                                        .arg(query.value(0).toInt())
+                                                        .arg(query.value(1).toInt())
+                                                        .toLatin1().constData());
                 if (i + 1 == curLevel)
                     haveCurLevel = true;
             }
         }
         if (!haveCurLevel) {
-            ini.setString(QString("Level%1").arg(curLevel).toLatin1().constData(),
+            ini.setString(QStringLiteral("Level%1").arg(curLevel).toLatin1().constData(),
                           levelset->level(curLevel - 1)->password());
         }
         ini.write(iniStream);
@@ -562,39 +562,39 @@ void CCPlayMain::onPlayMSCC()
         highLevel = ini.getInt("Highest Level");
 
         if (setid == 0) {
-            query.exec(QString("INSERT INTO levelsets(name, cur_level, high_level)"
-                               "  VALUES('%1', %2, %3)")
+            query.exec(QStringLiteral("INSERT INTO levelsets(name, cur_level, high_level)"
+                                      "  VALUES('%1', %2, %3)")
                        .arg(setName).arg(curLevel).arg(highLevel));
             setid = query.lastInsertId().toInt();
         } else {
-            query.exec(QString("UPDATE levelsets SET cur_level=%1, high_level=%2"
-                               "  WHERE name='%3'")
+            query.exec(QStringLiteral("UPDATE levelsets SET cur_level=%1, high_level=%2"
+                                      "  WHERE name='%3'")
                        .arg(curLevel).arg(highLevel).arg(setName));
         }
 
         for (int i=0; i<levelset->levelCount(); ++i) {
-            QString levelData = ini.getString(QString("Level%1").arg(i + 1).toLatin1().constData()).c_str();
+            QString levelData = ini.getString(QStringLiteral("Level%1").arg(i + 1).toLatin1().constData()).c_str();
             if (levelData.isEmpty())
                 continue;
 
-            QStringList parts = levelData.split(QChar(','));
+            QStringList parts = levelData.split(QLatin1Char(','));
             if (parts.size() == 1) {
                 // Just a password...  Ignore it and move along
                 continue;
             } else if (parts.size() == 3) {
-                query.exec(QString("SELECT my_time, my_score FROM scores"
-                                   "  WHERE levelset=%1 AND level_num=%2")
-                                   .arg(setid).arg(i + 1));
+                query.exec(QStringLiteral("SELECT my_time, my_score FROM scores"
+                                          "  WHERE levelset=%1 AND level_num=%2")
+                                          .arg(setid).arg(i + 1));
                 if (!query.first()) {
-                    query.exec(QString("INSERT INTO scores(levelset, level_num, my_time, my_score)"
-                                       "  VALUES(%1, %2, %3, %4)")
+                    query.exec(QStringLiteral("INSERT INTO scores(levelset, level_num, my_time, my_score)"
+                                              "  VALUES(%1, %2, %3, %4)")
                                .arg(setid).arg(i + 1).arg(parts[1].toInt()).arg(parts[2].toInt()));
                 } else {
                     bool betterTime = parts[1].toInt() > query.value(0).toInt();
                     bool betterScore = parts[2].toInt() > query.value(1).toInt();
                     if (betterTime || betterScore) {
-                        query.exec(QString("UPDATE scores SET my_time=%1, my_score=%2"
-                                           "  WHERE levelset=%3 AND level_num=%4")
+                        query.exec(QStringLiteral("UPDATE scores SET my_time=%1, my_score=%2"
+                                                  "  WHERE levelset=%3 AND level_num=%4")
                                    .arg(parts[1].toInt()).arg(parts[2].toInt())
                                    .arg(setid).arg(i + 1));
                     }
@@ -644,7 +644,7 @@ void CCPlayMain::onPlayTWorld()
         }
     }
 
-    QString setName = filename.section(QChar('/'), -1);
+    QString setName = filename.section(QLatin1Char('/'), -1);
     QString cwd = QDir::currentPath();
     QDir exePath = tworldExe;
     exePath.cdUp();
@@ -688,16 +688,16 @@ void CCPlayMain::onPlayTWorld()
     }
 
     QSqlQuery query;
-    query.exec(QString("SELECT idx, high_level FROM levelsets"
-                       "  WHERE name='%1").arg(setName));
+    query.exec(QStringLiteral("SELECT idx, high_level FROM levelsets"
+                              "  WHERE name='%1").arg(setName));
     int setid = 0;
     int highLevel = 0;
     if (query.first()) {
         setid = query.value(0).toInt();
         highLevel = query.value(1).toInt();
     } else {
-        query.exec(QString("INSERT INTO levelsets(name, cur_level, high_level)"
-                           "  VALUES('%1', 1, 1)").arg(setName));
+        query.exec(QStringLiteral("INSERT INTO levelsets(name, cur_level, high_level)"
+                                  "  VALUES('%1', 1, 1)").arg(setName));
         setid = query.lastInsertId().toInt();
     }
 
@@ -734,22 +734,22 @@ void CCPlayMain::onPlayTWorld()
         int levelTimer = levelset->level(levelNum - 1)->timer();
         int timeScore = (levelTimer == 0) ? 0 : levelTimer - (ticks / 20);
         int bestScore = levelNum * 500 + timeScore * 10;
-        query.exec(QString("SELECT my_time, my_score FROM scores"
-                           "  WHERE levelset=%1 AND level_num=%2")
+        query.exec(QStringLiteral("SELECT my_time, my_score FROM scores"
+                                  "  WHERE levelset=%1 AND level_num=%2")
                    .arg(setid).arg(levelNum));
         if (query.first()) {
             int storedTime = query.value(0).toInt();
             int storedScore = query.value(1).toInt();
             if (storedTime < timeScore || storedScore < bestScore) {
-                query.exec(QString("UPDATE scores"
-                                   "  SET my_time=%1, my_score=%2"
-                                   "  WHERE levelset=%3 AND level_num=%4")
+                query.exec(QStringLiteral("UPDATE scores"
+                                          "  SET my_time=%1, my_score=%2"
+                                          "  WHERE levelset=%3 AND level_num=%4")
                            .arg(timeScore).arg(bestScore)
                            .arg(setid).arg(levelNum));
             }
         } else {
-            query.exec(QString("INSERT INTO scores(levelset, level_num, my_time, my_score)"
-                               "  VALUES(%1, %2, %3, %4)")
+            query.exec(QStringLiteral("INSERT INTO scores(levelset, level_num, my_time, my_score)"
+                                      "  VALUES(%1, %2, %3, %4)")
                        .arg(setid).arg(levelNum)
                        .arg(timeScore).arg(bestScore));
         }
@@ -757,8 +757,8 @@ void CCPlayMain::onPlayTWorld()
 
     // TWorld does not store highest and last level separately, so store
     // the highest level into both fields
-    query.exec(QString("UPDATE levelsets SET cur_level=%1, high_level=%2"
-                       "  WHERE idx=%3").arg(highLevel).arg(highLevel).arg(setid));
+    query.exec(QStringLiteral("UPDATE levelsets SET cur_level=%1, high_level=%2"
+                              "  WHERE idx=%3").arg(highLevel).arg(highLevel).arg(setid));
     refreshScores();
 }
 
@@ -850,9 +850,9 @@ void CCPlayMain::onPathChanged(const QString& path)
         if (!levelset)
             continue;
 
-        QString fileid = QDir(filename).absolutePath().section(QChar('/'), -1);
+        QString fileid = QDir(filename).absolutePath().section(QLatin1Char('/'), -1);
         QSqlQuery query(m_scoredb);
-        query.exec(QString("SELECT idx, cur_level, high_level FROM levelsets WHERE name='%1'")
+        query.exec(QStringLiteral("SELECT idx, cur_level, high_level FROM levelsets WHERE name='%1'")
                   .arg(fileid.replace("'", "''")));
         int curLevel = 0, highLevel = 0, totScore = 0;
         if (query.first()) {
@@ -860,7 +860,7 @@ void CCPlayMain::onPathChanged(const QString& path)
             curLevel = query.value(1).toInt();
             highLevel = query.value(2).toInt();
 
-            query.exec(QString("SELECT SUM(my_score) FROM scores WHERE levelset=%1")
+            query.exec(QStringLiteral("SELECT SUM(my_score) FROM scores WHERE levelset=%1")
                        .arg(setid));
             if (query.first())
                 totScore = query.value(0).toInt();
@@ -889,13 +889,13 @@ void CCPlayMain::onLevelsetChanged(QTreeWidgetItem* item, QTreeWidgetItem*)
 
     CCX::Levelset ccx;
     bool haveCCX = false;
-    QString ccxName = filename.left(filename.lastIndexOf('.')) + ".ccx";
+    QString ccxName = filename.left(filename.lastIndexOf(QLatin1Char('.'))) + ".ccx";
     if (ccx.readFile(ccxName, levelset->levelCount()))
         haveCCX = true;
 
-    QString fileid = filename.section(QChar('/'), -1);
+    QString fileid = filename.section(QLatin1Char('/'), -1);
     QSqlQuery query;
-    query.exec(QString("SELECT idx, cur_level FROM levelsets WHERE name='%1'")
+    query.exec(QStringLiteral("SELECT idx, cur_level FROM levelsets WHERE name='%1'")
                .arg(fileid.replace("'", "''")));
     int setid = 0, curLevel = 0;
     if (query.first()) {
@@ -906,8 +906,8 @@ void CCPlayMain::onLevelsetChanged(QTreeWidgetItem* item, QTreeWidgetItem*)
     for (int i=0; i<levelset->levelCount(); ++i) {
         int myTime = 0, myScore = 0;
         if (setid > 0) {
-            query.exec(QString("SELECT my_time, my_score FROM scores WHERE"
-                               "  levelset=%1 AND level_num=%2")
+            query.exec(QStringLiteral("SELECT my_time, my_score FROM scores WHERE"
+                                      "  levelset=%1 AND level_num=%2")
                        .arg(setid).arg(i + 1));
             if (query.first()) {
                 myTime = query.value(0).toInt();

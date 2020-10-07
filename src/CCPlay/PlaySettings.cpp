@@ -324,7 +324,7 @@ void SettingsDialog::onEditTool()
         return;
 
     int toolId = m_toolsList->currentRow();
-    QStringList params = m_toolPaths[toolId].split('|');
+    QStringList params = m_toolPaths[toolId].split(QLatin1Char('|'));
 
     ConfigToolDialog dlg;
     dlg.setName(m_tools[toolId]);
@@ -334,7 +334,7 @@ void SettingsDialog::onEditTool()
     if (dlg.exec() == QDialog::Accepted) {
         m_tools[toolId] = dlg.name();
         m_toolIcons[toolId] = dlg.icon();
-        m_toolPaths[toolId] = dlg.path() + "|" + dlg.args();
+        m_toolPaths[toolId] = dlg.path() + QStringLiteral("|") + dlg.args();
         refreshTools();
     }
 }
@@ -345,7 +345,7 @@ void SettingsDialog::onAddTool()
     if (dlg.exec() == QDialog::Accepted) {
         m_tools << dlg.name();
         m_toolIcons << dlg.icon();
-        m_toolPaths << dlg.path() + "|" + dlg.args();
+        m_toolPaths << dlg.path() + QStringLiteral("|") + dlg.args();
         refreshTools();
     }
 }

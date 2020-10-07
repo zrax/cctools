@@ -574,10 +574,10 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
     }
 
     if (m_levelData->map().getBG(posX, posY) == 0) {
-        emit mouseInfo(QString("(%1, %2): %3").arg(posX).arg(posY)
+        emit mouseInfo(QStringLiteral("(%1, %2): %3").arg(posX).arg(posY)
                        .arg(CCETileset::TileName(m_levelData->map().getFG(posX, posY))));
     } else {
-        emit mouseInfo(QString("(%1, %2): %3 / %4").arg(posX).arg(posY)
+        emit mouseInfo(QStringLiteral("(%1, %2): %3 / %4").arg(posX).arg(posY)
                        .arg(CCETileset::TileName(m_levelData->map().getFG(posX, posY)))
                        .arg(CCETileset::TileName(m_levelData->map().getBG(posX, posY))));
     }

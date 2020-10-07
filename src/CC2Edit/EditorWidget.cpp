@@ -729,7 +729,7 @@ void CC2EditorWidget::mouseMoveEvent(QMouseEvent* event)
     }
 
     const cc2::Tile* tile = &map.tile(posX, posY);
-    QString info = QString("(%1, %2): %3").arg(posX).arg(posY).arg(CC2ETileset::getName(tile));
+    QString info = QStringLiteral("(%1, %2): %3").arg(posX).arg(posY).arg(CC2ETileset::getName(tile));
     while (tile->haveLower() && tile->lower()->type() != cc2::Tile::Floor) {
         tile = tile->lower();
         info += tr(" / %1").arg(CC2ETileset::getName(tile));
