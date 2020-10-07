@@ -789,7 +789,7 @@ void CCPlayMain::onTool(QAction* action)
     QStringList params = launch[1].split(QRegularExpression("\\s+"), QT_SKIP_EMPTY_PARTS);
     for (int i = 0; i < params.size(); ++i) {
         params[i].replace("%F", QDir::toNativeSeparators(filename))
-                 .replace("%L", QString("%1").arg(curLevel));
+                 .replace("%L", QString::number(curLevel));
     }
     if (launch[0].endsWith(".jar", Qt::CaseInsensitive)) {
         const QString javaExecutable = QStandardPaths::findExecutable(JAVA_EXE);
@@ -868,10 +868,10 @@ void CCPlayMain::onPathChanged(const QString& path)
 
         QTreeWidgetItem* item = new QTreeWidgetItem(m_levelsetList);
         item->setText(0, set);
-        item->setText(1, QString("%1").arg(levelset->levelCount()));
-        item->setText(2, highLevel == 0 ? "---" : QString("%1").arg(highLevel));
-        item->setText(3, curLevel == 0 ? "---" : QString("%1").arg(curLevel));
-        item->setText(4, totScore == 0 ? "---" : QString("%1").arg(totScore));
+        item->setText(1, QString::number(levelset->levelCount()));
+        item->setText(2, highLevel == 0 ? "---" : QString::number(highLevel));
+        item->setText(3, curLevel == 0 ? "---" : QString::number(curLevel));
+        item->setText(4, totScore == 0 ? "---" : QString::number(totScore));
         item->setData(0, Qt::UserRole, levelsetDir.absoluteFilePath(set));
     }
 }
@@ -920,9 +920,9 @@ void CCPlayMain::onLevelsetChanged(QTreeWidgetItem* item, QTreeWidgetItem*)
         item->setText(0, QString::number(i + 1));
         item->setText(1, QString::fromLatin1(level->name().c_str()));
         item->setText(2, haveCCX ? ccx.m_levels[i].m_author : QString());
-        item->setText(3, level->timer() == 0 ? "---" : QString("%1").arg(level->timer()));
-        item->setText(4, myTime == 0 ? "---" : QString("%1").arg(myTime));
-        item->setText(5, myScore == 0 ? "---" : QString("%1").arg(myScore));
+        item->setText(3, level->timer() == 0 ? "---" : QString::number(level->timer()));
+        item->setText(4, myTime == 0 ? "---" : QString::number(myTime));
+        item->setText(5, myScore == 0 ? "---" : QString::number(myScore));
     }
 
     if (curLevel < m_levelList->topLevelItemCount())

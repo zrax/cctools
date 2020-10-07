@@ -283,7 +283,7 @@ AdvancedMechanicsDialog::AdvancedMechanicsDialog(QWidget* parent)
 QTreeWidgetItem* AdvancedMechanicsDialog::addTrapItem(const ccl::Trap& trap)
 {
     QTreeWidgetItem* item = new QTreeWidgetItem(m_trapList);
-    item->setText(0, QString("%1").arg(m_trapList->topLevelItemCount()));
+    item->setText(0, QString::number(m_trapList->topLevelItemCount()));
     item->setText(1, pointToStr(trap.button));
     item->setText(2, pointToStr(trap.trap));
     if (isValidPoint(trap.button) && isValidPoint(trap.trap)
@@ -300,7 +300,7 @@ QTreeWidgetItem* AdvancedMechanicsDialog::addTrapItem(const ccl::Trap& trap)
 QTreeWidgetItem* AdvancedMechanicsDialog::addCloneItem(const ccl::Clone& clone)
 {
     QTreeWidgetItem* item = new QTreeWidgetItem(m_cloneList);
-    item->setText(0, QString("%1").arg(m_cloneList->topLevelItemCount()));
+    item->setText(0, QString::number(m_cloneList->topLevelItemCount()));
     item->setText(1, pointToStr(clone.button));
     item->setText(2, pointToStr(clone.clone));
     if (isValidPoint(clone.button) && isValidPoint(clone.clone)
@@ -317,7 +317,7 @@ QTreeWidgetItem* AdvancedMechanicsDialog::addCloneItem(const ccl::Clone& clone)
 QTreeWidgetItem* AdvancedMechanicsDialog::addMoverItem(const ccl::Point& mover)
 {
     QTreeWidgetItem* item = new QTreeWidgetItem(m_moveOrderList);
-    item->setText(0, QString("%1").arg(m_moveOrderList->topLevelItemCount()));
+    item->setText(0, QString::number(m_moveOrderList->topLevelItemCount()));
     item->setText(1, pointToStr(mover));
     if (isValidPoint(mover)) {
         if (m_levelData->map().getBG(mover.X, mover.Y) == ccl::TileFloor) {
@@ -448,7 +448,7 @@ void AdvancedMechanicsDialog::onTrapDel()
     m_traps.erase(m_traps.begin() + m_trapList->indexOfTopLevelItem(item));
     delete item;
     for (int i=0; i<m_trapList->topLevelItemCount(); ++i)
-        m_trapList->topLevelItem(i)->setText(0, QString("%1").arg(i+1));
+        m_trapList->topLevelItem(i)->setText(0, QString::number(i+1));
     m_actions[ActionAddTrap]->setEnabled(m_traps.size() < MAX_TRAPS);
     m_actions[ActionDelTrap]->setEnabled(m_traps.size() > 0);
 }
@@ -465,8 +465,8 @@ void AdvancedMechanicsDialog::onTrapUp()
     std::swap(m_traps[idx], m_traps[idx-1]);
     m_trapList->takeTopLevelItem(idx);
     m_trapList->insertTopLevelItem(idx-1, item);
-    m_trapList->topLevelItem(idx-1)->setText(0, QString("%1").arg(idx));
-    m_trapList->topLevelItem(idx)->setText(0, QString("%1").arg(idx+1));
+    m_trapList->topLevelItem(idx-1)->setText(0, QString::number(idx));
+    m_trapList->topLevelItem(idx)->setText(0, QString::number(idx+1));
     m_trapList->setCurrentItem(item);
 }
 
@@ -482,8 +482,8 @@ void AdvancedMechanicsDialog::onTrapDown()
     std::swap(m_traps[idx], m_traps[idx+1]);
     m_trapList->takeTopLevelItem(idx);
     m_trapList->insertTopLevelItem(idx+1, item);
-    m_trapList->topLevelItem(idx)->setText(0, QString("%1").arg(idx+1));
-    m_trapList->topLevelItem(idx+1)->setText(0, QString("%1").arg(idx+2));
+    m_trapList->topLevelItem(idx)->setText(0, QString::number(idx+1));
+    m_trapList->topLevelItem(idx+1)->setText(0, QString::number(idx+2));
     m_trapList->setCurrentItem(item);
 }
 
@@ -513,7 +513,7 @@ void AdvancedMechanicsDialog::onCloneDel()
     m_clones.erase(m_clones.begin() + m_cloneList->indexOfTopLevelItem(item));
     delete item;
     for (int i=0; i<m_cloneList->topLevelItemCount(); ++i)
-        m_cloneList->topLevelItem(i)->setText(0, QString("%1").arg(i+1));
+        m_cloneList->topLevelItem(i)->setText(0, QString::number(i+1));
     m_actions[ActionAddClone]->setEnabled(m_clones.size() < MAX_CLONES);
     m_actions[ActionDelClone]->setEnabled(m_clones.size() > 0);
 }
@@ -530,8 +530,8 @@ void AdvancedMechanicsDialog::onCloneUp()
     std::swap(m_clones[idx], m_clones[idx-1]);
     m_cloneList->takeTopLevelItem(idx);
     m_cloneList->insertTopLevelItem(idx-1, item);
-    m_cloneList->topLevelItem(idx-1)->setText(0, QString("%1").arg(idx));
-    m_cloneList->topLevelItem(idx)->setText(0, QString("%1").arg(idx+1));
+    m_cloneList->topLevelItem(idx-1)->setText(0, QString::number(idx));
+    m_cloneList->topLevelItem(idx)->setText(0, QString::number(idx+1));
     m_cloneList->setCurrentItem(item);
 }
 
@@ -547,8 +547,8 @@ void AdvancedMechanicsDialog::onCloneDown()
     std::swap(m_clones[idx], m_clones[idx+1]);
     m_cloneList->takeTopLevelItem(idx);
     m_cloneList->insertTopLevelItem(idx+1, item);
-    m_cloneList->topLevelItem(idx)->setText(0, QString("%1").arg(idx+1));
-    m_cloneList->topLevelItem(idx+1)->setText(0, QString("%1").arg(idx+2));
+    m_cloneList->topLevelItem(idx)->setText(0, QString::number(idx+1));
+    m_cloneList->topLevelItem(idx+1)->setText(0, QString::number(idx+2));
     m_cloneList->setCurrentItem(item);
 }
 
@@ -576,7 +576,7 @@ void AdvancedMechanicsDialog::onMoverDel()
     m_moveOrder.erase(m_moveOrder.begin() + m_moveOrderList->indexOfTopLevelItem(item));
     delete item;
     for (int i=0; i<m_moveOrderList->topLevelItemCount(); ++i)
-        m_moveOrderList->topLevelItem(i)->setText(0, QString("%1").arg(i+1));
+        m_moveOrderList->topLevelItem(i)->setText(0, QString::number(i+1));
     m_actions[ActionAddMove]->setEnabled(m_moveOrder.size() < MAX_MOVERS);
     m_actions[ActionDelMove]->setEnabled(m_moveOrder.size() > 0);
 }
@@ -593,8 +593,8 @@ void AdvancedMechanicsDialog::onMoverUp()
     std::swap(m_moveOrder[idx], m_moveOrder[idx-1]);
     m_moveOrderList->takeTopLevelItem(idx);
     m_moveOrderList->insertTopLevelItem(idx-1, item);
-    m_moveOrderList->topLevelItem(idx-1)->setText(0, QString("%1").arg(idx));
-    m_moveOrderList->topLevelItem(idx)->setText(0, QString("%1").arg(idx+1));
+    m_moveOrderList->topLevelItem(idx-1)->setText(0, QString::number(idx));
+    m_moveOrderList->topLevelItem(idx)->setText(0, QString::number(idx+1));
     m_moveOrderList->setCurrentItem(item);
 }
 
@@ -610,7 +610,7 @@ void AdvancedMechanicsDialog::onMoverDown()
     std::swap(m_moveOrder[idx], m_moveOrder[idx+1]);
     m_moveOrderList->takeTopLevelItem(idx);
     m_moveOrderList->insertTopLevelItem(idx+1, item);
-    m_moveOrderList->topLevelItem(idx)->setText(0, QString("%1").arg(idx+1));
-    m_moveOrderList->topLevelItem(idx+1)->setText(0, QString("%1").arg(idx+2));
+    m_moveOrderList->topLevelItem(idx)->setText(0, QString::number(idx+1));
+    m_moveOrderList->topLevelItem(idx+1)->setText(0, QString::number(idx+2));
     m_moveOrderList->setCurrentItem(item);
 }

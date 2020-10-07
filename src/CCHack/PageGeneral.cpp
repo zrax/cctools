@@ -152,8 +152,8 @@ void CCHack::PageGeneral::setDefaults(HackSettings* settings)
     m_defIniFile->setText(QString::fromLatin1(settings->get_iniFile().c_str()));
     m_defIniEntry->setText(QString::fromLatin1(settings->get_iniEntry().c_str()));
     m_defDatFile->setText(QString::fromLatin1(settings->get_datFile().c_str()));
-    m_defFakeLastLevel->setText(QString("%1").arg(settings->get_fakeLastLevel()));
-    m_defRealLastLevel->setText(QString("%1").arg(settings->get_realLastLevel()));
+    m_defFakeLastLevel->setText(QString::number(settings->get_fakeLastLevel()));
+    m_defRealLastLevel->setText(QString::number(settings->get_realLastLevel()));
 }
 
 void CCHack::PageGeneral::saveTo(HackSettings* settings)
