@@ -50,8 +50,8 @@ static inline QColor parseColor(const QString& s)
 
 static inline Qt::AlignmentFlag parseHAlign(const QString& s)
 {
-    return (s == "right")  ? Qt::AlignRight
-         : (s == "center") ? Qt::AlignHCenter
+    return (s == QLatin1String("right"))  ? Qt::AlignRight
+         : (s == QLatin1String("center")) ? Qt::AlignHCenter
          : Qt::AlignLeft;
 }
 
@@ -69,8 +69,8 @@ static inline QString writeHAlign(const Qt::AlignmentFlag& value)
 
 static inline Qt::AlignmentFlag parseVAlign(const QString& s)
 {
-    return (s == "bottom") ? Qt::AlignBottom
-         : (s == "middle") ? Qt::AlignVCenter
+    return (s == QLatin1String("bottom")) ? Qt::AlignBottom
+         : (s == QLatin1String("middle")) ? Qt::AlignVCenter
          : Qt::AlignTop;
 }
 
@@ -88,8 +88,8 @@ static inline QString writeVAlign(const Qt::AlignmentFlag& value)
 
 static inline CCX::Compatibility parseCompat(const QString& s)
 {
-    return (s == "yes") ? CCX::COMPAT_YES
-         : (s == "no")  ? CCX::COMPAT_NO
+    return (s == QLatin1String("yes")) ? CCX::COMPAT_YES
+         : (s == QLatin1String("no"))  ? CCX::COMPAT_NO
          : CCX::COMPAT_UNKNOWN;
 }
 
@@ -107,7 +107,7 @@ static inline QString writeCompat(const CCX::Compatibility& compat)
 
 static inline CCX::TextFormat parseFormat(const QString& s)
 {
-    return (s == "html") ? CCX::TEXT_HTML : CCX::TEXT_PLAIN;
+    return (s == QLatin1String("html")) ? CCX::TEXT_HTML : CCX::TEXT_PLAIN;
 }
 
 static inline QString writeFormat(const CCX::TextFormat& format)
@@ -129,16 +129,16 @@ void CCX::RulesetCompatibility::copyUnique(const RulesetCompatibility& copyFrom,
 
 void CCX::RulesetCompatibility::readXML(const QDomElement& elm)
 {
-    readElmAttr(elm, "ms",       m_msCompat,       &parseCompat);
-    readElmAttr(elm, "lynx",     m_lynxCompat,     &parseCompat);
-    readElmAttr(elm, "pedantic", m_pedanticCompat, &parseCompat);
+    readElmAttr(elm, QStringLiteral("ms"),       m_msCompat,       &parseCompat);
+    readElmAttr(elm, QStringLiteral("lynx"),     m_lynxCompat,     &parseCompat);
+    readElmAttr(elm, QStringLiteral("pedantic"), m_pedanticCompat, &parseCompat);
 }
 
 void CCX::RulesetCompatibility::writeXML(QDomElement& elm) const
 {
-    writeElmAttr(elm, "ms",       m_msCompat,       &writeCompat);
-    writeElmAttr(elm, "lynx",     m_lynxCompat,     &writeCompat);
-    writeElmAttr(elm, "pedantic", m_pedanticCompat, &writeCompat);
+    writeElmAttr(elm, QStringLiteral("ms"),       m_msCompat,       &writeCompat);
+    writeElmAttr(elm, QStringLiteral("lynx"),     m_lynxCompat,     &writeCompat);
+    writeElmAttr(elm, QStringLiteral("pedantic"), m_pedanticCompat, &writeCompat);
 }
 
 
@@ -159,22 +159,22 @@ void CCX::PageProperties::copyUnique(const PageProperties& copyFrom,
 
 void CCX::PageProperties::readXML(const QDomElement& elm)
 {
-    readElmAttr(elm, "format",  m_textFormat, &parseFormat);
-    readElmAttr(elm, "align",   m_align,      &parseHAlign);
-    readElmAttr(elm, "valign",  m_valign,     &parseVAlign);
-    readElmAttr(elm, "color",   m_color,      &parseColor);
-    readElmAttr(elm, "bgcolor", m_bgcolor,    &parseColor);
+    readElmAttr(elm, QStringLiteral("format"),  m_textFormat, &parseFormat);
+    readElmAttr(elm, QStringLiteral("align"),   m_align,      &parseHAlign);
+    readElmAttr(elm, QStringLiteral("valign"),  m_valign,     &parseVAlign);
+    readElmAttr(elm, QStringLiteral("color"),   m_color,      &parseColor);
+    readElmAttr(elm, QStringLiteral("bgcolor"), m_bgcolor,    &parseColor);
 }
 
 void CCX::PageProperties::writeXML(QDomElement& elm) const
 {
-    writeElmAttr(elm, "format",  m_textFormat,  &writeFormat);
-    writeElmAttr(elm, "align",   m_align,       &writeHAlign);
-    writeElmAttr(elm, "valign",  m_valign,      &writeVAlign);
-    writeElmAttr(elm, "color",   m_color, [](const QColor& color) -> QString {
+    writeElmAttr(elm, QStringLiteral("format"),  m_textFormat,  &writeFormat);
+    writeElmAttr(elm, QStringLiteral("align"),   m_align,       &writeHAlign);
+    writeElmAttr(elm, QStringLiteral("valign"),  m_valign,      &writeVAlign);
+    writeElmAttr(elm, QStringLiteral("color"),   m_color, [](const QColor& color) -> QString {
         return (color == Qt::white) ? QString() : color.name();
     });
-    writeElmAttr(elm, "bgcolor", m_bgcolor, [](const QColor& color) -> QString {
+    writeElmAttr(elm, QStringLiteral("bgcolor"), m_bgcolor, [](const QColor& color) -> QString {
         return (color == Qt::black) ? QString() : color.name();
     });
 }
@@ -202,7 +202,7 @@ void CCX::Page::writeXML(QDomDocument& doc, QDomElement& elm,
 
 void CCX::Text::readXML(const QDomElement& elm, const Levelset& levelset)
 {
-    QDomNodeList lstElmPages = elm.elementsByTagName("page");
+    QDomNodeList lstElmPages = elm.elementsByTagName(QStringLiteral("page"));
     m_pages.resize(lstElmPages.length());
     for (int i = 0; i < lstElmPages.length(); ++i) {
         QDomElement elmPage = lstElmPages.item(i).toElement();
@@ -214,7 +214,7 @@ void CCX::Text::writeXML(QDomDocument& doc, QDomElement& elm,
                          const Levelset& levelset) const
 {
     for (const Page& page : m_pages) {
-        QDomElement elmPage = doc.createElement("page");
+        QDomElement elmPage = doc.createElement(QStringLiteral("page"));
         page.writeXML(doc, elmPage, levelset);
         elm.appendChild(elmPage);
     }
@@ -224,16 +224,16 @@ void CCX::Text::writeXML(QDomDocument& doc, QDomElement& elm,
 void CCX::Level::readXML(const QDomElement& elm, const Levelset& levelset)
 {
     m_author = levelset.m_author;
-    readElmAttr(elm, "author", m_author);
+    readElmAttr(elm, QStringLiteral("author"), m_author);
 
     m_ruleCompat = levelset.m_ruleCompat;
     m_ruleCompat.readXML(elm);
 
     QDomNodeList lstElm;
-    lstElm = elm.elementsByTagName("prologue");
+    lstElm = elm.elementsByTagName(QStringLiteral("prologue"));
     if (lstElm.length() != 0)
         m_prologue.readXML(lstElm.item(0).toElement(), levelset);
-    lstElm = elm.elementsByTagName("epilogue");
+    lstElm = elm.elementsByTagName(QStringLiteral("epilogue"));
     if (lstElm.length() != 0)
         m_epilogue.readXML(lstElm.item(0).toElement(), levelset);
 }
@@ -242,19 +242,19 @@ void CCX::Level::writeXML(QDomDocument& doc, QDomElement& elm,
                           const Levelset& levelset) const
 {
     if (m_author != levelset.m_author)
-        writeElmAttr(elm, "author", m_author);
+        writeElmAttr(elm, QStringLiteral("author"), m_author);
 
     RulesetCompatibility writeCompat;
     writeCompat.copyUnique(m_ruleCompat, levelset.m_ruleCompat);
     writeCompat.writeXML(elm);
 
     if (!m_prologue.m_pages.empty()) {
-        QDomElement elmPrologue = doc.createElement("prologue");
+        QDomElement elmPrologue = doc.createElement(QStringLiteral("prologue"));
         m_prologue.writeXML(doc, elmPrologue, levelset);
         elm.appendChild(elmPrologue);
     }
     if (!m_epilogue.m_pages.empty()) {
-        QDomElement elmEpilogue = doc.createElement("epilogue");
+        QDomElement elmEpilogue = doc.createElement(QStringLiteral("epilogue"));
         m_epilogue.writeXML(doc, elmEpilogue, levelset);
         elm.appendChild(elmEpilogue);
     }
@@ -263,9 +263,9 @@ void CCX::Level::writeXML(QDomDocument& doc, QDomElement& elm,
 
 void CCX::Levelset::readXML(const QDomElement& elm)
 {
-    readElmAttr(elm, "description", m_description);
-    readElmAttr(elm, "copyright",   m_copyright);
-    readElmAttr(elm, "author",      m_author);
+    readElmAttr(elm, QStringLiteral("description"), m_description);
+    readElmAttr(elm, QStringLiteral("copyright"),   m_copyright);
+    readElmAttr(elm, QStringLiteral("author"),      m_author);
 
     m_ruleCompat.readXML(elm);
     m_pageProps.readXML(elm);
@@ -279,18 +279,18 @@ void CCX::Levelset::readXML(const QDomElement& elm)
         return s.toInt() - 1;
     };
 
-    QDomNodeList lstElmLevels = elm.elementsByTagName("level");
+    QDomNodeList lstElmLevels = elm.elementsByTagName(QStringLiteral("level"));
     for (int i = 0; i < lstElmLevels.length(); ++i) {
         QDomElement elmLevel = lstElmLevels.item(i).toElement();
         int levelNum = -1;
-        if (!readElmAttr(elmLevel, "number", levelNum, parseLevelNum))
+        if (!readElmAttr(elmLevel, QStringLiteral("number"), levelNum, parseLevelNum))
             continue;
         if (levelNum < 0 || levelNum >= int(m_levels.size()))
             continue;
         m_levels[levelNum].readXML(elmLevel, *this);
     }
 
-    QDomNodeList lstElmStyle = elm.elementsByTagName("style");
+    QDomNodeList lstElmStyle = elm.elementsByTagName(QStringLiteral("style"));
     if (lstElmStyle.length() != 0) {
         QDomElement elmStyle = lstElmStyle.item(0).toElement();
         if (elmStyle.parentNode() == elm)
@@ -313,7 +313,7 @@ bool CCX::Levelset::readFile(const QString& filePath, int nLevels)
         return false;
 
     QDomElement elmRoot = doc.documentElement();
-    if (elmRoot.tagName() != "levelset")
+    if (elmRoot.tagName() != QLatin1String("levelset"))
         return false;
 
     readXML(elmRoot);
@@ -324,9 +324,9 @@ bool CCX::Levelset::readFile(const QString& filePath, int nLevels)
 
 void CCX::Levelset::writeXML(QDomDocument& doc, QDomElement& elm) const
 {
-    writeElmAttr(elm, "description", m_description);
-    writeElmAttr(elm, "copyright",   m_copyright);
-    writeElmAttr(elm, "author",      m_author);
+    writeElmAttr(elm, QStringLiteral("description"), m_description);
+    writeElmAttr(elm, QStringLiteral("copyright"),   m_copyright);
+    writeElmAttr(elm, QStringLiteral("author"),      m_author);
 
     m_ruleCompat.writeXML(elm);
     m_pageProps.writeXML(elm);
@@ -336,14 +336,14 @@ void CCX::Levelset::writeXML(QDomDocument& doc, QDomElement& elm) const
     };
 
     for (int i = 0; i < int(m_levels.size()); ++i) {
-        QDomElement elmLevel = doc.createElement("level");
-        writeElmAttr(elmLevel, "number", i, writeLevelNum);
+        QDomElement elmLevel = doc.createElement(QStringLiteral("level"));
+        writeElmAttr(elmLevel, QStringLiteral("number"), i, writeLevelNum);
         m_levels[i].writeXML(doc, elmLevel, *this);
         elm.appendChild(elmLevel);
     }
 
     if (!m_styleSheet.isEmpty()) {
-        QDomElement elmStyle = doc.createElement("style");
+        QDomElement elmStyle = doc.createElement(QStringLiteral("style"));
         QDomText styleText = doc.createTextNode(m_styleSheet);
         elmStyle.appendChild(styleText);
         elm.appendChild(elmStyle);
@@ -357,7 +357,7 @@ bool CCX::Levelset::writeFile(const QString& filePath) const
         return false;
 
     QDomDocument doc;
-    QDomElement elmRoot = doc.createElement("levelset");
+    QDomElement elmRoot = doc.createElement(QStringLiteral("levelset"));
     writeXML(doc, elmRoot);
     doc.appendChild(elmRoot);
 
