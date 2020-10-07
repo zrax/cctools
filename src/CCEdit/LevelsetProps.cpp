@@ -50,19 +50,19 @@ static int unmapLevelsetType(int idx)
 }
 
 LevelsetProps::LevelsetProps(QWidget* parent)
-             : QDialog(parent), m_levelset(0), m_dacFile(0)
+    : QDialog(parent), m_levelset(), m_dacFile()
 {
     setWindowTitle(tr("Levelset Properties"));
 
     m_levelsetType = new QComboBox(this);
-    m_levelsetType->addItems(QStringList() << "MSCC (recommended)" << "TWorld Lynx"
-                             << "PGChip (Ice Blocks)" << "PGChip Lynx");
+    m_levelsetType->addItems(QStringList{ tr("MSCC (recommended)"), tr("TWorld Lynx"),
+                                          tr("PGChip (Ice Blocks)"), tr("PGChip Lynx") });
     m_dacGroup = new QGroupBox(tr("Use DAC file"), this);
     m_dacGroup->setCheckable(true);
     m_dacGroup->setChecked(false);
     m_dacFilename = new QLineEdit(m_dacGroup);
     m_dacRuleset = new QComboBox(m_dacGroup);
-    m_dacRuleset->addItems(QStringList() << "MSCC rules" << "Lynx rules");
+    m_dacRuleset->addItems(QStringList{ tr("MSCC rules"), tr("Lynx rules") });
     m_lastLevel = new QSpinBox(m_dacGroup);
     m_lastLevel->setValue(0);
     m_usePasswords = new QCheckBox(tr("Use &Passwords"), m_dacGroup);

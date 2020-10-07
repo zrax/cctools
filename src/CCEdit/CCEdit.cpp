@@ -1320,8 +1320,8 @@ void CCEditMain::onSaveAction()
 void CCEditMain::onSaveAsAction()
 {
     QSettings settings;
-    QString filter = m_useDac ? "TWorld Levelsets (*.dac)"
-                              : "CC Levelsets (*.dat *.ccl)";
+    QString filter = m_useDac ? tr("TWorld Levelsets (*.dac)")
+                              : tr("CC Levelsets (*.dat *.ccl)");
 
     if (m_levelsetFilename.isEmpty())
         m_levelsetFilename = settings.value("DialogDir").toString();
@@ -1339,7 +1339,7 @@ void CCEditMain::onReportAction()
     QString reportPath = m_levelsetFilename.isEmpty() ? settings.value("DialogDir").toString()
                        : m_levelsetFilename.left(m_levelsetFilename.lastIndexOf('.')) + ".html";
     QString filename = QFileDialog::getSaveFileName(this, tr("Save Report..."),
-                                                    reportPath, "HTML Source (*.html)");
+                                                    reportPath, tr("HTML Source (*.html)"));
     if (filename.isEmpty())
         return;
 

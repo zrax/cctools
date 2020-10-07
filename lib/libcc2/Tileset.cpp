@@ -1407,13 +1407,13 @@ QString CC2ETileset::getName(const cc2::Tile* tile)
             name = tr("Wire Tunnel");
             QStringList directions;
             if (tile->modifier() & cc2::TileModifier::WireTunnelNorth)
-                directions << "North";
+                directions << tr("North");
             if (tile->modifier() & cc2::TileModifier::WireTunnelSouth)
-                directions << "South";
+                directions << tr("South");
             if (tile->modifier() & cc2::TileModifier::WireTunnelEast)
-                directions << "East";
+                directions << tr("East");
             if (tile->modifier() & cc2::TileModifier::WireTunnelWest)
-                directions << "West";
+                directions << tr("West");
             if (!directions.isEmpty())
                 name += QStringLiteral(" - ") + directions.join(QLatin1Char('/'));
         }
@@ -1424,13 +1424,13 @@ QString CC2ETileset::getName(const cc2::Tile* tile)
         } else {
             QStringList directions;
             if (tile->modifier() & cc2::TileModifier::CloneNorth)
-                directions << "North";
+                directions << tr("North");
             if (tile->modifier() & cc2::TileModifier::CloneSouth)
-                directions << "South";
+                directions << tr("South");
             if (tile->modifier() & cc2::TileModifier::CloneEast)
-                directions << "East";
+                directions << tr("East");
             if (tile->modifier() & cc2::TileModifier::CloneWest)
-                directions << "West";
+                directions << tr("West");
             if (!directions.isEmpty())
                 name += QStringLiteral(" - ") + directions.join(QLatin1Char('/'));
         }
@@ -1439,19 +1439,19 @@ QString CC2ETileset::getName(const cc2::Tile* tile)
         {
             QStringList directions;
             if (tile->modifier() & cc2::TileModifier::Track_NE)
-                directions << "NE";
+                directions << tr("NE");
             if (tile->modifier() & cc2::TileModifier::Track_SE)
-                directions << "SE";
+                directions << tr("SE");
             if (tile->modifier() & cc2::TileModifier::Track_SW)
-                directions << "SW";
+                directions << tr("SW");
             if (tile->modifier() & cc2::TileModifier::Track_NW)
-                directions << "NW";
+                directions << tr("NW");
             if (tile->modifier() & cc2::TileModifier::Track_NS)
-                directions << "NS";
+                directions << tr("NS");
             if (tile->modifier() & cc2::TileModifier::Track_WE)
-                directions << "EW";
+                directions << tr("EW");
             if (tile->modifier() & cc2::TileModifier::TrackSwitch)
-                directions << "Switch";
+                directions << tr("Switch");
             if (!directions.isEmpty())
                 name += QStringLiteral(" - ") + directions.join(QLatin1Char('/'));
         }
@@ -1664,13 +1664,13 @@ QString CC2ETileset::getName(const cc2::Tile* tile)
         } else {
             QStringList arrows;
             if (tile->tileFlags() & cc2::Tile::ArrowNorth)
-                arrows << "North";
+                arrows << tr("North");
             if (tile->tileFlags() & cc2::Tile::ArrowSouth)
-                arrows << "South";
+                arrows << tr("South");
             if (tile->tileFlags() & cc2::Tile::ArrowEast)
-                arrows << "East";
+                arrows << tr("East");
             if (tile->tileFlags() & cc2::Tile::ArrowWest)
-                arrows << "West";
+                arrows << tr("West");
             if (!arrows.isEmpty())
                 name += QStringLiteral(" - ") + arrows.join(QLatin1Char('/'));
         }
