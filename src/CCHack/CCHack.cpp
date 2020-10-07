@@ -311,7 +311,9 @@ int main(int argc, char* argv[])
     CCHackMain mainWin;
     mainWin.show();
 
-    if (argc > 1)
-        mainWin.loadFile(argv[1]);
+    QStringList qtArgs = app.arguments();
+    if (qtArgs.size() > 1)
+        mainWin.loadFile(qtArgs[1]);
+
     return app.exec();
 }

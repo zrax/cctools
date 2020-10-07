@@ -2503,11 +2503,16 @@ int main(int argc, char* argv[])
 
     CCEditMain mainWin;
     mainWin.show();
-    if (argc > 1)
-        mainWin.loadLevelset(argv[1]);
-    if (argc > 2) {
-        int levelNum = (int)strtol(argv[2], nullptr, 10);
-        mainWin.loadLevel(levelNum - 1);
+
+    QStringList qtArgs = app.arguments();
+    if (qtArgs.size() > 1)
+        mainWin.loadLevelset(qtArgs[1]);
+    if (qtArgs.size() > 2) {
+        bool ok = false;
+        int levelNum = qtArgs[2].toInt(&ok);
+        if (ok)
+            mainWin.loadLevel(levelNum - 1);
     }
+
     return app.exec();
 }

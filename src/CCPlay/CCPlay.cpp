@@ -948,7 +948,10 @@ int main(int argc, char* argv[])
     mainWin.show();
     if (!mainWin.initDatabase())
         return 1;
-    if (argc > 1)
-        mainWin.setLevelsetPath(argv[1]);
+
+    QStringList qtArgs = app.arguments();
+    if (qtArgs.size() > 1)
+        mainWin.setLevelsetPath(qtArgs[1]);
+
     return app.exec();
 }
