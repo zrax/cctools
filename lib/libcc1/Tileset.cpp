@@ -111,38 +111,228 @@ QPixmap CCETileset::getPixmap(tile_t tile) const
             : m_base[ccl::Tile_UNUSED_20];
 }
 
-#define DIRTILENAME(prefix) \
-    prefix " - North", prefix " - West", prefix " - South", prefix " - East"
-
-#define COLORTILENAME(suffix) \
-    "Blue " suffix, "Red " suffix, "Green " suffix, "Yellow " suffix
-
 QString CCETileset::TileName(tile_t tile)
 {
-    static QString s_tileNames[] = {
-        "Floor", "Wall", "Chip", "Water", "Fire", "Invisible Wall",
-        DIRTILENAME("Barrier"), "Block", "Dirt", "Ice", "Force Floor - South",
-        DIRTILENAME("Block"), "Force Floor - North", "Force Floor - East",
-        "Force Floor - West", "Exit", COLORTILENAME("Door"),
-        "Ice Turn - South/East", "Ice Turn - South/West",
-        "Ice Turn - North/West", "Ice Turn - North/East", "Blue Block - Floor",
-        "Blue Block - Wall", "UNUSED_20", "Thief", "Socket",
-        "Door Toggle Button", "Clone Button", "Toggle Door - Closed",
-        "Toggle Door - Open", "Trap Release Button", "Tank Button",
-        "Teleporter", "Bomb", "Trap", "Appearing Wall", "Gravel", "Pop-Up Wall",
-        "Hint", "Barrier - South/East", "Cloning Machine",
-        "Force Floor - Random", "Splash Death", "Fire Death", "Burned Player",
-        "UNUSED_36", "UNUSED_37", "Ice Block", "Player In Exit", "Exit Anim 2",
-        "Exit Anim 3", DIRTILENAME("Player Swim"), DIRTILENAME("Beetle"),
-        DIRTILENAME("Fireball"), DIRTILENAME("Bouncy Ball"),
-        DIRTILENAME("Tank"), DIRTILENAME("Glider"), DIRTILENAME("Teeth"),
-        DIRTILENAME("Walker"), DIRTILENAME("Blob"), DIRTILENAME("Crawler"),
-        COLORTILENAME("Key"), "Flippers", "Fire Boots", "Ice Skates",
-        "Force Suction Boots", DIRTILENAME("Player")
-    };
-
-    if (tile < ccl::NUM_TILE_TYPES)
-        return s_tileNames[tile];
-    else
-        return QString("UNUSED_%1").arg(tile, 2, 16, QChar('0'));
+    switch (tile) {
+    case ccl::TileFloor:
+        return tr("Floor");
+    case ccl::TileWall:
+        return tr("Wall");
+    case ccl::TileChip:
+        return tr("Chip");
+    case ccl::TileWater:
+        return tr("Water");
+    case ccl::TileFire:
+        return tr("Fire");
+    case ccl::TileInvisWall:
+        return tr("Invisible Wall");
+    case ccl::TileBarrier_N:
+        return tr("Barrier - North");
+    case ccl::TileBarrier_W:
+        return tr("Barrier - West");
+    case ccl::TileBarrier_S:
+        return tr("Barrier - South");
+    case ccl::TileBarrier_E:
+        return tr("Barrier - East");
+    case ccl::TileBlock:
+        return tr("Block");
+    case ccl::TileDirt:
+        return tr("Dirt");
+    case ccl::TileIce:
+        return tr("Ice");
+    case ccl::TileForce_S:
+        return tr("Force Floor - South");
+    case ccl::TileBlock_N:
+        return tr("Block - North");
+    case ccl::TileBlock_W:
+        return tr("Block - West");
+    case ccl::TileBlock_S:
+        return tr("Block - South");
+    case ccl::TileBlock_E:
+        return tr("Block - East");
+    case ccl::TileForce_N:
+        return tr("Force Floor - North");
+    case ccl::TileForce_E:
+        return tr("Force Floor - East");
+    case ccl::TileForce_W:
+        return tr("Force Floor - West");
+    case ccl::TileExit:
+        return tr("Exit");
+    case ccl::TileDoor_Blue:
+        return tr("Blue Door");
+    case ccl::TileDoor_Red:
+        return tr("Red Door");
+    case ccl::TileDoor_Green:
+        return tr("Green Door");
+    case ccl::TileDoor_Yellow:
+        return tr("Yellow Door");
+    case ccl::TileIce_SE:
+        return tr("Ice Turn - South/East");
+    case ccl::TileIce_SW:
+        return tr("Ice Turn - South/West");
+    case ccl::TileIce_NW:
+        return tr("Ice Turn - North/West");
+    case ccl::TileIce_NE:
+        return tr("Ice Turn - North/East");
+    case ccl::TileBlueFloor:
+        return tr("Blue Block - Floor");
+    case ccl::TileBlueWall:
+        return tr("Blue Block - Wall");
+    case ccl::TileThief:
+        return tr("Thief");
+    case ccl::TileSocket:
+        return tr("Socket");
+    case ccl::TileToggleButton:
+        return tr("Door Toggle Button");
+    case ccl::TileCloneButton:
+        return tr("Clone Button");
+    case ccl::TileToggleWall:
+        return tr("Toggle Door - Closed");
+    case ccl::TileToggleFloor:
+        return tr("Toggle Door - Open");
+    case ccl::TileTrapButton:
+        return tr("Trap Release Button");
+    case ccl::TileTankButton:
+        return tr("Tank Button");
+    case ccl::TileTeleport:
+        return tr("Teleporter");
+    case ccl::TileBomb:
+        return tr("Bomb");
+    case ccl::TileTrap:
+        return tr("Trap");
+    case ccl::TileAppearingWall:
+        return tr("Appearing Wall");
+    case ccl::TileGravel:
+        return tr("Gravel");
+    case ccl::TilePopUpWall:
+        return tr("Pop-Up Wall");
+    case ccl::TileHint:
+        return tr("Hint");
+    case ccl::TileBarrier_SE:
+        return tr("Barrier - South/East");
+    case ccl::TileCloner:
+        return tr("Cloning Machine");
+    case ccl::TileForce_Rand:
+        return tr("Force Floor - Random");
+    case ccl::TilePlayerSplash:
+        return tr("Splash Death");
+    case ccl::TilePlayerFire:
+        return tr("Fire Death");
+    case ccl::TilePlayerBurnt:
+        return tr("Burned Player");
+    case ccl::TileIceBlock:
+        return tr("Ice Block");
+    case ccl::TilePlayerExit:
+        return tr("Player In Exit");
+    case ccl::TileExitAnim2:
+        return tr("Exit Anim 2");
+    case ccl::TileExitAnim3:
+        return tr("Exit Anim 3");
+    case ccl::TilePlayerSwim_N:
+        return tr("Player Swim - North");
+    case ccl::TilePlayerSwim_W:
+        return tr("Player Swim - West");
+    case ccl::TilePlayerSwim_S:
+        return tr("Player Swim - South");
+    case ccl::TilePlayerSwim_E:
+        return tr("Player Swim - East");
+    case ccl::TileBug_N:
+        return tr("Beetle - North");
+    case ccl::TileBug_W:
+        return tr("Beetle - West");
+    case ccl::TileBug_S:
+        return tr("Beetle - South");
+    case ccl::TileBug_E:
+        return tr("Beetle - East");
+    case ccl::TileFireball_N:
+        return tr("Fireball - North");
+    case ccl::TileFireball_W:
+        return tr("Fireball - West");
+    case ccl::TileFireball_S:
+        return tr("Fireball - South");
+    case ccl::TileFireball_E:
+        return tr("Fireball - East");
+    case ccl::TileBall_N:
+        return tr("Bouncy Ball - North");
+    case ccl::TileBall_W:
+        return tr("Bouncy Ball - West");
+    case ccl::TileBall_S:
+        return tr("Bouncy Ball - South");
+    case ccl::TileBall_E:
+        return tr("Bouncy Ball - East");
+    case ccl::TileTank_N:
+        return tr("Tank - North");
+    case ccl::TileTank_W:
+        return tr("Tank - West");
+    case ccl::TileTank_S:
+        return tr("Tank - South");
+    case ccl::TileTank_E:
+        return tr("Tank - East");
+    case ccl::TileGlider_N:
+        return tr("Glider - North");
+    case ccl::TileGlider_W:
+        return tr("Glider - West");
+    case ccl::TileGlider_S:
+        return tr("Glider - South");
+    case ccl::TileGlider_E:
+        return tr("Glider - East");
+    case ccl::TileTeeth_N:
+        return tr("Teeth - North");
+    case ccl::TileTeeth_W:
+        return tr("Teeth - West");
+    case ccl::TileTeeth_S:
+        return tr("Teeth - South");
+    case ccl::TileTeeth_E:
+        return tr("Teeth - East");
+    case ccl::TileWalker_N:
+        return tr("Walker - North");
+    case ccl::TileWalker_W:
+        return tr("Walker - West");
+    case ccl::TileWalker_S:
+        return tr("Walker - South");
+    case ccl::TileWalker_E:
+        return tr("Walker - East");
+    case ccl::TileBlob_N:
+        return tr("Blob - North");
+    case ccl::TileBlob_W:
+        return tr("Blob - West");
+    case ccl::TileBlob_S:
+        return tr("Blob - South");
+    case ccl::TileBlob_E:
+        return tr("Blob - East");
+    case ccl::TileCrawler_N:
+        return tr("Crawler - North");
+    case ccl::TileCrawler_W:
+        return tr("Crawler - West");
+    case ccl::TileCrawler_S:
+        return tr("Crawler - South");
+    case ccl::TileCrawler_E:
+        return tr("Crawler - East");
+    case ccl::TileKey_Blue:
+        return tr("Blue Key");
+    case ccl::TileKey_Red:
+        return tr("Red Key");
+    case ccl::TileKey_Green:
+        return tr("Green Key");
+    case ccl::TileKey_Yellow:
+        return tr("Yellow Key");
+    case ccl::TileFlippers:
+        return tr("Flippers");
+    case ccl::TileFireBoots:
+        return tr("Fire Boots");
+    case ccl::TileIceSkates:
+        return tr("Ice Skates");
+    case ccl::TileForceBoots:
+        return tr("Force Suction Boots");
+    case ccl::TilePlayer_N:
+        return tr("Player - North");
+    case ccl::TilePlayer_W:
+        return tr("Player - West");
+    case ccl::TilePlayer_S:
+        return tr("Player - South");
+    case ccl::TilePlayer_E:
+        return tr("Player - East");
+    default:
+        return tr("UNUSED_%1").arg(tile, 2, 16, QLatin1Char('0'));
+    }
 }
