@@ -441,9 +441,9 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile,
     case cc2::Tile::RedBomb:
         painter.drawPixmap(x, y, m_gfx[cc2::G_RedBomb]);
         break;
-    //case cc2::Tile::UNUSED_41:
-    //    painter.drawPixmap(x, y, m_gfx[cc2::G_Trap]);
-    //    break;
+    case cc2::Tile::Trap_Open:
+        painter.drawPixmap(x, y, m_gfx[cc2::G_Trap_Open]);
+        break;
     case cc2::Tile::Trap:
         painter.drawPixmap(x, y, m_gfx[cc2::G_Trap]);
         break;
@@ -956,8 +956,6 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile,
         painter.drawPixmap(x, y, m_gfx[cc2::G_SteelFoil]);
         break;
     case cc2::Tile::Turtle:
-        // TODO: Maybe we don't need a masked version of the turtle...
-        painter.drawPixmap(x, y, m_gfx[cc2::G_Water]);
         painter.drawPixmap(x, y, m_gfx[cc2::G_Turtle]);
         break;
     case cc2::Tile::Eye:
@@ -1264,6 +1262,8 @@ QString CC2ETileset::baseName(cc2::Tile::Type type)
         return tr("Tool Thief");
     case cc2::Tile::RedBomb:
         return tr("Red Bomb");
+    case cc2::Tile::Trap_Open:
+        return tr("Trap - Open");
     case cc2::Tile::Trap:
         return tr("Trap");
     case cc2::Tile::CC1_Cloner:

@@ -180,7 +180,7 @@ public:
         Chip, ExtraChip, Socket, PopUpWall, AppearingWall, InvisWall,
         BlueWall, BlueFloor, Dirt, Ant, Centipede, Ball, Blob,
         AngryTeeth, FireBox, CloneButton, TrapButton, IceCleats, MagnoShoes,
-        FireShoes, Flippers, ToolThief, RedBomb, UNUSED_41, Trap,
+        FireShoes, Flippers, ToolThief, RedBomb, Trap_Open, Trap,
         CC1_Cloner, Cloner, Clue, Force_Rand, AreaCtlButton,
         RevolvDoor_SW, RevolvDoor_NW, RevolvDoor_NE, RevolvDoor_SE,
         TimeBonus, ToggleClock, Transformer, TrainTracks, SteelWall,

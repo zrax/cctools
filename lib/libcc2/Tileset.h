@@ -55,7 +55,7 @@ enum GraphicIndex {
     G_ActiveTRail_NE, G_ActiveTRail_SE, G_ActiveTRail_SW,
     G_ActiveTRail_NW, G_ActiveTRail_WE, G_ActiveTRail_NS,
     G_SteelWall, G_SteelWall_Wire2, G_SteelWall_Wire4, G_Floor_Wire2,
-    G_Floor_Wire4, G_WireFill, G_TimeBomb, G_Helmet,
+    G_Floor_Wire4, G_Trap_Open, G_TimeBomb, G_Helmet,
     G_Player2_N, G_Player2_E, G_Player2_S, G_Player2_W, G_TimidTeeth_S,
     G_TimidTeeth_E, G_TimidTeeth_W, G_HikingBoots, G_MaleOnly, G_FemaleOnly,
     G_Inverter_N, G_Inverter_E, G_Inverter_S, G_Inverter_W,
@@ -81,6 +81,7 @@ enum GraphicIndex {
     G_GreenBomb, G_GreenChip, G_RevLogicButton, G_Switch_Off, G_Switch_On,
     G_Switch_Base, G_KeyThief, G_Ghost_N, G_Ghost_E, G_Ghost_S, G_Ghost_W,
     G_SteelFoil, G_Turtle, G_Eye, G_Bribe, G_SpeedShoes, G_Hook,
+    G_WireFill, G_LiveWireFill,
 
     G_GlyphArrows = 0xef, G_GlyphAscii_Base, G_GlyphAscii_End = 0xff,
 
