@@ -54,6 +54,7 @@
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QFileDialog>
+#include <QTextBlock>
 
 Q_DECLARE_METATYPE(CC2ETileset*)
 
@@ -854,8 +855,9 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     tbarTools->addSeparator();
     tbarTools->addAction(m_actions[ActionToggleGreens]);
 
-    // Show status bar
-    statusBar();
+    // Status bar
+    m_positionLabel = new QLabel(this);
+    statusBar()->addWidget(m_positionLabel, 1);
 
     connect(m_actions[ActionNewMap], &QAction::triggered, this, &CC2EditMain::createNewMap);
     connect(m_actions[ActionNewScript], &QAction::triggered, this, &CC2EditMain::createNewScript);
@@ -1094,7 +1096,7 @@ bool CC2EditMain::loadScript(const QString& filename)
             } catch (const std::exception &err) {
                 QMessageBox::critical(this, tr("Error processing map"),
                                       tr("Failed to load map data for %1: %2")
-                                              .arg(filename).arg(err.what()));
+                                      .arg(filename).arg(err.what()));
             }
         }
         QString title = !map.title().empty()
@@ -1462,6 +1464,14 @@ CC2ScriptEditor* CC2EditMain::addScriptEditor(const QString& filename)
             m_editorTabs->setTabText(index, tabText + QStringLiteral(" *"));
         else if (!dirty && tabText.endsWith(QStringLiteral(" *")))
             m_editorTabs->setTabText(index, tabText.left(tabText.size() - 2));
+    });
+    connect(editor, &SyntaxTextEdit::cursorPositionChanged, this, [this, editor] {
+        const QTextCursor cursor = editor->textCursor();
+        const int column = editor->textColumn(cursor.block().text(), cursor.positionInBlock());
+        QString positionText = tr("Line %1, Col %2")
+                                    .arg(cursor.blockNumber() + 1)
+                                    .arg(column + 1);
+        m_positionLabel->setText(positionText);
     });
 
     m_editorTabs->setCurrentWidget(editor);
@@ -2256,6 +2266,8 @@ void CC2EditMain::onTabChanged(int index)
     m_actions[ActionTest]->setEnabled(!!mapEditor);
     m_drawModeGroup->setEnabled(!!mapEditor);
     m_modalToolGroup->setEnabled(!!mapEditor);
+
+    m_positionLabel->setVisible(!!scriptEditor);
 
     if (scriptEditor) {
         m_actions[ActionUndo]->setEnabled(scriptEditor->canUndo());

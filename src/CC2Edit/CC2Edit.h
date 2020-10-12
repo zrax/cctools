@@ -189,6 +189,7 @@ private:
     cc2::Tile m_leftTile, m_rightTile;
 
     EditorTabWidget* m_editorTabs;
+    QLabel* m_positionLabel;
 
     QProcess* m_subProc;
     QString m_testGameDir;
