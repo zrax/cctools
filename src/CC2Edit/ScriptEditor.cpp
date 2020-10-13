@@ -39,10 +39,6 @@ CC2ScriptEditor::CC2ScriptEditor(QWidget* parent)
     setHighlightCurrentLine(true);
     setShowLineNumbers(true);
 
-    setTheme((palette().color(QPalette::Base).lightness() < 128)
-             ? SyntaxRepo()->defaultTheme(KSyntaxHighlighting::Repository::DarkTheme)
-             : SyntaxRepo()->defaultTheme(KSyntaxHighlighting::Repository::LightTheme));
-
 #if defined(_WIN32)
     // Included in Vista or Office 2007, both of which are "Old Enough" (2018)
     static const QString defaultFontName = QStringLiteral("Consolas");
