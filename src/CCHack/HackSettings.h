@@ -91,6 +91,19 @@ public:
     MAKE_SETTING_OBJ(std::string,   midi_2);
     MAKE_SETTING_OBJ(std::string,   midi_3);
 
+    MAKE_SETTING_OBJ(std::string,   progressMsg_1);
+    MAKE_SETTING_OBJ(std::string,   progressMsg_2);
+    MAKE_SETTING_OBJ(std::string,   progressMsg_3);
+    MAKE_SETTING_OBJ(std::string,   progressMsg_4);
+    MAKE_SETTING_OBJ(std::string,   progressMsg_5);
+    MAKE_SETTING_OBJ(std::string,   progressMsg_6);
+    MAKE_SETTING_OBJ(std::string,   progressMsg_7);
+    MAKE_SETTING_OBJ(std::string,   progressMsg_8);
+    MAKE_SETTING_OBJ(std::string,   progressMsg_9);
+    MAKE_SETTING_OBJ(std::string,   progressMsg_10);
+    MAKE_SETTING_OBJ(std::string,   endgameMsg_1);
+    MAKE_SETTING_OBJ(std::string,   endgameMsg_2);
+
     MAKE_SETTING_OBJ(QByteArray,    vgaTileset);
     MAKE_SETTING_OBJ(QByteArray,    egaTileset);
     MAKE_SETTING_OBJ(QByteArray,    monoTileset);

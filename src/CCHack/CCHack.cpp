@@ -29,6 +29,7 @@
 #include <QMessageBox>
 #include "PageGeneral.h"
 #include "PageSounds.h"
+#include "PageStoryline.h"
 #include "PageBitmap.h"
 #include "CommonWidgets/About.h"
 
@@ -58,7 +59,6 @@ CCHackMain::CCHackMain(QWidget* parent)
     addPageWithType(tiStrings, tr("Menus"), PageMenus);
     addPageWithType(tiStrings, tr("Storyline"), PageStory);
     addPageWithType(tiStrings, tr("After Level"), PageEndLevel);
-    addPageWithType(tiStrings, tr("End Game"), PageEndGame);
     addPageWithType(tiStrings, tr("Miscellaneous"), PageMisc);
     auto tiGraphics = new QTreeWidgetItem(pager, QStringList{tr("Graphics")});
     addPageWithType(tiGraphics, tr("VGA Tileset"), PageVGATS);
@@ -134,9 +134,8 @@ CCHackMain::CCHackMain(QWidget* parent)
     m_pages[PageGeneral] = new CCHack::PageGeneral(this);
     m_pages[PageSound] = new CCHack::PageSounds(this);
     m_pages[PageMenus] = new PlaceholderPage(this);
-    m_pages[PageStory] = new PlaceholderPage(this);
+    m_pages[PageStory] = new CCHack::PageStoryline(this);
     m_pages[PageEndLevel] = new PlaceholderPage(this);
-    m_pages[PageEndGame] = new PlaceholderPage(this);
     m_pages[PageMisc] = new PlaceholderPage(this);
     m_pages[PageVGATS] = new CCHack::PageBitmap(CCHack::PageBitmap::VgaTileset, this);
     m_pages[PageEGATS] = new CCHack::PageBitmap(CCHack::PageBitmap::EgaTileset, this);
@@ -301,6 +300,8 @@ void CCHackMain::onResetAction()
 int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
+    app.setOrganizationName(QStringLiteral("CCTools"));
+    app.setApplicationName(QStringLiteral("CCHack"));
 
     QIcon appicon(":/icons/sock-48.png");
     appicon.addFile(":/icons/sock-32.png");

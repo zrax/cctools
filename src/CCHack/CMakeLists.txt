@@ -22,6 +22,7 @@ set(CCHack_HEADERS
     PageBitmap.h
     PageGeneral.h
     PageSounds.h
+    PageStoryline.h
 )
 
 set(CCHack_SOURCES
@@ -30,6 +31,7 @@ set(CCHack_SOURCES
     PageBitmap.cpp
     PageGeneral.cpp
     PageSounds.cpp
+    PageStoryline.cpp
 )
 
 if(WIN32)

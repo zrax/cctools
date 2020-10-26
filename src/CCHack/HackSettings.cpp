@@ -57,6 +57,40 @@ void HackSettings::setKnownDefaults()
     set_midi_2("chip02.mid");
     set_midi_3("canyon.mid");
 
+    set_progressMsg_1("(Level 50)\n\nPicking up chips is what the challenge is "
+                      "all about. But on the ice, Chip gets chapped and feels "
+                      "like a chump instead of a champ.");
+    set_progressMsg_2("(Level 60)\n\nChip hits the ice and decides to chill out. "
+                      "Then he runs into a fake wall and turns the maze into a "
+                      "thrash-a-thon!");
+    set_progressMsg_3("(Level 70)\n\nChip is halfway through the world's hardest "
+                      "puzzle. If he succeeds, maybe the kids will stop calling "
+                      "him computer breath!");
+    set_progressMsg_4("(Level 80)\n\nChip used to spend his time programming "
+                      "computer games and making models. But that was just "
+                      "practice for this brain-buster!");
+    set_progressMsg_5("(Level 90)\n\n'I can do it! I know I can!' Chip thinks as "
+                      "the going gets tougher. Besides, Melinda the Mental "
+                      "Marvel waits at the end!");
+    set_progressMsg_6("(Level 100)\n\nBesides being an angel on earth, Melinda "
+                      "is the top scorer in the Challenge--and the president of "
+                      "the Bit Busters.");
+    set_progressMsg_7("(Level 110)\n\nChip can't wait to join the Bit Busters! "
+                      "The club's already figured out the school's password and "
+                      "accessed everyone's grades!");
+    set_progressMsg_8("(Level 120)\n\nIf Chip's grades aren't as good as "
+                      "Melinda's, maybe she'll come over to his house and help "
+                      "him study!");
+    set_progressMsg_9("(Level 130)\n\n'I've made it this far,' Chip thinks. "
+                      "'Totally fair, with my mega-brain.' Then he starts the "
+                      "next maze. 'Totally unfair!' he yelps.");
+    set_progressMsg_10("(Level 140)\n\nGroov-u-loids! Chip makes it almost to "
+                       "the end. He's stoked!");
+    set_endgameMsg_1("Great Job, Chip!\nYou did it!  You finished the challenge!");
+    set_endgameMsg_2("Melinda herself offers Chip membership in the exclusive "
+                     "Bit Busters computer club, and gives him access to the "
+                     "club's computer system.  Chip is in heaven!");
+
     clear_vgaTileset();
     clear_egaTileset();
     clear_monoTileset();
@@ -97,6 +131,19 @@ void HackSettings::clearAll()
     clear_midi_1();
     clear_midi_2();
     clear_midi_3();
+
+    clear_progressMsg_1();
+    clear_progressMsg_2();
+    clear_progressMsg_3();
+    clear_progressMsg_4();
+    clear_progressMsg_5();
+    clear_progressMsg_6();
+    clear_progressMsg_7();
+    clear_progressMsg_8();
+    clear_progressMsg_9();
+    clear_progressMsg_10();
+    clear_endgameMsg_1();
+    clear_endgameMsg_2();
 
     clear_vgaTileset();
     clear_egaTileset();
@@ -153,6 +200,19 @@ bool HackSettings::loadFromExe(const QString& filename)
     set_midi_1(hax.get_Midi_1());
     set_midi_2(hax.get_Midi_2());
     set_midi_3(hax.get_Midi_3());
+
+    set_progressMsg_1(hax.get_ProgressMsg1());
+    set_progressMsg_2(hax.get_ProgressMsg2());
+    set_progressMsg_3(hax.get_ProgressMsg3());
+    set_progressMsg_4(hax.get_ProgressMsg4());
+    set_progressMsg_5(hax.get_ProgressMsg5());
+    set_progressMsg_6(hax.get_ProgressMsg6());
+    set_progressMsg_7(hax.get_ProgressMsg7());
+    set_progressMsg_8(hax.get_ProgressMsg8());
+    set_progressMsg_9(hax.get_ProgressMsg9());
+    set_progressMsg_10(hax.get_ProgressMsg10());
+    set_endgameMsg_1(hax.get_EndgameMsg1());
+    set_endgameMsg_2(hax.get_EndgameMsg2());
 
     Win16::ResourceDirectory rcDir;
     Win16::RcBlob blob;
@@ -213,6 +273,18 @@ static const QString ccp_TimesUpSound = QStringLiteral("Default Sounds/Bell");
 static const QString ccp_Midi_1 = QStringLiteral("Default Sounds/Midi1");
 static const QString ccp_Midi_2 = QStringLiteral("Default Sounds/Midi2");
 static const QString ccp_Midi_3 = QStringLiteral("Default Sounds/Midi3");
+static const QString ccp_PartText_1 = QStringLiteral("Part Texts/Part1");
+static const QString ccp_PartText_2 = QStringLiteral("Part Texts/Part2");
+static const QString ccp_PartText_3 = QStringLiteral("Part Texts/Part3");
+static const QString ccp_PartText_4 = QStringLiteral("Part Texts/Part4");
+static const QString ccp_PartText_5 = QStringLiteral("Part Texts/Part5");
+static const QString ccp_PartText_6 = QStringLiteral("Part Texts/Part6");
+static const QString ccp_PartText_7 = QStringLiteral("Part Texts/Part7");
+static const QString ccp_PartText_8 = QStringLiteral("Part Texts/Part8");
+static const QString ccp_PartText_9 = QStringLiteral("Part Texts/Part9");
+static const QString ccp_PartText_10 = QStringLiteral("Part Texts/Part10");
+static const QString ccp_EndGameMsg_1 = QStringLiteral("End Game/Msg1");
+static const QString ccp_EndGameMsg_2 = QStringLiteral("End Game/Msg2");
 static const QString ccp_VgaTileset = QStringLiteral("Graphics/OBJ32_4");
 static const QString ccp_EgaTileset = QStringLiteral("Graphics/OBJ32_4E");
 static const QString ccp_MonoTileset = QStringLiteral("Graphics/OBJ32_1");
@@ -332,6 +404,32 @@ bool HackSettings::loadFromPatch(const QString& filename)
         set_midi_2(patch.value(ccp_Midi_2).toString().toLatin1().constData());
     if (validString(patch, ccp_Midi_3))
         set_midi_3(patch.value(ccp_Midi_3).toString().toLatin1().constData());
+
+    // Storyline Texts
+    if (validString(patch, ccp_PartText_1))
+        set_progressMsg_1(patch.value(ccp_PartText_1).toString().toLatin1().constData());
+    if (validString(patch, ccp_PartText_2))
+        set_progressMsg_2(patch.value(ccp_PartText_2).toString().toLatin1().constData());
+    if (validString(patch, ccp_PartText_3))
+        set_progressMsg_3(patch.value(ccp_PartText_3).toString().toLatin1().constData());
+    if (validString(patch, ccp_PartText_4))
+        set_progressMsg_4(patch.value(ccp_PartText_4).toString().toLatin1().constData());
+    if (validString(patch, ccp_PartText_5))
+        set_progressMsg_5(patch.value(ccp_PartText_5).toString().toLatin1().constData());
+    if (validString(patch, ccp_PartText_6))
+        set_progressMsg_6(patch.value(ccp_PartText_6).toString().toLatin1().constData());
+    if (validString(patch, ccp_PartText_7))
+        set_progressMsg_7(patch.value(ccp_PartText_7).toString().toLatin1().constData());
+    if (validString(patch, ccp_PartText_8))
+        set_progressMsg_8(patch.value(ccp_PartText_8).toString().toLatin1().constData());
+    if (validString(patch, ccp_PartText_9))
+        set_progressMsg_9(patch.value(ccp_PartText_9).toString().toLatin1().constData());
+    if (validString(patch, ccp_PartText_10))
+        set_progressMsg_10(patch.value(ccp_PartText_10).toString().toLatin1().constData());
+    if (validString(patch, ccp_EndGameMsg_1))
+        set_endgameMsg_1(patch.value(ccp_EndGameMsg_1).toString().toLatin1().constData());
+    if (validString(patch, ccp_EndGameMsg_2))
+        set_endgameMsg_2(patch.value(ccp_EndGameMsg_2).toString().toLatin1().constData());
 
     // Graphics
     const QDir baseDir = QFileInfo(filename).dir();
@@ -464,6 +562,32 @@ bool HackSettings::writeToExe(const QString& filename) const
     if (have_midi_3())
         hax.set_Midi_3(get_midi_3());
 
+    // Storyline Texts
+    if (have_progressMsg_1())
+        hax.set_ProgressMsg1(get_progressMsg_1());
+    if (have_progressMsg_2())
+        hax.set_ProgressMsg2(get_progressMsg_2());
+    if (have_progressMsg_3())
+        hax.set_ProgressMsg3(get_progressMsg_3());
+    if (have_progressMsg_4())
+        hax.set_ProgressMsg4(get_progressMsg_4());
+    if (have_progressMsg_5())
+        hax.set_ProgressMsg5(get_progressMsg_5());
+    if (have_progressMsg_6())
+        hax.set_ProgressMsg6(get_progressMsg_6());
+    if (have_progressMsg_7())
+        hax.set_ProgressMsg7(get_progressMsg_7());
+    if (have_progressMsg_8())
+        hax.set_ProgressMsg8(get_progressMsg_8());
+    if (have_progressMsg_9())
+        hax.set_ProgressMsg9(get_progressMsg_9());
+    if (have_progressMsg_10())
+        hax.set_ProgressMsg10(get_progressMsg_10());
+    if (have_endgameMsg_1())
+        hax.set_EndgameMsg1(get_endgameMsg_1());
+    if (have_endgameMsg_2())
+        hax.set_EndgameMsg2(get_endgameMsg_2());
+
     Win16::ResourceDirectory rcDir;
     rcDir.read(&exeStream);
     if (have_vgaTileset()) {
@@ -567,6 +691,32 @@ bool HackSettings::writeToPatch(const QString& filename) const
         patch.setValue(ccp_Midi_2, QString::fromLatin1(get_midi_2().c_str()));
     if (have_midi_3())
         patch.setValue(ccp_Midi_3, QString::fromLatin1(get_midi_3().c_str()));
+
+    // Storyline Texts
+    if (have_progressMsg_1())
+        patch.setValue(ccp_PartText_1, QString::fromLatin1(get_progressMsg_1().c_str()));
+    if (have_progressMsg_2())
+        patch.setValue(ccp_PartText_2, QString::fromLatin1(get_progressMsg_2().c_str()));
+    if (have_progressMsg_3())
+        patch.setValue(ccp_PartText_3, QString::fromLatin1(get_progressMsg_3().c_str()));
+    if (have_progressMsg_4())
+        patch.setValue(ccp_PartText_4, QString::fromLatin1(get_progressMsg_4().c_str()));
+    if (have_progressMsg_5())
+        patch.setValue(ccp_PartText_5, QString::fromLatin1(get_progressMsg_5().c_str()));
+    if (have_progressMsg_6())
+        patch.setValue(ccp_PartText_6, QString::fromLatin1(get_progressMsg_6().c_str()));
+    if (have_progressMsg_7())
+        patch.setValue(ccp_PartText_7, QString::fromLatin1(get_progressMsg_7().c_str()));
+    if (have_progressMsg_8())
+        patch.setValue(ccp_PartText_8, QString::fromLatin1(get_progressMsg_8().c_str()));
+    if (have_progressMsg_9())
+        patch.setValue(ccp_PartText_9, QString::fromLatin1(get_progressMsg_9().c_str()));
+    if (have_progressMsg_10())
+        patch.setValue(ccp_PartText_10, QString::fromLatin1(get_progressMsg_10().c_str()));
+    if (have_endgameMsg_1())
+        patch.setValue(ccp_EndGameMsg_1, QString::fromLatin1(get_endgameMsg_1().c_str()));
+    if (have_endgameMsg_2())
+        patch.setValue(ccp_EndGameMsg_2, QString::fromLatin1(get_endgameMsg_2().c_str()));
 
     // Graphics -- we store them directly in the .ccp file for CCHack 3.0
     if (have_vgaTileset())
