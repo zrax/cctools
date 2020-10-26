@@ -36,6 +36,7 @@ class QSpinBox;
 class QUndoStack;
 
 class EditorTabWidget;
+class LLTextEdit;
 
 class CCEditMain : public QMainWindow {
     Q_OBJECT
@@ -102,7 +103,7 @@ private:
     QLineEdit* m_passwordEdit;
     QSpinBox* m_chipEdit;
     QSpinBox* m_timeEdit;
-    QLineEdit* m_hintEdit;
+    LLTextEdit* m_hintEdit;
     tile_t m_leftTile, m_rightTile;
 
     ccl::Levelset* m_levelset;
@@ -186,7 +187,7 @@ private slots:
     void onPasswordChanged(const QString&);
     void onChipsChanged(int);
     void onTimerChanged(int);
-    void onHintChanged(const QString&);
+    void onHintChanged();
     void onClipboardDataChanged();
 
     void onTabChanged(int);

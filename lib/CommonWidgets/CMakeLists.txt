@@ -16,12 +16,14 @@
 set(CommonWidgets_HEADERS
     About.h
     EditorTabWidget.h
+    LLTextEdit.h
     PathCompleter.h
 )
 
 set(CommonWidgets_SOURCES
     About.cpp
     EditorTabWidget.cpp
+    LLTextEdit.cpp
     PathCompleter.cpp
 )
 

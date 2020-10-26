@@ -59,6 +59,7 @@
 #include "libcc1/GameLogic.h"
 #include "CommonWidgets/About.h"
 #include "CommonWidgets/EditorTabWidget.h"
+#include "CommonWidgets/LLTextEdit.h"
 
 static const QString s_appTitle = QStringLiteral("CCEdit " CCTOOLS_VERSION);
 static const QString s_clipboardFormat = QStringLiteral("CHIPEDIT MAPSECT");
@@ -315,7 +316,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     auto timeLabel = new QLabel(tr("&Time:"), levelManWidget);
     timeLabel->setBuddy(m_timeEdit);
     m_timeEdit->setRange(0, 32767);
-    m_hintEdit = new QLineEdit(levelManWidget);
+    m_hintEdit = new LLTextEdit(levelManWidget);
     auto hintLabel = new QLabel(tr("&Hint Text:"), levelManWidget);
     hintLabel->setBuddy(m_hintEdit);
     m_hintEdit->setMaxLength(254);
@@ -702,7 +703,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(chipsButton, &QToolButton::clicked, this, &CCEditMain::onChipCountAction);
     connect(m_timeEdit, QOverload<int>::of(&QSpinBox::valueChanged),
             this, &CCEditMain::onTimerChanged);
-    connect(m_hintEdit, &QLineEdit::textChanged, this, &CCEditMain::onHintChanged);
+    connect(m_hintEdit, &QPlainTextEdit::textChanged, this, &CCEditMain::onHintChanged);
     connect(QApplication::clipboard(), &QClipboard::dataChanged,
             this, &CCEditMain::onClipboardDataChanged);
 
@@ -2361,13 +2362,14 @@ void CCEditMain::onTimerChanged(int value)
     }
 }
 
-void CCEditMain::onHintChanged(const QString& value)
+void CCEditMain::onHintChanged()
 {
     EditorWidget* editor = currentEditor();
     if (!editor)
         return;
 
     ccl::LevelData* level = editor->levelData();
+    const QString value = m_hintEdit->toPlainText();
     if (level->hint() != value.toLatin1().constData()) {
         beginEdit(CCEditHistory::EditHint);
         level->setHint(value.toLatin1().constData());
@@ -2417,7 +2419,7 @@ void CCEditMain::onTabChanged(int tabIdx)
         m_passwordEdit->setText(QString());
         m_chipEdit->setValue(0);
         m_timeEdit->setValue(0);
-        m_hintEdit->setText(QString());
+        m_hintEdit->setPlainText(QString());
 
         m_actions[ActionCut]->setEnabled(false);
         m_actions[ActionCopy]->setEnabled(false);
@@ -2444,7 +2446,7 @@ void CCEditMain::onTabChanged(int tabIdx)
     m_passwordEdit->setText(QString::fromLatin1(level->password().c_str()));
     m_chipEdit->setValue(level->chips());
     m_timeEdit->setValue(level->timer());
-    m_hintEdit->setText(QString::fromLatin1(level->hint().c_str()));
+    m_hintEdit->setPlainText(QString::fromLatin1(level->hint().c_str()));
 
     bool hasSelection = editor->selection() != QRect(-1, -1, -1, -1);
     m_actions[ActionCut]->setEnabled(hasSelection);
