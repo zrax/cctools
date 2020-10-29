@@ -167,7 +167,7 @@ bool HackSettings::loadFromExe(const QString& filename)
     ccl::CCPatchState pg_state = hax.get_PGChips();
     if (state == ccl::CCPatchOther || fs_state == ccl::CCPatchOther
             || pg_state == ccl::CCPatchOther)
-        throw std::runtime_error("Unrecognized EXE format");
+        throw ccl::FormatError(ccl::RuntimeError::tr("Unrecognized EXE format"));
 
     // General settings
     set_title(hax.get_WindowTitle());
@@ -331,7 +331,7 @@ static QByteArray loadRCBitmap(const QString& filename, const QDir& baseDir)
     const QString filePath = baseDir.filePath(filename);
     QFile bmp(filePath);
     if (!bmp.open(QIODevice::ReadOnly))
-        throw std::runtime_error("Could not open bitmap file for reading");
+        throw ccl::IOError(ccl::RuntimeError::tr("Could not open bitmap file for reading"));
 
     // Skip over the BITMAPFILEHEADER, since that is not stored in the EXE resource
     bmp.seek(BITMAPFILEHEADER_SIZE);
@@ -484,7 +484,7 @@ bool HackSettings::writeToExe(const QString& filename) const
     hax.open(&exeStream);
     if (hax.get_CCPatch() == ccl::CCPatchOther || hax.get_FullSec() == ccl::CCPatchOther
             || hax.get_PGChips() == ccl::CCPatchOther)
-        throw std::runtime_error("Unrecognized EXE format");
+        throw ccl::FormatError(ccl::RuntimeError::tr("Unrecognized EXE format"));
 
     if (have_pgChips()) {
         // We do this first (before writing graphics) so the graphics patch

@@ -18,19 +18,36 @@
 #ifndef _ERRORS_H
 #define _ERRORS_H
 
-#include <stdexcept>
-#include <string>
+#include <exception>
+#include <QCoreApplication>
 
 namespace ccl {
 
-class IOException : public std::runtime_error {
+class RuntimeError : public std::exception {
+    Q_DECLARE_TR_FUNCTIONS(ccl::Exception);
+
 public:
-    explicit IOException(const char* msg) : std::runtime_error(msg) { }
+    explicit RuntimeError(QString msg) noexcept : m_message(std::move(msg)) { }
+
+    const char* what() const noexcept override { return "ccl::RuntimeError"; }
+    const QString& message() const noexcept { return m_message; }
+
+private:
+    QString m_message;
 };
 
-class FormatException : public std::runtime_error {
+class IOError : public RuntimeError {
 public:
-    explicit FormatException(const char* msg) : std::runtime_error(msg) { }
+    explicit IOError(QString msg) noexcept : RuntimeError(std::move(msg)) { }
+
+    const char* what() const noexcept override { return "ccl::IOError"; }
+};
+
+class FormatError : public RuntimeError {
+public:
+    explicit FormatError(QString msg) noexcept : RuntimeError(std::move(msg)) { }
+
+    const char* what() const noexcept override { return "ccl::FormatError"; }
 };
 
 }

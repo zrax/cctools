@@ -174,9 +174,9 @@ void CCHackMain::loadExecutable(const QString& filename)
                                   tr("Could not open %1 for reading").arg(filename));
             return;
         }
-    } catch (const std::runtime_error& err) {
+    } catch (const ccl::RuntimeError& err) {
         QMessageBox::critical(this, tr("Error loading EXE"),
-                              tr("Failed to load %1: %2").arg(filename).arg(err.what()));
+                              tr("Failed to load %1: %2").arg(filename).arg(err.message()));
         return;
     }
 
@@ -194,9 +194,9 @@ void CCHackMain::loadPatchFile(const QString& filename)
                                   tr("Could not open %1 for reading").arg(filename));
             return;
         }
-    } catch (const std::runtime_error& err) {
+    } catch (const ccl::RuntimeError& err) {
         QMessageBox::critical(this, tr("Error loading patch"),
-                              tr("Failed to load %1: %2").arg(filename).arg(err.what()));
+                              tr("Failed to load %1: %2").arg(filename).arg(err.message()));
         return;
     }
 
@@ -246,9 +246,9 @@ void CCHackMain::onSavePatchAction()
                                   tr("Could not open %1 for writing").arg(filename));
             return;
         }
-    } catch (const std::runtime_error& err) {
+    } catch (const ccl::RuntimeError& err) {
         QMessageBox::critical(this, tr("Error saving patch"),
-                              tr("Failed to write to %1: %2").arg(filename).arg(err.what()));
+                              tr("Failed to write to %1: %2").arg(filename).arg(err.message()));
         return;
     }
 
@@ -274,9 +274,9 @@ void CCHackMain::onWriteExeAction()
                                   tr("Could not open %1 for writing").arg(exeFilename));
             return;
         }
-    } catch (const std::runtime_error& err) {
+    } catch (const ccl::RuntimeError& err) {
         QMessageBox::critical(this, tr("Error updating EXE"),
-                              tr("Failed to write to %1: %2").arg(exeFilename).arg(err.what()));
+                              tr("Failed to write to %1: %2").arg(exeFilename).arg(err.message()));
         return;
     }
 

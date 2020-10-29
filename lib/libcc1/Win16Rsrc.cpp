@@ -245,7 +245,7 @@ void Win16::MenuResource::write(ccl::Stream* stream)
     stream->write16(m_offset);
 
     if (m_menus.empty())
-        throw std::runtime_error("MenuResource cannot be empty!");
+        throw ccl::RuntimeError(ccl::RuntimeError::tr("MenuResource cannot be empty!"));
 
     for (RcMenuItem& item : m_menus)
         item.setFlags(item.flags() & ~0x80);

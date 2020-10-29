@@ -53,7 +53,7 @@ void ccl::DacFile::read(FILE* stream)
             // Verify line is empty, throw error otherwise
             for (char* ch = buffer; *ch != 0; ++ch) {
                 if (!isspace(*ch))
-                    throw ccl::FormatException("Invalid DAC file format");
+                    throw ccl::FormatError(ccl::RuntimeError::tr("Invalid DAC file format"));
             }
             continue;
         }
@@ -75,29 +75,38 @@ void ccl::DacFile::read(FILE* stream)
                 m_usePasswords = true;
             else if (strcasecmp(value, "n") == 0)
                 m_usePasswords = false;
-            else
-                throw ccl::FormatException("Invalid parameter, expected 'y' or 'n'");
+            else {
+                throw ccl::FormatError(ccl::RuntimeError::tr(
+                        "Invalid parameter, expected 'y' or 'n'"));
+            }
         } else if (strcasecmp(key, "ruleset") == 0) {
             if (strcasecmp(value, "ms") == 0)
                 m_ruleset = ccl::Levelset::TypeMS;
             else if (strcasecmp(value, "lynx") == 0)
                 m_ruleset = ccl::Levelset::TypeLynx;
-            else
-                throw ccl::FormatException("Invalid parameter, expected 'ms' or 'lynx'");
+            else {
+                throw ccl::FormatError(ccl::RuntimeError::tr(
+                        "Invalid parameter, expected 'ms' or 'lynx'"));
+            }
         } else if (strcasecmp(key, "lastlevel") == 0) {
             errno = 0;
             m_lastLevel = (int)strtol(value, nullptr, 10);
-            if (m_lastLevel == 0 && errno != 0)
-                throw ccl::FormatException("Invalid parameter, expected integer constant");
+            if (m_lastLevel == 0 && errno != 0) {
+                throw ccl::FormatError(ccl::RuntimeError::tr(
+                        "Invalid parameter, expected integer constant"));
+            }
         } else if (strcasecmp(key, "fixlynx") == 0) {
             if (strcasecmp(value, "y") == 0)
                 m_fixLynx = true;
             else if (strcasecmp(value, "n") == 0)
                 m_fixLynx = false;
-            else
-                throw ccl::FormatException("Invalid parameter, expected 'y' or 'n'");
+            else {
+                throw ccl::FormatError(ccl::RuntimeError::tr(
+                        "Invalid parameter, expected 'y' or 'n'"));
+            }
         } else {
-            throw ccl::FormatException("Unexpected/unsupported DAC parameter");
+            throw ccl::FormatError(ccl::RuntimeError::tr(
+                    "Unexpected/unsupported DAC parameter"));
         }
     }
 }
@@ -112,7 +121,7 @@ void ccl::DacFile::write(FILE* stream) const
     else if (m_ruleset == ccl::Levelset::TypeLynx)
         fprintf(stream, "ruleset=lynx\n");
     else
-        throw ccl::FormatException("Invalid ruleset value");
+        throw ccl::FormatError(ccl::RuntimeError::tr("Invalid ruleset value"));
     if (m_lastLevel != 0)
         fprintf(stream, "lastlevel=%d\n", m_lastLevel);
     if (m_fixLynx)

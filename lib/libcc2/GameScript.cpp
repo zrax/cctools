@@ -65,7 +65,7 @@ void cc2::GameScript::read(const char* filename)
 {
     std::unique_ptr<FILE, decltype(&fclose)> stream(fopen(filename, "r"), &fclose);
     if (!stream)
-        throw ccl::IOException("Could not open file for reading");
+        throw ccl::IOError(ccl::RuntimeError::tr("Could not open file for reading"));
 
     int lineNo = 0;
     std::vector<char> lineBuffer;
@@ -73,7 +73,7 @@ void cc2::GameScript::read(const char* filename)
     for ( ;; ) {
         if (fgets(&lineBuffer[0], lineBuffer.size(), stream.get()) == nullptr) {
             if (ferror(stream.get()))
-                throw ccl::IOException("Error reading from script file");
+                throw ccl::IOError(ccl::RuntimeError::tr("Error reading from script file"));
             break;
         }
         ++lineNo;
@@ -87,7 +87,7 @@ void cc2::GameScript::read(const char* filename)
             lineBuffer.resize(lineBuffer.size() * 2);
             if (fgets(&lineBuffer[length], lineBuffer.size() - length, stream.get()) == nullptr) {
                 if (ferror(stream.get()))
-                    throw ccl::IOException("Error reading from script file");
+                    throw ccl::IOError(ccl::RuntimeError::tr("Error reading from script file"));
                 break;
             }
             length = std::char_traits<char>::length(&lineBuffer[0]);

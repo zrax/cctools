@@ -20,13 +20,12 @@
 #include <cstring>
 #include <vector>
 #include <algorithm>
-#include <stdexcept>
 
 uint8_t ccl::Stream::read8()
 {
     uint8_t val;
     if (read(&val, sizeof(val), 1) == 0)
-        throw ccl::IOException("Read past end of stream");
+        throw ccl::IOError(ccl::RuntimeError::tr("Read past end of stream"));
     return val;
 }
 
@@ -34,7 +33,7 @@ uint16_t ccl::Stream::read16()
 {
     uint16_t val;
     if (read(&val, sizeof(val), 1) == 0)
-        throw ccl::IOException("Read past end of stream");
+        throw ccl::IOError(ccl::RuntimeError::tr("Read past end of stream"));
     return SWAP16(val);
 }
 
@@ -42,7 +41,7 @@ uint32_t ccl::Stream::read32()
 {
     uint32_t val;
     if (read(&val, sizeof(val), 1) == 0)
-        throw ccl::IOException("Read past end of stream");
+        throw ccl::IOError(ccl::RuntimeError::tr("Read past end of stream"));
     return SWAP32(val);
 }
 
@@ -56,9 +55,9 @@ void ccl::Stream::readRLE(tile_t* dest, size_t size)
             unsigned char count = read8();
             tile = (tile_t)read8();
             if ((cur + count) > (dest + size))
-                throw ccl::IOException("RLE buffer overflow");
+                throw ccl::IOError(ccl::RuntimeError::tr("RLE buffer overflow"));
             if ((dataLen - 3) < 0)
-                throw ccl::IOException("RLE buffer underflow");
+                throw ccl::IOError(ccl::RuntimeError::tr("RLE buffer underflow"));
             memset(cur, tile, count);
             cur += count;
             dataLen -= 3;
@@ -69,16 +68,16 @@ void ccl::Stream::readRLE(tile_t* dest, size_t size)
     }
 
     if (dataLen != 0)
-        throw ccl::IOException("RLE buffer overflow");
+        throw ccl::IOError(ccl::RuntimeError::tr("RLE buffer overflow"));
     if (cur != (dest + size))
-        throw ccl::IOException("RLE buffer underflow");
+        throw ccl::IOError(ccl::RuntimeError::tr("RLE buffer underflow"));
 }
 
 std::string ccl::Stream::readString(size_t length, bool password)
 {
     std::unique_ptr<char[]> buffer(new char[length]);
     if (read(buffer.get(), 1, length) != length)
-        throw ccl::IOException("Read past end of stream");
+        throw ccl::IOError(ccl::RuntimeError::tr("Read past end of stream"));
 
     if (password) {
         for (size_t i=0; i<(length-1); ++i)
@@ -107,21 +106,21 @@ std::string ccl::Stream::readZString()
 void ccl::Stream::write8(uint8_t value)
 {
     if (write(&value, sizeof(value), 1) == 0)
-        throw ccl::IOException("Error writing to stream");
+        throw ccl::IOError(ccl::RuntimeError::tr("Error writing to stream"));
 }
 
 void ccl::Stream::write16(uint16_t value)
 {
     uint16_t wval = SWAP16(value);
     if (write(&wval, sizeof(wval), 1) == 0)
-        throw ccl::IOException("Error writing to stream");
+        throw ccl::IOError(ccl::RuntimeError::tr("Error writing to stream"));
 }
 
 void ccl::Stream::write32(uint32_t value)
 {
     uint32_t wval = SWAP32(value);
     if (write(&wval, sizeof(wval), 1) == 0)
-        throw ccl::IOException("Error writing to stream");
+        throw ccl::IOError(ccl::RuntimeError::tr("Error writing to stream"));
 }
 
 static uint16_t rleLength(const tile_t* src, size_t size)
@@ -186,7 +185,7 @@ void ccl::Stream::writeString(const std::string& value, bool password)
 void ccl::Stream::writeZString(const std::string& value)
 {
     if (write(value.c_str(), sizeof(char), value.size()) != value.size())
-        throw ccl::IOException("Error writing to stream");
+        throw ccl::IOError(ccl::RuntimeError::tr("Error writing to stream"));
 
     // Null terminator
     write8(0);
@@ -214,7 +213,7 @@ std::unique_ptr<ccl::Stream> ccl::Stream::unpack(long packedLength)
             packedLength -= 1;
 
             if (offset == 0 || offset > ustream->tell())
-                throw ccl::IOException("Pack offset invalid");
+                throw ccl::IOError(ccl::RuntimeError::tr("Pack offset invalid"));
 
             // Need to copy only one byte at a time, to ensure that bytes
             // written to the output can be looped correctly
@@ -225,13 +224,13 @@ std::unique_ptr<ccl::Stream> ccl::Stream::unpack(long packedLength)
             }
         } else {
             if (copyBytes(ustream.get(), control) != control)
-                throw ccl::IOException("Read past end of stream");
+                throw ccl::IOError(ccl::RuntimeError::tr("Read past end of stream"));
             packedLength -= control;
         }
     }
 
     if (unpackedSize != (ustream->size() & 0xffff))
-        throw ccl::IOException("Packed data did not match expected length");
+        throw ccl::IOError(ccl::RuntimeError::tr("Packed data did not match expected length"));
 
     ustream->seek(0, SEEK_SET);
     return ustream;
@@ -253,7 +252,7 @@ long ccl::Stream::pack(Stream* unpacked)
     const size_t unpackedSize = unpacked->size();
     bytes.resize(unpackedSize);
     if (unpacked->read(&bytes[0], 1, unpackedSize) != unpackedSize)
-        throw std::runtime_error("Failed reading unpacked data");
+        throw ccl::RuntimeError(ccl::RuntimeError::tr("Failed reading unpacked data"));
 
     // Write the unpacked size checksum
     write16(static_cast<uint16_t>(unpackedSize & 0xffff));
@@ -409,7 +408,7 @@ void ccl::BufferStream::seek(long offset, int whence)
     else if (whence == SEEK_END)
         m_offs = m_size - offset;
     else
-        throw std::runtime_error("Invalid whence parameter");
+        throw ccl::RuntimeError(ccl::RuntimeError::tr("Invalid whence parameter"));
 
     if ((long)m_offs < 0)
         m_offs = 0;

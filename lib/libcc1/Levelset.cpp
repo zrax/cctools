@@ -249,7 +249,7 @@ long ccl::LevelData::read(ccl::Stream* stream, bool forClipboard)
     dataSize -= 3 * sizeof(unsigned short);
 
     if (stream->read16() != 1)
-        throw ccl::IOException("Invalid map data field");
+        throw ccl::IOError(ccl::RuntimeError::tr("Invalid map data field"));
     dataSize -= m_map.read(stream) + sizeof(unsigned short);
 
     dataSize -= sizeof(unsigned short);
@@ -268,7 +268,7 @@ long ccl::LevelData::read(ccl::Stream* stream, bool forClipboard)
         unsigned char size = stream->read8();
         dataSize -= size + 2 * sizeof(unsigned char);
         if (dataSize < 0)
-            throw ccl::IOException("Invalid or corrupt level data");
+            throw ccl::IOError(ccl::RuntimeError::tr("Invalid or corrupt level data"));
 
         switch (field) {
         case FieldName:
@@ -282,7 +282,7 @@ long ccl::LevelData::read(ccl::Stream* stream, bool forClipboard)
             break;
         case FieldTraps:
             if ((size % 10) != 0)
-                throw ccl::IOException("Invalid trap field size");
+                throw ccl::IOError(ccl::RuntimeError::tr("Invalid trap field size"));
             for (size_t i=0; i<size; i += 10) {
                 ccl::Trap trap;
                 trap.button.X = stream->read16();
@@ -295,7 +295,7 @@ long ccl::LevelData::read(ccl::Stream* stream, bool forClipboard)
             break;
         case FieldClones:
             if ((size % 8) != 0)
-                throw ccl::IOException("Invalid clone field size");
+                throw ccl::IOError(ccl::RuntimeError::tr("Invalid clone field size"));
             for (size_t i=0; i<size; i += 8) {
                 ccl::Clone clone;
                 clone.button.X = stream->read16();
@@ -307,7 +307,7 @@ long ccl::LevelData::read(ccl::Stream* stream, bool forClipboard)
             break;
         case FieldMoveList:
             if ((size % 2) != 0)
-                throw ccl::IOException("Invalid move list field size");
+                throw ccl::IOError(ccl::RuntimeError::tr("Invalid move list field size"));
             for (size_t i=0; i<size; i += 2) {
                 ccl::Point mover;
                 mover.X = stream->read8();
@@ -316,13 +316,13 @@ long ccl::LevelData::read(ccl::Stream* stream, bool forClipboard)
             }
             break;
         default:
-            throw ccl::IOException("Invalid / unrecognized field type");
+            throw ccl::IOError(ccl::RuntimeError::tr("Invalid / unrecognized field type"));
         }
     }
 
     if (dataSize != 0)
-        throw ccl::IOException(forClipboard ? "Corrupt level data"
-                    : "Invalid level checksum");
+        throw ccl::IOError(forClipboard ? ccl::RuntimeError::tr("Corrupt level data")
+                    : ccl::RuntimeError::tr("Invalid level checksum"));
     return stream->tell() - levelBegin;
 }
 
@@ -480,7 +480,7 @@ void ccl::Levelset::read(ccl::Stream* stream)
     m_magic = stream->read32();
     if (m_magic != TypeMS && m_magic != TypeLynx && m_magic != TypePG
         && m_magic != TypeLynxPG)
-        throw ccl::IOException("Invalid levelset header");
+        throw ccl::IOError(ccl::RuntimeError::tr("Invalid levelset header"));
 
     uint16_t numLevels = stream->read16();
     m_levels.reserve(numLevels);
@@ -534,8 +534,10 @@ void ccl::ClipboardData::read(Stream* stream)
 void ccl::ClipboardData::write(Stream* stream) const
 {
     // We only support writing to the beginning of seekable streams for now
-    if (stream->tell() != 0L)
-        throw std::runtime_error("Cannot write clipboard data to the middle of a stream");
+    if (stream->tell() != 0L) {
+        throw ccl::RuntimeError(ccl::RuntimeError::tr(
+                "Cannot write clipboard data to the middle of a stream"));
+    }
 
     stream->write32(m_width);
     stream->write32(m_height);

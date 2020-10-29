@@ -804,9 +804,9 @@ void CCEditMain::loadLevelset(const QString& filename)
             m_levelset = new ccl::Levelset(0);
             try {
                 m_levelset->read(&set);
-            } catch (const std::exception& e) {
+            } catch (const ccl::RuntimeError& e) {
                 QMessageBox::critical(this, tr("Error reading levelset"),
-                                      tr("Error loading levelset: %1").arg(e.what()));
+                                      tr("Error loading levelset: %1").arg(e.message()));
                 delete m_levelset;
                 m_levelset = nullptr;
                 return;
@@ -830,10 +830,10 @@ void CCEditMain::loadLevelset(const QString& filename)
         try {
             m_dacInfo.read(dac);
             fclose(dac);
-        } catch (const std::runtime_error& e) {
+        } catch (const ccl::RuntimeError& e) {
             QMessageBox::critical(this, tr("Error reading levelset"),
-                                    tr("Error loading levelset descriptor: %1")
-                                    .arg(e.what()));
+                                  tr("Error loading levelset descriptor: %1")
+                                  .arg(e.message()));
             fclose(dac);
             return;
         }
@@ -846,9 +846,9 @@ void CCEditMain::loadLevelset(const QString& filename)
             m_levelset = new ccl::Levelset(0);
             try {
                 m_levelset->read(&set);
-            } catch (const std::exception& e) {
+            } catch (const ccl::RuntimeError& e) {
                 QMessageBox::critical(this, tr("Error reading levelset"),
-                                        tr("Error loading levelset: %1").arg(e.what()));
+                                      tr("Error loading levelset: %1").arg(e.message()));
                 delete m_levelset;
                 m_levelset = nullptr;
                 return;
@@ -932,10 +932,10 @@ void CCEditMain::saveLevelset(const QString& filename)
             try {
                 m_dacInfo.write(dac);
                 fclose(dac);
-            } catch (const std::runtime_error& e) {
+            } catch (const ccl::RuntimeError& e) {
                 QMessageBox::critical(this, tr("Error saving levelset"),
                                       tr("Error saving levelset descriptor: %1")
-                                      .arg(e.what()));
+                                      .arg(e.message()));
                 fclose(dac);
                 return;
             }
@@ -947,9 +947,9 @@ void CCEditMain::saveLevelset(const QString& filename)
             if (set.open(searchPath.absoluteFilePath(m_dacInfo.m_filename.c_str()).toUtf8().constData(), "wb")) {
                 try {
                     m_levelset->write(&set);
-                } catch (const std::runtime_error& e) {
+                } catch (const ccl::RuntimeError& e) {
                     QMessageBox::critical(this, tr("Error saving levelset"),
-                                          tr("Error saving levelset: %1").arg(e.what()));
+                                          tr("Error saving levelset: %1").arg(e.message()));
                     return;
                 }
             } else {
@@ -968,9 +968,9 @@ void CCEditMain::saveLevelset(const QString& filename)
         if (set.open(filename.toUtf8(), "wb")) {
             try {
                 m_levelset->write(&set);
-            } catch (const std::runtime_error& e) {
+            } catch (const ccl::RuntimeError& e) {
                 QMessageBox::critical(this, tr("Error saving levelset"),
-                                      tr("Error saving levelset: %1").arg(e.what()));
+                                      tr("Error saving levelset: %1").arg(e.message()));
                 return;
             }
         } else {
@@ -1108,8 +1108,9 @@ void CCEditMain::registerTileset(const QString& filename)
     bool valid = false;
     try {
         valid = tileset->load(filename);
-    } catch (const std::runtime_error& err) {
-        qDebug("Error registering tileset %s: %s", qPrintable(filename), err.what());
+    } catch (const ccl::RuntimeError& err) {
+        qDebug("Error registering tileset %s: %s", qPrintable(filename),
+               qPrintable(err.message()));
         valid = false;
     }
     if (!valid) {
@@ -1494,9 +1495,9 @@ void CCEditMain::onCopyAction()
         copyData->setData(s_clipboardFormat, buffer);
         copyData->setImageData(editor->renderSelection());
         QApplication::clipboard()->setMimeData(copyData);
-    } catch (const std::exception& e) {
+    } catch (const ccl::RuntimeError& e) {
         QMessageBox::critical(this, tr("Error"),
-                tr("Error saving clipboard data: %1").arg(e.what()),
+                tr("Error saving clipboard data: %1").arg(e.message()),
                 QMessageBox::Ok);
     }
 }
@@ -1516,9 +1517,9 @@ void CCEditMain::onPasteAction()
         ccl::ClipboardData cbData;
         try {
             cbData.read(&cbStream);
-        } catch (const std::exception& e) {
+        } catch (const ccl::RuntimeError& e) {
             QMessageBox::critical(this, tr("Error"),
-                    tr("Error parsing clipboard data: %1").arg(e.what()),
+                    tr("Error parsing clipboard data: %1").arg(e.message()),
                     QMessageBox::Ok);
             return;
         }
@@ -1929,9 +1930,9 @@ void CCEditMain::onTestChips()
         m_levelset->setType(ccl::Levelset::TypeMS);
     try {
         m_levelset->write(&stream);
-    } catch (const std::exception& e) {
+    } catch (const ccl::RuntimeError& e) {
         QMessageBox::critical(this, tr("Error Creating Test Data File"),
-                tr("Error writing data file: %1").arg(e.what()));
+                tr("Error writing data file: %1").arg(e.message()));
         m_levelset->setType(saveType);
         stream.close();
         return;
@@ -1964,9 +1965,9 @@ void CCEditMain::onTestChips()
                       editor->levelData()->password());
         ini.write(iniStream);
         fclose(iniStream);
-    } catch (const std::exception& e) {
+    } catch (const ccl::RuntimeError& e) {
         QMessageBox::critical(this, tr("Error writing CCRun.ini"),
-                tr("Error writing INI file: %1").arg(e.what()));
+                tr("Error writing INI file: %1").arg(e.message()));
         fclose(iniStream);
         QFile::remove(m_tempExe);
         QFile::remove(m_tempDat);
@@ -2034,9 +2035,9 @@ void CCEditMain::onTestTWorld(unsigned int levelsetType)
     m_levelset->setType(levelsetType);
     try {
         m_levelset->write(&stream);
-    } catch (const std::exception& e) {
+    } catch (const ccl::RuntimeError& e) {
         QMessageBox::critical(this, tr("Error Creating Test Data File"),
-                tr("Error writing data file: %1").arg(e.what()));
+                tr("Error writing data file: %1").arg(e.message()));
         m_levelset->setType(saveType);
         stream.close();
         return;

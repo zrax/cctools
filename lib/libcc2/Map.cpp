@@ -37,7 +37,7 @@ void cc2::MapOption::read(ccl::Stream* stream, size_t size)
     std::unique_ptr<uint8_t[]> buffer(new uint8_t[alloc_size]);
     memset(buffer.get(), 0, alloc_size);
     if (stream->read(buffer.get(), 1, size) != size)
-        throw ccl::IOException("Read past end of stream");
+        throw ccl::IOError(ccl::RuntimeError::tr("Read past end of stream"));
 
     const uint8_t* bufp = buffer.get();
     memcpy(&m_timeLimit, bufp, sizeof(m_timeLimit));
@@ -93,7 +93,7 @@ void cc2::MapOption::write(ccl::Stream* stream) const
         writeLen = 22;
 
     if (stream->write(buffer, 1, writeLen) != writeLen)
-        throw ccl::IOException("Error writing to stream");
+        throw ccl::IOError(ccl::RuntimeError::tr("Error writing to stream"));
 }
 
 
@@ -1043,7 +1043,7 @@ void cc2::MapData::read(ccl::Stream* stream, size_t size)
         m_map[i].read(stream);
 
     if (start + (long)size != stream->tell())
-        throw ccl::FormatException("Failed to parse map data");
+        throw ccl::FormatError(ccl::RuntimeError::tr("Failed to parse map data"));
 }
 
 void cc2::MapData::write(ccl::Stream* stream) const
@@ -1238,7 +1238,7 @@ void cc2::Map::read(ccl::Stream* stream)
 
     for ( ;; ) {
         if (stream->read(tag, 1, sizeof(tag)) != sizeof(tag))
-            throw ccl::IOException("Read past end of stream");
+            throw ccl::IOError(ccl::RuntimeError::tr("Read past end of stream"));
         size = stream->read32();
 
         if (memcmp(tag, "CC2M", 4) == 0) {
@@ -1265,9 +1265,9 @@ void cc2::Map::read(ccl::Stream* stream)
             m_mapData.read(ustream.get(), ustream->size());
         } else if (memcmp(tag, "KEY ", 4) == 0) {
             if (size != sizeof(m_key))
-                throw ccl::FormatException("Invalid KEY field size");
+                throw ccl::FormatError(ccl::RuntimeError::tr("Invalid KEY field size"));
             if (stream->read(&m_key, 1, sizeof(m_key)) != sizeof(m_key))
-                throw ccl::IOException("Read past end of file");
+                throw ccl::IOError(ccl::RuntimeError::tr("Read past end of file"));
         } else if (memcmp(tag, "REPL", 4) == 0) {
             m_replay.resize(size);
             stream->read(&m_replay[0], 1, size);
@@ -1293,14 +1293,14 @@ void cc2::Map::read(ccl::Stream* stream)
     }
 
     if (!have_magic)
-        throw ccl::FormatException("Invalid c2m file format");
+        throw ccl::FormatError(ccl::RuntimeError::tr("Invalid c2m file format"));
 }
 
 template <typename Writer>
 void writeTagged(ccl::Stream* stream, const char* tag, const Writer& writer)
 {
     if (stream->write(tag, 1, 4) != 4)
-        throw ccl::IOException("Error writing to stream");
+        throw ccl::IOError(ccl::RuntimeError::tr("Error writing to stream"));
 
     stream->write32(0);
     long start = stream->tell();
@@ -1317,11 +1317,11 @@ static void writeTaggedString(ccl::Stream* stream, const char* tag,
                               const std::string& str)
 {
     if (stream->write(tag, 1, 4) != 4)
-        throw ccl::IOException("Error writing to stream");
+        throw ccl::IOError(ccl::RuntimeError::tr("Error writing to stream"));
 
     stream->write32(str.size() + 1);
     if (stream->write(str.c_str(), 1, str.size()) != str.size())
-        throw ccl::IOException("Error writing to stream");
+        throw ccl::IOError(ccl::RuntimeError::tr("Error writing to stream"));
 
     // Nul-terminator
     stream->write8(0);
@@ -1331,12 +1331,12 @@ template <size_t FixedSize>
 void writeTaggedBlock(ccl::Stream* stream, const char* tag, const void* data = nullptr)
 {
     if (stream->write(tag, 1, 4) != 4)
-        throw ccl::IOException("Error writing to stream");
+        throw ccl::IOError(ccl::RuntimeError::tr("Error writing to stream"));
 
     stream->write32(FixedSize);
     if (FixedSize) {
         if (stream->write(data, 1, FixedSize) != FixedSize)
-            throw ccl::IOException("Error writing to stream");
+            throw ccl::IOError(ccl::RuntimeError::tr("Error writing to stream"));
     }
 }
 
@@ -1484,10 +1484,10 @@ void cc2::ClipboardMap::read(ccl::Stream* stream)
     uint32_t size;
 
     if (stream->read(tag, 1, sizeof(tag)) != sizeof(tag))
-        throw ccl::IOException("Read past end of stream");
+        throw ccl::IOError(ccl::RuntimeError::tr("Read past end of stream"));
     size = stream->read32();
     if (memcmp(tag, "PACK", 4) != 0)
-        throw ccl::FormatException("Unrecognized clipboard format");
+        throw ccl::FormatError(ccl::RuntimeError::tr("Unrecognized clipboard format"));
 
     std::unique_ptr<ccl::Stream> ustream = stream->unpack(size);
     m_mapData.read(ustream.get(), ustream->size());
@@ -1510,7 +1510,7 @@ void cc2::SaveData::read(ccl::Stream* stream, size_t size)
     std::unique_ptr<uint8_t[]> buffer(new uint8_t[alloc_size]);
     memset(buffer.get(), 0, alloc_size);
     if (stream->read(buffer.get(), 1, size) != size)
-        throw ccl::IOException("Read past end of stream");
+        throw ccl::IOError(ccl::RuntimeError::tr("Read past end of stream"));
 
     const uint8_t* bufp = buffer.get();
     auto read32 = [&bufp](uint32_t& value) {
@@ -1589,7 +1589,7 @@ void cc2::SaveData::write(ccl::Stream* stream) const
 
     Q_ASSERT((bufp - buffer) == SAVE_DATA_SIZE);
     if (stream->write(buffer, 1, SAVE_DATA_SIZE) != SAVE_DATA_SIZE)
-        throw ccl::IOException("Error writing to stream");
+        throw ccl::IOError(ccl::RuntimeError::tr("Error writing to stream"));
 }
 
 
@@ -1601,7 +1601,7 @@ void cc2::CC2HighScore::read(ccl::Stream* stream)
 
     for ( ;; ) {
         if (stream->read(tag, 1, sizeof(tag)) != sizeof(tag))
-            throw ccl::IOException("Read past end of stream");
+            throw ccl::IOError(ccl::RuntimeError::tr("Read past end of stream"));
         size = stream->read32();
 
         if (memcmp(tag, "CC2H", 4) == 0) {
@@ -1612,15 +1612,15 @@ void cc2::CC2HighScore::read(ccl::Stream* stream)
             m_scores.back().setFilename(stream->readString(size));
         } else if (memcmp(tag, "TYPE", 4) == 0) {
             if (m_scores.empty())
-                throw ccl::IOException("Got a TYPE field with no FILE");
+                throw ccl::IOError(ccl::RuntimeError::tr("Got a TYPE field with no FILE"));
             m_scores.back().setGameType(stream->readString(size));
         } else if (memcmp(tag, "NAME", 4) == 0) {
             if (m_scores.empty())
-                throw ccl::IOException("Got a NAME field with no FILE");
+                throw ccl::IOError(ccl::RuntimeError::tr("Got a NAME field with no FILE"));
             m_scores.back().setTitle(stream->readString(size));
         } else if (memcmp(tag, "SAVE", 4) == 0) {
             if (m_scores.empty())
-                throw ccl::IOException("Got a SAVE field with no FILE");
+                throw ccl::IOError(ccl::RuntimeError::tr("Got a SAVE field with no FILE"));
             m_scores.back().saveData().read(stream, size);
         } else if (memcmp(tag, "END ", 4) == 0) {
             stream->seek(size, SEEK_CUR);
@@ -1636,7 +1636,7 @@ void cc2::CC2HighScore::read(ccl::Stream* stream)
     }
 
     if (!have_magic)
-        throw ccl::FormatException("Invalid c2h file format");
+        throw ccl::FormatError(ccl::RuntimeError::tr("Invalid c2h file format"));
 }
 
 void cc2::CC2HighScore::write(ccl::Stream* stream) const
@@ -1663,7 +1663,7 @@ void cc2::CC2Save::read(ccl::Stream* stream)
 
     for ( ;; ) {
         if (stream->read(tag, 1, sizeof(tag)) != sizeof(tag))
-            throw ccl::IOException("Read past end of stream");
+            throw ccl::IOError(ccl::RuntimeError::tr("Read past end of stream"));
         size = stream->read32();
 
         if (memcmp(tag, "CC2S", 4) == 0) {
@@ -1689,7 +1689,7 @@ void cc2::CC2Save::read(ccl::Stream* stream)
     }
 
     if (!have_magic)
-        throw ccl::FormatException("Invalid c2h file format");
+        throw ccl::FormatError(ccl::RuntimeError::tr("Invalid c2h file format"));
 }
 
 void cc2::CC2Save::write(ccl::Stream* stream) const

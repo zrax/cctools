@@ -62,11 +62,12 @@ load_levelset(const QString& filename, QWidget* self, int* dacLastLevel = nullpt
             levelset = std::make_unique<ccl::Levelset>();
             levelset->read(&stream);
             stream.close();
-        } catch (const std::exception& e) {
-            qDebug("Error trying to load %s: %s", qPrintable(filename), e.what());
+        } catch (const ccl::RuntimeError& e) {
+            qDebug("Error trying to load %s: %s", qPrintable(filename),
+                   qPrintable(e.message()));
             QMessageBox::critical(self, self->tr("Error Reading Levelset"),
                     self->tr("Error Reading levelset file %1: %2")
-                    .arg(filename).arg(e.what()));
+                    .arg(filename).arg(e.message()));
             return {};
         }
         if (dacLastLevel)
@@ -84,17 +85,18 @@ load_levelset(const QString& filename, QWidget* self, int* dacLastLevel = nullpt
         try {
             dacInfo.read(dac);
             fclose(dac);
-        } catch (const ccl::FormatException&) {
+        } catch (const ccl::FormatError&) {
             // Tried to read an invalid levelset file (probably not really
             // a levelset -- e.g. "unins000.dat")
             qDebug("Format error trying to load %s", qPrintable(filename));
             fclose(dac);
             return {};
-        } catch (const std::runtime_error& e) {
-            qDebug("Error trying to load %s: %s", qPrintable(filename), e.what());
+        } catch (const ccl::RuntimeError& e) {
+            qDebug("Error trying to load %s: %s", qPrintable(filename),
+                   qPrintable(e.message()));
             QMessageBox::critical(self, self->tr("Error reading levelset"),
                                   self->tr("Error loading levelset descriptor for %1: %2")
-                                  .arg(filename).arg(e.what()));
+                                  .arg(filename).arg(e.message()));
             fclose(dac);
             return {};
         }
@@ -106,10 +108,11 @@ load_levelset(const QString& filename, QWidget* self, int* dacLastLevel = nullpt
                 levelset = std::make_unique<ccl::Levelset>();
                 levelset->read(&stream);
                 stream.close();
-            } catch (const std::exception& e) {
-                qDebug("Error trying to load %s: %s", qPrintable(filename), e.what());
+            } catch (const ccl::RuntimeError& e) {
+                qDebug("Error trying to load %s: %s", qPrintable(filename),
+                       qPrintable(e.message()));
                 QMessageBox::critical(self, self->tr("Error reading levelset"),
-                                      self->tr("Error loading levelset: %1").arg(e.what()));
+                                      self->tr("Error loading levelset: %1").arg(e.message()));
                 stream.close();
                 return {};
             }
@@ -425,9 +428,9 @@ void CCPlayMain::onPlayMSCC()
     }
     try {
         levelset->write(&stream);
-    } catch (const std::exception& e) {
+    } catch (const ccl::RuntimeError& e) {
         QMessageBox::critical(this, tr("Error Creating Test Data File"),
-                tr("Error writing data file: %1").arg(e.what()));
+                tr("Error writing data file: %1").arg(e.message()));
         stream.close();
         QFile::remove(tempDat);
         return;
@@ -524,9 +527,9 @@ void CCPlayMain::onPlayMSCC()
         }
         ini.write(iniStream);
         fclose(iniStream);
-    } catch (const std::exception& e) {
+    } catch (const ccl::RuntimeError& e) {
         QMessageBox::critical(this, tr("Error writing CCRun.ini"),
-                tr("Error writing INI file: %1").arg(e.what()));
+                tr("Error writing INI file: %1").arg(e.message()));
         fclose(iniStream);
         QFile::remove(tempExe);
         QFile::remove(tempDat);
@@ -604,9 +607,9 @@ void CCPlayMain::onPlayMSCC()
                 continue;
             }
         }
-    } catch (const std::exception& e) {
+    } catch (const ccl::RuntimeError& e) {
         QMessageBox::critical(this, tr("Error reading CCRun.ini"),
-                tr("Error reading INI file: %1").arg(e.what()));
+                tr("Error reading INI file: %1").arg(e.message()));
         fclose(iniStream);
         QFile::remove(tempExe);
         QFile::remove(tempDat);

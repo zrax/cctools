@@ -90,9 +90,9 @@ bool ImportDialog::loadLevelset(const QString& filename)
     m_levelset = new ccl::Levelset;
     try {
         m_levelset->read(&fs);
-    } catch (const std::runtime_error& err) {
+    } catch (const ccl::RuntimeError& err) {
         QMessageBox::critical(this, tr("Error importing levelset"),
-                tr("Failed to load '%1': %2").arg(filename).arg(err.what()));
+                tr("Failed to load '%1': %2").arg(filename).arg(err.message()));
         return false;
     }
 

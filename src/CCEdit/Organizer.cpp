@@ -239,12 +239,12 @@ void OrganizerDialog::onCopyLevels()
         }
         QByteArray buffer((const char*)cbStream.buffer(), cbStream.size());
 
-        QMimeData* copyData = new QMimeData();
+        auto copyData = new QMimeData();
         copyData->setData(s_clipboardFormat, buffer);
         QApplication::clipboard()->setMimeData(copyData);
-    } catch (const std::exception& e) {
+    } catch (const ccl::RuntimeError& e) {
         QMessageBox::critical(this, tr("Error"),
-                tr("Error saving clipboard data: %1").arg(e.what()),
+                tr("Error saving clipboard data: %1").arg(e.message()),
                 QMessageBox::Ok);
     }
 }
@@ -270,10 +270,10 @@ void OrganizerDialog::onPasteLevels()
             try {
                 level->read(&cbStream, true);
                 if (cbStream.tell() - start != levelSizes[i])
-                    throw ccl::IOException("Corrupt Level Data");
-            } catch (const std::exception& ex) {
+                    throw ccl::IOError(ccl::RuntimeError::tr("Corrupt Level Data"));
+            } catch (const ccl::RuntimeError& ex) {
                 QMessageBox::critical(this, tr("Error"),
-                        tr("Error reading clipboard data: %1").arg(ex.what()),
+                        tr("Error reading clipboard data: %1").arg(ex.message()),
                         QMessageBox::Ok);
                 level->unref();
             }

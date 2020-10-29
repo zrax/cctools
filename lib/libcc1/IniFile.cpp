@@ -46,7 +46,7 @@ void ccl::IniFile::read(FILE* stream)
         if (buffer[0] == '[') {
             char* endp = strrchr(buffer, ']');
             if (endp == 0)
-                throw ccl::FormatException("Invalid INI file format");
+                throw ccl::FormatError(ccl::RuntimeError::tr("Invalid INI file format"));
             *endp = 0;    // Ensure null termination
             setSection(buffer + 1);
             continue;
@@ -59,7 +59,7 @@ void ccl::IniFile::read(FILE* stream)
             // Verify line is empty, throw error otherwise
             for (char* ch = buffer; *ch != 0; ++ch) {
                 if (!isspace(*ch))
-                    throw ccl::FormatException("Invalid INI file format");
+                    throw ccl::FormatError(ccl::RuntimeError::tr("Invalid INI file format"));
             }
             continue;
         }

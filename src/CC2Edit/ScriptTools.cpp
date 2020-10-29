@@ -21,7 +21,6 @@
 
 #include <QMessageBox>
 #include <QDir>
-#include <stdexcept>
 #include <unordered_map>
 
 static void add_constants(std::unordered_map<std::string, unsigned long>& locals)
@@ -107,8 +106,8 @@ bool ScriptMapLoader::loadScript(const QString& filename)
     cc2::GameScript script;
     try {
         script.read(filename.toLocal8Bit().constData());
-    } catch (const std::runtime_error &err) {
-        QMessageBox::critical(nullptr, tr("Error loading script"), err.what());
+    } catch (const ccl::RuntimeError &err) {
+        QMessageBox::critical(nullptr, tr("Error loading script"), err.message());
         return false;
     }
 

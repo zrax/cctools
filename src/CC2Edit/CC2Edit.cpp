@@ -1071,8 +1071,8 @@ bool CC2EditMain::loadMap(const QString& filename, bool floatTab)
     try {
         map->read(&fs);
         addEditor(map, filename, floatTab);
-    } catch (const std::exception& ex) {
-        QMessageBox::critical(this, tr("Error loading map"), ex.what());
+    } catch (const ccl::RuntimeError& ex) {
+        QMessageBox::critical(this, tr("Error loading map"), ex.message());
         success = false;
     }
     map->unref();
@@ -1093,10 +1093,10 @@ bool CC2EditMain::loadScript(const QString& filename)
         if (fs.open(filename.toLocal8Bit().constData(), "rb")) {
             try {
                 map.read(&fs);
-            } catch (const std::exception &err) {
+            } catch (const ccl::RuntimeError& err) {
                 QMessageBox::critical(this, tr("Error processing map"),
                                       tr("Failed to load map data for %1: %2")
-                                      .arg(filename).arg(err.what()));
+                                      .arg(filename).arg(err.message()));
             }
         }
         QString title = !map.title().empty()
@@ -1231,10 +1231,10 @@ bool CC2EditMain::saveMap(cc2::Map* map, const QString& filename)
     }
     try {
         map->write(&fs);
-    } catch (const std::runtime_error& err) {
+    } catch (const ccl::RuntimeError& err) {
         QMessageBox::critical(this, tr("Error"),
                         tr("Failed to write map to %1: %2")
-                        .arg(filename).arg(err.what()));
+                        .arg(filename).arg(err.message()));
         return false;
     }
     fs.close();
@@ -1270,8 +1270,9 @@ void CC2EditMain::registerTileset(const QString& filename)
     bool valid = false;
     try {
         valid = tileset->load(filename);
-    } catch (const ccl::IOException& err) {
-        qDebug("Error registering tileset %s: %s", qPrintable(filename), err.what());
+    } catch (const ccl::IOError& err) {
+        qDebug("Error registering tileset %s: %s", qPrintable(filename),
+               qPrintable(err.message()));
         valid = false;
     }
     if (!valid) {
@@ -1689,9 +1690,9 @@ void CC2EditMain::onCopyAction()
             //TODO: set CC1 map data
             copyData->setImageData(mapEditor->renderSelection());
             QApplication::clipboard()->setMimeData(copyData);
-        } catch (const std::runtime_error& err) {
+        } catch (const ccl::RuntimeError& err) {
             QMessageBox::critical(this, tr("Error"),
-                    tr("Error saving clipboard data: %1").arg(err.what()),
+                    tr("Error saving clipboard data: %1").arg(err.message()),
                     QMessageBox::Ok);
         }
     } else if (scriptEditor) {
@@ -1714,9 +1715,9 @@ void CC2EditMain::onPasteAction()
 
             try {
                 cbMap.read(&cbStream);
-            } catch (const std::runtime_error& err) {
+            } catch (const ccl::RuntimeError& err) {
                 QMessageBox::critical(this, tr("Error"),
-                        tr("Error parsing clipboard data: %1").arg(err.what()),
+                        tr("Error parsing clipboard data: %1").arg(err.message()),
                         QMessageBox::Ok);
                 return;
             }
@@ -1728,9 +1729,9 @@ void CC2EditMain::onPasteAction()
             ccl::ClipboardData cc1Map;
             try {
                 cc1Map.read(&cbStream);
-            } catch (const std::runtime_error& err) {
+            } catch (const ccl::RuntimeError& err) {
                 QMessageBox::critical(this, tr("Error"),
-                        tr("Error parsing clipboard data: %1").arg(err.what()),
+                        tr("Error parsing clipboard data: %1").arg(err.message()),
                         QMessageBox::Ok);
                 return;
             }
@@ -2133,10 +2134,10 @@ void CC2EditMain::onTestChips2()
     }
     try {
         save.write(&fs);
-    } catch (const std::runtime_error& err) {
+    } catch (const ccl::RuntimeError& err) {
         QMessageBox::critical(this, tr("Error"),
                         tr("Failed to write save data to %1: %2")
-                        .arg(saveFilename).arg(err.what()));
+                        .arg(saveFilename).arg(err.message()));
         return;
     }
     fs.close();
@@ -2149,10 +2150,10 @@ void CC2EditMain::onTestChips2()
     }
     try {
         highScore.write(&fs);
-    } catch (const std::runtime_error& err) {
+    } catch (const ccl::RuntimeError& err) {
         QMessageBox::critical(this, tr("Error"),
                         tr("Failed to write high score data to %1: %2")
-                        .arg(scoreFilename).arg(err.what()));
+                        .arg(scoreFilename).arg(err.message()));
         return;
     }
     fs.close();
