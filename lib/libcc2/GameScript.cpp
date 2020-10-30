@@ -17,6 +17,7 @@
 
 #include "GameScript.h"
 #include "libcc1/Errors.h"
+#include "libcc1/Stream.h"
 
 #include <memory>
 #include <vector>
@@ -61,9 +62,11 @@ std::string matchOperator(const char* lineBuffer)
     return std::string();
 }
 
-void cc2::GameScript::read(const char* filename)
+void cc2::GameScript::read(const QString& filename)
 {
-    std::unique_ptr<FILE, decltype(&fclose)> stream(fopen(filename, "r"), &fclose);
+    std::unique_ptr<FILE, decltype(&fclose)> stream(
+            ccl::FileStream::Fopen(filename, ccl::FileStream::ReadText),
+            &fclose);
     if (!stream)
         throw ccl::IOError(ccl::RuntimeError::tr("Could not open file for reading"));
 

@@ -306,9 +306,61 @@ long ccl::Stream::pack(Stream* unpacked)
 }
 
 
-bool ccl::FileStream::open(const char* filename, const char* mode)
+#ifdef Q_OS_WIN
+#   define FS_MODE(mode)    L"" mode L""
+#else
+#   define FS_MODE(mode)    mode
+#endif
+
+FILE* ccl::FileStream::Fopen(const QString& filename, OpenMode mode)
 {
-    m_file = fopen(filename, mode);
+#ifdef Q_OS_WIN
+    const wchar_t* mode_str;
+#else
+    const char* mode_str;
+#endif
+
+    switch (mode) {
+    case Read:
+        mode_str = FS_MODE("rb");
+        break;
+    case Write:
+        mode_str = FS_MODE("wb");
+        break;
+    case ReadWrite:
+        mode_str = FS_MODE("r+b");
+        break;
+    case RWCreate:
+        mode_str = FS_MODE("w+b");
+        break;
+    case ReadText:
+        mode_str = FS_MODE("r");
+        break;
+    case WriteText:
+        mode_str = FS_MODE("w");
+        break;
+    case ReadWriteText:
+        mode_str = FS_MODE("r+");
+        break;
+    case RWCreateText:
+        mode_str = FS_MODE("w+");
+        break;
+    default:
+        throw ccl::RuntimeError(ccl::RuntimeError::tr("Invalid file mode"));
+    }
+
+#ifdef Q_OS_WIN
+    static_assert(sizeof(wchar_t) == sizeof(filename.utf16()[0]),
+                  "Size mismatch between wchar_t and QString::utf16()");
+    return _wfopen(reinterpret_cast<const wchar_t*>(filename.utf16()), mode_str);
+#else
+    return fopen(filename.toLocal8Bit().constData(), mode_str);
+#endif
+}
+
+bool ccl::FileStream::open(const QString& filename, OpenMode mode)
+{
+    m_file = Fopen(filename, mode);
     return isOpen();
 }
 
@@ -356,11 +408,11 @@ void ccl::BufferStream::setFrom(const void* buffer, size_t size)
 
 size_t ccl::BufferStream::read(void* buffer, size_t size, size_t count)
 {
-    if (m_buffer == 0)
+    if (!m_buffer)
         return 0;
 
     size_t numCopied = 0;
-    unsigned char* bufPtr = (unsigned char*)buffer;
+    auto bufPtr = reinterpret_cast<unsigned char*>(buffer);
     while (m_offs + size <= m_size && count > 0) {
         memcpy(bufPtr, m_buffer + m_offs, size);
         bufPtr += size;
@@ -377,8 +429,8 @@ size_t ccl::BufferStream::write(const void* buffer, size_t size, size_t count)
         size_t bigger = (m_alloc == 0) ? 4096 : m_alloc * 2;
         while (m_offs + (size * count) > bigger)
             bigger *= 2;
-        unsigned char* largeBuf = new unsigned char[bigger];
-        if (m_buffer != 0)
+        auto largeBuf = new unsigned char[bigger];
+        if (m_buffer)
             memcpy(largeBuf, m_buffer, m_size);
         delete[] m_buffer;
         m_buffer = largeBuf;
@@ -386,7 +438,7 @@ size_t ccl::BufferStream::write(const void* buffer, size_t size, size_t count)
     }
 
     size_t numCopied = 0;
-    unsigned char* bufPtr = (unsigned char*)buffer;
+    auto bufPtr = reinterpret_cast<const unsigned char*>(buffer);
     while (count > 0) {
         memcpy(m_buffer + m_offs, bufPtr, size);
         bufPtr += size;

@@ -158,7 +158,7 @@ bool HackSettings::loadFromExe(const QString& filename)
 {
     ccl::ChipsHax hax;
     ccl::FileStream exeStream;
-    if (!exeStream.open(filename.toLocal8Bit().constData(), "rb"))
+    if (!exeStream.open(filename, ccl::FileStream::Read))
         return false;
 
     hax.open(&exeStream);
@@ -478,7 +478,7 @@ bool HackSettings::writeToExe(const QString& filename) const
 {
     ccl::ChipsHax hax;
     ccl::FileStream exeStream;
-    if (!exeStream.open(filename.toLocal8Bit().constData(), "r+b"))
+    if (!exeStream.open(filename, ccl::FileStream::ReadWrite))
         return false;
 
     hax.open(&exeStream);

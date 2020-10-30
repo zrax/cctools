@@ -185,7 +185,7 @@ private:
 };
 
 enum LevelsetType { LevelsetError, LevelsetDac, LevelsetCcl };
-LevelsetType DetermineLevelsetType(const char* filename);
+LevelsetType DetermineLevelsetType(const QString& filename);
 
 
 class ClipboardData {

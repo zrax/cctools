@@ -81,7 +81,19 @@ public:
     FileStream() : m_file() { }
     ~FileStream() override { close(); }
 
-    bool open(const char* filename, const char* mode);
+    enum OpenMode {
+        Read = 1,
+        Write = 2,
+        ReadWrite = 3,
+        RWCreate = 4,
+        ReadText = 21,
+        WriteText = 22,
+        ReadWriteText = 23,
+        RWCreateText = 24,
+    };
+    static FILE* Fopen(const QString& filename, OpenMode mode);
+    bool open(const QString& filename, OpenMode mode);
+
     bool isOpen() const { return m_file != nullptr; }
     void close();
 

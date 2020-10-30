@@ -1060,7 +1060,7 @@ bool CC2EditMain::loadMap(const QString& filename, bool floatTab)
     }
 
     ccl::FileStream fs;
-    if (!fs.open(filename.toLocal8Bit().constData(), "rb")) {
+    if (!fs.open(filename, ccl::FileStream::Read)) {
         QMessageBox::critical(this, tr("Error loading map"),
                 tr("Could not open %1 for reading.").arg(filename));
         return false;
@@ -1090,7 +1090,7 @@ bool CC2EditMain::loadScript(const QString& filename)
             [this](int levelNum, const QString &filename) {
         cc2::Map map;
         ccl::FileStream fs;
-        if (fs.open(filename.toLocal8Bit().constData(), "rb")) {
+        if (fs.open(filename, ccl::FileStream::Read)) {
             try {
                 map.read(&fs);
             } catch (const ccl::RuntimeError& err) {
@@ -1224,7 +1224,7 @@ bool CC2EditMain::saveTabAs(int index)
 bool CC2EditMain::saveMap(cc2::Map* map, const QString& filename)
 {
     ccl::FileStream fs;
-    if (!fs.open(filename.toLocal8Bit().constData(), "wb")) {
+    if (!fs.open(filename, ccl::FileStream::Write)) {
         QMessageBox::critical(this, tr("Error"),
                         tr("Could not open %1 for writing.").arg(filename));
         return false;
@@ -2127,7 +2127,7 @@ void CC2EditMain::onTestChips2()
 
     ccl::FileStream fs;
     const QString saveFilename = savesDir.absoluteFilePath("save.c2s");
-    if (!fs.open(saveFilename.toLocal8Bit().constData(), "wb")) {
+    if (!fs.open(saveFilename, ccl::FileStream::Write)) {
         QMessageBox::critical(this, tr("Error"),
                         tr("Could not open %1 for writing.").arg(saveFilename));
         return;
@@ -2143,7 +2143,7 @@ void CC2EditMain::onTestChips2()
     fs.close();
 
     const QString scoreFilename = savesDir.absoluteFilePath("save.c2h");
-    if (!fs.open(scoreFilename.toLocal8Bit().constData(), "wb")) {
+    if (!fs.open(scoreFilename, ccl::FileStream::Write)) {
         QMessageBox::critical(this, tr("Error"),
                 tr("Could not open %1 for writing.").arg(scoreFilename));
         return;

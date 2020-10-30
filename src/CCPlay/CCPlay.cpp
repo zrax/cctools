@@ -49,12 +49,12 @@
 static std::unique_ptr<ccl::Levelset>
 load_levelset(const QString& filename, QWidget* self, int* dacLastLevel = nullptr)
 {
-    ccl::LevelsetType type = ccl::DetermineLevelsetType(filename.toLocal8Bit().constData());
+    ccl::LevelsetType type = ccl::DetermineLevelsetType(filename);
     ccl::FileStream stream;
     std::unique_ptr<ccl::Levelset> levelset;
     if (type == ccl::LevelsetCcl) {
         try {
-            if (!stream.open(filename.toLocal8Bit().constData(), "rb")) {
+            if (!stream.open(filename, ccl::FileStream::Read)) {
                 QMessageBox::critical(self, self->tr("Error Reading Levelset"),
                         self->tr("Error Opening levelset file %1").arg(filename));
                 return {};
@@ -74,7 +74,7 @@ load_levelset(const QString& filename, QWidget* self, int* dacLastLevel = nullpt
             *dacLastLevel = (levelset->levelCount() == 149) ? 144 : levelset->levelCount();
         return levelset;
     } else if (type == ccl::LevelsetDac) {
-        FILE* dac = fopen(filename.toLocal8Bit().constData(), "rt");
+        FILE* dac = ccl::FileStream::Fopen(filename, ccl::FileStream::ReadText);
         if (!dac) {
             QMessageBox::critical(self, self->tr("Error reading levelset"),
                                   self->tr("Could not open file: %1")
@@ -103,7 +103,7 @@ load_levelset(const QString& filename, QWidget* self, int* dacLastLevel = nullpt
 
         QDir searchPath(filename);
         searchPath.cdUp();
-        if (stream.open(searchPath.absoluteFilePath(dacInfo.m_filename.c_str()).toLocal8Bit().constData(), "rb")) {
+        if (stream.open(searchPath.absoluteFilePath(dacInfo.m_filename.c_str()), ccl::FileStream::Read)) {
             try {
                 levelset = std::make_unique<ccl::Levelset>();
                 levelset->read(&stream);
@@ -421,7 +421,7 @@ void CCPlayMain::onPlayMSCC()
     auto levelset = load_levelset(filename, this, &dacLastLevel);
     if (!levelset)
         return;
-    if (!stream.open(tempDat.toLocal8Bit().constData(), "wb")) {
+    if (!stream.open(tempDat, ccl::FileStream::Write)) {
         QMessageBox::critical(this, tr("Error writing data file"),
                 tr("Error opening CCRun.dat for writing"));
         return;
@@ -445,7 +445,7 @@ void CCPlayMain::onPlayMSCC()
         QFile::remove(tempDat);
         return;
     }
-    if (!stream.open(tempExe.toLocal8Bit().constData(), "r+b")) {
+    if (!stream.open(tempExe, ccl::FileStream::ReadWrite)) {
         QMessageBox::critical(this, tr("Error creating temp EXE"),
                 tr("Error opening %1 for writing").arg(tempExe));
         QFile::remove(tempExe);
@@ -488,10 +488,10 @@ void CCPlayMain::onPlayMSCC()
     }
 
     QString tempIni = exePath.absoluteFilePath("CCRun.ini");
-    FILE* iniStream = fopen(tempIni.toLocal8Bit().constData(), "r+t");
-    if (iniStream == 0)
-        iniStream = fopen(tempIni.toLocal8Bit().constData(), "w+t");
-    if (iniStream == 0) {
+    FILE* iniStream = ccl::FileStream::Fopen(tempIni, ccl::FileStream::ReadWriteText);
+    if (!iniStream)
+        iniStream = ccl::FileStream::Fopen(tempIni, ccl::FileStream::RWCreateText);
+    if (!iniStream) {
         QMessageBox::critical(this, tr("Error Creating CCRun.ini"),
                 tr("Error: Could not open or create CCRun.ini file"));
         QFile::remove(tempExe);
@@ -548,8 +548,8 @@ void CCPlayMain::onPlayMSCC()
     QDir::setCurrent(cwd);
 
 
-    iniStream = fopen(tempIni.toLocal8Bit().constData(), "rt");
-    if (iniStream == 0) {
+    iniStream = ccl::FileStream::Fopen(tempIni, ccl::FileStream::ReadText);
+    if (!iniStream) {
         QMessageBox::critical(this, tr("Error Reading CCRun.ini"),
                 tr("Error: Could not open CCRun.ini file for reading"));
         QFile::remove(tempExe);
@@ -665,7 +665,7 @@ void CCPlayMain::onPlayTWorld()
     // Parse the TWS file and extract score data
     ccl::FileStream tws;
     QString twsName = QDir::toNativeSeparators(QDir::homePath() + "/.cctools/" + setName + ".tws");
-    if (!tws.open(twsName.toLocal8Bit().constData(), "rb")) {
+    if (!tws.open(twsName, ccl::FileStream::Read)) {
         QMessageBox::critical(this, tr("Error parsing score data"),
                 tr("Error: Could not open %1 for reading").arg(twsName));
         tws.close();

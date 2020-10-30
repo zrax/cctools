@@ -797,10 +797,10 @@ void CCEditMain::loadLevelset(const QString& filename)
     if (!closeLevelset())
         return;
 
-    ccl::LevelsetType type = ccl::DetermineLevelsetType(filename.toUtf8().constData());
+    ccl::LevelsetType type = ccl::DetermineLevelsetType(filename);
     if (type == ccl::LevelsetCcl) {
         ccl::FileStream set;
-        if (set.open(filename.toUtf8().constData(), "rb")) {
+        if (set.open(filename, ccl::FileStream::Read)) {
             m_levelset = new ccl::Levelset(0);
             try {
                 m_levelset->read(&set);
@@ -820,7 +820,7 @@ void CCEditMain::loadLevelset(const QString& filename)
         setLevelsetFilename(filename);
         m_useDac = false;
     } else if (type == ccl::LevelsetDac) {
-        FILE* dac = fopen(filename.toUtf8().constData(), "rt");
+        FILE* dac = ccl::FileStream::Fopen(filename, ccl::FileStream::ReadText);
         if (!dac) {
             QMessageBox::critical(this, tr("Error opening levelset"),
                                   tr("Error: could not open file %1").arg(filename));
@@ -842,7 +842,7 @@ void CCEditMain::loadLevelset(const QString& filename)
         searchPath.cdUp();
 
         ccl::FileStream set;
-        if (set.open(searchPath.absoluteFilePath(m_dacInfo.m_filename.c_str()).toUtf8().constData(), "rb")) {
+        if (set.open(searchPath.absoluteFilePath(m_dacInfo.m_filename.c_str()), ccl::FileStream::Read)) {
             m_levelset = new ccl::Levelset(0);
             try {
                 m_levelset->read(&set);
@@ -927,7 +927,7 @@ void CCEditMain::saveLevelset(const QString& filename)
         return;
 
     if (m_useDac) {
-        FILE* dac = fopen(filename.toUtf8().constData(), "wt");
+        FILE* dac = ccl::FileStream::Fopen(filename, ccl::FileStream::WriteText);
         if (dac) {
             try {
                 m_dacInfo.write(dac);
@@ -944,7 +944,7 @@ void CCEditMain::saveLevelset(const QString& filename)
             searchPath.cdUp();
 
             ccl::FileStream set;
-            if (set.open(searchPath.absoluteFilePath(m_dacInfo.m_filename.c_str()).toUtf8().constData(), "wb")) {
+            if (set.open(searchPath.absoluteFilePath(m_dacInfo.m_filename.c_str()), ccl::FileStream::Write)) {
                 try {
                     m_levelset->write(&set);
                 } catch (const ccl::RuntimeError& e) {
@@ -965,7 +965,7 @@ void CCEditMain::saveLevelset(const QString& filename)
         }
     } else {
         ccl::FileStream set;
-        if (set.open(filename.toUtf8(), "wb")) {
+        if (set.open(filename, ccl::FileStream::Write)) {
             try {
                 m_levelset->write(&set);
             } catch (const ccl::RuntimeError& e) {
@@ -1891,7 +1891,7 @@ void CCEditMain::onTestChips()
         return;
     }
     ccl::FileStream stream;
-    if (!stream.open(m_tempExe.toUtf8().constData(), "r+b")) {
+    if (!stream.open(m_tempExe, ccl::FileStream::ReadWrite)) {
         QMessageBox::critical(this, tr("Error Creating Test EXE"),
                 tr("Error opening %1 for writing").arg(m_tempExe));
         return;
@@ -1918,7 +1918,7 @@ void CCEditMain::onTestChips()
     stream.close();
 
     // Save the levelset to the temp file
-    if (!stream.open(m_tempDat.toUtf8().constData(), "wb")) {
+    if (!stream.open(m_tempDat, ccl::FileStream::Write)) {
         QMessageBox::critical(this, tr("Error Creating Test Data File"),
                 tr("Error opening %1 for writing").arg(m_tempDat));
         return;
@@ -1946,9 +1946,9 @@ void CCEditMain::onTestChips()
     exePath.cdUp();
 
     m_tempIni = exePath.absoluteFilePath("CCRun.ini");
-    FILE* iniStream = fopen(m_tempIni.toUtf8().constData(), "r+t");
+    FILE* iniStream = ccl::FileStream::Fopen(m_tempIni, ccl::FileStream::ReadWriteText);
     if (!iniStream)
-        iniStream = fopen(m_tempIni.toUtf8().constData(), "w+t");
+        iniStream = ccl::FileStream::Fopen(m_tempIni, ccl::FileStream::RWCreateText);
     if (!iniStream) {
         QMessageBox::critical(this, tr("Error Creating CCRun.ini"),
                 tr("Error: Could not open or create CCRun.ini file"));
@@ -2026,7 +2026,7 @@ void CCEditMain::onTestTWorld(unsigned int levelsetType)
     // Save the levelset to the temp file
     m_tempDat = QDir::toNativeSeparators(QDir::tempPath() + "/CCRun.dat");
     ccl::FileStream stream;
-    if (!stream.open(m_tempDat.toUtf8().constData(), "wb")) {
+    if (!stream.open(m_tempDat, ccl::FileStream::Write)) {
         QMessageBox::critical(this, tr("Error Creating Test Data File"),
                 tr("Error opening %1 for writing").arg(m_tempDat));
         return;

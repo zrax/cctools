@@ -21,6 +21,8 @@
 #include <string>
 #include <list>
 
+class QString;
+
 namespace cc2 {
 
 class C2GNode {
@@ -177,7 +179,7 @@ public:
             delete node;
     }
 
-    void read(const char* filename);
+    void read(const QString& filename);
 
     const std::list<C2GNode *>& nodes() const { return m_nodes; }
 

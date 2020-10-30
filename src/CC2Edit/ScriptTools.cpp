@@ -105,7 +105,7 @@ bool ScriptMapLoader::loadScript(const QString& filename)
 {
     cc2::GameScript script;
     try {
-        script.read(filename.toLocal8Bit().constData());
+        script.read(filename);
     } catch (const ccl::RuntimeError &err) {
         QMessageBox::critical(nullptr, tr("Error loading script"), err.message());
         return false;

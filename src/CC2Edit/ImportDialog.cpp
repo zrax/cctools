@@ -81,7 +81,7 @@ ImportDialog::~ImportDialog()
 bool ImportDialog::loadLevelset(const QString& filename)
 {
     ccl::FileStream fs;
-    if (!fs.open(filename.toLocal8Bit().constData(), "rb")) {
+    if (!fs.open(filename, ccl::FileStream::Read)) {
         QMessageBox::critical(this, tr("Error importing levelset"),
                 tr("Could not open '%1' for reading").arg(filename));
         return false;

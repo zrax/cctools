@@ -504,10 +504,10 @@ void ccl::Levelset::write(ccl::Stream* stream) const
 }
 
 
-ccl::LevelsetType ccl::DetermineLevelsetType(const char* filename)
+ccl::LevelsetType ccl::DetermineLevelsetType(const QString& filename)
 {
     ccl::FileStream stream;
-    if (!stream.open(filename, "rb"))
+    if (!stream.open(filename, ccl::FileStream::Read))
         return LevelsetError;
 
     uint32_t magic;
