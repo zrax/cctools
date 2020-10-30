@@ -16,6 +16,7 @@
  ******************************************************************************/
 
 #include "PageGeneral.h"
+#include "CommonWidgets/CCTools.h"
 
 #include <QGridLayout>
 #include <QLabel>
@@ -117,13 +118,13 @@ CCHack::PageGeneral::PageGeneral(QWidget* parent)
 void CCHack::PageGeneral::setValues(HackSettings* settings)
 {
     m_cbTitle->setChecked(settings->have_title());
-    m_title->setText(QString::fromLatin1(settings->get_title().c_str()));
+    m_title->setText(ccl::fromLatin1(settings->get_title()));
     m_cbIniFile->setChecked(settings->have_iniFile());
-    m_iniFile->setText(QString::fromLatin1(settings->get_iniFile().c_str()));
+    m_iniFile->setText(ccl::fromLatin1(settings->get_iniFile()));
     m_cbIniEntry->setChecked(settings->have_iniEntry());
-    m_iniEntry->setText(QString::fromLatin1(settings->get_iniEntry().c_str()));
+    m_iniEntry->setText(ccl::fromLatin1(settings->get_iniEntry()));
     m_cbDatFile->setChecked(settings->have_datFile());
-    m_datFile->setText(QString::fromLatin1(settings->get_datFile().c_str()));
+    m_datFile->setText(ccl::fromLatin1(settings->get_datFile()));
     if (settings->have_alwaysFirstTry())
         m_alwaysFirstTry->setChecked(settings->get_alwaysFirstTry());
     else
@@ -148,10 +149,10 @@ void CCHack::PageGeneral::setValues(HackSettings* settings)
 
 void CCHack::PageGeneral::setDefaults(HackSettings* settings)
 {
-    m_defTitle->setText(QString::fromLatin1(settings->get_title().c_str()));
-    m_defIniFile->setText(QString::fromLatin1(settings->get_iniFile().c_str()));
-    m_defIniEntry->setText(QString::fromLatin1(settings->get_iniEntry().c_str()));
-    m_defDatFile->setText(QString::fromLatin1(settings->get_datFile().c_str()));
+    m_defTitle->setText(ccl::fromLatin1(settings->get_title()));
+    m_defIniFile->setText(ccl::fromLatin1(settings->get_iniFile()));
+    m_defIniEntry->setText(ccl::fromLatin1(settings->get_iniEntry()));
+    m_defDatFile->setText(ccl::fromLatin1(settings->get_datFile()));
     m_defFakeLastLevel->setText(QString::number(settings->get_fakeLastLevel()));
     m_defRealLastLevel->setText(QString::number(settings->get_realLastLevel()));
 }
@@ -159,13 +160,13 @@ void CCHack::PageGeneral::setDefaults(HackSettings* settings)
 void CCHack::PageGeneral::saveTo(HackSettings* settings)
 {
     if (m_cbTitle->isChecked())
-        settings->set_title(m_title->text().toLatin1().constData());
+        settings->set_title(ccl::toLatin1(m_title->text()));
     if (m_cbIniFile->isChecked())
-        settings->set_iniFile(m_iniFile->text().toLatin1().constData());
+        settings->set_iniFile(ccl::toLatin1(m_iniFile->text()));
     if (m_cbIniEntry->isChecked())
-        settings->set_iniEntry(m_iniEntry->text().toLatin1().constData());
+        settings->set_iniEntry(ccl::toLatin1(m_iniEntry->text()));
     if (m_cbDatFile->isChecked())
-        settings->set_datFile(m_datFile->text().toLatin1().constData());
+        settings->set_datFile(ccl::toLatin1(m_datFile->text()));
     if (m_alwaysFirstTry->checkState() != Qt::PartiallyChecked)
         settings->set_alwaysFirstTry(m_alwaysFirstTry->isChecked());
     if (m_ccPatch->checkState() != Qt::PartiallyChecked)

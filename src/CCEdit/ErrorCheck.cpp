@@ -22,6 +22,8 @@
 #include <QLabel>
 #include <QSettings>
 
+#include "CommonWidgets/CCTools.h"
+
 enum CheckMode {
     CheckMsccStrict, CheckMscc, CheckTWorldLynx, CheckLynxPedantic,
 };
@@ -89,15 +91,15 @@ void ErrorCheckDialog::setLevelsetInfo(ccl::Levelset* levelset, ccl::DacFile* da
     m_checkTarget->addItem(tr("(Entire levelset)"));
     for (int i=0; i<m_levelset->levelCount(); ++i) {
         m_checkTarget->addItem(QStringLiteral("%1 - %2").arg(i + 1)
-                               .arg(QString::fromLatin1(m_levelset->level(i)->name().c_str())));
+                               .arg(ccl::fromLatin1(m_levelset->level(i)->name())));
     }
 }
 
 void ErrorCheckDialog::reportError(int level, QString text)
 {
-    QString section = (level < 0) ? "Levelset"
+    QString section = (level < 0) ? QStringLiteral("Levelset")
                     : QStringLiteral("%1 - %2").arg(level + 1)
-                      .arg(QString::fromLatin1(m_levelset->level(level)->name().c_str()));
+                      .arg(ccl::fromLatin1(m_levelset->level(level)->name()));
 
     QTreeWidgetItem* sectionItem;
     if (m_errors->topLevelItemCount() > 0 &&

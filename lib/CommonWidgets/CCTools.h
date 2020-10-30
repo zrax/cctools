@@ -35,4 +35,18 @@ public:
     AboutDialog(const QString& name, const QPixmap& icon, QWidget* parent = nullptr);
 };
 
+namespace ccl {
+
+inline QString fromLatin1(const std::string& text)
+{
+    return QString::fromLatin1(text.data(), int(text.size()));
+}
+
+inline std::string toLatin1(const QString& text)
+{
+    return text.toLatin1().toStdString();
+}
+
+}
+
 #endif

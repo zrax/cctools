@@ -1100,7 +1100,7 @@ bool CC2EditMain::loadScript(const QString& filename)
             }
         }
         QString title = !map.title().empty()
-                            ? QString::fromLatin1(map.title().c_str())
+                            ? ccl::fromLatin1(map.title())
                             : QFileInfo(filename).fileName();
 
         QString name = tr("%1 - %2").arg(levelNum).arg(title);
@@ -1969,11 +1969,11 @@ void CC2EditMain::onTilePicked(int x, int y)
 
         std::string clue = editor->map()->clueForTile(x, y);
         HintEditDialog dialog(x, y, this);
-        dialog.setText(QString::fromLatin1(clue.c_str()));
+        dialog.setText(ccl::fromLatin1(clue));
         if (dialog.exec() == QDialog::Accepted) {
             editor->beginEdit(CC2EditHistory::EditMap);
-            const QString clueText = dialog.text();
-            editor->map()->setClueForTile(x, y, clueText.toLatin1().constData());
+            const std::string clueText = ccl::toLatin1(dialog.text());
+            editor->map()->setClueForTile(x, y, clueText);
             editor->endEdit();
             updateMapProperties(editor->map());
         }
@@ -2303,10 +2303,10 @@ void CC2EditMain::onTabChanged(int index)
 
 void CC2EditMain::updateMapProperties(cc2::Map* map)
 {
-    m_title->setText(QString::fromLatin1(map->title().c_str()));
-    m_author->setText(QString::fromLatin1(map->author().c_str()));
-    m_lockText->setText(QString::fromLatin1(map->lock().c_str()));
-    m_editorVersion->setText(QString::fromLatin1(map->editorVersion().c_str()));
+    m_title->setText(ccl::fromLatin1(map->title()));
+    m_author->setText(ccl::fromLatin1(map->author()));
+    m_lockText->setText(ccl::fromLatin1(map->lock()));
+    m_editorVersion->setText(ccl::fromLatin1(map->editorVersion()));
     m_mapSize->setText(tr("%1 x %2").arg(map->mapData().width())
                                     .arg(map->mapData().height()));
     m_chipCounter->setText(QString::number(map->mapData().countChips()));
@@ -2323,8 +2323,8 @@ void CC2EditMain::updateMapProperties(cc2::Map* map)
     m_hideLogic->setChecked(map->option().hideLogic());
     m_cc1Boots->setChecked(map->option().cc1Boots());
     m_readOnly->setChecked(map->readOnly());
-    m_clue->setPlainText(QString::fromLatin1(map->clue().c_str()));
-    m_note->setPlainText(QString::fromLatin1(map->note().c_str()));
+    m_clue->setPlainText(ccl::fromLatin1(map->clue()));
+    m_note->setPlainText(ccl::fromLatin1(map->note()));
 }
 
 void CC2EditMain::setLeftTile(const cc2::Tile& tile)
@@ -2352,9 +2352,9 @@ void CC2EditMain::onTitleChanged(const QString& value)
         return;
 
     cc2::Map* map = editor->map();
-    if (map->title() != value.toLatin1().constData()) {
+    if (map->title() != ccl::toLatin1(value)) {
         editor->beginEdit(CC2EditHistory::EditTitle);
-        map->setTitle(value.toLatin1().constData());
+        map->setTitle(ccl::toLatin1(value));
         editor->endEdit();
     }
 }
@@ -2366,9 +2366,9 @@ void CC2EditMain::onAuthorChanged(const QString& value)
         return;
 
     cc2::Map* map = editor->map();
-    if (map->author() != value.toLatin1().constData()) {
+    if (map->author() != ccl::toLatin1(value)) {
         editor->beginEdit(CC2EditHistory::EditAuthor);
-        map->setAuthor(value.toLatin1().constData());
+        map->setAuthor(ccl::toLatin1(value));
         editor->endEdit();
     }
 }
@@ -2380,9 +2380,9 @@ void CC2EditMain::onLockChanged(const QString& value)
         return;
 
     cc2::Map* map = editor->map();
-    if (map->lock() != value.toLatin1().constData()) {
+    if (map->lock() != ccl::toLatin1(value)) {
         editor->beginEdit(CC2EditHistory::EditLock);
-        map->setLock(value.toLatin1().constData());
+        map->setLock(ccl::toLatin1(value));
         editor->endEdit();
     }
 }
@@ -2394,9 +2394,9 @@ void CC2EditMain::onEditorVersionChanged(const QString& value)
         return;
 
     cc2::Map* map = editor->map();
-    if (map->editorVersion() != value.toLatin1().constData()) {
+    if (map->editorVersion() != ccl::toLatin1(value)) {
         editor->beginEdit(CC2EditHistory::EditVersion);
-        map->setEditorVersion(value.toLatin1().constData());
+        map->setEditorVersion(ccl::toLatin1(value));
         editor->endEdit();
     }
 }
@@ -2497,10 +2497,10 @@ void CC2EditMain::onClueChanged()
         return;
 
     cc2::Map* map = editor->map();
-    const QString value = m_clue->toPlainText();
-    if (map->clue() != value.toLatin1().constData()) {
+    const std::string value = ccl::toLatin1(m_clue->toPlainText());
+    if (map->clue() != value) {
         editor->beginEdit(CC2EditHistory::EditClue);
-        map->setClue(value.toLatin1().constData());
+        map->setClue(value);
         editor->endEdit();
     }
 }
@@ -2512,10 +2512,10 @@ void CC2EditMain::onNoteChanged()
         return;
 
     cc2::Map* map = editor->map();
-    const QString value = m_note->toPlainText();
-    if (map->note() != value.toLatin1().constData()) {
+    const std::string value = ccl::toLatin1(m_note->toPlainText());
+    if (map->note() != value) {
         editor->beginEdit(CC2EditHistory::EditNotes);
-        map->setNote(value.toLatin1().constData());
+        map->setNote(value);
         editor->endEdit();
     }
 }

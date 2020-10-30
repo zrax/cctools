@@ -18,6 +18,7 @@
 #include "HackSettings.h"
 #include "libcc1/ChipsHax.h"
 #include "libcc1/Win16Rsrc.h"
+#include "CommonWidgets/CCTools.h"
 
 #include <QFile>
 #include <QFileInfo>
@@ -347,13 +348,13 @@ bool HackSettings::loadFromPatch(const QString& filename)
 
     // General Settings
     if (validString(patch, ccp_Title))
-        set_title(patch.value(ccp_Title).toString().toLatin1().constData());
+        set_title(ccl::toLatin1(patch.value(ccp_Title).toString()));
     if (validString(patch, ccp_IniFile))
-        set_iniFile(patch.value(ccp_IniFile).toString().toLatin1().constData());
+        set_iniFile(ccl::toLatin1(patch.value(ccp_IniFile).toString()));
     if (validString(patch, ccp_IniEntry))
-        set_iniEntry(patch.value(ccp_IniEntry).toString().toLatin1().constData());
+        set_iniEntry(ccl::toLatin1(patch.value(ccp_IniEntry).toString()));
     if (validString(patch, ccp_DatFile))
-        set_datFile(patch.value(ccp_DatFile).toString().toLatin1().constData());
+        set_datFile(ccl::toLatin1(patch.value(ccp_DatFile).toString()));
     if (patch.contains(ccp_AlwaysFirstTry))
         set_alwaysFirstTry(patch.value(ccp_AlwaysFirstTry).toBool());
     if (patch.contains(ccp_CCPatch))
@@ -369,67 +370,67 @@ bool HackSettings::loadFromPatch(const QString& filename)
 
     // Sounds and MIDI
     if (validString(patch, ccp_ToolSound))
-        set_toolSound(patch.value(ccp_ToolSound).toString().toLatin1().constData());
+        set_toolSound(ccl::toLatin1(patch.value(ccp_ToolSound).toString()));
     if (validString(patch, ccp_DoorSound))
-        set_doorSound(patch.value(ccp_DoorSound).toString().toLatin1().constData());
+        set_doorSound(ccl::toLatin1(patch.value(ccp_DoorSound).toString()));
     if (validString(patch, ccp_DeathSound))
-        set_deathSound(patch.value(ccp_DeathSound).toString().toLatin1().constData());
+        set_deathSound(ccl::toLatin1(patch.value(ccp_DeathSound).toString()));
     if (validString(patch, ccp_LevelCompleteSound))
-        set_levelCompleteSound(patch.value(ccp_LevelCompleteSound).toString().toLatin1().constData());
+        set_levelCompleteSound(ccl::toLatin1(patch.value(ccp_LevelCompleteSound).toString()));
     if (validString(patch, ccp_SocketSound))
-        set_socketSound(patch.value(ccp_SocketSound).toString().toLatin1().constData());
+        set_socketSound(ccl::toLatin1(patch.value(ccp_SocketSound).toString()));
     if (validString(patch, ccp_WallSound))
-        set_wallSound(patch.value(ccp_WallSound).toString().toLatin1().constData());
+        set_wallSound(ccl::toLatin1(patch.value(ccp_WallSound).toString()));
     if (validString(patch, ccp_ThiefSound))
-        set_thiefSound(patch.value(ccp_ThiefSound).toString().toLatin1().constData());
+        set_thiefSound(ccl::toLatin1(patch.value(ccp_ThiefSound).toString()));
     if (validString(patch, ccp_SoundOnSound))
-        set_soundOnSound(patch.value(ccp_SoundOnSound).toString().toLatin1().constData());
+        set_soundOnSound(ccl::toLatin1(patch.value(ccp_SoundOnSound).toString()));
     if (validString(patch, ccp_ChipSound))
-        set_chipSound(patch.value(ccp_ChipSound).toString().toLatin1().constData());
+        set_chipSound(ccl::toLatin1(patch.value(ccp_ChipSound).toString()));
     if (validString(patch, ccp_ButtonSound))
-        set_buttonSound(patch.value(ccp_ButtonSound).toString().toLatin1().constData());
+        set_buttonSound(ccl::toLatin1(patch.value(ccp_ButtonSound).toString()));
     if (validString(patch, ccp_WaterSound))
-        set_waterSound(patch.value(ccp_WaterSound).toString().toLatin1().constData());
+        set_waterSound(ccl::toLatin1(patch.value(ccp_WaterSound).toString()));
     if (validString(patch, ccp_BombSound))
-        set_bombSound(patch.value(ccp_BombSound).toString().toLatin1().constData());
+        set_bombSound(ccl::toLatin1(patch.value(ccp_BombSound).toString()));
     if (validString(patch, ccp_TeleportSound))
-        set_teleportSound(patch.value(ccp_TeleportSound).toString().toLatin1().constData());
+        set_teleportSound(ccl::toLatin1(patch.value(ccp_TeleportSound).toString()));
     if (validString(patch, ccp_TimerTickSound))
-        set_timerTickSound(patch.value(ccp_TimerTickSound).toString().toLatin1().constData());
+        set_timerTickSound(ccl::toLatin1(patch.value(ccp_TimerTickSound).toString()));
     if (validString(patch, ccp_TimesUpSound))
-        set_timesUpSound(patch.value(ccp_TimesUpSound).toString().toLatin1().constData());
+        set_timesUpSound(ccl::toLatin1(patch.value(ccp_TimesUpSound).toString()));
     if (validString(patch, ccp_Midi_1))
-        set_midi_1(patch.value(ccp_Midi_1).toString().toLatin1().constData());
+        set_midi_1(ccl::toLatin1(patch.value(ccp_Midi_1).toString()));
     if (validString(patch, ccp_Midi_2))
-        set_midi_2(patch.value(ccp_Midi_2).toString().toLatin1().constData());
+        set_midi_2(ccl::toLatin1(patch.value(ccp_Midi_2).toString()));
     if (validString(patch, ccp_Midi_3))
-        set_midi_3(patch.value(ccp_Midi_3).toString().toLatin1().constData());
+        set_midi_3(ccl::toLatin1(patch.value(ccp_Midi_3).toString()));
 
     // Storyline Texts
     if (validString(patch, ccp_PartText_1))
-        set_progressMsg_1(patch.value(ccp_PartText_1).toString().toLatin1().constData());
+        set_progressMsg_1(ccl::toLatin1(patch.value(ccp_PartText_1).toString()));
     if (validString(patch, ccp_PartText_2))
-        set_progressMsg_2(patch.value(ccp_PartText_2).toString().toLatin1().constData());
+        set_progressMsg_2(ccl::toLatin1(patch.value(ccp_PartText_2).toString()));
     if (validString(patch, ccp_PartText_3))
-        set_progressMsg_3(patch.value(ccp_PartText_3).toString().toLatin1().constData());
+        set_progressMsg_3(ccl::toLatin1(patch.value(ccp_PartText_3).toString()));
     if (validString(patch, ccp_PartText_4))
-        set_progressMsg_4(patch.value(ccp_PartText_4).toString().toLatin1().constData());
+        set_progressMsg_4(ccl::toLatin1(patch.value(ccp_PartText_4).toString()));
     if (validString(patch, ccp_PartText_5))
-        set_progressMsg_5(patch.value(ccp_PartText_5).toString().toLatin1().constData());
+        set_progressMsg_5(ccl::toLatin1(patch.value(ccp_PartText_5).toString()));
     if (validString(patch, ccp_PartText_6))
-        set_progressMsg_6(patch.value(ccp_PartText_6).toString().toLatin1().constData());
+        set_progressMsg_6(ccl::toLatin1(patch.value(ccp_PartText_6).toString()));
     if (validString(patch, ccp_PartText_7))
-        set_progressMsg_7(patch.value(ccp_PartText_7).toString().toLatin1().constData());
+        set_progressMsg_7(ccl::toLatin1(patch.value(ccp_PartText_7).toString()));
     if (validString(patch, ccp_PartText_8))
-        set_progressMsg_8(patch.value(ccp_PartText_8).toString().toLatin1().constData());
+        set_progressMsg_8(ccl::toLatin1(patch.value(ccp_PartText_8).toString()));
     if (validString(patch, ccp_PartText_9))
-        set_progressMsg_9(patch.value(ccp_PartText_9).toString().toLatin1().constData());
+        set_progressMsg_9(ccl::toLatin1(patch.value(ccp_PartText_9).toString()));
     if (validString(patch, ccp_PartText_10))
-        set_progressMsg_10(patch.value(ccp_PartText_10).toString().toLatin1().constData());
+        set_progressMsg_10(ccl::toLatin1(patch.value(ccp_PartText_10).toString()));
     if (validString(patch, ccp_EndGameMsg_1))
-        set_endgameMsg_1(patch.value(ccp_EndGameMsg_1).toString().toLatin1().constData());
+        set_endgameMsg_1(ccl::toLatin1(patch.value(ccp_EndGameMsg_1).toString()));
     if (validString(patch, ccp_EndGameMsg_2))
-        set_endgameMsg_2(patch.value(ccp_EndGameMsg_2).toString().toLatin1().constData());
+        set_endgameMsg_2(ccl::toLatin1(patch.value(ccp_EndGameMsg_2).toString()));
 
     // Graphics
     const QDir baseDir = QFileInfo(filename).dir();
@@ -634,13 +635,13 @@ bool HackSettings::writeToPatch(const QString& filename) const
 
     // General Settings
     if (have_title())
-        patch.setValue(ccp_Title, QString::fromLatin1(get_title().c_str()));
+        patch.setValue(ccp_Title, ccl::fromLatin1(get_title()));
     if (have_iniFile())
-        patch.setValue(ccp_IniFile, QString::fromLatin1(get_iniFile().c_str()));
+        patch.setValue(ccp_IniFile, ccl::fromLatin1(get_iniFile()));
     if (have_iniEntry())
-        patch.setValue(ccp_IniEntry, QString::fromLatin1(get_iniEntry().c_str()));
+        patch.setValue(ccp_IniEntry, ccl::fromLatin1(get_iniEntry()));
     if (have_datFile())
-        patch.setValue(ccp_DatFile, QString::fromLatin1(get_datFile().c_str()));
+        patch.setValue(ccp_DatFile, ccl::fromLatin1(get_datFile()));
     if (have_alwaysFirstTry())
         patch.setValue(ccp_AlwaysFirstTry, get_alwaysFirstTry());
     if (have_ccPatch())
@@ -656,67 +657,67 @@ bool HackSettings::writeToPatch(const QString& filename) const
 
     // Sounds and MIDI
     if (have_toolSound())
-        patch.setValue(ccp_ToolSound, QString::fromLatin1(get_toolSound().c_str()));
+        patch.setValue(ccp_ToolSound, ccl::fromLatin1(get_toolSound()));
     if (have_doorSound())
-        patch.setValue(ccp_DoorSound, QString::fromLatin1(get_doorSound().c_str()));
+        patch.setValue(ccp_DoorSound, ccl::fromLatin1(get_doorSound()));
     if (have_deathSound())
-        patch.setValue(ccp_DeathSound, QString::fromLatin1(get_deathSound().c_str()));
+        patch.setValue(ccp_DeathSound, ccl::fromLatin1(get_deathSound()));
     if (have_levelCompleteSound())
-        patch.setValue(ccp_LevelCompleteSound, QString::fromLatin1(get_levelCompleteSound().c_str()));
+        patch.setValue(ccp_LevelCompleteSound, ccl::fromLatin1(get_levelCompleteSound()));
     if (have_socketSound())
-        patch.setValue(ccp_SocketSound, QString::fromLatin1(get_socketSound().c_str()));
+        patch.setValue(ccp_SocketSound, ccl::fromLatin1(get_socketSound()));
     if (have_wallSound())
-        patch.setValue(ccp_WallSound, QString::fromLatin1(get_wallSound().c_str()));
+        patch.setValue(ccp_WallSound, ccl::fromLatin1(get_wallSound()));
     if (have_thiefSound())
-        patch.setValue(ccp_ThiefSound, QString::fromLatin1(get_thiefSound().c_str()));
+        patch.setValue(ccp_ThiefSound, ccl::fromLatin1(get_thiefSound()));
     if (have_soundOnSound())
-        patch.setValue(ccp_SoundOnSound, QString::fromLatin1(get_soundOnSound().c_str()));
+        patch.setValue(ccp_SoundOnSound, ccl::fromLatin1(get_soundOnSound()));
     if (have_chipSound())
-        patch.setValue(ccp_ChipSound, QString::fromLatin1(get_chipSound().c_str()));
+        patch.setValue(ccp_ChipSound, ccl::fromLatin1(get_chipSound()));
     if (have_buttonSound())
-        patch.setValue(ccp_ButtonSound, QString::fromLatin1(get_buttonSound().c_str()));
+        patch.setValue(ccp_ButtonSound, ccl::fromLatin1(get_buttonSound()));
     if (have_waterSound())
-        patch.setValue(ccp_WaterSound, QString::fromLatin1(get_waterSound().c_str()));
+        patch.setValue(ccp_WaterSound, ccl::fromLatin1(get_waterSound()));
     if (have_bombSound())
-        patch.setValue(ccp_BombSound, QString::fromLatin1(get_bombSound().c_str()));
+        patch.setValue(ccp_BombSound, ccl::fromLatin1(get_bombSound()));
     if (have_teleportSound())
-        patch.setValue(ccp_TeleportSound, QString::fromLatin1(get_teleportSound().c_str()));
+        patch.setValue(ccp_TeleportSound, ccl::fromLatin1(get_teleportSound()));
     if (have_timerTickSound())
-        patch.setValue(ccp_TimerTickSound, QString::fromLatin1(get_timerTickSound().c_str()));
+        patch.setValue(ccp_TimerTickSound, ccl::fromLatin1(get_timerTickSound()));
     if (have_timesUpSound())
-        patch.setValue(ccp_TimesUpSound, QString::fromLatin1(get_timesUpSound().c_str()));
+        patch.setValue(ccp_TimesUpSound, ccl::fromLatin1(get_timesUpSound()));
     if (have_midi_1())
-        patch.setValue(ccp_Midi_1, QString::fromLatin1(get_midi_1().c_str()));
+        patch.setValue(ccp_Midi_1, ccl::fromLatin1(get_midi_1()));
     if (have_midi_2())
-        patch.setValue(ccp_Midi_2, QString::fromLatin1(get_midi_2().c_str()));
+        patch.setValue(ccp_Midi_2, ccl::fromLatin1(get_midi_2()));
     if (have_midi_3())
-        patch.setValue(ccp_Midi_3, QString::fromLatin1(get_midi_3().c_str()));
+        patch.setValue(ccp_Midi_3, ccl::fromLatin1(get_midi_3()));
 
     // Storyline Texts
     if (have_progressMsg_1())
-        patch.setValue(ccp_PartText_1, QString::fromLatin1(get_progressMsg_1().c_str()));
+        patch.setValue(ccp_PartText_1, ccl::fromLatin1(get_progressMsg_1()));
     if (have_progressMsg_2())
-        patch.setValue(ccp_PartText_2, QString::fromLatin1(get_progressMsg_2().c_str()));
+        patch.setValue(ccp_PartText_2, ccl::fromLatin1(get_progressMsg_2()));
     if (have_progressMsg_3())
-        patch.setValue(ccp_PartText_3, QString::fromLatin1(get_progressMsg_3().c_str()));
+        patch.setValue(ccp_PartText_3, ccl::fromLatin1(get_progressMsg_3()));
     if (have_progressMsg_4())
-        patch.setValue(ccp_PartText_4, QString::fromLatin1(get_progressMsg_4().c_str()));
+        patch.setValue(ccp_PartText_4, ccl::fromLatin1(get_progressMsg_4()));
     if (have_progressMsg_5())
-        patch.setValue(ccp_PartText_5, QString::fromLatin1(get_progressMsg_5().c_str()));
+        patch.setValue(ccp_PartText_5, ccl::fromLatin1(get_progressMsg_5()));
     if (have_progressMsg_6())
-        patch.setValue(ccp_PartText_6, QString::fromLatin1(get_progressMsg_6().c_str()));
+        patch.setValue(ccp_PartText_6, ccl::fromLatin1(get_progressMsg_6()));
     if (have_progressMsg_7())
-        patch.setValue(ccp_PartText_7, QString::fromLatin1(get_progressMsg_7().c_str()));
+        patch.setValue(ccp_PartText_7, ccl::fromLatin1(get_progressMsg_7()));
     if (have_progressMsg_8())
-        patch.setValue(ccp_PartText_8, QString::fromLatin1(get_progressMsg_8().c_str()));
+        patch.setValue(ccp_PartText_8, ccl::fromLatin1(get_progressMsg_8()));
     if (have_progressMsg_9())
-        patch.setValue(ccp_PartText_9, QString::fromLatin1(get_progressMsg_9().c_str()));
+        patch.setValue(ccp_PartText_9, ccl::fromLatin1(get_progressMsg_9()));
     if (have_progressMsg_10())
-        patch.setValue(ccp_PartText_10, QString::fromLatin1(get_progressMsg_10().c_str()));
+        patch.setValue(ccp_PartText_10, ccl::fromLatin1(get_progressMsg_10()));
     if (have_endgameMsg_1())
-        patch.setValue(ccp_EndGameMsg_1, QString::fromLatin1(get_endgameMsg_1().c_str()));
+        patch.setValue(ccp_EndGameMsg_1, ccl::fromLatin1(get_endgameMsg_1()));
     if (have_endgameMsg_2())
-        patch.setValue(ccp_EndGameMsg_2, QString::fromLatin1(get_endgameMsg_2().c_str()));
+        patch.setValue(ccp_EndGameMsg_2, ccl::fromLatin1(get_endgameMsg_2()));
 
     // Graphics -- we store them directly in the .ccp file for CCHack 3.0
     if (have_vgaTileset())

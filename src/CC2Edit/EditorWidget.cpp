@@ -16,6 +16,7 @@
  ******************************************************************************/
 
 #include "EditorWidget.h"
+#include "CommonWidgets/CCTools.h"
 
 #include <QUndoStack>
 #include <QPainter>
@@ -830,7 +831,7 @@ void CC2EditorWidget::mouseMoveEvent(QMouseEvent* event)
     if (!clue.empty()) {
         if (!tipText.isEmpty())
             tipText += QLatin1Char('\n');
-        tipText += tr("Clue:\n") + QString::fromLatin1(clue.c_str()).trimmed();
+        tipText += tr("Clue:\n") + ccl::fromLatin1(clue).trimmed();
     }
 
     setToolTip(tipText);

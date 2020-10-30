@@ -16,6 +16,7 @@
  ******************************************************************************/
 
 #include "PageStoryline.h"
+#include "CommonWidgets/CCTools.h"
 
 #include <QScrollArea>
 #include <QGridLayout>
@@ -73,71 +74,71 @@ CCHack::PageStoryline::PageStoryline(QWidget* parent)
 void CCHack::PageStoryline::setValues(HackSettings* settings)
 {
     m_cbStoryPart1->setChecked(settings->have_progressMsg_1());
-    m_storyPart1->setPlainText(QString::fromLatin1(settings->get_progressMsg_1().c_str()));
+    m_storyPart1->setPlainText(ccl::fromLatin1(settings->get_progressMsg_1()));
     m_cbStoryPart2->setChecked(settings->have_progressMsg_2());
-    m_storyPart2->setPlainText(QString::fromLatin1(settings->get_progressMsg_2().c_str()));
+    m_storyPart2->setPlainText(ccl::fromLatin1(settings->get_progressMsg_2()));
     m_cbStoryPart3->setChecked(settings->have_progressMsg_3());
-    m_storyPart3->setPlainText(QString::fromLatin1(settings->get_progressMsg_3().c_str()));
+    m_storyPart3->setPlainText(ccl::fromLatin1(settings->get_progressMsg_3()));
     m_cbStoryPart4->setChecked(settings->have_progressMsg_4());
-    m_storyPart4->setPlainText(QString::fromLatin1(settings->get_progressMsg_4().c_str()));
+    m_storyPart4->setPlainText(ccl::fromLatin1(settings->get_progressMsg_4()));
     m_cbStoryPart5->setChecked(settings->have_progressMsg_5());
-    m_storyPart5->setPlainText(QString::fromLatin1(settings->get_progressMsg_5().c_str()));
+    m_storyPart5->setPlainText(ccl::fromLatin1(settings->get_progressMsg_5()));
     m_cbStoryPart6->setChecked(settings->have_progressMsg_6());
-    m_storyPart6->setPlainText(QString::fromLatin1(settings->get_progressMsg_6().c_str()));
+    m_storyPart6->setPlainText(ccl::fromLatin1(settings->get_progressMsg_6()));
     m_cbStoryPart7->setChecked(settings->have_progressMsg_7());
-    m_storyPart7->setPlainText(QString::fromLatin1(settings->get_progressMsg_7().c_str()));
+    m_storyPart7->setPlainText(ccl::fromLatin1(settings->get_progressMsg_7()));
     m_cbStoryPart8->setChecked(settings->have_progressMsg_8());
-    m_storyPart8->setPlainText(QString::fromLatin1(settings->get_progressMsg_8().c_str()));
+    m_storyPart8->setPlainText(ccl::fromLatin1(settings->get_progressMsg_8()));
     m_cbStoryPart9->setChecked(settings->have_progressMsg_9());
-    m_storyPart9->setPlainText(QString::fromLatin1(settings->get_progressMsg_9().c_str()));
+    m_storyPart9->setPlainText(ccl::fromLatin1(settings->get_progressMsg_9()));
     m_cbStoryPart10->setChecked(settings->have_progressMsg_10());
-    m_storyPart10->setPlainText(QString::fromLatin1(settings->get_progressMsg_10().c_str()));
+    m_storyPart10->setPlainText(ccl::fromLatin1(settings->get_progressMsg_10()));
     m_cbStoryEnd1->setChecked(settings->have_endgameMsg_1());
-    m_storyEnd1->setPlainText(QString::fromLatin1(settings->get_endgameMsg_1().c_str()));
+    m_storyEnd1->setPlainText(ccl::fromLatin1(settings->get_endgameMsg_1()));
     m_cbStoryEnd2->setChecked(settings->have_endgameMsg_2());
-    m_storyEnd2->setPlainText(QString::fromLatin1(settings->get_endgameMsg_2().c_str()));
+    m_storyEnd2->setPlainText(ccl::fromLatin1(settings->get_endgameMsg_2()));
 }
 
 void CCHack::PageStoryline::setDefaults(HackSettings* settings)
 {
-    m_defStoryPart1->setPlainText(QString::fromLatin1(settings->get_progressMsg_1().c_str()));
-    m_defStoryPart2->setPlainText(QString::fromLatin1(settings->get_progressMsg_2().c_str()));
-    m_defStoryPart3->setPlainText(QString::fromLatin1(settings->get_progressMsg_3().c_str()));
-    m_defStoryPart4->setPlainText(QString::fromLatin1(settings->get_progressMsg_4().c_str()));
-    m_defStoryPart5->setPlainText(QString::fromLatin1(settings->get_progressMsg_5().c_str()));
-    m_defStoryPart6->setPlainText(QString::fromLatin1(settings->get_progressMsg_6().c_str()));
-    m_defStoryPart7->setPlainText(QString::fromLatin1(settings->get_progressMsg_7().c_str()));
-    m_defStoryPart8->setPlainText(QString::fromLatin1(settings->get_progressMsg_8().c_str()));
-    m_defStoryPart9->setPlainText(QString::fromLatin1(settings->get_progressMsg_9().c_str()));
-    m_defStoryPart10->setPlainText(QString::fromLatin1(settings->get_progressMsg_10().c_str()));
-    m_defStoryEnd1->setPlainText(QString::fromLatin1(settings->get_endgameMsg_1().c_str()));
-    m_defStoryEnd2->setPlainText(QString::fromLatin1(settings->get_endgameMsg_2().c_str()));
+    m_defStoryPart1->setPlainText(ccl::fromLatin1(settings->get_progressMsg_1()));
+    m_defStoryPart2->setPlainText(ccl::fromLatin1(settings->get_progressMsg_2()));
+    m_defStoryPart3->setPlainText(ccl::fromLatin1(settings->get_progressMsg_3()));
+    m_defStoryPart4->setPlainText(ccl::fromLatin1(settings->get_progressMsg_4()));
+    m_defStoryPart5->setPlainText(ccl::fromLatin1(settings->get_progressMsg_5()));
+    m_defStoryPart6->setPlainText(ccl::fromLatin1(settings->get_progressMsg_6()));
+    m_defStoryPart7->setPlainText(ccl::fromLatin1(settings->get_progressMsg_7()));
+    m_defStoryPart8->setPlainText(ccl::fromLatin1(settings->get_progressMsg_8()));
+    m_defStoryPart9->setPlainText(ccl::fromLatin1(settings->get_progressMsg_9()));
+    m_defStoryPart10->setPlainText(ccl::fromLatin1(settings->get_progressMsg_10()));
+    m_defStoryEnd1->setPlainText(ccl::fromLatin1(settings->get_endgameMsg_1()));
+    m_defStoryEnd2->setPlainText(ccl::fromLatin1(settings->get_endgameMsg_2()));
 }
 
 void CCHack::PageStoryline::saveTo(HackSettings* settings)
 {
     if (m_cbStoryPart1->isChecked())
-        settings->set_progressMsg_1(m_storyPart1->toPlainText().toLatin1().constData());
+        settings->set_progressMsg_1(ccl::toLatin1(m_storyPart1->toPlainText()));
     if (m_cbStoryPart2->isChecked())
-        settings->set_progressMsg_2(m_storyPart2->toPlainText().toLatin1().constData());
+        settings->set_progressMsg_2(ccl::toLatin1(m_storyPart2->toPlainText()));
     if (m_cbStoryPart3->isChecked())
-        settings->set_progressMsg_3(m_storyPart3->toPlainText().toLatin1().constData());
+        settings->set_progressMsg_3(ccl::toLatin1(m_storyPart3->toPlainText()));
     if (m_cbStoryPart4->isChecked())
-        settings->set_progressMsg_4(m_storyPart4->toPlainText().toLatin1().constData());
+        settings->set_progressMsg_4(ccl::toLatin1(m_storyPart4->toPlainText()));
     if (m_cbStoryPart5->isChecked())
-        settings->set_progressMsg_5(m_storyPart5->toPlainText().toLatin1().constData());
+        settings->set_progressMsg_5(ccl::toLatin1(m_storyPart5->toPlainText()));
     if (m_cbStoryPart6->isChecked())
-        settings->set_progressMsg_6(m_storyPart6->toPlainText().toLatin1().constData());
+        settings->set_progressMsg_6(ccl::toLatin1(m_storyPart6->toPlainText()));
     if (m_cbStoryPart7->isChecked())
-        settings->set_progressMsg_7(m_storyPart7->toPlainText().toLatin1().constData());
+        settings->set_progressMsg_7(ccl::toLatin1(m_storyPart7->toPlainText()));
     if (m_cbStoryPart8->isChecked())
-        settings->set_progressMsg_8(m_storyPart8->toPlainText().toLatin1().constData());
+        settings->set_progressMsg_8(ccl::toLatin1(m_storyPart8->toPlainText()));
     if (m_cbStoryPart9->isChecked())
-        settings->set_progressMsg_9(m_storyPart9->toPlainText().toLatin1().constData());
+        settings->set_progressMsg_9(ccl::toLatin1(m_storyPart9->toPlainText()));
     if (m_cbStoryPart10->isChecked())
-        settings->set_progressMsg_10(m_storyPart10->toPlainText().toLatin1().constData());
+        settings->set_progressMsg_10(ccl::toLatin1(m_storyPart10->toPlainText()));
     if (m_cbStoryEnd1->isChecked())
-        settings->set_endgameMsg_1(m_storyEnd1->toPlainText().toLatin1().constData());
+        settings->set_endgameMsg_1(ccl::toLatin1(m_storyEnd1->toPlainText()));
     if (m_cbStoryEnd2->isChecked())
-        settings->set_endgameMsg_2(m_storyEnd2->toPlainText().toLatin1().constData());
+        settings->set_endgameMsg_2(ccl::toLatin1(m_storyEnd2->toPlainText()));
 }

@@ -19,6 +19,7 @@
 #include "libcc1/Stream.h"
 #include "libcc1/Levelset.h"
 #include "libcc2/Map.h"
+#include "CommonWidgets/CCTools.h"
 
 #include <QLabel>
 #include <QComboBox>
@@ -100,7 +101,7 @@ bool ImportDialog::loadLevelset(const QString& filename)
         const ccl::LevelData* level = m_levelset->level(i);
         m_levelSelect->addItem(QStringLiteral("%1 - %2")
                 .arg(i + 1, 3, 10, QLatin1Char('0'))
-                .arg(QString::fromLatin1(level->name().c_str())));
+                .arg(ccl::fromLatin1(level->name())));
     }
 
     return true;

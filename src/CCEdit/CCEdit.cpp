@@ -904,7 +904,7 @@ void CCEditMain::doLevelsetLoad()
         // Use iterator for level number since stored level numbers may
         // be meaningless until saved...
         m_levelList->item(i)->setText(QStringLiteral("%1 - %2").arg(i + 1)
-                .arg(QString::fromLatin1(m_levelset->level(i)->name().c_str())));
+                .arg(ccl::fromLatin1(m_levelset->level(i)->name())));
     }
     if (!m_levelList->currentItem() && m_levelset->levelCount() > 0)
         m_levelList->setCurrentRow(0);
@@ -1251,7 +1251,7 @@ EditorWidget* CCEditMain::addEditor(ccl::LevelData* level)
     editor->setRightTile(m_rightTile);
     if (m_zoomFactor != 0.0)
         editor->setZoom(m_zoomFactor);
-    m_editorTabs->addFloatingTab(scroll, QString::fromLatin1(level->name().c_str()));
+    m_editorTabs->addFloatingTab(scroll, ccl::fromLatin1(level->name()));
     resizeEvent(nullptr);
 
     connect(editor, &EditorWidget::mouseInfo, statusBar(), &QStatusBar::showMessage);
@@ -1962,7 +1962,7 @@ void CCEditMain::onTestChips()
         ini.read(iniStream);
         ini.setSection("CCEdit Playtest");
         ini.setInt("Current Level", levelNum + 1);
-        ini.setString(QStringLiteral("Level%1").arg(levelNum + 1).toLatin1().constData(),
+        ini.setString(ccl::toLatin1(QStringLiteral("Level%1").arg(levelNum + 1)),
                       editor->levelData()->password());
         ini.write(iniStream);
         fclose(iniStream);
@@ -2276,7 +2276,7 @@ void CCEditMain::onPasswordGenAction()
 {
     if (!currentEditor())
         return;
-    m_passwordEdit->setText(QString::fromLatin1(ccl::Levelset::RandomPassword().c_str()));
+    m_passwordEdit->setText(ccl::fromLatin1(ccl::Levelset::RandomPassword()));
 }
 
 void CCEditMain::onChipCountAction()
@@ -2306,9 +2306,9 @@ void CCEditMain::onNameChanged(const QString& value)
         return;
 
     ccl::LevelData* level = editor->levelData();
-    if (level->name() != value.toLatin1().constData()) {
+    if (level->name() != ccl::toLatin1(value)) {
         beginEdit(CCEditHistory::EditName);
-        level->setName(value.toLatin1().constData());
+        level->setName(ccl::toLatin1(value));
         endEdit();
     }
     const int levelNum = levelIndex(editor->levelData());
@@ -2329,9 +2329,9 @@ void CCEditMain::onPasswordChanged(const QString& value)
         return;
 
     ccl::LevelData* level = editor->levelData();
-    if (level->password() != value.toLatin1().constData()) {
+    if (level->password() != ccl::toLatin1(value)) {
         beginEdit(CCEditHistory::EditPassword);
-        level->setPassword(value.toLatin1().constData());
+        level->setPassword(ccl::toLatin1(value));
         endEdit();
     }
 }
@@ -2372,9 +2372,9 @@ void CCEditMain::onHintChanged()
 
     ccl::LevelData* level = editor->levelData();
     const QString value = m_hintEdit->toPlainText();
-    if (level->hint() != value.toLatin1().constData()) {
+    if (level->hint() != ccl::toLatin1(value)) {
         beginEdit(CCEditHistory::EditHint);
-        level->setHint(value.toLatin1().constData());
+        level->setHint(ccl::toLatin1(value));
         endEdit();
     }
 }
@@ -2444,11 +2444,11 @@ void CCEditMain::onTabChanged(int tabIdx)
     m_chipEdit->setEnabled(true);
     m_timeEdit->setEnabled(true);
     m_hintEdit->setEnabled(true);
-    m_nameEdit->setText(QString::fromLatin1(level->name().c_str()));
-    m_passwordEdit->setText(QString::fromLatin1(level->password().c_str()));
+    m_nameEdit->setText(ccl::fromLatin1(level->name()));
+    m_passwordEdit->setText(ccl::fromLatin1(level->password()));
     m_chipEdit->setValue(level->chips());
     m_timeEdit->setValue(level->timer());
-    m_hintEdit->setPlainText(QString::fromLatin1(level->hint().c_str()));
+    m_hintEdit->setPlainText(ccl::fromLatin1(level->hint()));
 
     bool hasSelection = editor->selection() != QRect(-1, -1, -1, -1);
     m_actions[ActionCut]->setEnabled(hasSelection);

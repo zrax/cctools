@@ -21,6 +21,7 @@
 #include <QMouseEvent>
 #include <queue>
 #include "libcc1/GameLogic.h"
+#include "CommonWidgets/CCTools.h"
 
 static EditorWidget::DrawLayer select_layer(Qt::KeyboardModifiers keys)
 {
@@ -673,7 +674,7 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
             || m_levelData->map().getBG(posX, posY) == ccl::TileHint) {
         if (!tipText.isEmpty())
             tipText += QLatin1Char('\n');
-        tipText += QString::fromLatin1(m_levelData->hint().c_str());
+        tipText += ccl::fromLatin1(m_levelData->hint());
     }
 
     setToolTip(tipText);

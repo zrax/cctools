@@ -512,17 +512,17 @@ void CCPlayMain::onPlayMSCC()
                                           .arg(setid).arg(i + 1));
                 if (!query.first())
                     continue;
-                ini.setString(QStringLiteral("Level%1").arg(i + 1).toLatin1().constData(),
-                              QStringLiteral("%1,%2,%3").arg(levelset->level(i)->password().c_str())
-                                                        .arg(query.value(0).toInt())
-                                                        .arg(query.value(1).toInt())
-                                                        .toLatin1().constData());
+                ini.setString(ccl::toLatin1(QStringLiteral("Level%1").arg(i + 1)),
+                              ccl::toLatin1(QStringLiteral("%1,%2,%3")
+                                                    .arg(ccl::fromLatin1(levelset->level(i)->password()))
+                                                    .arg(query.value(0).toInt())
+                                                    .arg(query.value(1).toInt())));
                 if (i + 1 == curLevel)
                     haveCurLevel = true;
             }
         }
         if (!haveCurLevel) {
-            ini.setString(QStringLiteral("Level%1").arg(curLevel).toLatin1().constData(),
+            ini.setString(ccl::toLatin1(QStringLiteral("Level%1").arg(curLevel)),
                           levelset->level(curLevel - 1)->password());
         }
         ini.write(iniStream);
@@ -576,7 +576,7 @@ void CCPlayMain::onPlayMSCC()
         }
 
         for (int i=0; i<levelset->levelCount(); ++i) {
-            QString levelData = ini.getString(QStringLiteral("Level%1").arg(i + 1).toLatin1().constData()).c_str();
+            QString levelData = ccl::fromLatin1(ini.getString(ccl::toLatin1(QStringLiteral("Level%1").arg(i + 1))));
             if (levelData.isEmpty())
                 continue;
 
@@ -921,11 +921,11 @@ void CCPlayMain::onLevelsetChanged(QTreeWidgetItem* item, QTreeWidgetItem*)
         ccl::LevelData* level = levelset->level(i);
         auto item = new QTreeWidgetItem(m_levelList);
         item->setText(0, QString::number(i + 1));
-        item->setText(1, QString::fromLatin1(level->name().c_str()));
+        item->setText(1, ccl::fromLatin1(level->name()));
         item->setText(2, haveCCX ? ccx.m_levels[i].m_author : QString());
-        item->setText(3, level->timer() == 0 ? "---" : QString::number(level->timer()));
-        item->setText(4, myTime == 0 ? "---" : QString::number(myTime));
-        item->setText(5, myScore == 0 ? "---" : QString::number(myScore));
+        item->setText(3, level->timer() == 0 ? QStringLiteral("---") : QString::number(level->timer()));
+        item->setText(4, myTime == 0 ? QStringLiteral("---") : QString::number(myTime));
+        item->setText(5, myScore == 0 ? QStringLiteral("---") : QString::number(myScore));
     }
 
     if (curLevel < m_levelList->topLevelItemCount())

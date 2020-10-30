@@ -16,6 +16,7 @@
  ******************************************************************************/
 
 #include "PageSounds.h"
+#include "CommonWidgets/CCTools.h"
 
 #include <QScrollArea>
 #include <QGridLayout>
@@ -248,101 +249,101 @@ CCHack::PageSounds::PageSounds(QWidget* parent)
 void CCHack::PageSounds::setValues(HackSettings* settings)
 {
     m_cbToolSound->setChecked(settings->have_toolSound());
-    m_toolSound->setText(QString::fromLatin1(settings->get_toolSound().c_str()));
+    m_toolSound->setText(ccl::fromLatin1(settings->get_toolSound()));
     m_cbDoorSound->setChecked(settings->have_doorSound());
-    m_doorSound->setText(QString::fromLatin1(settings->get_doorSound().c_str()));
+    m_doorSound->setText(ccl::fromLatin1(settings->get_doorSound()));
     m_cbDeathSound->setChecked(settings->have_deathSound());
-    m_deathSound->setText(QString::fromLatin1(settings->get_deathSound().c_str()));
+    m_deathSound->setText(ccl::fromLatin1(settings->get_deathSound()));
     m_cbLevelCompleteSound->setChecked(settings->have_levelCompleteSound());
-    m_levelCompleteSound->setText(QString::fromLatin1(settings->get_levelCompleteSound().c_str()));
+    m_levelCompleteSound->setText(ccl::fromLatin1(settings->get_levelCompleteSound()));
     m_cbSocketSound->setChecked(settings->have_socketSound());
-    m_socketSound->setText(QString::fromLatin1(settings->get_socketSound().c_str()));
+    m_socketSound->setText(ccl::fromLatin1(settings->get_socketSound()));
     m_cbWallSound->setChecked(settings->have_wallSound());
-    m_wallSound->setText(QString::fromLatin1(settings->get_wallSound().c_str()));
+    m_wallSound->setText(ccl::fromLatin1(settings->get_wallSound()));
     m_cbThiefSound->setChecked(settings->have_thiefSound());
-    m_thiefSound->setText(QString::fromLatin1(settings->get_thiefSound().c_str()));
+    m_thiefSound->setText(ccl::fromLatin1(settings->get_thiefSound()));
     m_cbSoundOnSound->setChecked(settings->have_soundOnSound());
-    m_soundOnSound->setText(QString::fromLatin1(settings->get_soundOnSound().c_str()));
+    m_soundOnSound->setText(ccl::fromLatin1(settings->get_soundOnSound()));
     m_cbChipSound->setChecked(settings->have_chipSound());
-    m_chipSound->setText(QString::fromLatin1(settings->get_chipSound().c_str()));
+    m_chipSound->setText(ccl::fromLatin1(settings->get_chipSound()));
     m_cbButtonSound->setChecked(settings->have_buttonSound());
-    m_buttonSound->setText(QString::fromLatin1(settings->get_buttonSound().c_str()));
+    m_buttonSound->setText(ccl::fromLatin1(settings->get_buttonSound()));
     m_cbWaterSound->setChecked(settings->have_waterSound());
-    m_waterSound->setText(QString::fromLatin1(settings->get_waterSound().c_str()));
+    m_waterSound->setText(ccl::fromLatin1(settings->get_waterSound()));
     m_cbBombSound->setChecked(settings->have_bombSound());
-    m_bombSound->setText(QString::fromLatin1(settings->get_bombSound().c_str()));
+    m_bombSound->setText(ccl::fromLatin1(settings->get_bombSound()));
     m_cbTeleportSound->setChecked(settings->have_teleportSound());
-    m_teleportSound->setText(QString::fromLatin1(settings->get_teleportSound().c_str()));
+    m_teleportSound->setText(ccl::fromLatin1(settings->get_teleportSound()));
     m_cbTimerTickSound->setChecked(settings->have_timerTickSound());
-    m_timerTickSound->setText(QString::fromLatin1(settings->get_timerTickSound().c_str()));
+    m_timerTickSound->setText(ccl::fromLatin1(settings->get_timerTickSound()));
     m_cbTimesUpSound->setChecked(settings->have_timesUpSound());
-    m_timesUpSound->setText(QString::fromLatin1(settings->get_timesUpSound().c_str()));
+    m_timesUpSound->setText(ccl::fromLatin1(settings->get_timesUpSound()));
     m_cbMidi_1->setChecked(settings->have_midi_1());
-    m_midi_1->setText(QString::fromLatin1(settings->get_midi_1().c_str()));
+    m_midi_1->setText(ccl::fromLatin1(settings->get_midi_1()));
     m_cbMidi_2->setChecked(settings->have_midi_2());
-    m_midi_2->setText(QString::fromLatin1(settings->get_midi_2().c_str()));
+    m_midi_2->setText(ccl::fromLatin1(settings->get_midi_2()));
     m_cbMidi_3->setChecked(settings->have_midi_3());
-    m_midi_3->setText(QString::fromLatin1(settings->get_midi_3().c_str()));
+    m_midi_3->setText(ccl::fromLatin1(settings->get_midi_3()));
 }
 
 void CCHack::PageSounds::setDefaults(HackSettings* settings)
 {
-    m_defToolSound->setText(QString::fromLatin1(settings->get_toolSound().c_str()));
-    m_defDoorSound->setText(QString::fromLatin1(settings->get_doorSound().c_str()));
-    m_defDeathSound->setText(QString::fromLatin1(settings->get_deathSound().c_str()));
-    m_defLevelCompleteSound->setText(QString::fromLatin1(settings->get_levelCompleteSound().c_str()));
-    m_defSocketSound->setText(QString::fromLatin1(settings->get_socketSound().c_str()));
-    m_defWallSound->setText(QString::fromLatin1(settings->get_wallSound().c_str()));
-    m_defThiefSound->setText(QString::fromLatin1(settings->get_thiefSound().c_str()));
-    m_defSoundOnSound->setText(QString::fromLatin1(settings->get_soundOnSound().c_str()));
-    m_defChipSound->setText(QString::fromLatin1(settings->get_chipSound().c_str()));
-    m_defButtonSound->setText(QString::fromLatin1(settings->get_buttonSound().c_str()));
-    m_defWaterSound->setText(QString::fromLatin1(settings->get_waterSound().c_str()));
-    m_defBombSound->setText(QString::fromLatin1(settings->get_bombSound().c_str()));
-    m_defTeleportSound->setText(QString::fromLatin1(settings->get_teleportSound().c_str()));
-    m_defTimerTickSound->setText(QString::fromLatin1(settings->get_timerTickSound().c_str()));
-    m_defTimesUpSound->setText(QString::fromLatin1(settings->get_timesUpSound().c_str()));
-    m_defMidi_1->setText(QString::fromLatin1(settings->get_midi_1().c_str()));
-    m_defMidi_2->setText(QString::fromLatin1(settings->get_midi_2().c_str()));
-    m_defMidi_3->setText(QString::fromLatin1(settings->get_midi_3().c_str()));
+    m_defToolSound->setText(ccl::fromLatin1(settings->get_toolSound()));
+    m_defDoorSound->setText(ccl::fromLatin1(settings->get_doorSound()));
+    m_defDeathSound->setText(ccl::fromLatin1(settings->get_deathSound()));
+    m_defLevelCompleteSound->setText(ccl::fromLatin1(settings->get_levelCompleteSound()));
+    m_defSocketSound->setText(ccl::fromLatin1(settings->get_socketSound()));
+    m_defWallSound->setText(ccl::fromLatin1(settings->get_wallSound()));
+    m_defThiefSound->setText(ccl::fromLatin1(settings->get_thiefSound()));
+    m_defSoundOnSound->setText(ccl::fromLatin1(settings->get_soundOnSound()));
+    m_defChipSound->setText(ccl::fromLatin1(settings->get_chipSound()));
+    m_defButtonSound->setText(ccl::fromLatin1(settings->get_buttonSound()));
+    m_defWaterSound->setText(ccl::fromLatin1(settings->get_waterSound()));
+    m_defBombSound->setText(ccl::fromLatin1(settings->get_bombSound()));
+    m_defTeleportSound->setText(ccl::fromLatin1(settings->get_teleportSound()));
+    m_defTimerTickSound->setText(ccl::fromLatin1(settings->get_timerTickSound()));
+    m_defTimesUpSound->setText(ccl::fromLatin1(settings->get_timesUpSound()));
+    m_defMidi_1->setText(ccl::fromLatin1(settings->get_midi_1()));
+    m_defMidi_2->setText(ccl::fromLatin1(settings->get_midi_2()));
+    m_defMidi_3->setText(ccl::fromLatin1(settings->get_midi_3()));
 }
 
 void CCHack::PageSounds::saveTo(HackSettings* settings)
 {
     if (m_cbToolSound->isChecked())
-        settings->set_toolSound(m_toolSound->text().toLatin1().constData());
+        settings->set_toolSound(ccl::toLatin1(m_toolSound->text()));
     if (m_cbDoorSound->isChecked())
-        settings->set_doorSound(m_doorSound->text().toLatin1().constData());
+        settings->set_doorSound(ccl::toLatin1(m_doorSound->text()));
     if (m_cbDeathSound->isChecked())
-        settings->set_deathSound(m_deathSound->text().toLatin1().constData());
+        settings->set_deathSound(ccl::toLatin1(m_deathSound->text()));
     if (m_cbLevelCompleteSound->isChecked())
-        settings->set_levelCompleteSound(m_levelCompleteSound->text().toLatin1().constData());
+        settings->set_levelCompleteSound(ccl::toLatin1(m_levelCompleteSound->text()));
     if (m_cbSocketSound->isChecked())
-        settings->set_socketSound(m_socketSound->text().toLatin1().constData());
+        settings->set_socketSound(ccl::toLatin1(m_socketSound->text()));
     if (m_cbWallSound->isChecked())
-        settings->set_wallSound(m_wallSound->text().toLatin1().constData());
+        settings->set_wallSound(ccl::toLatin1(m_wallSound->text()));
     if (m_cbThiefSound->isChecked())
-        settings->set_thiefSound(m_thiefSound->text().toLatin1().constData());
+        settings->set_thiefSound(ccl::toLatin1(m_thiefSound->text()));
     if (m_cbSoundOnSound->isChecked())
-        settings->set_soundOnSound(m_soundOnSound->text().toLatin1().constData());
+        settings->set_soundOnSound(ccl::toLatin1(m_soundOnSound->text()));
     if (m_cbChipSound->isChecked())
-        settings->set_chipSound(m_chipSound->text().toLatin1().constData());
+        settings->set_chipSound(ccl::toLatin1(m_chipSound->text()));
     if (m_cbButtonSound->isChecked())
-        settings->set_buttonSound(m_buttonSound->text().toLatin1().constData());
+        settings->set_buttonSound(ccl::toLatin1(m_buttonSound->text()));
     if (m_cbWaterSound->isChecked())
-        settings->set_waterSound(m_waterSound->text().toLatin1().constData());
+        settings->set_waterSound(ccl::toLatin1(m_waterSound->text()));
     if (m_cbBombSound->isChecked())
-        settings->set_bombSound(m_bombSound->text().toLatin1().constData());
+        settings->set_bombSound(ccl::toLatin1(m_bombSound->text()));
     if (m_cbTeleportSound->isChecked())
-        settings->set_teleportSound(m_teleportSound->text().toLatin1().constData());
+        settings->set_teleportSound(ccl::toLatin1(m_teleportSound->text()));
     if (m_cbTimerTickSound->isChecked())
-        settings->set_timerTickSound(m_timerTickSound->text().toLatin1().constData());
+        settings->set_timerTickSound(ccl::toLatin1(m_timerTickSound->text()));
     if (m_cbTimesUpSound->isChecked())
-        settings->set_timesUpSound(m_timesUpSound->text().toLatin1().constData());
+        settings->set_timesUpSound(ccl::toLatin1(m_timesUpSound->text()));
     if (m_cbMidi_1->isChecked())
-        settings->set_midi_1(m_midi_1->text().toLatin1().constData());
+        settings->set_midi_1(ccl::toLatin1(m_midi_1->text()));
     if (m_cbMidi_2->isChecked())
-        settings->set_midi_2(m_midi_2->text().toLatin1().constData());
+        settings->set_midi_2(ccl::toLatin1(m_midi_2->text()));
     if (m_cbMidi_3->isChecked())
-        settings->set_midi_3(m_midi_3->text().toLatin1().constData());
+        settings->set_midi_3(ccl::toLatin1(m_midi_3->text()));
 }
