@@ -1062,7 +1062,7 @@ bool CCEditMain::closeLevelset()
     int reply = m_dirtyFlag
               ? QMessageBox::question(this, tr("Close levelset"),
                         tr("Save changes to %1 before closing?")
-                        .arg(m_levelsetFilename.isEmpty() ? "new levelset" : m_levelsetFilename),
+                        .arg(m_levelsetFilename.isEmpty() ? tr("new levelset") : m_levelsetFilename),
                         QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel)
               : QMessageBox::No;
     if (reply == QMessageBox::Cancel) {

@@ -223,18 +223,18 @@ void TileInspector::setTileType(int type)
     int flagStart = 0;
     if (type == cc2::Tile::PanelCanopy) {
         m_flagsGroup->setEnabled(true);
-        m_tileFlags[0]->setText("Panel &North");
-        m_tileFlags[1]->setText("Panel &East");
-        m_tileFlags[2]->setText("Panel &South");
-        m_tileFlags[3]->setText("Panel &West");
-        m_tileFlags[4]->setText("&Canopy");
+        m_tileFlags[0]->setText(tr("Panel &North"));
+        m_tileFlags[1]->setText(tr("Panel &East"));
+        m_tileFlags[2]->setText(tr("Panel &South"));
+        m_tileFlags[3]->setText(tr("Panel &West"));
+        m_tileFlags[4]->setText(tr("&Canopy"));
         flagStart = 5;
     } else if (type == cc2::Tile::DirBlock) {
         m_flagsGroup->setEnabled(true);
-        m_tileFlags[0]->setText("Arrow &North");
-        m_tileFlags[1]->setText("Arrow &East");
-        m_tileFlags[2]->setText("Arrow &South");
-        m_tileFlags[3]->setText("Arrow &West");
+        m_tileFlags[0]->setText(tr("Arrow &North"));
+        m_tileFlags[1]->setText(tr("Arrow &East"));
+        m_tileFlags[2]->setText(tr("Arrow &South"));
+        m_tileFlags[3]->setText(tr("Arrow &West"));
         flagStart = 4;
     } else {
         m_flagsGroup->setEnabled(false);

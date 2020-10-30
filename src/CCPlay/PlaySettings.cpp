@@ -85,7 +85,7 @@ QIcon SettingsDialog::IconForTool(const QString& iconName)
 SettingsDialog::SettingsDialog(QWidget* parent)
     : QDialog(parent)
 {
-    setWindowTitle("CCPlay Settings");
+    setWindowTitle(tr("CCPlay Settings"));
 
     m_actions[ActionEditTool] = new QAction(ICON("document-properties-sm"), tr("Add"), this);
     m_actions[ActionEditTool]->setEnabled(false);

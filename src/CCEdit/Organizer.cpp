@@ -71,8 +71,10 @@ void LevelListWidget::addLevel(ccl::LevelData* level)
     auto item = new QListWidgetItem(this);
     item->setData(Qt::UserRole, QVariant::fromValue(level));
     QString infoText = tr("%1\nPassword: %2\nChips: %3\nTime: %4\n%5")
-                       .arg(level->name().c_str()).arg(level->password().c_str())
-                       .arg(level->chips()).arg(level->timer()).arg(level->hint().c_str());
+                       .arg(ccl::fromLatin1(level->name()))
+                       .arg(ccl::fromLatin1(level->password()))
+                       .arg(level->chips()).arg(level->timer())
+                       .arg(ccl::fromLatin1(level->hint()));
     item->setText(infoText);
 }
 
@@ -83,8 +85,10 @@ void LevelListWidget::insertLevel(int row, ccl::LevelData* level)
     auto item = new QListWidgetItem();
     item->setData(Qt::UserRole, QVariant::fromValue(level));
     QString infoText = tr("%1\nPassword: %2\nChips: %3\nTime: %4\n%5")
-                       .arg(level->name().c_str()).arg(level->password().c_str())
-                       .arg(level->chips()).arg(level->timer()).arg(level->hint().c_str());
+                       .arg(ccl::fromLatin1(level->name()))
+                       .arg(ccl::fromLatin1(level->password()))
+                       .arg(level->chips()).arg(level->timer())
+                       .arg(ccl::fromLatin1(level->hint()));
     item->setText(infoText);
     insertItem(row, item);
 }

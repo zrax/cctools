@@ -173,8 +173,8 @@ AdvancedMechanicsDialog::AdvancedMechanicsDialog(QWidget* parent)
     m_trapList = new QTreeWidget(tabTraps);
     m_trapList->setRootIsDecorated(false);
     m_trapList->setColumnCount(4);
-    m_trapList->setHeaderLabels(QStringList() << "#" << tr("Button")
-                                << tr("Trap") << tr("Status"));
+    m_trapList->setHeaderLabels(QStringList{ QStringLiteral("#"), tr("Button"),
+                                             tr("Trap"), tr("Status") });
     QToolBar* tbarTraps = new QToolBar(tabTraps);
     tbarTraps->addAction(m_actions[ActionAddTrap]);
     tbarTraps->addAction(m_actions[ActionDelTrap]);
@@ -192,8 +192,8 @@ AdvancedMechanicsDialog::AdvancedMechanicsDialog(QWidget* parent)
     m_cloneList = new QTreeWidget(tabClones);
     m_cloneList->setRootIsDecorated(false);
     m_cloneList->setColumnCount(4);
-    m_cloneList->setHeaderLabels(QStringList() << "#" << tr("Button")
-                                 << tr("Cloner") << tr("Status"));
+    m_cloneList->setHeaderLabels(QStringList{ QStringLiteral("#"), tr("Button"),
+                                              tr("Cloner"), tr("Status") });
     QToolBar* tbarClones = new QToolBar(tabClones);
     tbarClones->addAction(m_actions[ActionAddClone]);
     tbarClones->addAction(m_actions[ActionDelClone]);
@@ -211,8 +211,8 @@ AdvancedMechanicsDialog::AdvancedMechanicsDialog(QWidget* parent)
     m_moveOrderList = new QTreeWidget(tabMovers);
     m_moveOrderList->setRootIsDecorated(false);
     m_moveOrderList->setColumnCount(3);
-    m_moveOrderList->setHeaderLabels(QStringList() << "#" << tr("Position")
-                                     << tr("Contents"));
+    m_moveOrderList->setHeaderLabels(QStringList{ QStringLiteral("#"), tr("Position"),
+                                                  tr("Contents") });
     QToolBar* tbarMovers = new QToolBar(tabMovers);
     tbarMovers->addAction(m_actions[ActionAddMove]);
     tbarMovers->addAction(m_actions[ActionDelMove]);
