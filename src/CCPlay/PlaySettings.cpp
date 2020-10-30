@@ -26,7 +26,7 @@
 #include <QGridLayout>
 #include <QFileDialog>
 #include <QMessageBox>
-#include "CommonWidgets/About.h"
+#include "CommonWidgets/CCTools.h"
 #include "CommonWidgets/PathCompleter.h"
 
 #ifdef Q_OS_WIN
@@ -65,19 +65,19 @@ void SettingsDialog::CheckTools(QSettings& settings)
 QIcon SettingsDialog::IconForTool(const QString& iconName)
 {
     if (iconName == QStringLiteral("CCEdit"))
-        return QIcon(":/res/edit-ccedit.png");
+        return ICON("edit-ccedit");
     if (iconName == QStringLiteral("ChipEdit"))
-        return QIcon(":/res/edit-chipedit.png");
+        return ICON("edit-chipedit");
     if (iconName == QStringLiteral("ChipW"))
-        return QIcon(":/res/edit-chipw.png");
+        return ICON("edit-chipw");
     if (iconName == QStringLiteral("CCDesign"))
-        return QIcon(":/res/edit-ccdesign.png");
+        return ICON("edit-ccdesign");
     if (iconName == QStringLiteral("Generic"))
-        return QIcon(":/res/application-x-executable.png");
+        return ICON("application-x-executable");
     if (iconName == QStringLiteral("GenericScript"))
-        return QIcon(":/res/application-x-executable-script.png");
+        return ICON("application-x-executable-script");
     if (iconName == QStringLiteral("JavaJar"))
-        return QIcon(":/res/application-x-java.png");
+        return ICON("application-x-java");
     return QIcon();
 }
 
@@ -87,17 +87,17 @@ SettingsDialog::SettingsDialog(QWidget* parent)
 {
     setWindowTitle("CCPlay Settings");
 
-    m_actions[ActionEditTool] = new QAction(QIcon(":/res/document-properties-sm.png"), tr("Add"), this);
+    m_actions[ActionEditTool] = new QAction(ICON("document-properties-sm"), tr("Add"), this);
     m_actions[ActionEditTool]->setEnabled(false);
-    m_actions[ActionAddTool] = new QAction(QIcon(":/res/list-add.png"), tr("Add"), this);
+    m_actions[ActionAddTool] = new QAction(ICON("list-add"), tr("Add"), this);
     m_actions[ActionAddTool]->setShortcut(Qt::Key_Insert);
-    m_actions[ActionDelTool] = new QAction(QIcon(":/res/list-remove.png"), tr("Remove"), this);
+    m_actions[ActionDelTool] = new QAction(ICON("list-remove"), tr("Remove"), this);
     m_actions[ActionDelTool]->setShortcut(Qt::Key_Delete);
     m_actions[ActionDelTool]->setEnabled(false);
-    m_actions[ActionToolUp] = new QAction(QIcon(":/res/arrow-up.png"), tr("Move Up"), this);
+    m_actions[ActionToolUp] = new QAction(ICON("arrow-up"), tr("Move Up"), this);
     m_actions[ActionToolUp]->setShortcut(Qt::CTRL | Qt::Key_Up);
     m_actions[ActionToolUp]->setEnabled(false);
-    m_actions[ActionToolDown] = new QAction(QIcon(":/res/arrow-down.png"), tr("Move Down"), this);
+    m_actions[ActionToolDown] = new QAction(ICON("arrow-down"), tr("Move Down"), this);
     m_actions[ActionToolDown]->setShortcut(Qt::CTRL | Qt::Key_Down);
     m_actions[ActionToolDown]->setEnabled(false);
 
@@ -118,7 +118,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
                                   tabPlay);
     lblWinePath->setBuddy(m_winePath);
     auto browseWine = new QToolButton(tabPlay);
-    browseWine->setIcon(QIcon(":/res/document-open-folder.png"));
+    browseWine->setIcon(ICON("document-open-folder"));
     browseWine->setAutoRaise(true);
 
     m_msccPath = new QLineEdit(settings.value("ChipsExe").toString(), tabPlay);
@@ -126,14 +126,14 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     auto lblMsccPath = new QLabel(tr("MS&CC Path:"), tabPlay);
     lblMsccPath->setBuddy(m_msccPath);
     auto browseChips = new QToolButton(tabPlay);
-    browseChips->setIcon(QIcon(":/res/document-open-folder.png"));
+    browseChips->setIcon(ICON("document-open-folder"));
     browseChips->setAutoRaise(true);
     m_tworldPath = new QLineEdit(settings.value("TWorldExe").toString(), tabPlay);
     m_tworldPath->setCompleter(exeCompleter);
     auto lblTWorldPath = new QLabel(tr("&Tile World Path:"), tabPlay);
     lblTWorldPath->setBuddy(m_tworldPath);
     auto browseTWorld = new QToolButton(tabPlay);
-    browseTWorld->setIcon(QIcon(":/res/document-open-folder.png"));
+    browseTWorld->setIcon(ICON("document-open-folder"));
     browseTWorld->setAutoRaise(true);
 
     m_useCCPatch = new QCheckBox(tr("MSCC: Use CCPatch"), tabPlay);
@@ -420,7 +420,7 @@ ConfigToolDialog::ConfigToolDialog(QWidget* parent)
     QLabel* lblPath = new QLabel(tr("Tool &Path:"), this);
     lblPath->setBuddy(m_path);
     auto browseTool = new QToolButton(this);
-    browseTool->setIcon(QIcon(":/res/document-open-folder.png"));
+    browseTool->setIcon(ICON("document-open-folder"));
     browseTool->setAutoRaise(true);
     m_args = new QLineEdit(this);
     QLabel* lblArgs = new QLabel(tr("P&arameters:"), this);

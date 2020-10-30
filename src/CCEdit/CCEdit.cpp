@@ -57,7 +57,7 @@
 #include "libcc1/IniFile.h"
 #include "libcc1/ChipsHax.h"
 #include "libcc1/GameLogic.h"
-#include "CommonWidgets/About.h"
+#include "CommonWidgets/CCTools.h"
 #include "CommonWidgets/EditorTabWidget.h"
 #include "CommonWidgets/LLTextEdit.h"
 
@@ -79,17 +79,17 @@ CCEditMain::CCEditMain(QWidget* parent)
     setWindowTitle(s_appTitle);
 
     // Actions
-    m_actions[ActionNew] = new QAction(QIcon(":/res/document-new.png"), tr("&New Levelset..."), this);
+    m_actions[ActionNew] = new QAction(ICON("document-new"), tr("&New Levelset..."), this);
     m_actions[ActionNew]->setStatusTip(tr("Create new Levelset"));
     m_actions[ActionNew]->setShortcut(Qt::Key_F2);
-    m_actions[ActionOpen] = new QAction(QIcon(":/res/document-open.png"), tr("&Open Levelset..."), this);
+    m_actions[ActionOpen] = new QAction(ICON("document-open"), tr("&Open Levelset..."), this);
     m_actions[ActionOpen]->setStatusTip(tr("Open a levelset from disk"));
     m_actions[ActionOpen]->setShortcut(Qt::CTRL | Qt::Key_O);
-    m_actions[ActionSave] = new QAction(QIcon(":/res/document-save.png"), tr("&Save"), this);
+    m_actions[ActionSave] = new QAction(ICON("document-save"), tr("&Save"), this);
     m_actions[ActionSave]->setStatusTip(tr("Save the current levelset to the same file"));
     m_actions[ActionSave]->setShortcut(Qt::CTRL | Qt::Key_S);
     m_actions[ActionSave]->setEnabled(false);
-    m_actions[ActionSaveAs] = new QAction(QIcon(":/res/document-save-as.png"), tr("Save &As..."), this);
+    m_actions[ActionSaveAs] = new QAction(ICON("document-save-as"), tr("Save &As..."), this);
     m_actions[ActionSaveAs]->setStatusTip(tr("Save the current levelset to a new file or location"));
     m_actions[ActionSaveAs]->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_S);
     m_actions[ActionSaveAs]->setEnabled(false);
@@ -100,71 +100,71 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionGenReport] = new QAction(tr("Generate &Report"), this);
     m_actions[ActionGenReport]->setStatusTip(tr("Generate an HTML report of the current levelset"));
     m_actions[ActionGenReport]->setEnabled(false);
-    m_actions[ActionExit] = new QAction(QIcon(":/res/application-exit.png"), tr("E&xit"), this);
+    m_actions[ActionExit] = new QAction(ICON("application-exit"), tr("E&xit"), this);
     m_actions[ActionExit]->setStatusTip(tr("Close CCEdit"));
 
-    m_actions[ActionUndo] = new QAction(QIcon(":/res/edit-undo.png"), tr("&Undo"), this);
+    m_actions[ActionUndo] = new QAction(ICON("edit-undo"), tr("&Undo"), this);
     m_actions[ActionUndo]->setStatusTip(tr("Undo the last edit"));
     m_actions[ActionUndo]->setShortcut(Qt::CTRL | Qt::Key_Z);
     m_actions[ActionUndo]->setEnabled(false);
-    m_actions[ActionRedo] = new QAction(QIcon(":/res/edit-redo.png"), tr("&Redo"), this);
+    m_actions[ActionRedo] = new QAction(ICON("edit-redo"), tr("&Redo"), this);
     m_actions[ActionRedo]->setStatusTip(tr("Redo the last edit"));
     m_actions[ActionRedo]->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_Z);
     m_actions[ActionRedo]->setEnabled(false);
-    m_actions[ActionSelect] = new QAction(QIcon(":/res/edit-select.png"), tr("&Select"), this);
+    m_actions[ActionSelect] = new QAction(ICON("edit-select"), tr("&Select"), this);
     m_actions[ActionSelect]->setStatusTip(tr("Enter selection mode"));
     m_actions[ActionSelect]->setShortcut(Qt::CTRL | Qt::Key_A);
     m_actions[ActionSelect]->setCheckable(true);
-    m_actions[ActionCut] = new QAction(QIcon(":/res/edit-cut.png"), tr("Cu&t"), this);
+    m_actions[ActionCut] = new QAction(ICON("edit-cut"), tr("Cu&t"), this);
     m_actions[ActionCut]->setStatusTip(tr("Put the selection in the clipboard and clear it from the editor"));
     m_actions[ActionCut]->setShortcut(Qt::CTRL | Qt::Key_X);
     m_actions[ActionCut]->setEnabled(false);
-    m_actions[ActionCopy] = new QAction(QIcon(":/res/edit-copy.png"), tr("&Copy"), this);
+    m_actions[ActionCopy] = new QAction(ICON("edit-copy"), tr("&Copy"), this);
     m_actions[ActionCopy]->setStatusTip(tr("Copy the current selection to the clipboard"));
     m_actions[ActionCopy]->setShortcut(Qt::CTRL | Qt::Key_C);
     m_actions[ActionCopy]->setEnabled(false);
-    m_actions[ActionPaste] = new QAction(QIcon(":/res/edit-paste.png"), tr("&Paste"), this);
+    m_actions[ActionPaste] = new QAction(ICON("edit-paste"), tr("&Paste"), this);
     m_actions[ActionPaste]->setStatusTip(tr("Paste the clipboard contents into the levelset at the selection position"));
     m_actions[ActionPaste]->setShortcut(Qt::CTRL | Qt::Key_V);
     m_actions[ActionPaste]->setEnabled(false);
-    m_actions[ActionClear] = new QAction(QIcon(":/res/edit-delete.png"), tr("C&lear"), this);
+    m_actions[ActionClear] = new QAction(ICON("edit-delete"), tr("C&lear"), this);
     m_actions[ActionClear]->setStatusTip(tr("Clear all tiles and mechanics from the selected region"));
     m_actions[ActionClear]->setShortcut(Qt::Key_Delete);
     m_actions[ActionClear]->setEnabled(false);
 
-    m_actions[ActionDrawPencil] = new QAction(QIcon(":/res/draw-freehand.png"), tr("&Pencil"), this);
+    m_actions[ActionDrawPencil] = new QAction(ICON("draw-freehand"), tr("&Pencil"), this);
     m_actions[ActionDrawPencil]->setStatusTip(tr("Draw tiles with the pencil tool"));
     m_actions[ActionDrawPencil]->setShortcut(Qt::CTRL | Qt::Key_P);
     m_actions[ActionDrawPencil]->setCheckable(true);
-    m_actions[ActionDrawLine] = new QAction(QIcon(":/res/draw-line.png"), tr("&Line"), this);
+    m_actions[ActionDrawLine] = new QAction(ICON("draw-line"), tr("&Line"), this);
     m_actions[ActionDrawLine]->setStatusTip(tr("Draw tiles with the line tool"));
     m_actions[ActionDrawLine]->setShortcut(Qt::CTRL | Qt::Key_L);
     m_actions[ActionDrawLine]->setCheckable(true);
-    m_actions[ActionDrawFill] = new QAction(QIcon(":/res/draw-box.png"), tr("&Box"), this);
+    m_actions[ActionDrawFill] = new QAction(ICON("draw-box"), tr("&Box"), this);
     m_actions[ActionDrawFill]->setStatusTip(tr("Draw tiles with the box fill tool"));
     m_actions[ActionDrawFill]->setShortcut(Qt::CTRL | Qt::Key_B);
     m_actions[ActionDrawFill]->setCheckable(true);
-    m_actions[ActionDrawFlood] = new QAction(QIcon(":/res/draw-fill.png"), tr("&Flood Fill"), this);
+    m_actions[ActionDrawFlood] = new QAction(ICON("draw-fill"), tr("&Flood Fill"), this);
     m_actions[ActionDrawFlood]->setStatusTip(tr("Draw tiles with the flood fill tool"));
     m_actions[ActionDrawFlood]->setShortcut(Qt::CTRL | Qt::Key_F);
     m_actions[ActionDrawFlood]->setCheckable(true);
-    m_actions[ActionPathMaker] = new QAction(QIcon(":/res/draw-path.png"), tr("Path &Maker"), this);
+    m_actions[ActionPathMaker] = new QAction(ICON("draw-path"), tr("Path &Maker"), this);
     m_actions[ActionPathMaker]->setStatusTip(tr("Draw a directional path of tiles"));
     m_actions[ActionPathMaker]->setShortcut(Qt::CTRL | Qt::Key_M);
     m_actions[ActionPathMaker]->setCheckable(true);
-    m_actions[ActionConnect] = new QAction(QIcon(":/res/cctools-rbutton.png"), tr("Button &Connector"), this);
+    m_actions[ActionConnect] = new QAction(ICON("cctools-rbutton"), tr("Button &Connector"), this);
     m_actions[ActionConnect]->setStatusTip(tr("Connect buttons to traps and cloning machines"));
     m_actions[ActionConnect]->setShortcut(Qt::CTRL | Qt::Key_T);
     m_actions[ActionConnect]->setCheckable(true);
-    m_actions[ActionAdvancedMech] = new QAction(QIcon(":/res/cctools-teeth.png"), tr("&Advanced Mechanics"), this);
+    m_actions[ActionAdvancedMech] = new QAction(ICON("cctools-teeth"), tr("&Advanced Mechanics"), this);
     m_actions[ActionAdvancedMech]->setStatusTip(tr("Manually manipulate gameplay mechanics for the current level"));
     m_actions[ActionAdvancedMech]->setShortcut(Qt::CTRL | Qt::Key_K);
     m_actions[ActionAdvancedMech]->setEnabled(false);
-    m_actions[ActionInspectTiles] = new QAction(QIcon(":/res/draw-inspect.png"), tr("&Inspect Tiles"), this);
+    m_actions[ActionInspectTiles] = new QAction(ICON("draw-inspect"), tr("&Inspect Tiles"), this);
     m_actions[ActionInspectTiles]->setStatusTip(tr("Inspect tiles and make advanced modifications"));
     m_actions[ActionInspectTiles]->setShortcut(Qt::CTRL | Qt::Key_I);
     m_actions[ActionInspectTiles]->setCheckable(true);
-    m_actions[ActionToggleWalls] = new QAction(QIcon(":/res/cctools-gbutton.png"), tr("&Toggle Walls"), this);
+    m_actions[ActionToggleWalls] = new QAction(ICON("cctools-gbutton"), tr("&Toggle Walls"), this);
     m_actions[ActionToggleWalls]->setStatusTip(tr("Toggle all toggle floors/walls in the current level"));
     m_actions[ActionToggleWalls]->setShortcut(Qt::CTRL | Qt::Key_G);
     m_actions[ActionToggleWalls]->setEnabled(false);
@@ -258,25 +258,25 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionTestSetup] = new QAction(tr("&Setup Testing..."), this);
     m_actions[ActionTestSetup]->setStatusTip(tr("Setup testing parameters and options"));
 
-    m_actions[ActionAbout] = new QAction(QIcon(":/res/help-about.png"), tr("&About CCEdit"), this);
+    m_actions[ActionAbout] = new QAction(ICON("help-about"), tr("&About CCEdit"), this);
     m_actions[ActionAbout]->setStatusTip(tr("Show information about CCEdit"));
 
-    m_actions[ActionAddLevel] = new QAction(QIcon(":/res/list-add.png"), tr("&Add Level"), this);
+    m_actions[ActionAddLevel] = new QAction(ICON("list-add"), tr("&Add Level"), this);
     m_actions[ActionAddLevel]->setStatusTip(tr("Add a new level to the end of the levelset"));
     m_actions[ActionAddLevel]->setEnabled(false);
-    m_actions[ActionDelLevel] = new QAction(QIcon(":/res/list-remove.png"), tr("&Remove Level"), this);
+    m_actions[ActionDelLevel] = new QAction(ICON("list-remove"), tr("&Remove Level"), this);
     m_actions[ActionDelLevel]->setStatusTip(tr("Remove the current level from the levelset"));
     m_actions[ActionDelLevel]->setEnabled(false);
-    m_actions[ActionMoveUp] = new QAction(QIcon(":/res/arrow-up.png"), tr("Move &Up"), this);
+    m_actions[ActionMoveUp] = new QAction(ICON("arrow-up"), tr("Move &Up"), this);
     m_actions[ActionMoveUp]->setStatusTip(tr("Move the current level up in the level list"));
     m_actions[ActionMoveUp]->setEnabled(false);
-    m_actions[ActionMoveDown] = new QAction(QIcon(":/res/arrow-down.png"), tr("Move &Down"), this);
+    m_actions[ActionMoveDown] = new QAction(ICON("arrow-down"), tr("Move &Down"), this);
     m_actions[ActionMoveDown]->setStatusTip(tr("Move the current level down in the level list"));
     m_actions[ActionMoveDown]->setEnabled(false);
-    m_actions[ActionProperties] = new QAction(QIcon(":/res/document-properties.png"), tr("Levelset &Properties"), this);
+    m_actions[ActionProperties] = new QAction(ICON("document-properties"), tr("Levelset &Properties"), this);
     m_actions[ActionProperties]->setStatusTip(tr("Change levelset and .DAC file properties"));
     m_actions[ActionProperties]->setEnabled(false);
-    m_actions[ActionOrganize] = new QAction(QIcon(":/res/level-organize.png"), tr("&Organize Levels"), this);
+    m_actions[ActionOrganize] = new QAction(ICON("level-organize"), tr("&Organize Levels"), this);
     m_actions[ActionOrganize]->setStatusTip(tr("Organize or import levels"));
     m_actions[ActionOrganize]->setEnabled(false);
 
@@ -301,7 +301,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     passLabel->setBuddy(m_passwordEdit);
     m_passwordEdit->setMaxLength(9);
     auto passwordButton = new QToolButton(levelManWidget);
-    passwordButton->setIcon(QIcon(":/res/view-refresh-sm.png"));
+    passwordButton->setIcon(ICON("view-refresh-sm"));
     passwordButton->setStatusTip(tr("Generate new random level password"));
     passwordButton->setAutoRaise(true);
     m_chipEdit = new QSpinBox(levelManWidget);
@@ -309,7 +309,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     chipLabel->setBuddy(m_chipEdit);
     m_chipEdit->setRange(0, 32767);
     auto chipsButton = new QToolButton(levelManWidget);
-    chipsButton->setIcon(QIcon(":/res/view-refresh-sm.png"));
+    chipsButton->setIcon(ICON("view-refresh-sm"));
     chipsButton->setStatusTip(tr("Count all chips in the selected level"));
     chipsButton->setAutoRaise(true);
     m_timeEdit = new QSpinBox(levelManWidget);
@@ -678,7 +678,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     });
 
     connect(m_actions[ActionAbout], &QAction::triggered, this, [this] {
-        AboutDialog about(QStringLiteral("CCEdit"), QPixmap(":/icons/boot-48.png"), this);
+        AboutDialog about(QStringLiteral("CCEdit"),
+                          QPixmap(QStringLiteral(":/icons/boot-48.png")), this);
         about.exec();
     });
 

@@ -25,7 +25,7 @@
 #include "HintEdit.h"
 #include "libcc1/Levelset.h"
 #include "libcc2/GameLogic.h"
-#include "CommonWidgets/About.h"
+#include "CommonWidgets/CCTools.h"
 #include "CommonWidgets/EditorTabWidget.h"
 
 #include <QApplication>
@@ -82,23 +82,23 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     setWindowTitle(QStringLiteral("CC2Edit " CCTOOLS_VERSION));
 
     // Actions
-    m_actions[ActionNewMap] = new QAction(QIcon(":/res/document-new.png"), tr("&New Map..."), this);
+    m_actions[ActionNewMap] = new QAction(ICON("document-new"), tr("&New Map..."), this);
     m_actions[ActionNewMap]->setStatusTip(tr("Create new map"));
     m_actions[ActionNewMap]->setShortcut(Qt::Key_F2);
-    m_actions[ActionNewScript] = new QAction(QIcon(":/res/document-new.png"), tr("N&ew Script..."), this);
+    m_actions[ActionNewScript] = new QAction(ICON("document-new"), tr("N&ew Script..."), this);
     m_actions[ActionNewScript]->setStatusTip(tr("Create new game script"));
     m_actions[ActionNewScript]->setShortcut(Qt::SHIFT | Qt::Key_F2);
-    m_actions[ActionOpen] = new QAction(QIcon(":/res/document-open.png"), tr("&Open..."), this);
+    m_actions[ActionOpen] = new QAction(ICON("document-open"), tr("&Open..."), this);
     m_actions[ActionOpen]->setStatusTip(tr("Open a game file from disk"));
     m_actions[ActionOpen]->setShortcut(Qt::CTRL | Qt::Key_O);
-    m_actions[ActionImportCC1] = new QAction(QIcon(":/res/document-open.png"), tr("&Import CC1 Map..."), this);
+    m_actions[ActionImportCC1] = new QAction(ICON("document-open"), tr("&Import CC1 Map..."), this);
     m_actions[ActionImportCC1]->setStatusTip(tr("Import a map from a CC1 levelset"));
     m_actions[ActionImportCC1]->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_O);
-    m_actions[ActionSave] = new QAction(QIcon(":/res/document-save.png"), tr("&Save"), this);
+    m_actions[ActionSave] = new QAction(ICON("document-save"), tr("&Save"), this);
     m_actions[ActionSave]->setStatusTip(tr("Save the current document to the same file"));
     m_actions[ActionSave]->setShortcut(Qt::CTRL | Qt::Key_S);
     m_actions[ActionSave]->setEnabled(false);
-    m_actions[ActionSaveAs] = new QAction(QIcon(":/res/document-save-as.png"), tr("Save &As..."), this);
+    m_actions[ActionSaveAs] = new QAction(ICON("document-save-as"), tr("Save &As..."), this);
     m_actions[ActionSaveAs]->setStatusTip(tr("Save the current document to a new file or location"));
     m_actions[ActionSaveAs]->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_S);
     m_actions[ActionSaveAs]->setEnabled(false);
@@ -109,71 +109,71 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_actions[ActionGenReport] = new QAction(tr("Generate &Report"), this);
     m_actions[ActionGenReport]->setStatusTip(tr("Generate an HTML report of the current game"));
     m_actions[ActionGenReport]->setEnabled(false);
-    m_actions[ActionExit] = new QAction(QIcon(":/res/application-exit.png"), tr("E&xit"), this);
+    m_actions[ActionExit] = new QAction(ICON("application-exit"), tr("E&xit"), this);
     m_actions[ActionExit]->setStatusTip(tr("Close CC2Edit"));
 
-    m_actions[ActionUndo] = new QAction(QIcon(":/res/edit-undo.png"), tr("&Undo"), this);
+    m_actions[ActionUndo] = new QAction(ICON("edit-undo"), tr("&Undo"), this);
     m_actions[ActionUndo]->setStatusTip(tr("Undo the last edit"));
     m_actions[ActionUndo]->setShortcut(Qt::CTRL | Qt::Key_Z);
     m_actions[ActionUndo]->setEnabled(false);
-    m_actions[ActionRedo] = new QAction(QIcon(":/res/edit-redo.png"), tr("&Redo"), this);
+    m_actions[ActionRedo] = new QAction(ICON("edit-redo"), tr("&Redo"), this);
     m_actions[ActionRedo]->setStatusTip(tr("Redo the last edit"));
     m_actions[ActionRedo]->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_Z);
     m_actions[ActionRedo]->setEnabled(false);
-    m_actions[ActionSelect] = new QAction(QIcon(":/res/edit-select.png"), tr("&Select"), this);
+    m_actions[ActionSelect] = new QAction(ICON("edit-select"), tr("&Select"), this);
     m_actions[ActionSelect]->setStatusTip(tr("Enter selection mode"));
     m_actions[ActionSelect]->setShortcut(Qt::CTRL | Qt::Key_A);
     m_actions[ActionSelect]->setCheckable(true);
-    m_actions[ActionCut] = new QAction(QIcon(":/res/edit-cut.png"), tr("Cu&t"), this);
+    m_actions[ActionCut] = new QAction(ICON("edit-cut"), tr("Cu&t"), this);
     m_actions[ActionCut]->setStatusTip(tr("Put the selection in the clipboard and clear it from the editor"));
     m_actions[ActionCut]->setShortcut(Qt::CTRL | Qt::Key_X);
     m_actions[ActionCut]->setEnabled(false);
-    m_actions[ActionCopy] = new QAction(QIcon(":/res/edit-copy.png"), tr("&Copy"), this);
+    m_actions[ActionCopy] = new QAction(ICON("edit-copy"), tr("&Copy"), this);
     m_actions[ActionCopy]->setStatusTip(tr("Copy the current selection to the clipboard"));
     m_actions[ActionCopy]->setShortcut(Qt::CTRL | Qt::Key_C);
     m_actions[ActionCopy]->setEnabled(false);
-    m_actions[ActionPaste] = new QAction(QIcon(":/res/edit-paste.png"), tr("&Paste"), this);
+    m_actions[ActionPaste] = new QAction(ICON("edit-paste"), tr("&Paste"), this);
     m_actions[ActionPaste]->setStatusTip(tr("Paste the clipboard contents into the levelset at the selection position"));
     m_actions[ActionPaste]->setShortcut(Qt::CTRL | Qt::Key_V);
     m_actions[ActionPaste]->setEnabled(false);
-    m_actions[ActionClear] = new QAction(QIcon(":/res/edit-delete.png"), tr("C&lear"), this);
+    m_actions[ActionClear] = new QAction(ICON("edit-delete"), tr("C&lear"), this);
     m_actions[ActionClear]->setStatusTip(tr("Clear all tiles and mechanics from the selected region"));
     m_actions[ActionClear]->setShortcut(Qt::Key_Delete);
     m_actions[ActionClear]->setEnabled(false);
 
-    m_actions[ActionDrawPencil] = new QAction(QIcon(":/res/draw-freehand.png"), tr("&Pencil"), this);
+    m_actions[ActionDrawPencil] = new QAction(ICON("draw-freehand"), tr("&Pencil"), this);
     m_actions[ActionDrawPencil]->setStatusTip(tr("Draw tiles with the pencil tool"));
     m_actions[ActionDrawPencil]->setShortcut(Qt::CTRL | Qt::Key_P);
     m_actions[ActionDrawPencil]->setCheckable(true);
-    m_actions[ActionDrawLine] = new QAction(QIcon(":/res/draw-line.png"), tr("&Line"), this);
+    m_actions[ActionDrawLine] = new QAction(ICON("draw-line"), tr("&Line"), this);
     m_actions[ActionDrawLine]->setStatusTip(tr("Draw tiles with the line tool"));
     m_actions[ActionDrawLine]->setShortcut(Qt::CTRL | Qt::Key_L);
     m_actions[ActionDrawLine]->setCheckable(true);
-    m_actions[ActionDrawFill] = new QAction(QIcon(":/res/draw-box.png"), tr("&Box"), this);
+    m_actions[ActionDrawFill] = new QAction(ICON("draw-box"), tr("&Box"), this);
     m_actions[ActionDrawFill]->setStatusTip(tr("Draw tiles with the box fill tool"));
     m_actions[ActionDrawFill]->setShortcut(Qt::CTRL | Qt::Key_B);
     m_actions[ActionDrawFill]->setCheckable(true);
-    m_actions[ActionDrawFlood] = new QAction(QIcon(":/res/draw-fill.png"), tr("&Flood Fill"), this);
+    m_actions[ActionDrawFlood] = new QAction(ICON("draw-fill"), tr("&Flood Fill"), this);
     m_actions[ActionDrawFlood]->setStatusTip(tr("Draw tiles with the flood fill tool"));
     m_actions[ActionDrawFlood]->setShortcut(Qt::CTRL | Qt::Key_F);
     m_actions[ActionDrawFlood]->setCheckable(true);
-    m_actions[ActionPathMaker] = new QAction(QIcon(":/res/draw-path.png"), tr("Path &Maker"), this);
+    m_actions[ActionPathMaker] = new QAction(ICON("draw-path"), tr("Path &Maker"), this);
     m_actions[ActionPathMaker]->setStatusTip(tr("Draw a directional path of tiles"));
     m_actions[ActionPathMaker]->setShortcut(Qt::CTRL | Qt::Key_M);
     m_actions[ActionPathMaker]->setCheckable(true);
-    m_actions[ActionDrawWire] = new QAction(QIcon(":/res/draw-wire.png"), tr("Draw &Wires"), this);
+    m_actions[ActionDrawWire] = new QAction(ICON("draw-wire"), tr("Draw &Wires"), this);
     m_actions[ActionDrawWire]->setStatusTip(tr("Draw logic wires"));
     m_actions[ActionDrawWire]->setShortcut(Qt::CTRL | Qt::Key_T);
     m_actions[ActionDrawWire]->setCheckable(true);
-    m_actions[ActionInspectHints] = new QAction(QIcon(":/res/draw-hints.png"), tr("Edit &Hints"), this);
+    m_actions[ActionInspectHints] = new QAction(ICON("draw-hints"), tr("Edit &Hints"), this);
     m_actions[ActionInspectHints]->setStatusTip(tr("Directly edit hint tiles"));
     m_actions[ActionInspectHints]->setShortcut(Qt::CTRL | Qt::Key_H);
     m_actions[ActionInspectHints]->setCheckable(true);
-    m_actions[ActionInspectTiles] = new QAction(QIcon(":/res/draw-inspect.png"), tr("&Inspect Tiles"), this);
+    m_actions[ActionInspectTiles] = new QAction(ICON("draw-inspect"), tr("&Inspect Tiles"), this);
     m_actions[ActionInspectTiles]->setStatusTip(tr("Inspect tiles and make advanced modifications"));
     m_actions[ActionInspectTiles]->setShortcut(Qt::CTRL | Qt::Key_I);
     m_actions[ActionInspectTiles]->setCheckable(true);
-    m_actions[ActionToggleGreens] = new QAction(QIcon(":/res/cctools-gbutton.png"), tr("&Toggle "), this);
+    m_actions[ActionToggleGreens] = new QAction(ICON("cctools-gbutton"), tr("&Toggle "), this);
     m_actions[ActionToggleGreens]->setStatusTip(tr("Toggle all toggle doors and chips in the current level"));
     m_actions[ActionToggleGreens]->setShortcut(Qt::CTRL | Qt::Key_G);
     m_actions[ActionToggleGreens]->setEnabled(false);
@@ -244,13 +244,13 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_actions[ActionTestSetup] = new QAction(tr("&Setup Testing..."), this);
     m_actions[ActionTestSetup]->setStatusTip(tr("Setup testing parameters and options"));
 
-    m_actions[ActionAbout] = new QAction(QIcon(":/res/help-about.png"), tr("&About CC2Edit"), this);
+    m_actions[ActionAbout] = new QAction(ICON("help-about"), tr("&About CC2Edit"), this);
     m_actions[ActionAbout]->setStatusTip(tr("Show information about CC2Edit"));
 
-    m_actions[ActionReloadScript] = new QAction(QIcon(":/res/view-refresh.png"),
+    m_actions[ActionReloadScript] = new QAction(ICON("view-refresh"),
                                                 tr("&Reload Game Script"), this);
     m_actions[ActionReloadScript]->setStatusTip(tr("Re-load the current game script from disk"));
-    m_actions[ActionEditScript] = new QAction(QIcon(":/res/document-properties.png"),
+    m_actions[ActionEditScript] = new QAction(ICON("document-properties"),
                                               tr("&Edit Game Script"), this);
     m_actions[ActionEditScript]->setStatusTip(tr("Open the current game script for editing"));
 
@@ -689,11 +689,11 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     allTileScroll->setWidget(allTiles);
 
     allTileTbar->setIconSize(QSize(32, 32));
-    auto glyphAction = allTileTbar->addAction(QIcon(":res/tile-glyph-lg.png"), tr("Show Glyph Tiles"));
+    auto glyphAction = allTileTbar->addAction(ICON("tile-glyph-lg"), tr("Show Glyph Tiles"));
     glyphAction->setCheckable(true);
     allTileTbar->addSeparator();
-    auto rolAction = allTileTbar->addAction(QIcon(":res/object-rotate-left-lg.png"), tr("Rotate Left"));
-    auto rorAction = allTileTbar->addAction(QIcon(":res/object-rotate-right-lg.png"), tr("Rotate Right"));
+    auto rolAction = allTileTbar->addAction(ICON("object-rotate-left-lg"), tr("Rotate Left"));
+    auto rorAction = allTileTbar->addAction(ICON("object-rotate-right-lg"), tr("Rotate Right"));
 
     connect(rolAction, &QAction::triggered, this, [this, allTiles] {
         allTiles->rotateLeft();
@@ -904,7 +904,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
 
     connect(m_actions[ActionAbout], &QAction::triggered, this, [this] {
         AboutDialog about(QStringLiteral("CC2Edit"),
-                          QPixmap(":/icons/boot-32.png"), this);
+                          QPixmap(QStringLiteral(":/icons/boot-32.png")), this);
         about.exec();
     });
 

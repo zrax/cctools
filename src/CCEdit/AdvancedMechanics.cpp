@@ -24,6 +24,7 @@
 #include <QLabel>
 #include <QGridLayout>
 #include "libcc1/Tileset.h"
+#include "CommonWidgets/CCTools.h"
 
 class OnePointDialog : public QDialog {
 public:
@@ -153,18 +154,18 @@ AdvancedMechanicsDialog::AdvancedMechanicsDialog(QWidget* parent)
     setWindowTitle(tr("Advanced Level Mechanics"));
 
     // Editing Actions
-    m_actions[ActionAddTrap] = new QAction(QIcon(":/res/list-add.png"), tr("Add Trap Connection"), this);
-    m_actions[ActionDelTrap] = new QAction(QIcon(":/res/list-remove.png"), tr("Remove Trap Connection"), this);
-    m_actions[ActionTrapUp] = new QAction(QIcon(":/res/arrow-up.png"), tr("Move Up"), this);
-    m_actions[ActionTrapDown] = new QAction(QIcon(":/res/arrow-down.png"), tr("Move Down"), this);
-    m_actions[ActionAddClone] = new QAction(QIcon(":/res/list-add.png"), tr("Add Cloner Connection"), this);
-    m_actions[ActionDelClone] = new QAction(QIcon(":/res/list-remove.png"), tr("Remove Cloner Connection"), this);
-    m_actions[ActionCloneUp] = new QAction(QIcon(":/res/arrow-up.png"), tr("Move Up"), this);
-    m_actions[ActionCloneDown] = new QAction(QIcon(":/res/arrow-down.png"), tr("Move Down"), this);
-    m_actions[ActionAddMove] = new QAction(QIcon(":/res/list-add.png"), tr("Add Moving Monster"), this);
-    m_actions[ActionDelMove] = new QAction(QIcon(":/res/list-remove.png"), tr("Remove Moving Monster"), this);
-    m_actions[ActionMoveUp] = new QAction(QIcon(":/res/arrow-up.png"), tr("Move Up"), this);
-    m_actions[ActionMoveDown] = new QAction(QIcon(":/res/arrow-down.png"), tr("Move Down"), this);
+    m_actions[ActionAddTrap] = new QAction(ICON("list-add"), tr("Add Trap Connection"), this);
+    m_actions[ActionDelTrap] = new QAction(ICON("list-remove"), tr("Remove Trap Connection"), this);
+    m_actions[ActionTrapUp] = new QAction(ICON("arrow-up"), tr("Move Up"), this);
+    m_actions[ActionTrapDown] = new QAction(ICON("arrow-down"), tr("Move Down"), this);
+    m_actions[ActionAddClone] = new QAction(ICON("list-add"), tr("Add Cloner Connection"), this);
+    m_actions[ActionDelClone] = new QAction(ICON("list-remove"), tr("Remove Cloner Connection"), this);
+    m_actions[ActionCloneUp] = new QAction(ICON("arrow-up"), tr("Move Up"), this);
+    m_actions[ActionCloneDown] = new QAction(ICON("arrow-down"), tr("Move Down"), this);
+    m_actions[ActionAddMove] = new QAction(ICON("list-add"), tr("Add Moving Monster"), this);
+    m_actions[ActionDelMove] = new QAction(ICON("list-remove"), tr("Remove Moving Monster"), this);
+    m_actions[ActionMoveUp] = new QAction(ICON("arrow-up"), tr("Move Up"), this);
+    m_actions[ActionMoveDown] = new QAction(ICON("arrow-down"), tr("Move Down"), this);
 
     // Dialog contents
     QTabWidget* tabs = new QTabWidget(this);

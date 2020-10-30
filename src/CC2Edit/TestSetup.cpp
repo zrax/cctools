@@ -25,6 +25,7 @@
 #include <QGridLayout>
 #include <QIntValidator>
 #include <QFileDialog>
+#include "CommonWidgets/CCTools.h"
 #include "CommonWidgets/PathCompleter.h"
 
 #ifdef Q_OS_WIN
@@ -52,7 +53,7 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     auto lblWinePath = new QLabel(tr("&WINE Path:"), this);
     lblWinePath->setBuddy(m_winePath);
     auto browseWine = new QToolButton(this);
-    browseWine->setIcon(QIcon(":/res/document-open-folder-sm.png"));
+    browseWine->setIcon(ICON("document-open-folder-sm"));
     browseWine->setAutoRaise(true);
 #endif
 
@@ -61,7 +62,7 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     auto lblChips2Path = new QLabel(tr("&Chips2.exe Path:"), this);
     lblChips2Path->setBuddy(m_chips2Path);
     auto browseChips2 = new QToolButton(this);
-    browseChips2->setIcon(QIcon(":/res/document-open-folder-sm.png"));
+    browseChips2->setIcon(ICON("document-open-folder-sm"));
     browseChips2->setAutoRaise(true);
     auto buttons = new QDialogButtonBox(
             QDialogButtonBox::Save | QDialogButtonBox::Cancel,

@@ -25,6 +25,7 @@
 #include <QClipboard>
 #include <QMimeData>
 #include <QMessageBox>
+#include "CommonWidgets/CCTools.h"
 
 static const QString s_clipboardFormat = QStringLiteral("CHIPEDIT LEVELS");
 
@@ -129,16 +130,16 @@ OrganizerDialog::OrganizerDialog(QWidget* parent)
 {
     setWindowTitle(tr("Level Organizer"));
 
-    m_actions[ActionCut] = new QAction(QIcon(":/res/edit-cut.png"), tr("Cu&t"), this);
+    m_actions[ActionCut] = new QAction(ICON("edit-cut"), tr("Cu&t"), this);
     m_actions[ActionCut]->setShortcut(Qt::CTRL | Qt::Key_X);
     m_actions[ActionCut]->setEnabled(false);
-    m_actions[ActionCopy] = new QAction(QIcon(":/res/edit-copy.png"), tr("&Copy"), this);
+    m_actions[ActionCopy] = new QAction(ICON("edit-copy"), tr("&Copy"), this);
     m_actions[ActionCopy]->setShortcut(Qt::CTRL | Qt::Key_C);
     m_actions[ActionCopy]->setEnabled(false);
-    m_actions[ActionPaste] = new QAction(QIcon(":/res/edit-paste.png"), tr("&Paste"), this);
+    m_actions[ActionPaste] = new QAction(ICON("edit-paste"), tr("&Paste"), this);
     m_actions[ActionPaste]->setShortcut(Qt::CTRL | Qt::Key_V);
     m_actions[ActionPaste]->setEnabled(false);
-    m_actions[ActionDelete] = new QAction(QIcon(":/res/edit-delete.png"), tr("&Delete"), this);
+    m_actions[ActionDelete] = new QAction(ICON("edit-delete"), tr("&Delete"), this);
     m_actions[ActionDelete]->setShortcut(Qt::Key_Delete);
     m_actions[ActionDelete]->setEnabled(false);
 

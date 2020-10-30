@@ -31,7 +31,7 @@
 #include "PageSounds.h"
 #include "PageStoryline.h"
 #include "PageBitmap.h"
-#include "CommonWidgets/About.h"
+#include "CommonWidgets/CCTools.h"
 
 static void addPageWithType(QTreeWidgetItem* parent, const QString& name, int type)
 {
@@ -82,11 +82,11 @@ CCHackMain::CCHackMain(QWidget* parent)
     m_container->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     m_container->setContentsMargins(0, 0, 0, 0);
 
-    auto acSave = new QAction(QIcon(":/res/document-save.png"), tr("&Save Patch"), this);
-    auto acWriteExe = new QAction(QIcon(":/res/document-save-as.png"), tr("&Write EXE"), this);
-    auto acLoad = new QAction(QIcon(":/res/document-open.png"), tr("&Load From..."), this);
-    auto acReset = new QAction(QIcon(":/res/edit-clear-list.png"), tr("&Clear All"), this);
-    auto acAbout = new QAction(QIcon(":/res/help-about.png"), tr("&About"), this);
+    auto acSave = new QAction(ICON("document-save"), tr("&Save Patch"), this);
+    auto acWriteExe = new QAction(ICON("document-save-as"), tr("&Write EXE"), this);
+    auto acLoad = new QAction(ICON("document-open"), tr("&Load From..."), this);
+    auto acReset = new QAction(ICON("edit-clear-list"), tr("&Clear All"), this);
+    auto acAbout = new QAction(ICON("help-about"), tr("&About"), this);
 
     auto tools = new QToolBar(right);
     tools->setIconSize(QSize(22, 22));
@@ -124,7 +124,8 @@ CCHackMain::CCHackMain(QWidget* parent)
     connect(acReset, &QAction::triggered, this, &CCHackMain::onResetAction);
 
     connect(acAbout, &QAction::triggered, this, [this] {
-        AboutDialog about(QStringLiteral("CCHack"), QPixmap(":/icons/sock-48.png"), this);
+        AboutDialog about(QStringLiteral("CCHack"),
+                          QPixmap(QStringLiteral(":/icons/sock-48.png")), this);
         about.exec();
     });
 

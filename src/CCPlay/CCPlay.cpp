@@ -36,7 +36,7 @@
 #include "libcc1/IniFile.h"
 #include "libcc1/ChipsHax.h"
 #include "libcc1/CCMetaData.h"
-#include "CommonWidgets/About.h"
+#include "CommonWidgets/CCTools.h"
 #include "CommonWidgets/PathCompleter.h"
 
 // Dammit Qt
@@ -144,11 +144,11 @@ CCPlayMain::CCPlayMain(QWidget* parent)
     lblLevelsetPath->setBuddy(m_levelsetPath);
     auto btnRefresh = new QToolButton(this);
     btnRefresh->setAutoRaise(true);
-    btnRefresh->setIcon(QIcon(":/res/view-refresh.png"));
+    btnRefresh->setIcon(ICON("view-refresh"));
     btnRefresh->setStatusTip(tr("Refresh Levelsets"));
     auto btnOpenPath = new QToolButton(this);
     btnOpenPath->setAutoRaise(true);
-    btnOpenPath->setIcon(QIcon(":/res/document-open-folder.png"));
+    btnOpenPath->setIcon(ICON("document-open-folder"));
     btnOpenPath->setStatusTip(tr("Browse for Levelset path"));
 
     auto splitLevelsetData = new QSplitter(Qt::Vertical, contents);
@@ -178,18 +178,18 @@ CCPlayMain::CCPlayMain(QWidget* parent)
     m_levelList->setColumnWidth(5, m_levelList->fontMetrics().boundingRect(tr("My Score")).width() + 16);
     splitLevelsetData->addWidget(m_levelList);
 
-    m_actions[ActionPlayMSCC] = new QAction(QIcon(":/res/play-chips.png"), tr("Play (MSCC)"), this);
+    m_actions[ActionPlayMSCC] = new QAction(ICON("play-chips"), tr("Play (MSCC)"), this);
     m_actions[ActionPlayMSCC]->setStatusTip(tr("Play level in CHIPS.EXE (F5)"));
     m_actions[ActionPlayMSCC]->setShortcut(Qt::Key_F5);
-    m_actions[ActionPlayTWorld] = new QAction(QIcon(":/res/play-tworld.png"), tr("Play (TWorld)"), this);
+    m_actions[ActionPlayTWorld] = new QAction(ICON("play-tworld"), tr("Play (TWorld)"), this);
     m_actions[ActionPlayTWorld]->setStatusTip(tr("Play level in Tile World (F6)"));
     m_actions[ActionPlayTWorld]->setShortcut(Qt::Key_F6);
     m_actions[ActionTool] = new QAction(tr("Custom Tool"), this);
     m_actions[ActionTool]->setShortcut(Qt::Key_F9);
-    m_actions[ActionSetup] = new QAction(QIcon(":/res/document-properties.png"), tr("Settings"), this);
+    m_actions[ActionSetup] = new QAction(ICON("document-properties"), tr("Settings"), this);
     m_actions[ActionSetup]->setStatusTip(tr("Configure CCPlay settings"));
     m_actions[ActionSetup]->setShortcut(QKeySequence::Preferences);
-    m_actions[ActionExit] = new QAction(QIcon(":/res/application-exit.png"), tr("Exit CCPlay"), this);
+    m_actions[ActionExit] = new QAction(ICON("application-exit"), tr("Exit CCPlay"), this);
     m_actions[ActionExit]->setStatusTip(tr("Exit CCPlay"));
     m_actions[ActionExit]->setShortcut(QKeySequence::Quit);
 

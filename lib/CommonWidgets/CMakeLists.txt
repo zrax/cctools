@@ -14,14 +14,14 @@
 # along with CCTools.  If not, see <http://www.gnu.org/licenses/>.
 
 set(CommonWidgets_HEADERS
-    About.h
+    CCTools.h
     EditorTabWidget.h
     LLTextEdit.h
     PathCompleter.h
 )
 
 set(CommonWidgets_SOURCES
-    About.cpp
+    CCTools.cpp
     EditorTabWidget.cpp
     LLTextEdit.cpp
     PathCompleter.cpp

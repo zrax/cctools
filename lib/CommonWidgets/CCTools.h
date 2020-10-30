@@ -23,6 +23,8 @@
 #define CCTOOLS_VERSION "3.0-beta"
 #define CCTOOLS_APP_VER "2.95"
 
+#define ICON(name)  QIcon(QStringLiteral(":/res/" name ".png"))
+
 class AboutWidget : public QWidget {
 public:
     AboutWidget(const QString& name, const QPixmap& icon, QWidget *parent = nullptr);

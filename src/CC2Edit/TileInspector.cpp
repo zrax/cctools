@@ -17,6 +17,7 @@
 
 #include "TileInspector.h"
 #include "libcc2/Tileset.h"
+#include "CommonWidgets/CCTools.h"
 
 #include <QListWidget>
 #include <QLabel>
@@ -32,7 +33,7 @@ TileInspector::TileInspector(QWidget* parent)
     : QDialog(parent), m_tileset(), m_paging(false)
 {
     setWindowTitle(tr("Tile Inspector"));
-    setWindowIcon(QIcon(":/res/draw-inspect.png"));
+    setWindowIcon(ICON("draw-inspect"));
 
     m_layers = new QListWidget(this);
 

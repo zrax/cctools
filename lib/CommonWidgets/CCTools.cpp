@@ -15,7 +15,7 @@
  * along with CCTools.  If not, see <http://www.gnu.org/licenses/>.           *
  ******************************************************************************/
 
-#include "About.h"
+#include "CCTools.h"
 
 #include <QIcon>
 #include <QLabel>
@@ -54,7 +54,7 @@ AboutWidget::AboutWidget(const QString& name, const QPixmap& icon, QWidget *pare
     layout->setHorizontalSpacing(8);
     layout->addWidget(lblIcon, 0, 0, 3, 1);
     layout->addWidget(new QLabel(name + QStringLiteral(" " CCTOOLS_APP_VER), this), 0, 1);
-    layout->addWidget(new QLabel(tr("Part of CCTools %1").arg(CCTOOLS_VERSION), this), 1, 1);
+    layout->addWidget(new QLabel(tr("Part of CCTools %1").arg(QStringLiteral(CCTOOLS_VERSION)), this), 1, 1);
     layout->addWidget(new QLabel(tr("Copyright (C) 2020  Michael Hansen"), this), 2, 1);
     layout->addWidget(lblLicense, 4, 0, 1, 2);
 }
@@ -63,7 +63,7 @@ AboutDialog::AboutDialog(const QString& name, const QPixmap& icon, QWidget* pare
     : QDialog(parent)
 {
     setWindowTitle(tr("About %1").arg(name));
-    setWindowIcon(QIcon(":/res/help-about.png"));
+    setWindowIcon(ICON("help-about"));
 
     auto aboutWidget = new AboutWidget(name, icon, this);
     auto buttons = new QDialogButtonBox(

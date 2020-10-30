@@ -23,6 +23,7 @@
 #include <QToolButton>
 #include <QGridLayout>
 #include <QFileDialog>
+#include "CommonWidgets/CCTools.h"
 #include "CommonWidgets/PathCompleter.h"
 
 #ifdef Q_OS_WIN
@@ -55,7 +56,7 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
                                   this);
     lblWinePath->setBuddy(m_winePath);
     auto browseWine = new QToolButton(this);
-    browseWine->setIcon(QIcon(":/res/document-open-folder-sm.png"));
+    browseWine->setIcon(ICON("document-open-folder-sm"));
     browseWine->setAutoRaise(true);
 
     m_msccPath = new QLineEdit(settings.value("ChipsExe").toString(), this);
@@ -63,14 +64,14 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     auto lblMsccPath = new QLabel(tr("MS&CC Path:"), this);
     lblMsccPath->setBuddy(m_msccPath);
     auto browseChips = new QToolButton(this);
-    browseChips->setIcon(QIcon(":/res/document-open-folder-sm.png"));
+    browseChips->setIcon(ICON("document-open-folder-sm"));
     browseChips->setAutoRaise(true);
     m_tworldPath = new QLineEdit(settings.value("TWorldExe").toString(), this);
     m_tworldPath->setCompleter(exeCompleter);
     auto lblTWorldPath = new QLabel(tr("&Tile World Path:"), this);
     lblTWorldPath->setBuddy(m_tworldPath);
     auto browseTWorld = new QToolButton(this);
-    browseTWorld->setIcon(QIcon(":/res/document-open-folder-sm.png"));
+    browseTWorld->setIcon(ICON("document-open-folder-sm"));
     browseTWorld->setAutoRaise(true);
     auto buttons = new QDialogButtonBox(
             QDialogButtonBox::Save | QDialogButtonBox::Cancel,
