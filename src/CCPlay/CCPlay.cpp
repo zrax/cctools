@@ -938,23 +938,23 @@ void CCPlayMain::onLevelsetChanged(QTreeWidgetItem* item, QTreeWidgetItem*)
 int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
-    app.setOrganizationName(QStringLiteral("CCTools"));
-    app.setApplicationName(QStringLiteral("CCPlay"));
+    QApplication::setOrganizationName(QStringLiteral("CCTools"));
+    QApplication::setApplicationName(QStringLiteral("CCPlay"));
 
-    QIcon appicon(":/icons/chip-48.png");
-    appicon.addFile(":/icons/chip-32.png");
-    appicon.addFile(":/icons/chip-24.png");
-    appicon.addFile(":/icons/chip-16.png");
-    app.setWindowIcon(appicon);
+    QIcon appicon(QStringLiteral(":/icons/chip-48.png"));
+    appicon.addFile(QStringLiteral(":/icons/chip-32.png"));
+    appicon.addFile(QStringLiteral(":/icons/chip-24.png"));
+    appicon.addFile(QStringLiteral(":/icons/chip-16.png"));
+    QApplication::setWindowIcon(appicon);
 
     CCPlayMain mainWin;
     mainWin.show();
     if (!mainWin.initDatabase())
         return 1;
 
-    QStringList qtArgs = app.arguments();
+    QStringList qtArgs = QApplication::arguments();
     if (qtArgs.size() > 1)
         mainWin.setLevelsetPath(qtArgs[1]);
 
-    return app.exec();
+    return QApplication::exec();
 }

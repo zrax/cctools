@@ -2492,22 +2492,22 @@ void CCEditMain::onProcessError(QProcess::ProcessError err)
 int main(int argc, char* argv[])
 {
     // Set random seed for password generation
-    srand(time(NULL));
+    srand(time(nullptr));
 
     QApplication app(argc, argv);
-    app.setOrganizationName(QStringLiteral("CCTools"));
-    app.setApplicationName(QStringLiteral("CCEdit"));
+    QApplication::setOrganizationName(QStringLiteral("CCTools"));
+    QApplication::setApplicationName(QStringLiteral("CCEdit"));
 
-    QIcon appicon(":/icons/boot-48.png");
-    appicon.addFile(":/icons/boot-32.png");
-    appicon.addFile(":/icons/boot-24.png");
-    appicon.addFile(":/icons/boot-16.png");
-    app.setWindowIcon(appicon);
+    QIcon appicon(QStringLiteral(":/icons/boot-48.png"));
+    appicon.addFile(QStringLiteral(":/icons/boot-32.png"));
+    appicon.addFile(QStringLiteral(":/icons/boot-24.png"));
+    appicon.addFile(QStringLiteral(":/icons/boot-16.png"));
+    QApplication::setWindowIcon(appicon);
 
     CCEditMain mainWin;
     mainWin.show();
 
-    QStringList qtArgs = app.arguments();
+    QStringList qtArgs = QApplication::arguments();
     if (qtArgs.size() > 1)
         mainWin.loadLevelset(qtArgs[1]);
     if (qtArgs.size() > 2) {
@@ -2517,5 +2517,5 @@ int main(int argc, char* argv[])
             mainWin.loadLevel(levelNum - 1);
     }
 
-    return app.exec();
+    return QApplication::exec();
 }

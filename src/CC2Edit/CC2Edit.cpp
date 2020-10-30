@@ -2586,20 +2586,20 @@ void CC2EditMain::setGameName(const QString& name)
 int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
-    app.setOrganizationName(QStringLiteral("CCTools"));
-    app.setApplicationName(QStringLiteral("CC2Edit"));
+    QApplication::setOrganizationName(QStringLiteral("CCTools"));
+    QApplication::setApplicationName(QStringLiteral("CC2Edit"));
 
-    QIcon appicon(":/icons/boot-32.png");
-    appicon.addFile(":/icons/boot-24.png");
-    appicon.addFile(":/icons/boot-16.png");
-    app.setWindowIcon(appicon);
+    QIcon appicon(QStringLiteral(":/icons/boot-32.png"));
+    appicon.addFile(QStringLiteral(":/icons/boot-24.png"));
+    appicon.addFile(QStringLiteral(":/icons/boot-16.png"));
+    QApplication::setWindowIcon(appicon);
 
     CC2EditMain win;
     win.show();
 
-    QStringList qtArgs = app.arguments();
+    QStringList qtArgs = QApplication::arguments();
     if (qtArgs.size() > 1)
         win.loadFile(qtArgs.at(1));
 
-    return app.exec();
+    return QApplication::exec();
 }

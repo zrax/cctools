@@ -300,21 +300,21 @@ void CCHackMain::onResetAction()
 int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
-    app.setOrganizationName(QStringLiteral("CCTools"));
-    app.setApplicationName(QStringLiteral("CCHack"));
+    QApplication::setOrganizationName(QStringLiteral("CCTools"));
+    QApplication::setApplicationName(QStringLiteral("CCHack"));
 
-    QIcon appicon(":/icons/sock-48.png");
-    appicon.addFile(":/icons/sock-32.png");
-    appicon.addFile(":/icons/sock-24.png");
-    appicon.addFile(":/icons/sock-16.png");
-    app.setWindowIcon(appicon);
+    QIcon appicon(QStringLiteral(":/icons/sock-48.png"));
+    appicon.addFile(QStringLiteral(":/icons/sock-32.png"));
+    appicon.addFile(QStringLiteral(":/icons/sock-24.png"));
+    appicon.addFile(QStringLiteral(":/icons/sock-16.png"));
+    QApplication::setWindowIcon(appicon);
 
     CCHackMain mainWin;
     mainWin.show();
 
-    QStringList qtArgs = app.arguments();
+    QStringList qtArgs = QApplication::arguments();
     if (qtArgs.size() > 1)
         mainWin.loadFile(qtArgs[1]);
 
-    return app.exec();
+    return QApplication::exec();
 }
