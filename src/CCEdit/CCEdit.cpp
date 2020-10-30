@@ -842,7 +842,7 @@ void CCEditMain::loadLevelset(const QString& filename)
         searchPath.cdUp();
 
         ccl::FileStream set;
-        if (set.open(searchPath.absoluteFilePath(m_dacInfo.m_filename.c_str()), ccl::FileStream::Read)) {
+        if (set.open(searchPath.absoluteFilePath(m_dacInfo.m_filename), ccl::FileStream::Read)) {
             m_levelset = new ccl::Levelset(0);
             try {
                 m_levelset->read(&set);
@@ -856,7 +856,7 @@ void CCEditMain::loadLevelset(const QString& filename)
         } else {
             QMessageBox::critical(this, tr("Error opening levelset"),
                                 tr("Error: could not open file %1")
-                                .arg(m_dacInfo.m_filename.c_str()));
+                                .arg(m_dacInfo.m_filename));
             return;
         }
         doLevelsetLoad();
@@ -944,7 +944,7 @@ void CCEditMain::saveLevelset(const QString& filename)
             searchPath.cdUp();
 
             ccl::FileStream set;
-            if (set.open(searchPath.absoluteFilePath(m_dacInfo.m_filename.c_str()), ccl::FileStream::Write)) {
+            if (set.open(searchPath.absoluteFilePath(m_dacInfo.m_filename), ccl::FileStream::Write)) {
                 try {
                     m_levelset->write(&set);
                 } catch (const ccl::RuntimeError& e) {
@@ -955,7 +955,7 @@ void CCEditMain::saveLevelset(const QString& filename)
             } else {
                 QMessageBox::critical(this, tr("Error saving levelset"),
                                       tr("Error: could not write file %1")
-                                      .arg(m_dacInfo.m_filename.c_str()));
+                                      .arg(m_dacInfo.m_filename));
                 return;
             }
         } else {
@@ -2211,7 +2211,7 @@ void CCEditMain::onPropertiesAction()
 
         m_levelset->setType(props.levelsetType());
         if (props.useDac()) {
-            m_dacInfo.m_filename = props.dacFilename().toUtf8().constData();
+            m_dacInfo.m_filename = props.dacFilename();
             m_dacInfo.m_ruleset = props.dacRuleset();
             m_dacInfo.m_lastLevel = props.lastLevel();
             m_dacInfo.m_usePasswords = props.usePasswords();

@@ -18,7 +18,7 @@
 #ifndef _DACFILE_H
 #define _DACFILE_H
 
-#include <string>
+#include <QString>
 #include <cstdio>
 
 namespace ccl {
@@ -35,7 +35,7 @@ struct DacFile {
     void read(FILE* stream);
     void write(FILE* stream) const;
 
-    std::string m_filename;
+    QString m_filename;
     unsigned int m_ruleset;
     int m_lastLevel;        // use 0 to indicate default value
     bool m_usePasswords;    // default = y

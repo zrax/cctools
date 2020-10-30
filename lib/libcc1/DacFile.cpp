@@ -69,7 +69,7 @@ void ccl::DacFile::read(FILE* stream)
 
         // Now we can finally make use of key and value!
         if (strcasecmp(key, "file") == 0) {
-            m_filename = value;
+            m_filename = QString::fromUtf8(value);
         } else if (strcasecmp(key, "usepasswords") == 0) {
             if (strcasecmp(value, "y") == 0)
                 m_usePasswords = true;
@@ -113,7 +113,7 @@ void ccl::DacFile::read(FILE* stream)
 
 void ccl::DacFile::write(FILE* stream) const
 {
-    fprintf(stream, "file=%s\n", m_filename.c_str());
+    fprintf(stream, "file=%s\n", m_filename.toUtf8().constData());
     if (!m_usePasswords)
         fprintf(stream, "usepasswords=n\n");
     if (m_ruleset == ccl::Levelset::TypeMS)

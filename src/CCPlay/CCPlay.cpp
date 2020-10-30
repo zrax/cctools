@@ -103,7 +103,7 @@ load_levelset(const QString& filename, QWidget* self, int* dacLastLevel = nullpt
 
         QDir searchPath(filename);
         searchPath.cdUp();
-        if (stream.open(searchPath.absoluteFilePath(dacInfo.m_filename.c_str()), ccl::FileStream::Read)) {
+        if (stream.open(searchPath.absoluteFilePath(dacInfo.m_filename), ccl::FileStream::Read)) {
             try {
                 levelset = std::make_unique<ccl::Levelset>();
                 levelset->read(&stream);
@@ -122,7 +122,7 @@ load_levelset(const QString& filename, QWidget* self, int* dacLastLevel = nullpt
         } else {
             QMessageBox::critical(self, self->tr("Error opening levelset"),
                                   self->tr("Error: could not open file %1")
-                                  .arg(dacInfo.m_filename.c_str()));
+                                  .arg(dacInfo.m_filename));
             return {};
         }
     } else {

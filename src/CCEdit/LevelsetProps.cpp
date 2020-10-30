@@ -111,9 +111,9 @@ void LevelsetProps::setLevelset(ccl::Levelset* levelset)
 
 void LevelsetProps::setDacFile(ccl::DacFile* dac)
 {
-    m_dacGroup->setChecked(dac != 0);
-    if (dac != 0) {
-        m_dacFilename->setText(dac->m_filename.c_str());
+    m_dacGroup->setChecked(dac != nullptr);
+    if (dac) {
+        m_dacFilename->setText(dac->m_filename);
         m_dacRuleset->setCurrentIndex(mapLevelsetType(dac->m_ruleset));
         m_lastLevel->setValue(dac->m_lastLevel);
         m_usePasswords->setChecked(dac->m_usePasswords);
