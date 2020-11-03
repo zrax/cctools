@@ -401,7 +401,7 @@ static QList<QPoint> scanForAll(cc2::Tile::Type type, const cc2::MapData& map)
     return matches;
 }
 
-static QPoint scanForControl(const QVector<cc2::Tile::Type>& controlTypes,
+static QPoint scanForControl(const std::vector<cc2::Tile::Type>& controlTypes,
                              int x, int y, const cc2::MapData& map)
 {
     int sx = x, sy = y;
@@ -411,10 +411,8 @@ static QPoint scanForControl(const QVector<cc2::Tile::Type>& controlTypes,
             if (++sy >= map.height())
                 sy = 0;
         }
-        for (cc2::Tile::Type type : controlTypes) {
-            if (map.haveTile(sx, sy, type))
-                return QPoint(sx, sy);
-        }
+        if (map.haveTile(sx, sy, controlTypes))
+            return QPoint(sx, sy);
         if (sx == x && sy == y) {
             // We've wrapped around to our starting location
             return QPoint(-1, -1);
@@ -425,7 +423,7 @@ static QPoint scanForControl(const QVector<cc2::Tile::Type>& controlTypes,
 }
 
 static QList<QPoint> scanForButtons(cc2::Tile::Type buttonType,
-                                    const QVector<cc2::Tile::Type>& controlTypes,
+                                    const std::vector<cc2::Tile::Type>& controlTypes,
                                     int x, int y, const cc2::MapData& map)
 {
     QList<QPoint> matches;
@@ -439,10 +437,8 @@ static QList<QPoint> scanForButtons(cc2::Tile::Type buttonType,
         }
         if (map.haveTile(sx, sy, buttonType))
             matches << QPoint(sx, sy);
-        for (cc2::Tile::Type type : controlTypes) {
-            if (map.haveTile(sx, sy, type))
-                return matches;
-        }
+        if (map.haveTile(sx, sy, controlTypes))
+            return matches;
         if (sx == x && sy == y) {
             // We've wrapped around to our starting location
             return matches;
@@ -462,22 +458,15 @@ static QList<QPoint> areaCtlSearch(int x, int y, const cc2::MapData& map)
     const int ymax = std::min(y + 2, map.height() - 1);
     for (int sy = ymin; sy <= ymax; ++sy) {
         for (int sx = xmin; sx <= xmax; ++sx) {
-            if (map.haveTile(sx, sy, cc2::Tile::Force_N)
-                    || map.haveTile(sx, sy, cc2::Tile::Force_E)
-                    || map.haveTile(sx, sy, cc2::Tile::Force_S)
-                    || map.haveTile(sx, sy, cc2::Tile::Force_W)
-                    || map.haveTile(sx, sy, cc2::Tile::ToggleWall)
-                    || map.haveTile(sx, sy, cc2::Tile::ToggleFloor)
-                    || map.haveTile(sx, sy, cc2::Tile::CC1_Cloner)
-                    || map.haveTile(sx, sy, cc2::Tile::Cloner)
-                    || map.haveTile(sx, sy, cc2::Tile::RevolvDoor_SW)
-                    || map.haveTile(sx, sy, cc2::Tile::RevolvDoor_NW)
-                    || map.haveTile(sx, sy, cc2::Tile::RevolvDoor_NE)
-                    || map.haveTile(sx, sy, cc2::Tile::RevolvDoor_SE)
-                    || map.haveTile(sx, sy, cc2::Tile::FlameJet_Off)
-                    || map.haveTile(sx, sy, cc2::Tile::FlameJet_On)
-                    || map.haveTile(sx, sy, cc2::Tile::LSwitchFloor)
-                    || map.haveTile(sx, sy, cc2::Tile::LSwitchWall)) {
+            if (map.haveTile(sx, sy, {
+                    cc2::Tile::Force_N, cc2::Tile::Force_E,
+                    cc2::Tile::Force_S, cc2::Tile::Force_W,
+                    cc2::Tile::ToggleWall, cc2::Tile::ToggleFloor,
+                    cc2::Tile::CC1_Cloner, cc2::Tile::Cloner,
+                    cc2::Tile::RevolvDoor_SW, cc2::Tile::RevolvDoor_NW,
+                    cc2::Tile::RevolvDoor_NE, cc2::Tile::RevolvDoor_SE,
+                    cc2::Tile::FlameJet_Off, cc2::Tile::FlameJet_On,
+                    cc2::Tile::LSwitchFloor, cc2::Tile::LSwitchWall})) {
                 matches << QPoint(sx, sy);
             } else {
                 // Only match track tiles if the track has a switch
@@ -497,7 +486,7 @@ static QList<QPoint> areaCtlSearch(int x, int y, const cc2::MapData& map)
     return matches;
 }
 
-static QPoint diamondClosest(const QVector<cc2::Tile::Type>& controlTypes,
+static QPoint diamondClosest(const std::vector<cc2::Tile::Type>& controlTypes,
                              int x, int y, const cc2::MapData& map)
 {
     int sx = x + 1, sy = y;
@@ -510,10 +499,8 @@ static QPoint diamondClosest(const QVector<cc2::Tile::Type>& controlTypes,
     // until the entire board has been searched.
     while (scannedTiles < allTiles) {
         if (sx >= 0 && sy >= 0 && sx < map.width() && sy < map.height()) {
-            for (cc2::Tile::Type type : controlTypes) {
-                if (map.haveTile(sx, sy, type))
-                    return QPoint(sx, sy);
-            }
+            if (map.haveTile(sx, sy, controlTypes))
+                return QPoint(sx, sy);
             ++scannedTiles;
         }
 

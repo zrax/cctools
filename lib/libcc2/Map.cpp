@@ -1154,6 +1154,20 @@ bool cc2::MapData::haveTile(int x, int y, Tile::Type type) const
     return false;
 }
 
+bool cc2::MapData::haveTile(int x, int y, const std::vector<Tile::Type>& types) const
+{
+    const cc2::Tile* stile = &tile(x, y);
+    do {
+        for (Tile::Type type : types) {
+            if (stile->type() == type)
+                return true;
+        }
+        stile = stile->lower();
+    } while (stile);
+
+    return false;
+}
+
 
 void cc2::Map::copyFrom(const cc2::Map* map)
 {

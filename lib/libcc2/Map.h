@@ -391,6 +391,7 @@ public:
     }
 
     bool haveTile(int x, int y, Tile::Type type) const;
+    bool haveTile(int x, int y, const std::vector<Tile::Type>& types) const;
 
 private:
     uint8_t m_width, m_height;
