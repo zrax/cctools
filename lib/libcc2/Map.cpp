@@ -1142,19 +1142,16 @@ std::tuple<int, int> cc2::MapData::countPoints() const
     return points;
 }
 
-static bool _haveTile(const cc2::Tile* tile, cc2::Tile::Type type)
-{
-    if (tile->type() == type)
-        return true;
-    const cc2::Tile* lower = tile->lower();
-    if (lower)
-        return _haveTile(lower, type);
-    return false;
-}
-
 bool cc2::MapData::haveTile(int x, int y, Tile::Type type) const
 {
-    return _haveTile(&tile(x, y), type);
+    const cc2::Tile* stile = &tile(x, y);
+    do {
+        if (stile->type() == type)
+            return true;
+        stile = stile->lower();
+    } while (stile);
+
+    return false;
 }
 
 

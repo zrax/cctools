@@ -452,6 +452,51 @@ static QList<QPoint> scanForButtons(cc2::Tile::Type buttonType,
     Q_UNREACHABLE();
 }
 
+static QList<QPoint> areaCtlSearch(int x, int y, const cc2::MapData& map)
+{
+    QList<QPoint> matches;
+
+    const int xmin = std::max(x - 2, 0);
+    const int xmax = std::min(x + 2, map.width() - 1);
+    const int ymin = std::max(y - 2, 0);
+    const int ymax = std::min(y + 2, map.height() - 1);
+    for (int sy = ymin; sy <= ymax; ++sy) {
+        for (int sx = xmin; sx <= xmax; ++sx) {
+            if (map.haveTile(sx, sy, cc2::Tile::Force_N)
+                    || map.haveTile(sx, sy, cc2::Tile::Force_E)
+                    || map.haveTile(sx, sy, cc2::Tile::Force_S)
+                    || map.haveTile(sx, sy, cc2::Tile::Force_W)
+                    || map.haveTile(sx, sy, cc2::Tile::ToggleWall)
+                    || map.haveTile(sx, sy, cc2::Tile::ToggleFloor)
+                    || map.haveTile(sx, sy, cc2::Tile::CC1_Cloner)
+                    || map.haveTile(sx, sy, cc2::Tile::Cloner)
+                    || map.haveTile(sx, sy, cc2::Tile::RevolvDoor_SW)
+                    || map.haveTile(sx, sy, cc2::Tile::RevolvDoor_NW)
+                    || map.haveTile(sx, sy, cc2::Tile::RevolvDoor_NE)
+                    || map.haveTile(sx, sy, cc2::Tile::RevolvDoor_SE)
+                    || map.haveTile(sx, sy, cc2::Tile::FlameJet_Off)
+                    || map.haveTile(sx, sy, cc2::Tile::FlameJet_On)
+                    || map.haveTile(sx, sy, cc2::Tile::LSwitchFloor)
+                    || map.haveTile(sx, sy, cc2::Tile::LSwitchWall)) {
+                matches << QPoint(sx, sy);
+            } else {
+                // Only match track tiles if the track has a switch
+                const cc2::Tile* trackTile = &map.tile(sx, sy);
+                while (trackTile) {
+                    if (trackTile->type() == cc2::Tile::TrainTracks
+                            && (trackTile->modifier() & cc2::TileModifier::TrackSwitch) != 0) {
+                        matches << QPoint(sx, sy);
+                        break;
+                    }
+                    trackTile = trackTile->lower();
+                }
+            }
+        }
+    }
+
+    return matches;
+}
+
 static QPoint diamondClosest(const QVector<cc2::Tile::Type>& controlTypes,
                              int x, int y, const cc2::MapData& map)
 {
@@ -825,6 +870,15 @@ void CC2EditorWidget::mouseMoveEvent(QMouseEvent* event)
             if (!tipText.isEmpty())
                 tipText += QLatin1Char('\n');
             tipText += tr("Flame Jet: (%1, %2)").arg(jet.x()).arg(jet.y());
+        }
+    }
+    if (map.haveTile(posX, posY, cc2::Tile::AreaCtlButton)) {
+        QList<QPoint> controlTiles = areaCtlSearch(posX, posY, map);
+        for (const QPoint& tile : controlTiles) {
+            m_hilights << tile;
+            if (!tipText.isEmpty())
+                tipText += QLatin1Char('\n');
+            tipText += tr("(%1, %2)").arg(tile.x()).arg(tile.y());
         }
     }
     std::string clue = m_map->clueForTile(posX, posY);
