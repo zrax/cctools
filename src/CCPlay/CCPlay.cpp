@@ -29,7 +29,6 @@
 #include <QSqlQuery>
 #include <QProcess>
 #include <QStandardPaths>
-#include <memory>
 #include "PlaySettings.h"
 #include "libcc1/Levelset.h"
 #include "libcc1/DacFile.h"
@@ -46,8 +45,8 @@
 #define QT_SKIP_EMPTY_PARTS QString::SkipEmptyParts
 #endif
 
-static std::unique_ptr<ccl::Levelset>
-load_levelset(const QString& filename, QWidget* self, int* dacLastLevel = nullptr)
+std::unique_ptr<ccl::Levelset>
+CCPlayMain::loadLevelset(const QString& filename, int* dacLastLevel)
 {
     ccl::LevelsetType type = ccl::DetermineLevelsetType(filename);
     ccl::FileStream stream;
@@ -55,8 +54,8 @@ load_levelset(const QString& filename, QWidget* self, int* dacLastLevel = nullpt
     if (type == ccl::LevelsetCcl) {
         try {
             if (!stream.open(filename, ccl::FileStream::Read)) {
-                QMessageBox::critical(self, self->tr("Error Reading Levelset"),
-                        self->tr("Error Opening levelset file %1").arg(filename));
+                QMessageBox::critical(this, tr("Error Reading Levelset"),
+                        tr("Error Opening levelset file %1").arg(filename));
                 return {};
             }
             levelset = std::make_unique<ccl::Levelset>();
@@ -65,8 +64,8 @@ load_levelset(const QString& filename, QWidget* self, int* dacLastLevel = nullpt
         } catch (const ccl::RuntimeError& e) {
             qDebug("Error trying to load %s: %s", qPrintable(filename),
                    qPrintable(e.message()));
-            QMessageBox::critical(self, self->tr("Error Reading Levelset"),
-                    self->tr("Error Reading levelset file %1: %2")
+            QMessageBox::critical(this, tr("Error Reading Levelset"),
+                    tr("Error Reading levelset file %1: %2")
                     .arg(filename).arg(e.message()));
             return {};
         }
@@ -76,8 +75,8 @@ load_levelset(const QString& filename, QWidget* self, int* dacLastLevel = nullpt
     } else if (type == ccl::LevelsetDac) {
         FILE* dac = ccl::FileStream::Fopen(filename, ccl::FileStream::ReadText);
         if (!dac) {
-            QMessageBox::critical(self, self->tr("Error reading levelset"),
-                                  self->tr("Could not open file: %1")
+            QMessageBox::critical(this, tr("Error reading levelset"),
+                                  tr("Could not open file: %1")
                                   .arg(filename));
             return {};
         }
@@ -94,8 +93,8 @@ load_levelset(const QString& filename, QWidget* self, int* dacLastLevel = nullpt
         } catch (const ccl::RuntimeError& e) {
             qDebug("Error trying to load %s: %s", qPrintable(filename),
                    qPrintable(e.message()));
-            QMessageBox::critical(self, self->tr("Error reading levelset"),
-                                  self->tr("Error loading levelset descriptor for %1: %2")
+            QMessageBox::critical(this, tr("Error reading levelset"),
+                                  tr("Error loading levelset descriptor for %1: %2")
                                   .arg(filename).arg(e.message()));
             fclose(dac);
             return {};
@@ -111,8 +110,8 @@ load_levelset(const QString& filename, QWidget* self, int* dacLastLevel = nullpt
             } catch (const ccl::RuntimeError& e) {
                 qDebug("Error trying to load %s: %s", qPrintable(filename),
                        qPrintable(e.message()));
-                QMessageBox::critical(self, self->tr("Error reading levelset"),
-                                      self->tr("Error loading levelset: %1").arg(e.message()));
+                QMessageBox::critical(this, tr("Error reading levelset"),
+                                      tr("Error loading levelset: %1").arg(e.message()));
                 stream.close();
                 return {};
             }
@@ -120,14 +119,14 @@ load_levelset(const QString& filename, QWidget* self, int* dacLastLevel = nullpt
                 *dacLastLevel = (dacInfo.m_lastLevel == 0) ? levelset->levelCount() : dacInfo.m_lastLevel;
             return levelset;
         } else {
-            QMessageBox::critical(self, self->tr("Error opening levelset"),
-                                  self->tr("Error: could not open file %1")
+            QMessageBox::critical(this, tr("Error opening levelset"),
+                                  tr("Error: could not open file %1")
                                   .arg(dacInfo.m_filename));
             return {};
         }
     } else {
-        QMessageBox::critical(self, self->tr("Error reading levelset"),
-                              self->tr("Cannot determine file type for %1").arg(filename));
+        QMessageBox::critical(this, tr("Error reading levelset"),
+                              tr("Cannot determine file type for %1").arg(filename));
         return {};
     }
 }
@@ -412,13 +411,13 @@ void CCPlayMain::onPlayMSCC()
     }
 #endif
 
-    QString tempExe = QDir::tempPath() + "/CCRun.exe";
-    QString tempDat = QDir::tempPath() + "/CCRun.dat";
+    QString tempExe = QDir::tempPath() + QStringLiteral("/CCRun.exe");
+    QString tempDat = QDir::tempPath() + QStringLiteral("/CCRun.dat");
 
     // Save the levelset to temp file, and extract useful information
     ccl::FileStream stream;
     int dacLastLevel;
-    auto levelset = load_levelset(filename, this, &dacLastLevel);
+    auto levelset = loadLevelset(filename, &dacLastLevel);
     if (!levelset)
         return;
     if (!stream.open(tempDat, ccl::FileStream::Write)) {
@@ -684,7 +683,7 @@ void CCPlayMain::onPlayTWorld()
     size_t extraBytes = tws.read8();
     tws.seek(extraBytes, SEEK_CUR);
 
-    auto levelset = load_levelset(filename, this);
+    auto levelset = loadLevelset(filename);
     if (!levelset) {
         tws.close();
         return;
@@ -849,7 +848,7 @@ void CCPlayMain::onPathChanged(const QString& path)
                                                 QDir::Name | QDir::IgnoreCase);
     for (const QString& set : setList) {
         QString filename = levelsetDir.absoluteFilePath(set);
-        auto levelset = load_levelset(filename, this);
+        auto levelset = loadLevelset(filename);
         if (!levelset)
             continue;
 
@@ -886,7 +885,7 @@ void CCPlayMain::onLevelsetChanged(QTreeWidgetItem* item, QTreeWidgetItem*)
         return;
 
     QString filename = item->data(0, Qt::UserRole).toString();
-    auto levelset = load_levelset(filename, this);
+    auto levelset = loadLevelset(filename);
     if (!levelset)
         return;
 

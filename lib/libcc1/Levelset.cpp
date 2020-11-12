@@ -429,8 +429,8 @@ ccl::Levelset::Levelset(const ccl::Levelset& init)
 
 ccl::Levelset::~Levelset()
 {
-    for (size_t i=0; i<m_levels.size(); ++i)
-        m_levels[i]->unref();
+    for (LevelData* level : m_levels)
+        level->unref();
 }
 
 std::string ccl::Levelset::RandomPassword()
@@ -445,7 +445,7 @@ std::string ccl::Levelset::RandomPassword()
 ccl::LevelData* ccl::Levelset::addLevel()
 {
     char nameBuf[32];
-    ccl::LevelData* level = new ccl::LevelData();
+    auto level = new ccl::LevelData();
     m_levels.push_back(level);
 
     snprintf(nameBuf, 32, "Level %d", (int)m_levels.size());

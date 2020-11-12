@@ -24,6 +24,9 @@
 #include <QTreeWidget>
 #include <QToolButton>
 #include <QSqlDatabase>
+#include <memory>
+
+namespace ccl { class Levelset; }
 
 class CCPlayMain : public QMainWindow {
     Q_OBJECT
@@ -55,6 +58,9 @@ private:
 
     void refreshTools();
     void refreshScores();
+
+    std::unique_ptr<ccl::Levelset>
+    loadLevelset(const QString& filename, int* dacLastLevel = nullptr);
 
 private slots:
     void onPlayMSCC();
