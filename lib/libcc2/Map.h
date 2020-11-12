@@ -373,7 +373,7 @@ public:
 
     void resize(uint8_t width, uint8_t height);
 
-    int countChips() const;
+    std::tuple<int, int> countChips() const;
     std::tuple<int, int> countPoints() const;
 
     Tile& tile(int x, int y)

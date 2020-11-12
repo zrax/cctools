@@ -2309,7 +2309,11 @@ void CC2EditMain::updateMapProperties(cc2::Map* map)
     m_editorVersion->setText(ccl::fromLatin1(map->editorVersion()));
     m_mapSize->setText(tr("%1 x %2").arg(map->mapData().width())
                                     .arg(map->mapData().height()));
-    m_chipCounter->setText(QString::number(map->mapData().countChips()));
+    const std::tuple<int, int> chips = map->mapData().countChips();
+    if (std::get<0>(chips) != std::get<1>(chips))
+        m_chipCounter->setText(tr("%1 (of %2)").arg(std::get<0>(chips)).arg(std::get<1>(chips)));
+    else
+        m_chipCounter->setText(QString::number(std::get<0>(chips)));
     const auto points = map->mapData().countPoints();
     if (std::get<1>(points) != 1) {
         m_pointCounter->setText(tr("%1 (x%2)").arg(std::get<0>(points))

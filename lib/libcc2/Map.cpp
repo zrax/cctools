@@ -1080,27 +1080,36 @@ void cc2::MapData::resize(uint8_t width, uint8_t height)
     m_height = height;
 }
 
-static int tileChips(const cc2::Tile* tile)
+static std::tuple<int, int> tileChips(const cc2::Tile* tile)
 {
     const cc2::Tile* lower = tile->lower();
-    const int lowerChips = lower ? tileChips(lower) : 0;
+    auto chips = lower ? tileChips(lower) : std::make_tuple(0, 0);
 
     switch (tile->type()) {
     case cc2::Tile::Chip:
     case cc2::Tile::GreenChip:
     case cc2::Tile::GreenBomb:
-        return 1 + lowerChips;
+        std::get<0>(chips) += 1;
+        /* fall through */
+    case cc2::Tile::ExtraChip:
+        std::get<1>(chips) += 1;
+        break;
     default:
-        return lowerChips;
+        break;
     }
+
+    return chips;
 }
 
-int cc2::MapData::countChips() const
+std::tuple<int, int> cc2::MapData::countChips() const
 {
-    int chips = 0;
+    auto chips = std::make_tuple(0, 0);
     const Tile* mapEnd = m_map + (m_width * m_height);
-    for (const Tile* tp = m_map; tp != mapEnd; ++tp)
-        chips += tileChips(tp);
+    for (const Tile* tp = m_map; tp != mapEnd; ++tp) {
+        const std::tuple<int, int> tc = tileChips(tp);
+        std::get<0>(chips) += std::get<0>(tc);
+        std::get<1>(chips) += std::get<1>(tc);
+    }
     return chips;
 }
 
