@@ -64,9 +64,7 @@ std::string matchOperator(const char* lineBuffer)
 
 void cc2::GameScript::read(const QString& filename)
 {
-    std::unique_ptr<FILE, decltype(&fclose)> stream(
-            ccl::FileStream::Fopen(filename, ccl::FileStream::ReadText),
-            &fclose);
+    ccl::unique_FILE stream = ccl::FileStream::Fopen(filename, ccl::FileStream::ReadText);
     if (!stream)
         throw ccl::IOError(ccl::RuntimeError::tr("Could not open file for reading"));
 

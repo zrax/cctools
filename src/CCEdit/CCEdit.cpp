@@ -821,7 +821,7 @@ void CCEditMain::loadLevelset(const QString& filename)
         setLevelsetFilename(filename);
         m_useDac = false;
     } else if (type == ccl::LevelsetDac) {
-        FILE* dac = ccl::FileStream::Fopen(filename, ccl::FileStream::ReadText);
+        ccl::unique_FILE dac = ccl::FileStream::Fopen(filename, ccl::FileStream::ReadText);
         if (!dac) {
             QMessageBox::critical(this, tr("Error opening levelset"),
                                   tr("Error: could not open file %1").arg(filename));
@@ -829,13 +829,11 @@ void CCEditMain::loadLevelset(const QString& filename)
         }
 
         try {
-            m_dacInfo.read(dac);
-            fclose(dac);
+            m_dacInfo.read(dac.get());
         } catch (const ccl::RuntimeError& e) {
             QMessageBox::critical(this, tr("Error reading levelset"),
                                   tr("Error loading levelset descriptor: %1")
                                   .arg(e.message()));
-            fclose(dac);
             return;
         }
 
@@ -928,16 +926,14 @@ void CCEditMain::saveLevelset(const QString& filename)
         return;
 
     if (m_useDac) {
-        FILE* dac = ccl::FileStream::Fopen(filename, ccl::FileStream::WriteText);
+        ccl::unique_FILE dac = ccl::FileStream::Fopen(filename, ccl::FileStream::WriteText);
         if (dac) {
             try {
-                m_dacInfo.write(dac);
-                fclose(dac);
+                m_dacInfo.write(dac.get());
             } catch (const ccl::RuntimeError& e) {
                 QMessageBox::critical(this, tr("Error saving levelset"),
                                       tr("Error saving levelset descriptor: %1")
                                       .arg(e.message()));
-                fclose(dac);
                 return;
             }
 
@@ -1947,7 +1943,7 @@ void CCEditMain::onTestChips()
     exePath.cdUp();
 
     m_tempIni = exePath.absoluteFilePath("CCRun.ini");
-    FILE* iniStream = ccl::FileStream::Fopen(m_tempIni, ccl::FileStream::ReadWriteText);
+    ccl::unique_FILE iniStream = ccl::FileStream::Fopen(m_tempIni, ccl::FileStream::ReadWriteText);
     if (!iniStream)
         iniStream = ccl::FileStream::Fopen(m_tempIni, ccl::FileStream::RWCreateText);
     if (!iniStream) {
@@ -1959,22 +1955,21 @@ void CCEditMain::onTestChips()
     }
     try {
         ccl::IniFile ini;
-        ini.read(iniStream);
+        ini.read(iniStream.get());
         ini.setSection("CCEdit Playtest");
         ini.setInt("Current Level", levelNum + 1);
         ini.setString(ccl::toLatin1(QStringLiteral("Level%1").arg(levelNum + 1)),
                       editor->levelData()->password());
-        ini.write(iniStream);
-        fclose(iniStream);
+        ini.write(iniStream.get());
     } catch (const ccl::RuntimeError& e) {
         QMessageBox::critical(this, tr("Error writing CCRun.ini"),
                 tr("Error writing INI file: %1").arg(e.message()));
-        fclose(iniStream);
         QFile::remove(m_tempExe);
         QFile::remove(m_tempDat);
         QFile::remove(m_tempIni);
         return;
     }
+    iniStream.reset();      // Force close of the file
 
     QDir::setCurrent(exePath.absolutePath());
     m_subProc = new QProcess(this);

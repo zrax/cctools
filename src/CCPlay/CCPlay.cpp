@@ -60,7 +60,6 @@ CCPlayMain::loadLevelset(const QString& filename, int* dacLastLevel)
             }
             levelset = std::make_unique<ccl::Levelset>();
             levelset->read(&stream);
-            stream.close();
         } catch (const ccl::RuntimeError& e) {
             qDebug("Error trying to load %s: %s", qPrintable(filename),
                    qPrintable(e.message()));
@@ -73,7 +72,7 @@ CCPlayMain::loadLevelset(const QString& filename, int* dacLastLevel)
             *dacLastLevel = (levelset->levelCount() == 149) ? 144 : levelset->levelCount();
         return levelset;
     } else if (type == ccl::LevelsetDac) {
-        FILE* dac = ccl::FileStream::Fopen(filename, ccl::FileStream::ReadText);
+        ccl::unique_FILE dac = ccl::FileStream::Fopen(filename, ccl::FileStream::ReadText);
         if (!dac) {
             QMessageBox::critical(this, tr("Error reading levelset"),
                                   tr("Could not open file: %1")
@@ -82,13 +81,11 @@ CCPlayMain::loadLevelset(const QString& filename, int* dacLastLevel)
         }
         ccl::DacFile dacInfo;
         try {
-            dacInfo.read(dac);
-            fclose(dac);
+            dacInfo.read(dac.get());
         } catch (const ccl::FormatError&) {
             // Tried to read an invalid levelset file (probably not really
             // a levelset -- e.g. "unins000.dat")
             qDebug("Format error trying to load %s", qPrintable(filename));
-            fclose(dac);
             return {};
         } catch (const ccl::RuntimeError& e) {
             qDebug("Error trying to load %s: %s", qPrintable(filename),
@@ -96,7 +93,6 @@ CCPlayMain::loadLevelset(const QString& filename, int* dacLastLevel)
             QMessageBox::critical(this, tr("Error reading levelset"),
                                   tr("Error loading levelset descriptor for %1: %2")
                                   .arg(filename).arg(e.message()));
-            fclose(dac);
             return {};
         }
 
@@ -106,13 +102,11 @@ CCPlayMain::loadLevelset(const QString& filename, int* dacLastLevel)
             try {
                 levelset = std::make_unique<ccl::Levelset>();
                 levelset->read(&stream);
-                stream.close();
             } catch (const ccl::RuntimeError& e) {
                 qDebug("Error trying to load %s: %s", qPrintable(filename),
                        qPrintable(e.message()));
                 QMessageBox::critical(this, tr("Error reading levelset"),
                                       tr("Error loading levelset: %1").arg(e.message()));
-                stream.close();
                 return {};
             }
             if (dacLastLevel)
@@ -487,7 +481,7 @@ void CCPlayMain::onPlayMSCC()
     }
 
     QString tempIni = exePath.absoluteFilePath("CCRun.ini");
-    FILE* iniStream = ccl::FileStream::Fopen(tempIni, ccl::FileStream::ReadWriteText);
+    ccl::unique_FILE iniStream = ccl::FileStream::Fopen(tempIni, ccl::FileStream::ReadWriteText);
     if (!iniStream)
         iniStream = ccl::FileStream::Fopen(tempIni, ccl::FileStream::RWCreateText);
     if (!iniStream) {
@@ -499,7 +493,7 @@ void CCPlayMain::onPlayMSCC()
     }
     try {
         ccl::IniFile ini;
-        ini.read(iniStream);
+        ini.read(iniStream.get());
         ini.setSection("CCPlay Runtime");
         ini.setInt("Current Level", curLevel);
         ini.setInt("Highest Level", highLevel);
@@ -524,17 +518,16 @@ void CCPlayMain::onPlayMSCC()
             ini.setString(ccl::toLatin1(QStringLiteral("Level%1").arg(curLevel)),
                           levelset->level(curLevel - 1)->password());
         }
-        ini.write(iniStream);
-        fclose(iniStream);
+        ini.write(iniStream.get());
     } catch (const ccl::RuntimeError& e) {
         QMessageBox::critical(this, tr("Error writing CCRun.ini"),
                 tr("Error writing INI file: %1").arg(e.message()));
-        fclose(iniStream);
         QFile::remove(tempExe);
         QFile::remove(tempDat);
         QFile::remove(tempIni);
         return;
     }
+    iniStream.reset();      // Force a close of the file...
 
     QDir::setCurrent(exePath.absolutePath());
     if (!winePath.isEmpty()) {
@@ -558,7 +551,7 @@ void CCPlayMain::onPlayMSCC()
     }
     try {
         ccl::IniFile ini;
-        ini.read(iniStream);
+        ini.read(iniStream.get());
         ini.setSection("CCPlay Runtime");
         curLevel = ini.getInt("Current Level");
         highLevel = ini.getInt("Highest Level");
@@ -609,7 +602,6 @@ void CCPlayMain::onPlayMSCC()
     } catch (const ccl::RuntimeError& e) {
         QMessageBox::critical(this, tr("Error reading CCRun.ini"),
                 tr("Error reading INI file: %1").arg(e.message()));
-        fclose(iniStream);
         QFile::remove(tempExe);
         QFile::remove(tempDat);
         QFile::remove(tempIni);

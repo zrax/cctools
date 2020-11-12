@@ -44,6 +44,8 @@ typedef unsigned char tile_t;
 
 namespace ccl {
 
+typedef std::unique_ptr<FILE, decltype(&fclose)> unique_FILE;
+
 class Stream {
 public:
     Stream() { }
@@ -91,7 +93,7 @@ public:
         ReadWriteText = 23,
         RWCreateText = 24,
     };
-    static FILE* Fopen(const QString& filename, OpenMode mode);
+    static unique_FILE Fopen(const QString& filename, OpenMode mode);
     bool open(const QString& filename, OpenMode mode);
 
     bool isOpen() const { return m_file != nullptr; }

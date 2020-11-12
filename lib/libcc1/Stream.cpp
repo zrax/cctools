@@ -312,7 +312,7 @@ long ccl::Stream::pack(Stream* unpacked)
 #   define FS_MODE(mode)    mode
 #endif
 
-FILE* ccl::FileStream::Fopen(const QString& filename, OpenMode mode)
+ccl::unique_FILE ccl::FileStream::Fopen(const QString& filename, OpenMode mode)
 {
 #ifdef Q_OS_WIN
     const wchar_t* mode_str;
@@ -352,15 +352,16 @@ FILE* ccl::FileStream::Fopen(const QString& filename, OpenMode mode)
 #ifdef Q_OS_WIN
     static_assert(sizeof(wchar_t) == sizeof(filename.utf16()[0]),
                   "Size mismatch between wchar_t and QString::utf16()");
-    return _wfopen(reinterpret_cast<const wchar_t*>(filename.utf16()), mode_str);
+    return {_wfopen(reinterpret_cast<const wchar_t*>(filename.utf16()), mode_str), &fclose};
 #else
-    return fopen(filename.toLocal8Bit().constData(), mode_str);
+    return {fopen(filename.toLocal8Bit().constData(), mode_str), &fclose};
 #endif
 }
 
 bool ccl::FileStream::open(const QString& filename, OpenMode mode)
 {
-    m_file = Fopen(filename, mode);
+    close();
+    m_file = Fopen(filename, mode).release();
     return isOpen();
 }
 
