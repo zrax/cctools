@@ -146,7 +146,7 @@ private:
         ActionViewMonsterPaths,
         ActionZoom100, ActionZoom75, ActionZoom50, ActionZoom25, ActionZoom125,
         ActionZoomCust, ActionZoomFit, ActionTest, ActionTestSetup, ActionAbout,
-        ActionReloadScript, ActionEditScript,
+        ActionScriptHelp, ActionReloadScript, ActionEditScript,
         NUM_ACTIONS
     };
 

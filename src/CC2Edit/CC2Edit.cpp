@@ -29,6 +29,7 @@
 #include "CommonWidgets/EditorTabWidget.h"
 
 #include <QApplication>
+#include <QDesktopServices>
 #include <QSettings>
 #include <QDir>
 #include <QStandardPaths>
@@ -246,6 +247,8 @@ CC2EditMain::CC2EditMain(QWidget* parent)
 
     m_actions[ActionAbout] = new QAction(ICON("help-about"), tr("&About CC2Edit"), this);
     m_actions[ActionAbout]->setStatusTip(tr("Show information about CC2Edit"));
+    m_actions[ActionScriptHelp] = new QAction(tr("&C2G Scripting Reference"), this);
+    m_actions[ActionScriptHelp]->setStatusTip(tr("Open the C2G scripting reference wiki (external)"));
 
     m_actions[ActionReloadScript] = new QAction(ICON("view-refresh"),
                                                 tr("&Reload Game Script"), this);
@@ -824,6 +827,8 @@ CC2EditMain::CC2EditMain(QWidget* parent)
 
     QMenu* helpMenu = menuBar()->addMenu(tr("&Help"));
     helpMenu->addAction(m_actions[ActionAbout]);
+    helpMenu->addSeparator();
+    helpMenu->addAction(m_actions[ActionScriptHelp]);
 
     // Tool bars
     QToolBar* tbarMain = addToolBar(QString());
@@ -906,6 +911,10 @@ CC2EditMain::CC2EditMain(QWidget* parent)
         AboutDialog about(QStringLiteral("CC2Edit"),
                           QPixmap(QStringLiteral(":/icons/boot-32.png")), this);
         about.exec();
+    });
+
+    connect(m_actions[ActionScriptHelp], &QAction::triggered, this, [] {
+        QDesktopServices::openUrl(QUrl(QStringLiteral("https://wiki.bitbusters.club/C2G")));
     });
 
     connect(m_actions[ActionReloadScript], &QAction::triggered, this, [this] {
