@@ -465,8 +465,7 @@ void CCPlayMain::onPlayMSCC()
 
     // Configure the INI file
     QString cwd = QDir::currentPath();
-    QDir exePath = chipsExe;
-    exePath.cdUp();
+    QDir exePath = QFileInfo(chipsExe).absoluteDir();
 
     QSqlQuery query;
     QString setName = filename.section(QLatin1Char('/'), -1);
@@ -480,7 +479,18 @@ void CCPlayMain::onPlayMSCC()
         curLevel = query.value(2).toInt();
     }
 
-    QString tempIni = exePath.absoluteFilePath("CCRun.ini");
+    QString tempIni;
+#ifdef Q_OS_WIN
+    if (!winePath.isEmpty()) {
+        // WineVDM doesn't support .ini file from the current directory...
+        QDir winevdmPath = QFileInfo(winePath).absoluteDir();
+        tempIni = winevdmPath.absoluteFilePath("WINDOWS/CCRun.ini");
+    } else {
+#endif
+        tempIni = exePath.absoluteFilePath("CCRun.ini");
+#ifdef Q_OS_WIN
+    }
+#endif
     ccl::unique_FILE iniStream = ccl::FileStream::Fopen(tempIni, ccl::FileStream::ReadWriteText);
     if (!iniStream)
         iniStream = ccl::FileStream::Fopen(tempIni, ccl::FileStream::RWCreateText);

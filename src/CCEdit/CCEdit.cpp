@@ -1939,10 +1939,19 @@ void CCEditMain::onTestChips()
 
     // Configure the INI file
     QString cwd = QDir::currentPath();
-    QDir exePath = chipsExe;
-    exePath.cdUp();
+    QDir exePath = QFileInfo(chipsExe).absoluteDir();
 
-    m_tempIni = exePath.absoluteFilePath("CCRun.ini");
+#ifdef Q_OS_WIN
+    if (!winePath.isEmpty()) {
+        // WineVDM doesn't support .ini file from the current directory...
+        QDir winevdmPath = QFileInfo(winePath).absoluteDir();
+        m_tempIni = winevdmPath.absoluteFilePath("WINDOWS/CCRun.ini");
+    } else {
+#endif
+        m_tempIni = exePath.absoluteFilePath("CCRun.ini");
+#ifdef Q_OS_WIN
+    }
+#endif
     ccl::unique_FILE iniStream = ccl::FileStream::Fopen(m_tempIni, ccl::FileStream::ReadWriteText);
     if (!iniStream)
         iniStream = ccl::FileStream::Fopen(m_tempIni, ccl::FileStream::RWCreateText);
