@@ -1431,6 +1431,10 @@ CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename, 
         m_editorTabs->promoteTab();
     });
 
+    connect(editor, &CC2EditorWidget::updateCounters, this, [this, editor] {
+        updateCounters(editor->map()->mapData());
+    });
+
     connect(this, &CC2EditMain::tilesetChanged, editor, &CC2EditorWidget::setTileset);
     connect(this, &CC2EditMain::leftTileChanged, editor, &CC2EditorWidget::setLeftTile);
     connect(this, &CC2EditMain::rightTileChanged, editor, &CC2EditorWidget::setRightTile);
@@ -2301,6 +2305,22 @@ void CC2EditMain::onTabChanged(int index)
     }
 }
 
+void CC2EditMain::updateCounters(const cc2::MapData& mapData)
+{
+    const std::tuple<int, int> chips = mapData.countChips();
+    if (std::get<0>(chips) != std::get<1>(chips))
+        m_chipCounter->setText(tr("%1 (of %2)").arg(std::get<0>(chips)).arg(std::get<1>(chips)));
+    else
+        m_chipCounter->setText(QString::number(std::get<0>(chips)));
+    const auto points = mapData.countPoints();
+    if (std::get<1>(points) != 1) {
+        m_pointCounter->setText(tr("%1 (x%2)").arg(std::get<0>(points))
+                                        .arg(std::get<1>(points)));
+    } else {
+        m_pointCounter->setText(QString::number(std::get<0>(points)));
+    }
+}
+
 void CC2EditMain::updateMapProperties(cc2::Map* map)
 {
     m_title->setText(ccl::fromLatin1(map->title()));
@@ -2309,18 +2329,7 @@ void CC2EditMain::updateMapProperties(cc2::Map* map)
     m_editorVersion->setText(ccl::fromLatin1(map->editorVersion()));
     m_mapSize->setText(tr("%1 x %2").arg(map->mapData().width())
                                     .arg(map->mapData().height()));
-    const std::tuple<int, int> chips = map->mapData().countChips();
-    if (std::get<0>(chips) != std::get<1>(chips))
-        m_chipCounter->setText(tr("%1 (of %2)").arg(std::get<0>(chips)).arg(std::get<1>(chips)));
-    else
-        m_chipCounter->setText(QString::number(std::get<0>(chips)));
-    const auto points = map->mapData().countPoints();
-    if (std::get<1>(points) != 1) {
-        m_pointCounter->setText(tr("%1 (x%2)").arg(std::get<0>(points))
-                                                .arg(std::get<1>(points)));
-    } else {
-        m_pointCounter->setText(QString::number(std::get<0>(points)));
-    }
+    updateCounters(map->mapData());
     m_timeLimit->setValue(map->option().timeLimit());
     m_viewport->setCurrentIndex(static_cast<int>(map->option().view()));
     m_blobPattern->setCurrentIndex(static_cast<int>(map->option().blobPattern()));

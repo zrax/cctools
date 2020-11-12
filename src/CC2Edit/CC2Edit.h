@@ -110,6 +110,7 @@ private slots:
 
     void onTabClosed(int);
     void onTabChanged(int);
+    void updateCounters(const cc2::MapData& map);
     void updateMapProperties(cc2::Map* map);
 
     void setLeftTile(const cc2::Tile&);

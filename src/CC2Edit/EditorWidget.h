@@ -128,6 +128,7 @@ signals:
     void canRedoChanged(bool);
     void cleanChanged(bool);
     void hasSelection(bool);
+    void updateCounters();
 
     void tilePicked(int x, int y);
 

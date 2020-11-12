@@ -248,6 +248,8 @@ void CC2EditorWidget::endEdit()
 {
     if (m_undoCommand->leave(m_map)) {
         m_undoStack->push(m_undoCommand);
+        if (m_undoCommand->id() == CC2EditHistory::EditMap)
+            emit updateCounters();
         m_undoCommand = nullptr;
     }
     dirtyBuffer();
