@@ -138,6 +138,9 @@ TileInspector::TileInspector(QWidget* parent)
     layout->addWidget(buttons, ++row, 0, 1, 4);
 
     connect(m_layers, &QListWidget::currentRowChanged, this, &TileInspector::onChangeLayer);
+
+    // Initialize flag names
+    setTileType(0);
 }
 
 void TileInspector::setTileset(CC2ETileset* tileset)
@@ -193,8 +196,9 @@ void TileInspector::onChangeLayer(int layer)
     m_paging = true;
 
     cc2::Tile* tile = tileLayer(layer);
-    if (tile->type() < cc2::Tile::NUM_TILE_TYPES)
-        m_tileType->setCurrentIndex((int)tile->type());
+    const int tileIndex = m_tileType->findData((int)tile->type());
+    if (tileIndex >= 0)
+        m_tileType->setCurrentIndex(tileIndex);
     else
         m_tileType->setCurrentIndex(m_tileType->count() - 1);
     m_tileTypeId->setValue((int)tile->type());
@@ -215,7 +219,7 @@ void TileInspector::onChangeLayer(int layer)
 void TileInspector::setTileType(int type)
 {
     m_tileDir->setEnabled(cc2::Tile::haveDirection(type));
-    if (!m_tileDirValue->isEnabled())
+    if (!m_tileDir->isEnabled())
         m_tileDirValue->setEnabled(false);
     else
         m_tileDirValue->setEnabled(m_tileDir->itemData(m_tileDir->currentIndex()).isNull());
@@ -243,7 +247,7 @@ void TileInspector::setTileType(int type)
         m_tileFlags[i]->setText(tr("Flag 0x%1").arg(1u << i, 0, 16));
 
     // The below applies only when changing the value from the UI
-    if (m_paging)
+    if (m_paging || !m_tileset)
         return;
 
     int layer = m_layers->currentRow();
