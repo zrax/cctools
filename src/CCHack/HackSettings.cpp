@@ -99,6 +99,10 @@ void HackSettings::setKnownDefaults()
     clear_digits();
     clear_infoBox();
     clear_chipEnd();
+
+    clear_chipsMenu();
+    clear_chipsMenuAccel();
+    set_ignorePasswords("&Ignore Passwords");
 }
 
 void HackSettings::clearAll()
@@ -153,6 +157,10 @@ void HackSettings::clearAll()
     clear_digits();
     clear_infoBox();
     clear_chipEnd();
+
+    clear_chipsMenu();
+    clear_chipsMenuAccel();
+    clear_ignorePasswords();
 }
 
 bool HackSettings::loadFromExe(const QString& filename)
@@ -240,6 +248,15 @@ bool HackSettings::loadFromExe(const QString& filename)
     if (!blob.isNull())
         set_chipEnd(QByteArray((const char*)blob.m_data, blob.m_size));
 
+    // Menus
+    blob = rcDir.loadResource(Win16::RT_Menu, "CHIPSMENU", &exeStream);
+    if (!blob.isNull())
+        set_chipsMenu(QByteArray((const char*)blob.m_data, blob.m_size));
+    blob = rcDir.loadResource(Win16::RT_Accelerator, "CHIPSMENU", &exeStream);
+    if (!blob.isNull())
+        set_chipsMenuAccel(QByteArray((const char*)blob.m_data, blob.m_size));
+    set_ignorePasswords(hax.get_IgnorePwdMenu());
+
     exeStream.close();
     return true;
 }
@@ -293,6 +310,9 @@ static const QString ccp_Background = QStringLiteral("Graphics/BACKGROUND");
 static const QString ccp_Digits = QStringLiteral("Graphics/RC200");
 static const QString ccp_InfoBox = QStringLiteral("Graphics/INFOWND");
 static const QString ccp_ChipEnd = QStringLiteral("Graphics/CHIPEND");
+static const QString ccp_ChipsMenu = QStringLiteral("Menus/CHIPSMENU");
+static const QString ccp_ChipsMenuAccel = QStringLiteral("Menus/CHIPSMENU_Accel");
+static const QString ccp_CheatMenu = QStringLiteral("Menus/Cheat");
 
 static bool validString(const QSettings& settings, const QString& key)
 {
@@ -310,7 +330,7 @@ static bool validInt(const QSettings& settings, const QString& key)
     return ok;
 }
 
-static bool validBitmap(const QSettings& settings, const QString& key)
+static bool validByteArray(const QSettings& settings, const QString& key)
 {
     if (!settings.contains(key))
         return false;
@@ -434,34 +454,42 @@ bool HackSettings::loadFromPatch(const QString& filename)
 
     // Graphics
     const QDir baseDir = QFileInfo(filename).dir();
-    if (validBitmap(patch, ccp_VgaTileset))
+    if (validByteArray(patch, ccp_VgaTileset))
         set_vgaTileset(patch.value(ccp_VgaTileset).toByteArray());
     else if (validFilename(patch, ccp_VgaTileset, baseDir))
         set_vgaTileset(loadRCBitmap(patch.value(ccp_VgaTileset).toString(), baseDir));
-    if (validBitmap(patch, ccp_EgaTileset))
+    if (validByteArray(patch, ccp_EgaTileset))
         set_egaTileset(patch.value(ccp_EgaTileset).toByteArray());
     else if (validFilename(patch, ccp_EgaTileset, baseDir))
         set_egaTileset(loadRCBitmap(patch.value(ccp_EgaTileset).toString(), baseDir));
-    if (validBitmap(patch, ccp_MonoTileset))
+    if (validByteArray(patch, ccp_MonoTileset))
         set_monoTileset(patch.value(ccp_MonoTileset).toByteArray());
     else if (validFilename(patch, ccp_MonoTileset, baseDir))
         set_monoTileset(loadRCBitmap(patch.value(ccp_MonoTileset).toString(), baseDir));
-    if (validBitmap(patch, ccp_Background))
+    if (validByteArray(patch, ccp_Background))
         set_background(patch.value(ccp_Background).toByteArray());
     else if (validFilename(patch, ccp_Background, baseDir))
         set_background(loadRCBitmap(patch.value(ccp_Background).toString(), baseDir));
-    if (validBitmap(patch, ccp_Digits))
+    if (validByteArray(patch, ccp_Digits))
         set_digits(patch.value(ccp_Digits).toByteArray());
     else if (validFilename(patch, ccp_Digits, baseDir))
         set_digits(loadRCBitmap(patch.value(ccp_Digits).toString(), baseDir));
-    if (validBitmap(patch, ccp_InfoBox))
+    if (validByteArray(patch, ccp_InfoBox))
         set_infoBox(patch.value(ccp_InfoBox).toByteArray());
     else if (validFilename(patch, ccp_InfoBox, baseDir))
         set_infoBox(loadRCBitmap(patch.value(ccp_InfoBox).toString(), baseDir));
-    if (validBitmap(patch, ccp_ChipEnd))
+    if (validByteArray(patch, ccp_ChipEnd))
         set_chipEnd(patch.value(ccp_ChipEnd).toByteArray());
     else if (validFilename(patch, ccp_ChipEnd, baseDir))
         set_chipEnd(loadRCBitmap(patch.value(ccp_ChipEnd).toString(), baseDir));
+
+    // Menus
+    if (validByteArray(patch, ccp_ChipsMenu))
+        set_chipsMenu(patch.value(ccp_ChipsMenu).toByteArray());
+    if (validByteArray(patch, ccp_ChipsMenuAccel))
+        set_chipsMenuAccel(patch.value(ccp_ChipsMenuAccel).toByteArray());
+    if (validString(patch, ccp_CheatMenu))
+        set_ignorePasswords(ccl::toLatin1(patch.value(ccp_CheatMenu).toString()));
 
     return true;
 }
@@ -620,6 +648,18 @@ bool HackSettings::writeToExe(const QString& filename) const
         rcDir.updateResource(Win16::RT_Bitmap, "CHIPEND", &exeStream, blob);
     }
 
+    // Menus
+    if (have_chipsMenu()) {
+        Win16::RcBlob blob = toBlob(get_chipsMenu());
+        rcDir.updateResource(Win16::RT_Menu, "CHIPSMENU", &exeStream, blob);
+    }
+    if (have_chipsMenuAccel()) {
+        Win16::RcBlob blob = toBlob(get_chipsMenuAccel());
+        rcDir.updateResource(Win16::RT_Accelerator, "CHIPSMENU", &exeStream, blob);
+    }
+    if (have_ignorePasswords())
+        hax.set_IgnorePwdMenu(get_ignorePasswords());
+
     exeStream.close();
     return true;
 }
@@ -734,6 +774,14 @@ bool HackSettings::writeToPatch(const QString& filename) const
         patch.setValue(ccp_InfoBox, get_infoBox());
     if (have_chipEnd())
         patch.setValue(ccp_ChipEnd, get_chipEnd());
+
+    // Menus (MENU resource stored as a "compiled" blob)
+    if (have_chipsMenu())
+        patch.setValue(ccp_ChipsMenu, get_chipsMenu());
+    if (have_chipsMenuAccel())
+        patch.setValue(ccp_ChipsMenuAccel, get_chipsMenuAccel());
+    if (have_ignorePasswords())
+        patch.setValue(ccp_CheatMenu, ccl::fromLatin1(get_ignorePasswords()));
 
     return true;
 }

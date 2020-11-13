@@ -111,6 +111,10 @@ public:
     MAKE_SETTING_OBJ(QByteArray,    digits);
     MAKE_SETTING_OBJ(QByteArray,    infoBox);
     MAKE_SETTING_OBJ(QByteArray,    chipEnd);
+
+    MAKE_SETTING_OBJ(QByteArray,    chipsMenu);
+    MAKE_SETTING_OBJ(QByteArray,    chipsMenuAccel);
+    MAKE_SETTING_OBJ(std::string,   ignorePasswords);
 };
 
 class HackPage : public QWidget {

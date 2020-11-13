@@ -188,10 +188,20 @@ private:
 
 class RcMenuItem {
 public:
+    enum {
+        MF_GRAYED = 0x01,
+        MF_DISABLED = 0x02,
+        MF_CHECKED = 0x08,
+        MF_POPUP = 0x10,
+        MF_MENUBARBREAK = 0x20,
+        MF_MENUBREAK = 0x40,
+        _LAST_CHILD = 0x80,
+    };
+
     RcMenuItem() : m_flags(), m_id() { }
 
-    void read(ccl::Stream* stream, bool topLevel);
-    void write(ccl::Stream* stream, bool topLevel);
+    void read(ccl::Stream* stream);
+    void write(ccl::Stream* stream);
 
     uint16_t flags() const { return m_flags; }
     uint16_t id() const { return m_id; }
@@ -205,6 +215,8 @@ public:
     const std::vector<RcMenuItem>& children() const { return m_children; }
 
 private:
+    friend class MenuResource;
+
     uint16_t m_flags;
     uint16_t m_id;
     std::string m_name;
@@ -231,6 +243,57 @@ private:
     uint16_t m_version;
     uint16_t m_offset;
     std::vector<RcMenuItem> m_menus;
+};
+
+class Accelerator {
+public:
+    enum {
+        FVIRTKEY = 0x01,
+        FNOINVERT = 0x02,
+        FSHIFT = 0x04,
+        FCONTROL = 0x08,
+        FALT = 0x10,
+        _LAST_CHILD = 0x80,
+    };
+
+    Accelerator() : m_flags(), m_event(), m_id(), m_order(-1) { }
+
+    void read(ccl::Stream* stream);
+    void write(ccl::Stream* stream) const;
+
+    uint8_t flags() const { return m_flags; }
+    uint16_t event() const { return m_event; }
+    uint16_t id() const { return m_id; }
+
+    void setFlags(uint8_t flags) { m_flags = flags; }
+    void setEvent(uint16_t event) { m_event = event; }
+    void setId(uint16_t id) { m_id = id; }
+
+    int order() const { return m_order; }
+    void setOrder(int order) { m_order = order; }
+
+private:
+    friend class AccelResource;
+
+    uint8_t m_flags;
+    uint16_t m_event, m_id;
+
+    // Only used for preserving table order in CCHack
+    int m_order;
+};
+
+class AccelResource {
+public:
+    AccelResource() { }
+
+    void read(ccl::Stream* stream);
+    void write(ccl::Stream* stream);
+
+    std::vector<Accelerator>& accelerators() { return m_accelerators; }
+    const std::vector<Accelerator>& accelerators() const { return m_accelerators; }
+
+private:
+    std::vector<Accelerator> m_accelerators;
 };
 
 }

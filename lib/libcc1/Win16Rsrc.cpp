@@ -187,41 +187,40 @@ bool Win16::ResourceDirectory::updateResource(Resource* res, ccl::Stream* stream
 }
 
 
-void Win16::RcMenuItem::read(ccl::Stream* stream, bool topLevel)
+void Win16::RcMenuItem::read(ccl::Stream* stream)
 {
     m_flags = stream->read16();
-    if (!topLevel)
-        m_id = stream->read16();
-    m_name = stream->readZString();
+    if (m_flags & MF_POPUP) {
+        m_name = stream->readZString();
 
-    if (m_flags & 0x10) {
-        for ( ;; ) {
+        do {
             m_children.emplace_back();
-            m_children.back().read(stream, false);
-            if (m_children.back().m_flags & 0x80)
-                break;
-        }
+            m_children.back().read(stream);
+        } while (!(m_children.back().m_flags & _LAST_CHILD));
+    } else {
+        m_id = stream->read16();
+        m_name = stream->readZString();
     }
 }
 
-void Win16::RcMenuItem::write(ccl::Stream* stream, bool topLevel)
+void Win16::RcMenuItem::write(ccl::Stream* stream)
 {
     if (m_children.empty())
-        m_flags &= ~0x10;
+        m_flags &= ~MF_POPUP;
     else
-        m_flags |= 0x10;
+        m_flags |= MF_POPUP;
 
     stream->write16(m_flags);
-    if (!topLevel)
+    if (m_flags & MF_POPUP) {
+        stream->writeZString(m_name);
+        for (RcMenuItem& item : m_children)
+            item.m_flags &= ~_LAST_CHILD;
+        m_children.back().m_flags |= _LAST_CHILD;
+        for (RcMenuItem& item : m_children)
+            item.write(stream);
+    } else {
         stream->write16(m_id);
-    stream->writeZString(m_name);
-
-    if (!m_children.empty()) {
-        for (RcMenuItem& item : m_children)
-            item.m_flags &= ~0x80;
-        m_children.back().m_flags |= 0x80;
-        for (RcMenuItem& item : m_children)
-            item.write(stream, false);
+        stream->writeZString(m_name);
     }
 }
 
@@ -231,12 +230,10 @@ void Win16::MenuResource::read(ccl::Stream* stream)
     m_version = stream->read16();
     m_offset = stream->read16();
 
-    for ( ;; ) {
+    do {
         m_menus.emplace_back();
-        m_menus.back().read(stream, true);
-        if (m_menus.back().flags() & 0x80)
-            break;
-    }
+        m_menus.back().read(stream);
+    } while (!(m_menus.back().m_flags & RcMenuItem::_LAST_CHILD));
 }
 
 void Win16::MenuResource::write(ccl::Stream* stream)
@@ -248,8 +245,46 @@ void Win16::MenuResource::write(ccl::Stream* stream)
         throw ccl::RuntimeError(ccl::RuntimeError::tr("MenuResource cannot be empty!"));
 
     for (RcMenuItem& item : m_menus)
-        item.setFlags(item.flags() & ~0x80);
-    m_menus.back().setFlags(m_menus.back().flags() | 0x80);
+        item.m_flags &= ~RcMenuItem::_LAST_CHILD;
+    m_menus.back().m_flags |= RcMenuItem::_LAST_CHILD;
     for (RcMenuItem& item : m_menus)
-        item.write(stream, true);
+        item.write(stream);
+}
+
+
+void Win16::Accelerator::read(ccl::Stream* stream)
+{
+    m_flags = stream->read8();
+    m_event = stream->read16();
+    m_id = stream->read16();
+}
+
+void Win16::Accelerator::write(ccl::Stream *stream) const
+{
+    stream->write8(m_flags);
+    stream->write16(m_event);
+    stream->write16(m_id);
+}
+
+
+void Win16::AccelResource::read(ccl::Stream *stream)
+{
+    int order = 0;
+    do {
+        m_accelerators.emplace_back();
+        m_accelerators.back().read(stream);
+        m_accelerators.back().setOrder(++order);
+    } while (!(m_accelerators.back().m_flags & Accelerator::_LAST_CHILD));
+}
+
+void Win16::AccelResource::write(ccl::Stream *stream)
+{
+    if (m_accelerators.empty())
+        throw ccl::RuntimeError(ccl::RuntimeError::tr("AccelResource cannot be empty!"));
+
+    for (Accelerator& item : m_accelerators)
+        item.m_flags &= ~Accelerator::_LAST_CHILD;
+    m_accelerators.back().m_flags |= Accelerator::_LAST_CHILD;
+    for (Accelerator& item : m_accelerators)
+        item.write(stream);
 }

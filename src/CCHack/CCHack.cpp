@@ -31,6 +31,7 @@
 #include "PageSounds.h"
 #include "PageStoryline.h"
 #include "PageBitmap.h"
+#include "PageMenus.h"
 #include "CommonWidgets/CCTools.h"
 
 static void addPageWithType(QTreeWidgetItem* parent, const QString& name, int type)
@@ -134,7 +135,7 @@ CCHackMain::CCHackMain(QWidget* parent)
 
     m_pages[PageGeneral] = new CCHack::PageGeneral(this);
     m_pages[PageSound] = new CCHack::PageSounds(this);
-    m_pages[PageMenus] = new PlaceholderPage(this);
+    m_pages[PageMenus] = new CCHack::PageMenus(this);
     m_pages[PageStory] = new CCHack::PageStoryline(this);
     m_pages[PageEndLevel] = new PlaceholderPage(this);
     m_pages[PageMisc] = new PlaceholderPage(this);
