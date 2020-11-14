@@ -19,6 +19,7 @@
 #include "libcc1/Win16Rsrc.h"
 #include "CommonWidgets/CCTools.h"
 
+#include <QAction>
 #include <QLabel>
 #include <QCheckBox>
 #include <QGroupBox>
@@ -80,6 +81,13 @@ CCHack::PageMenus::PageMenus(QWidget* parent)
     m_menuTree = new QTreeWidget(this);
     m_menuTree->setHeaderHidden(true);
     m_menuTree->setDragDropMode(QAbstractItemView::InternalMove);
+    m_menuTree->setContextMenuPolicy(Qt::ActionsContextMenu);
+
+    m_addMenuAction = new QAction(ICON("list-add"), tr("Add Item"), this);
+    m_delMenuAction = new QAction(ICON("list-remove"), tr("Remove Item"), this);
+    m_delMenuAction->setEnabled(false);
+    m_menuTree->addAction(m_addMenuAction);
+    m_menuTree->addAction(m_delMenuAction);
 
     m_menuItemProps = new QWidget(this);
     m_menuItemName = new QLineEdit(this);
@@ -159,6 +167,25 @@ CCHack::PageMenus::PageMenus(QWidget* parent)
             this, &PageMenus::menuItemChanged);
     connect(m_cbIgnorePasswords, &QCheckBox::toggled,
             m_ignorePasswords, &QWidget::setEnabled);
+
+    connect(m_addMenuAction, &QAction::triggered, this, [this] {
+        QTreeWidgetItem* parent = m_menuTree->currentItem();
+        if (!parent)
+            parent = m_menuTree->invisibleRootItem();
+
+        Win16::RcMenuItem item;
+        item.setName("New Item");
+        auto menuItem = new QTreeWidgetItem(parent, QStringList{ccl::fromLatin1(item.name())});
+        menuItem->setData(0, MenuItemRole, QVariant::fromValue(item));
+        parent->setExpanded(true);
+        m_menuTree->setCurrentItem(menuItem);
+    });
+    connect(m_delMenuAction, &QAction::triggered, this, [this] {
+        QTreeWidgetItem* selected = m_menuTree->currentItem();
+        if (!selected)
+            return;
+        delete selected;
+    });
 }
 
 static void addMenuItems(const std::vector<Win16::RcMenuItem>& menu,
@@ -290,6 +317,7 @@ void CCHack::PageMenus::menuItemChanged(QTreeWidgetItem *current, QTreeWidgetIte
         updateMenuItem(previous);
 
     m_menuItemProps->setEnabled(current != nullptr);
+    m_delMenuAction->setEnabled(current != nullptr);
     if (current) {
         auto item = current->data(0, MenuItemRole).value<Win16::RcMenuItem>();
         const QString itemName = ccl::fromLatin1(item.name());

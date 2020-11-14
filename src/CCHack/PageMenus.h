@@ -43,6 +43,9 @@ private slots:
     void updateMenuItem(QTreeWidgetItem* item);
 
 private:
+    QAction* m_addMenuAction;
+    QAction* m_delMenuAction;
+
     QGroupBox* m_menuGroup;
     QTreeWidget* m_menuTree;
     QWidget* m_menuItemProps;
