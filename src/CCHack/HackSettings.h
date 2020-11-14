@@ -123,7 +123,6 @@ public:
     virtual void setValues(HackSettings* settings) = 0;
     virtual void setDefaults(HackSettings* settings) = 0;
     virtual void saveTo(HackSettings* settings) = 0;
-    virtual void markClean() { }
 };
 
 class PlaceholderPage : public HackPage {

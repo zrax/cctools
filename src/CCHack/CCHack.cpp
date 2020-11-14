@@ -255,8 +255,6 @@ void CCHackMain::onSavePatchAction()
     }
 
     m_settings = saveSettings;
-    for (HackPage* page : m_pages)
-        page->markClean();
 }
 
 void CCHackMain::onWriteExeAction()
@@ -283,8 +281,6 @@ void CCHackMain::onWriteExeAction()
     }
 
     m_settings = saveSettings;
-    for (HackPage* page : m_pages)
-        page->markClean();
 }
 
 void CCHackMain::onResetAction()

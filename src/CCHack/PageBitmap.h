@@ -38,19 +38,18 @@ public:
     void setValues(HackSettings* settings) override;
     void setDefaults(HackSettings*) override { }
     void saveTo(HackSettings* settings) override;
-    void markClean() override;
 
 private slots:
     void onExport();
     void onImport();
-    void onRevert();
+    void updateGraphic();
 
 private:
     int m_which;
     QLabel* m_stateLabel;
     QPushButton* m_exportButton;
     QPushButton* m_importButton;
-    QPushButton* m_revertButton;
+    QPushButton* m_resetButton;
     QLabel* m_preview;
     QByteArray m_bitmap;
     QImage m_image;

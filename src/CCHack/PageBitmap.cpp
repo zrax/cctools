@@ -33,7 +33,7 @@ CCHack::PageBitmap::PageBitmap(int which, QWidget* parent)
     m_exportButton = new QPushButton(tr("&Export..."), this);
     m_exportButton->setEnabled(false);
     m_importButton = new QPushButton(tr("&Import..."), this);
-    m_revertButton = new QPushButton(tr("&Revert"), this);
+    m_resetButton = new QPushButton(tr("&Reset"), this);
 
     m_preview = new QLabel(this);
     m_preview->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -47,12 +47,15 @@ CCHack::PageBitmap::PageBitmap(int which, QWidget* parent)
     layout->addItem(new QSpacerItem(0, 0, QSizePolicy::MinimumExpanding), 0, 1);
     layout->addWidget(m_exportButton, 0, 2);
     layout->addWidget(m_importButton, 0, 3);
-    layout->addWidget(m_revertButton, 0, 4);
+    layout->addWidget(m_resetButton, 0, 4);
     layout->addWidget(scroll, 1, 0, 1, 5);
 
     connect(m_exportButton, &QPushButton::pressed, this, &PageBitmap::onExport);
     connect(m_importButton, &QPushButton::pressed, this, &PageBitmap::onImport);
-    connect(m_revertButton, &QPushButton::pressed, this, &PageBitmap::onRevert);
+    connect(m_resetButton, &QPushButton::pressed, this, [this] {
+        m_bitmap = QByteArray();
+        updateGraphic();
+    });
 }
 
 void CCHack::PageBitmap::setValues(HackSettings* settings)
@@ -126,8 +129,7 @@ void CCHack::PageBitmap::setValues(HackSettings* settings)
         m_bitmap = buffer.data();
     }
 
-    // This displays the graphic and updates the UI appropriately
-    onRevert();
+    updateGraphic();
 }
 
 void CCHack::PageBitmap::saveTo(HackSettings* settings)
@@ -135,13 +137,8 @@ void CCHack::PageBitmap::saveTo(HackSettings* settings)
     if (m_image.isNull())
         return;
 
-    QBuffer bmpBuffer;
-    bmpBuffer.open(QIODevice::ReadWrite);
-    m_image.save(&bmpBuffer, "BMP");
-
     // Strip off the bitmap file header
-    bmpBuffer.seek(BITMAPFILEHEADER_SIZE);
-    QByteArray bmp = bmpBuffer.read(bmpBuffer.size() - BITMAPFILEHEADER_SIZE);
+    QByteArray bmp = m_bitmap.mid(BITMAPFILEHEADER_SIZE);
 
     switch (m_which) {
     case VgaTileset:
@@ -171,23 +168,6 @@ void CCHack::PageBitmap::saveTo(HackSettings* settings)
     default:
         Q_UNREACHABLE();
     }
-}
-
-void CCHack::PageBitmap::markClean()
-{
-    if (m_image.isNull()) {
-        m_bitmap = QByteArray();
-    } else {
-        QBuffer bmpBuffer;
-        bmpBuffer.open(QIODevice::ReadWrite);
-        m_image.save(&bmpBuffer, "BMP");
-
-        bmpBuffer.seek(0);
-        m_bitmap = bmpBuffer.readAll();
-    }
-
-    // This displays the graphic and updates the UI appropriately
-    onRevert();
 }
 
 void CCHack::PageBitmap::onExport()
@@ -258,15 +238,17 @@ void CCHack::PageBitmap::onImport()
         }
     }
 
-    m_image = std::move(bmp);
-    m_stateLabel->setText(tr("From File"));
-    m_exportButton->setEnabled(false);
+    // Cache the bitmap data and update the UI
+    QBuffer bmpBuffer;
+    bmpBuffer.open(QIODevice::ReadWrite);
+    bmp.save(&bmpBuffer, "BMP");
+    bmpBuffer.seek(0);
+    m_bitmap = bmpBuffer.readAll();
 
-    m_preview->setPixmap(QPixmap::fromImage(m_image));
-    m_preview->resize(m_image.size());
+    updateGraphic();
 }
 
-void CCHack::PageBitmap::onRevert()
+void CCHack::PageBitmap::updateGraphic()
 {
     if (m_bitmap.isEmpty()) {
         m_image = QImage();
