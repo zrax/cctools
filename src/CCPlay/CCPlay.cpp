@@ -163,7 +163,7 @@ CCPlayMain::CCPlayMain(QWidget* parent)
         QStringLiteral("#"), tr("Name"), tr("Author"), tr("Time"),
         tr("My Time"), tr("My Score")
     });
-    m_levelList->setColumnWidth(0, m_levelList->fontMetrics().boundingRect("000").width() + 10);
+    m_levelList->setColumnWidth(0, m_levelList->fontMetrics().boundingRect(QStringLiteral("000")).width() + 10);
     m_levelList->setColumnWidth(1, 160);
     m_levelList->setColumnWidth(2, 80);
     m_levelList->setColumnWidth(3, m_levelList->fontMetrics().boundingRect(tr("Time")).width() + 16);
@@ -246,12 +246,13 @@ CCPlayMain::CCPlayMain(QWidget* parent)
             this, &CCPlayMain::onLevelsetChanged);
 
     QSettings settings;
-    resize(settings.value("WindowSize", QSize(520, 400)).toSize());
-    if (settings.value("WindowMaximized", false).toBool())
+    resize(settings.value(QStringLiteral("WindowSize"), QSize(520, 400)).toSize());
+    if (settings.value(QStringLiteral("WindowMaximized"), false).toBool())
         showMaximized();
-    if (settings.contains("WindowState"))
-        restoreState(settings.value("WindowState").toByteArray());
-    m_levelsetPath->setText(settings.value("LevelsetPath", QDir::currentPath()).toString());
+    if (settings.contains(QStringLiteral("WindowState")))
+        restoreState(settings.value(QStringLiteral("WindowState")).toByteArray());
+    m_levelsetPath->setText(settings.value(QStringLiteral("LevelsetPath"),
+                                           QDir::currentPath()).toString());
 
     SettingsDialog::CheckTools(settings);
     refreshTools();
@@ -261,25 +262,26 @@ bool CCPlayMain::initDatabase()
 {
     QDir path;
 
-    if (!m_scoredb.isDriverAvailable("QSQLITE")) {
+    if (!m_scoredb.isDriverAvailable(QStringLiteral("QSQLITE"))) {
         QMessageBox::critical(this, tr("SQLite Error"),
                 tr("Error: Could not find Qt SQLite driver"));
         return false;
     }
-    m_scoredb = QSqlDatabase::addDatabase("QSQLITE");
+    m_scoredb = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"));
 
     path.setPath(QDir::homePath());
-    if (!path.exists(".cctools") && !path.mkpath(".cctools")) {
+    const QString cctoolsDir = QStringLiteral(".cctools");
+    if (!path.exists(cctoolsDir) && !path.mkpath(cctoolsDir)) {
         QMessageBox::critical(this, tr("Error creating data path"),
                 tr("Error: Could not create CCTools data path"));
         return false;
     }
-    if (!path.cd(".cctools")) {
+    if (!path.cd(cctoolsDir)) {
         QMessageBox::critical(this, tr("Error setting data path"),
                 tr("Error: Could not enter CCTools data path"));
         return false;
     }
-    m_scoredb.setDatabaseName(path.absoluteFilePath("scoredb.db"));
+    m_scoredb.setDatabaseName(path.absoluteFilePath(QStringLiteral("scoredb.db")));
     if (!m_scoredb.open()) {
         QMessageBox::critical(this, tr("SQLite Error"),
                 tr("Error: Could not create or open score database"));
@@ -287,11 +289,12 @@ bool CCPlayMain::initDatabase()
     }
 
     QSqlQuery query;
-    query.exec("CREATE TABLE IF NOT EXISTS ccplay ("
-               "  key TEXT NOT NULL,"
-               "  value TEXT NOT NULL)");
+    query.exec(QStringLiteral(
+            "CREATE TABLE IF NOT EXISTS ccplay ("
+            "  key TEXT NOT NULL,"
+            "  value TEXT NOT NULL)"));
 
-    query.exec("SELECT value FROM ccplay WHERE key='version'");
+    query.exec(QStringLiteral("SELECT value FROM ccplay WHERE key='version'"));
     if (query.first()) {
         int version = query.value(0).toInt();
         if (version != 1) {
@@ -300,17 +303,20 @@ bool CCPlayMain::initDatabase()
             return false;
         }
     } else {
-        query.exec("CREATE TABLE IF NOT EXISTS scores ("
-                   "  levelset INTEGER NOT NULL,"
-                   "  level_num INTEGER NOT NULL,"
-                   "  my_time INTEGER NOT NULL,"
-                   "  my_score INTEGER NOT NULL)");
-        query.exec("CREATE TABLE IF NOT EXISTS levelsets ("
-                   "  idx INTEGER PRIMARY KEY AUTOINCREMENT,"
-                   "  name TEXT NOT NULL,"
-                   "  cur_level INTEGER NOT NULL,"
-                   "  high_level INTEGER NOT NULL)");
-        query.exec("INSERT INTO ccplay(key, value) VALUES('version', 1)");
+        query.exec(QStringLiteral(
+                "CREATE TABLE IF NOT EXISTS scores ("
+                "  levelset INTEGER NOT NULL,"
+                "  level_num INTEGER NOT NULL,"
+                "  my_time INTEGER NOT NULL,"
+                "  my_score INTEGER NOT NULL)"));
+        query.exec(QStringLiteral(
+                "CREATE TABLE IF NOT EXISTS levelsets ("
+                "  idx INTEGER PRIMARY KEY AUTOINCREMENT,"
+                "  name TEXT NOT NULL,"
+                "  cur_level INTEGER NOT NULL,"
+                "  high_level INTEGER NOT NULL)"));
+        query.exec(QStringLiteral(
+                "INSERT INTO ccplay(key, value) VALUES('version', 1)"));
     }
 
     onPathChanged(m_levelsetPath->text());
@@ -320,26 +326,27 @@ bool CCPlayMain::initDatabase()
 void CCPlayMain::closeEvent(QCloseEvent*)
 {
     QSettings settings;
-    settings.setValue("WindowMaximized", (windowState() & Qt::WindowMaximized) != 0);
+    settings.setValue(QStringLiteral("WindowMaximized"),
+                      (windowState() & Qt::WindowMaximized) != 0);
     showNormal();
-    settings.setValue("WindowSize", size());
-    settings.setValue("WindowState", saveState());
-    settings.setValue("LevelsetPath", m_levelsetPath->text());
+    settings.setValue(QStringLiteral("WindowSize"), size());
+    settings.setValue(QStringLiteral("WindowState"), saveState());
+    settings.setValue(QStringLiteral("LevelsetPath"), m_levelsetPath->text());
 }
 
 void CCPlayMain::refreshTools()
 {
     QSettings settings;
 
-    const QString defaultGame = settings.value("DefaultGame").toString();
-    if (defaultGame == "TWorld2" || defaultGame == "TWorld")
+    const QString defaultGame = settings.value(QStringLiteral("DefaultGame")).toString();
+    if (defaultGame == QLatin1String("TWorld2") || defaultGame == QLatin1String("TWorld"))
         m_playButton->setDefaultAction(m_actions[ActionPlayTWorld]);
     else
         m_playButton->setDefaultAction(m_actions[ActionPlayMSCC]);
 
-    QStringList tools = settings.value("EditorNames").toStringList();
-    QStringList toolIcons = settings.value("EditorIcons").toStringList();
-    QStringList toolPaths = settings.value("EditorPaths").toStringList();
+    QStringList tools = settings.value(QStringLiteral("EditorNames")).toStringList();
+    QStringList toolIcons = settings.value(QStringLiteral("EditorIcons")).toStringList();
+    QStringList toolPaths = settings.value(QStringLiteral("EditorPaths")).toStringList();
     m_openToolButton->menu()->clear();
     for (int i = 0; i < tools.size(); ++i) {
         QAction* action = m_openToolButton->menu()->addAction(
@@ -383,7 +390,7 @@ void CCPlayMain::onPlayMSCC()
     QString filename = m_levelsetList->currentItem()->data(0, Qt::UserRole).toString();
 
     QSettings settings;
-    QString chipsExe = settings.value("ChipsExe").toString();
+    QString chipsExe = settings.value(QStringLiteral("ChipsExe")).toString();
     if (chipsExe.isEmpty() || !QFile::exists(chipsExe)) {
         QMessageBox::critical(this, tr("Could not find CHIPS.EXE"),
                 tr("Could not find Chip's Challenge executable.\n"
@@ -391,11 +398,11 @@ void CCPlayMain::onPlayMSCC()
         return;
     }
 
-    QString winePath = settings.value("WineExe").toString();
+    QString winePath = settings.value(QStringLiteral("WineExe")).toString();
 #ifndef Q_OS_WIN
     if (winePath.isEmpty() || !QFile::exists(winePath)) {
         // Try standard paths
-        winePath = QStandardPaths::findExecutable("wine");
+        winePath = QStandardPaths::findExecutable(QStringLiteral("wine"));
         if (winePath.isEmpty() || !QFile::exists(winePath)) {
             QMessageBox::critical(this, tr("Could not find WINE"),
                     tr("Could not find WINE executable.\n"
@@ -448,11 +455,11 @@ void CCPlayMain::onPlayMSCC()
 
     ccl::ChipsHax hax;
     hax.open(&stream);
-    if (settings.value("UseCCPatch", true).toBool())
+    if (settings.value(QStringLiteral("UseCCPatch"), true).toBool())
         hax.set_CCPatch(ccl::CCPatchPatched);
-    if (settings.value("UseIgnorePasswords", false).toBool())
+    if (settings.value(QStringLiteral("UseIgnorePasswords"), false).toBool())
         hax.set_IgnorePasswords(true);
-    if (settings.value("UseAlwaysFirstTry", false).toBool())
+    if (settings.value(QStringLiteral("UseAlwaysFirstTry"), false).toBool())
         hax.set_AlwaysFirstTry(true);
     if (levelset->type() == ccl::Levelset::TypePG || levelset->type() == ccl::Levelset::TypeLynxPG)
         hax.set_PGChips(ccl::CCPatchPatched);
@@ -484,10 +491,10 @@ void CCPlayMain::onPlayMSCC()
     if (!winePath.isEmpty()) {
         // WineVDM doesn't support .ini file from the current directory...
         QDir winevdmPath = QFileInfo(winePath).absoluteDir();
-        tempIni = winevdmPath.absoluteFilePath("WINDOWS/CCRun.ini");
+        tempIni = winevdmPath.absoluteFilePath(QStringLiteral("WINDOWS/CCRun.ini"));
     } else {
 #endif
-        tempIni = exePath.absoluteFilePath("CCRun.ini");
+        tempIni = exePath.absoluteFilePath(QStringLiteral("CCRun.ini"));
 #ifdef Q_OS_WIN
     }
 #endif
@@ -634,12 +641,12 @@ void CCPlayMain::onPlayTWorld()
     QString filename = m_levelsetList->currentItem()->data(0, Qt::UserRole).toString();
 
     QSettings settings;
-    QString tworldExe = settings.value("TWorldExe").toString();
+    QString tworldExe = settings.value(QStringLiteral("TWorldExe")).toString();
     if (tworldExe.isEmpty() || !QFile::exists(tworldExe)) {
         // Try standard paths
-        tworldExe = QStandardPaths::findExecutable("tworld2");
+        tworldExe = QStandardPaths::findExecutable(QStringLiteral("tworld2"));
         if (tworldExe.isEmpty() || !QFile::exists(tworldExe))
-            tworldExe = QStandardPaths::findExecutable("tworld");
+            tworldExe = QStandardPaths::findExecutable(QStringLiteral("tworld"));
         if (tworldExe.isEmpty() || !QFile::exists(tworldExe)) {
             QMessageBox::critical(this, tr("Could not find Tile World"),
                     tr("Could not find Tile World executable.\n"
@@ -654,18 +661,20 @@ void CCPlayMain::onPlayTWorld()
     exePath.cdUp();
     QString levelsetPath = QDir::toNativeSeparators(m_levelsetPath->text());
     QDir::setCurrent(exePath.absolutePath());
-    QStringList twargs;
-    twargs << "-D" << QDir::toNativeSeparators(levelsetPath)
-           << "-S" << QDir::toNativeSeparators(QDir::homePath() + "/.cctools");
-    if (settings.value("UseIgnorePasswords", false).toBool())
-        twargs << "-p";
-    twargs << QDir::toNativeSeparators(filename) << setName + ".tws";
+    QStringList twargs {
+        QStringLiteral("-D"), QDir::toNativeSeparators(levelsetPath),
+        QStringLiteral("-S"), QDir::toNativeSeparators(QDir::homePath() + QStringLiteral("/.cctools"))
+    };
+    if (settings.value(QStringLiteral("UseIgnorePasswords"), false).toBool())
+        twargs << QStringLiteral("-p");
+    twargs << QDir::toNativeSeparators(filename) << setName + QStringLiteral(".tws");
     QProcess::execute(tworldExe, twargs);
     QDir::setCurrent(cwd);
 
     // Parse the TWS file and extract score data
     ccl::FileStream tws;
-    QString twsName = QDir::toNativeSeparators(QDir::homePath() + "/.cctools/" + setName + ".tws");
+    QString twsName = QDir::toNativeSeparators(QDir::homePath() + QStringLiteral("/.cctools/")
+                                               + setName + QStringLiteral(".tws"));
     if (!tws.open(twsName, ccl::FileStream::Read)) {
         QMessageBox::critical(this, tr("Error parsing score data"),
                 tr("Error: Could not open %1 for reading").arg(twsName));
@@ -774,9 +783,9 @@ void CCPlayMain::onToolDefault()
 }
 
 #ifdef Q_OS_WIN
-#define JAVA_EXE "javaw"
+#define JAVA_EXE QStringLiteral("javaw")
 #else
-#define JAVA_EXE "java"
+#define JAVA_EXE QStringLiteral("java")
 #endif
 
 void CCPlayMain::onTool(QAction* action)
@@ -789,18 +798,19 @@ void CCPlayMain::onTool(QAction* action)
     if (m_levelList->currentItem())
         curLevel = m_levelList->indexOfTopLevelItem(m_levelList->currentItem()) + 1;
 
-    QStringList launch = action->data().toString().split('|');
-    QStringList params = launch[1].split(QRegularExpression("\\s+"), QT_SKIP_EMPTY_PARTS);
+    QStringList launch = action->data().toString().split(QLatin1Char('|'));
+    QStringList params = launch[1].split(QRegularExpression(QStringLiteral("\\s+")),
+                                         QT_SKIP_EMPTY_PARTS);
     for (int i = 0; i < params.size(); ++i) {
-        params[i].replace("%F", QDir::toNativeSeparators(filename))
-                 .replace("%L", QString::number(curLevel));
+        params[i].replace(QLatin1String("%F"), QDir::toNativeSeparators(filename))
+                 .replace(QLatin1String("%L"), QString::number(curLevel));
     }
-    if (launch[0].endsWith(".jar", Qt::CaseInsensitive)) {
+    if (launch[0].endsWith(QLatin1String(".jar"), Qt::CaseInsensitive)) {
         const QString javaExecutable = QStandardPaths::findExecutable(JAVA_EXE);
         if (javaExecutable.isEmpty() || !QFile::exists(javaExecutable)) {
             QMessageBox::critical(this, tr("Could not find Java"),
-                    tr("This tool requires Java, but the '" JAVA_EXE "' executable could not be found. "
-                       "Please ensure java is installed and is in your PATH."));
+                    tr("This tool requires Java, but the '%1' executable could not be found. "
+                       "Please ensure java is installed and is in your PATH.").arg(JAVA_EXE));
             return;
         }
         params = QStringList{ QStringLiteral("-jar"), launch[0] } + params;
@@ -838,12 +848,14 @@ void CCPlayMain::onPathChanged(const QString& path)
 
     m_levelsetList->clear();
 #ifdef Q_OS_WIN
-    const QStringList setExts = QStringList{ "*.dat", "*.ccl", "*.dac" };
+    const QStringList setExts = QStringList{
+        QStringLiteral("*.dat"), QStringLiteral("*.ccl"), QStringLiteral("*.dac"),
+    };
 #else
     const QStringList setExts = QStringList{
-        "*.dat", "*.DAT", "*.Dat",
-        "*.ccl", "*.CCL", "*.Ccl",
-        "*.dac", "*.DAC", "*.Dac"
+        QStringLiteral("*.dat"), QStringLiteral("*.DAT"), QStringLiteral("*.Dat"),
+        QStringLiteral("*.ccl"), QStringLiteral("*.CCL"), QStringLiteral("*.Ccl"),
+        QStringLiteral("*.dac"), QStringLiteral("*.DAC"), QStringLiteral("*.Dac"),
     };
 #endif
     QStringList setList = levelsetDir.entryList(setExts, QDir::Files,
@@ -857,7 +869,7 @@ void CCPlayMain::onPathChanged(const QString& path)
         QString fileid = QDir(filename).absolutePath().section(QLatin1Char('/'), -1);
         QSqlQuery query(m_scoredb);
         query.exec(QStringLiteral("SELECT idx, cur_level, high_level FROM levelsets WHERE name='%1'")
-                  .arg(fileid.replace("'", "''")));
+                  .arg(fileid.replace(QLatin1String("'"), QStringLiteral("''"))));
         int curLevel = 0, highLevel = 0, totScore = 0;
         if (query.first()) {
             int setid = query.value(0).toInt();
@@ -873,9 +885,9 @@ void CCPlayMain::onPathChanged(const QString& path)
         QTreeWidgetItem* item = new QTreeWidgetItem(m_levelsetList);
         item->setText(0, set);
         item->setText(1, QString::number(levelset->levelCount()));
-        item->setText(2, highLevel == 0 ? "---" : QString::number(highLevel));
-        item->setText(3, curLevel == 0 ? "---" : QString::number(curLevel));
-        item->setText(4, totScore == 0 ? "---" : QString::number(totScore));
+        item->setText(2, highLevel == 0 ? QStringLiteral("---") : QString::number(highLevel));
+        item->setText(3, curLevel == 0 ? QStringLiteral("---") : QString::number(curLevel));
+        item->setText(4, totScore == 0 ? QStringLiteral("---") : QString::number(totScore));
         item->setData(0, Qt::UserRole, levelsetDir.absoluteFilePath(set));
     }
 }
@@ -893,14 +905,14 @@ void CCPlayMain::onLevelsetChanged(QTreeWidgetItem* item, QTreeWidgetItem*)
 
     CCX::Levelset ccx;
     bool haveCCX = false;
-    QString ccxName = filename.left(filename.lastIndexOf(QLatin1Char('.'))) + ".ccx";
+    QString ccxName = filename.left(filename.lastIndexOf(QLatin1Char('.'))) + QStringLiteral(".ccx");
     if (ccx.readFile(ccxName, levelset->levelCount()))
         haveCCX = true;
 
     QString fileid = filename.section(QLatin1Char('/'), -1);
     QSqlQuery query;
     query.exec(QStringLiteral("SELECT idx, cur_level FROM levelsets WHERE name='%1'")
-               .arg(fileid.replace("'", "''")));
+               .arg(fileid.replace(QLatin1String("'"), QStringLiteral("''"))));
     int setid = 0, curLevel = 0;
     if (query.first()) {
         setid = query.value(0).toInt();

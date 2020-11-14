@@ -34,10 +34,12 @@
 #   define WINEXE_FILTER tr("Executables (*.exe)")
 #   define EXE_LIST QStringList{ QStringLiteral("*.exe"), QStringLiteral("*.bat"), \
                                  QStringLiteral("*.jar") }
+#   define WINEXE_LIST QStringList{ QStringLiteral("*.exe") }
 #else
 #   define EXE_FILTER tr("Executables (*)")
 #   define WINEXE_FILTER tr("Windows Executables (*.exe *.EXE)")
 #   define EXE_LIST QStringList()
+#   define WINEXE_LIST QStringList{ QStringLiteral("*.exe"), QStringLiteral("*.EXE") }
 #endif
 
 void SettingsDialog::CheckTools(QSettings& settings)
@@ -47,19 +49,21 @@ void SettingsDialog::CheckTools(QSettings& settings)
 
     // Add default CCEdit entry
 #if defined(Q_OS_WIN)
-    QString cceditPath = QDir(QApplication::applicationDirPath()).absoluteFilePath("CCEdit.exe");
+    QString cceditPath = QDir(QApplication::applicationDirPath())
+                            .absoluteFilePath(QStringLiteral("CCEdit.exe"));
 #elif defined(Q_OS_MAC)
     QDir appPath(QApplication::applicationDirPath());
     appPath.cdUp();     // <bundle>.app/Contents/MacOS/<executable>
     appPath.cdUp();
     appPath.cdUp();
-    QString cceditPath = QDir().absoluteFilePath("CCEdit.app/Contents/MacOS/CCEdit");
+    QString cceditPath = QDir().absoluteFilePath(QStringLiteral("CCEdit.app/Contents/MacOS/CCEdit"));
 #else
-    QString cceditPath = QDir(QApplication::applicationDirPath()).absoluteFilePath("CCEdit");
+    QString cceditPath = QDir(QApplication::applicationDirPath())
+                            .absoluteFilePath(QStringLiteral("CCEdit"));
 #endif
-    settings.setValue("EditorNames", QStringList{ QStringLiteral("CCEdit") });
-    settings.setValue("EditorPaths", QStringList{ cceditPath + QStringLiteral("|%F %L") });
-    settings.setValue("EditorIcons", QStringList{ QStringLiteral("CCEdit") });
+    settings.setValue(QStringLiteral("EditorNames"), QStringList{ QStringLiteral("CCEdit") });
+    settings.setValue(QStringLiteral("EditorPaths"), QStringList{ cceditPath + QStringLiteral("|%F %L") });
+    settings.setValue(QStringLiteral("EditorIcons"), QStringList{ QStringLiteral("CCEdit") });
 }
 
 QIcon SettingsDialog::IconForTool(const QString& iconName)
@@ -103,11 +107,11 @@ SettingsDialog::SettingsDialog(QWidget* parent)
 
     QSettings settings;
     auto exeCompleter = new FileCompleter(EXE_LIST, this);
-    auto winExeCompleter = new FileCompleter(QStringList{ "*.exe" }, this);
+    auto winExeCompleter = new FileCompleter(WINEXE_LIST, this);
 
     auto dlgTabs = new QTabWidget(this);
     auto tabPlay = new QWidget(dlgTabs);
-    m_winePath = new QLineEdit(settings.value("WineExe").toString(), tabPlay);
+    m_winePath = new QLineEdit(settings.value(QStringLiteral("WineExe")).toString(), tabPlay);
     m_winePath->setCompleter(exeCompleter);
     auto lblWinePath = new QLabel(
 #                           ifdef Q_OS_WIN
@@ -121,14 +125,14 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     browseWine->setIcon(ICON("document-open-folder"));
     browseWine->setAutoRaise(true);
 
-    m_msccPath = new QLineEdit(settings.value("ChipsExe").toString(), tabPlay);
+    m_msccPath = new QLineEdit(settings.value(QStringLiteral("ChipsExe")).toString(), tabPlay);
     m_msccPath->setCompleter(winExeCompleter);
     auto lblMsccPath = new QLabel(tr("MS&CC Path:"), tabPlay);
     lblMsccPath->setBuddy(m_msccPath);
     auto browseChips = new QToolButton(tabPlay);
     browseChips->setIcon(ICON("document-open-folder"));
     browseChips->setAutoRaise(true);
-    m_tworldPath = new QLineEdit(settings.value("TWorldExe").toString(), tabPlay);
+    m_tworldPath = new QLineEdit(settings.value(QStringLiteral("TWorldExe")).toString(), tabPlay);
     m_tworldPath->setCompleter(exeCompleter);
     auto lblTWorldPath = new QLabel(tr("&Tile World Path:"), tabPlay);
     lblTWorldPath->setBuddy(m_tworldPath);
@@ -137,17 +141,17 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     browseTWorld->setAutoRaise(true);
 
     m_useCCPatch = new QCheckBox(tr("MSCC: Use CCPatch"), tabPlay);
-    m_useCCPatch->setChecked(settings.value("UseCCPatch", true).toBool());
+    m_useCCPatch->setChecked(settings.value(QStringLiteral("UseCCPatch"), true).toBool());
     m_cheatIgnorePasswords = new QCheckBox(tr("&Ignore Passwords"), tabPlay);
-    m_cheatIgnorePasswords->setChecked(settings.value("UseIgnorePasswords", false).toBool());
+    m_cheatIgnorePasswords->setChecked(settings.value(QStringLiteral("UseIgnorePasswords"), false).toBool());
     m_cheatAlwaysFirstTry = new QCheckBox(tr("MSCC: Always give &First Try bonus"), tabPlay);
-    m_cheatAlwaysFirstTry->setChecked(settings.value("UseAlwaysFirstTry", false).toBool());
+    m_cheatAlwaysFirstTry->setChecked(settings.value(QStringLiteral("UseAlwaysFirstTry"), false).toBool());
 
     m_defaultGame = new QComboBox(tabPlay);
     m_defaultGame->addItems(QStringList{ tr("MSCC"), tr("Tile World") });
-    const QString defaultGame = settings.value("DefaultGame").toString();
+    const QString defaultGame = settings.value(QStringLiteral("DefaultGame")).toString();
     m_defaultGame->setCurrentIndex(
-                (defaultGame == "TWorld2" || defaultGame == "TWorld") ? 1 : 0);
+                (defaultGame == QLatin1String("TWorld2") || defaultGame == QLatin1String("TWorld")) ? 1 : 0);
     auto lblDefaultGame = new QLabel(tr("&Default Game:"), tabPlay);
     lblDefaultGame->setBuddy(m_defaultGame);
 
@@ -180,9 +184,9 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     m_toolsList->setIconSize(QSize(32, 32));
     auto lblTools = new QLabel(tr("Available &Tools:\n\n(First item is\n  default)"), tabTools);
     lblTools->setBuddy(m_toolsList);
-    m_tools = settings.value("EditorNames").toStringList();
-    m_toolIcons = settings.value("EditorIcons").toStringList();
-    m_toolPaths = settings.value("EditorPaths").toStringList();
+    m_tools = settings.value(QStringLiteral("EditorNames")).toStringList();
+    m_toolIcons = settings.value(QStringLiteral("EditorIcons")).toStringList();
+    m_toolPaths = settings.value(QStringLiteral("EditorPaths")).toStringList();
     refreshTools();
     auto tbTools = new QToolBar(tabTools);
     tbTools->setOrientation(Qt::Vertical);
@@ -207,7 +211,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     dlgTabs->addTab(tabTools, tr("&Tool Settings"));
 
     auto tabAbout = new AboutWidget(QStringLiteral("CCPlay"),
-                                    QPixmap(":/icons/chip-48.png"), dlgTabs);
+                                    QPixmap(QStringLiteral(":/icons/chip-48.png")), dlgTabs);
     tabAbout->layout()->setContentsMargins(8, 8, 8, 8);
     dlgTabs->addTab(tabAbout, tr("&About CCPlay"));
 
@@ -256,19 +260,22 @@ void SettingsDialog::refreshTools()
 void SettingsDialog::onSaveSettings()
 {
     QSettings settings;
-    settings.setValue("WineExe", m_winePath->text());
-    settings.setValue("ChipsExe", m_msccPath->text());
-    settings.setValue("TWorldExe", m_tworldPath->text());
-    settings.setValue("UseCCPatch", m_useCCPatch->isChecked());
-    settings.setValue("UseIgnorePasswords", m_cheatIgnorePasswords->isChecked());
-    settings.setValue("UseAlwaysFirstTry", m_cheatAlwaysFirstTry->isChecked());
-    settings.setValue("DefaultGame",
-                      m_defaultGame->currentIndex() == 2 ? "TWorld2" :
-                      m_defaultGame->currentIndex() == 1 ? "TWorld"  : "MSCC");
+    settings.setValue(QStringLiteral("WineExe"), m_winePath->text());
+    settings.setValue(QStringLiteral("ChipsExe"), m_msccPath->text());
+    settings.setValue(QStringLiteral("TWorldExe"), m_tworldPath->text());
+    settings.setValue(QStringLiteral("UseCCPatch"), m_useCCPatch->isChecked());
+    settings.setValue(QStringLiteral("UseIgnorePasswords"),
+                      m_cheatIgnorePasswords->isChecked());
+    settings.setValue(QStringLiteral("UseAlwaysFirstTry"),
+                      m_cheatAlwaysFirstTry->isChecked());
+    settings.setValue(QStringLiteral("DefaultGame"),
+                      m_defaultGame->currentIndex() == 2 ? QStringLiteral("TWorld2") :
+                      m_defaultGame->currentIndex() == 1 ? QStringLiteral("TWorld")  :
+                      QStringLiteral("MSCC"));
     // Legacy names kept for backwards compatibility
-    settings.setValue("EditorNames", m_tools);
-    settings.setValue("EditorIcons", m_toolIcons);
-    settings.setValue("EditorPaths", m_toolPaths);
+    settings.setValue(QStringLiteral("EditorNames"), m_tools);
+    settings.setValue(QStringLiteral("EditorIcons"), m_toolIcons);
+    settings.setValue(QStringLiteral("EditorPaths"), m_toolPaths);
     accept();
 }
 
