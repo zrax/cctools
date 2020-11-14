@@ -27,7 +27,7 @@ static KSyntaxHighlighting::Repository* SyntaxRepo()
     static bool s_firstInit = true;
     if (s_firstInit) {
         s_firstInit = false;
-        s_repo->addCustomSearchPath(":/cc2-syntax");
+        s_repo->addCustomSearchPath(QStringLiteral(":/cc2-syntax"));
     }
     return s_repo;
 }
@@ -54,7 +54,7 @@ CC2ScriptEditor::CC2ScriptEditor(QWidget* parent)
     editFont.setFixedPitch(true);
     setDefaultFont(editFont);
 
-    auto syntaxDef = SyntaxRepo()->definitionForName("CC2 Game Script");
+    auto syntaxDef = SyntaxRepo()->definitionForName(QStringLiteral("CC2 Game Script"));
     if (!syntaxDef.isValid())
         qDebug("Warning: Could not find syntax defintion for .c2g files");
     setSyntax(syntaxDef);

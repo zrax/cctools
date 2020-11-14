@@ -32,10 +32,12 @@
 #   define EXE_FILTER tr("Executables (*.exe)")
 #   define WINEXE_FILTER tr("Executables (*.exe)")
 #   define EXE_LIST QStringList{ QStringLiteral("*.exe") }
+#   define WINEXE_LIST QStringList{ QStringLiteral("*.exe") }
 #else
 #   define EXE_FILTER tr("Executables (*)")
 #   define WINEXE_FILTER tr("Windows Executables (*.exe *.EXE)")
 #   define EXE_LIST QStringList()
+#   define WINEXE_LIST QStringList{ QStringLiteral("*.exe"), QStringLiteral("*.EXE") }
 #endif
 
 TestSetupDialog::TestSetupDialog(QWidget* parent)
@@ -44,11 +46,11 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     setWindowTitle(tr("Setup testing parameters"));
 
     QSettings settings;
-    auto exeCompleter = new FileCompleter(EXE_LIST, this);
-    auto winExeCompleter = new FileCompleter(QStringList{ "*.exe" }, this);
+    auto winExeCompleter = new FileCompleter(WINEXE_LIST, this);
 
 #ifndef Q_OS_WIN
-    m_winePath = new QLineEdit(settings.value("WineExe").toString(), this);
+    auto exeCompleter = new FileCompleter(EXE_LIST, this);
+    m_winePath = new QLineEdit(settings.value(QStringLiteral("WineExe")).toString(), this);
     m_winePath->setCompleter(exeCompleter);
     auto lblWinePath = new QLabel(tr("&WINE Path:"), this);
     lblWinePath->setBuddy(m_winePath);
@@ -57,7 +59,7 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     browseWine->setAutoRaise(true);
 #endif
 
-    m_chips2Path = new QLineEdit(settings.value("Chips2Exe").toString(), this);
+    m_chips2Path = new QLineEdit(settings.value(QStringLiteral("Chips2Exe")).toString(), this);
     m_chips2Path->setCompleter(winExeCompleter);
     auto lblChips2Path = new QLabel(tr("&Chips2.exe Path:"), this);
     lblChips2Path->setBuddy(m_chips2Path);
@@ -111,9 +113,9 @@ void TestSetupDialog::onSaveSettings()
 {
     QSettings settings;
 #ifndef Q_OS_WIN
-    settings.setValue("WineExe", m_winePath->text());
+    settings.setValue(QStringLiteral("WineExe"), m_winePath->text());
 #endif
-    settings.setValue("Chips2Exe", m_chips2Path->text());
+    settings.setValue(QStringLiteral("Chips2Exe"), m_chips2Path->text());
     accept();
 }
 

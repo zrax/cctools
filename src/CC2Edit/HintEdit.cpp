@@ -43,7 +43,7 @@ QSize HintTextEdit::sizeHint() const
     // font rendering area in the game.  We don't restrict resize, so
     // the user can make this larger or smaller if necessary...
     QFontMetricsF fm(font());
-    return { qCeil(fm.width(QString(20, 'x')) + (contentOffset().x() * 2)
+    return { qCeil(fm.width(QString(20, QLatin1Char('x'))) + (contentOffset().x() * 2)
                    + (document()->documentMargin() * 2))
                    + viewportMargins().left() + viewportMargins().right()
                    + style()->pixelMetric(QStyle::PM_ScrollBarExtent) + 2,

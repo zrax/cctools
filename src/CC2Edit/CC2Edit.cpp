@@ -293,7 +293,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_gameProperties->setEnabled(false);
 
     m_gamePropsDock = new QDockWidget(this);
-    m_gamePropsDock->setObjectName("GameDock");
+    m_gamePropsDock->setObjectName(QStringLiteral("GameDock"));
     m_gamePropsDock->setWindowTitle(tr("Game"));
     m_gamePropsDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     m_gamePropsDock->setWidget(m_gameProperties);
@@ -398,7 +398,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_mapProperties->setEnabled(false);
 
     m_mapPropsDock = new QDockWidget(this);
-    m_mapPropsDock->setObjectName("MapPropsDock");
+    m_mapPropsDock->setObjectName(QStringLiteral("MapPropsDock"));
     m_mapPropsDock->setWindowTitle(tr("Map Properties"));
     m_mapPropsDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     m_mapPropsDock->setWidget(m_mapProperties);
@@ -677,7 +677,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     tileLayout->addWidget(layerWidget, 1, 2, 2, 1);
 
     auto sortedTilesDock = new QDockWidget(this);
-    sortedTilesDock->setObjectName("SortedTilesDock");
+    sortedTilesDock->setObjectName(QStringLiteral("SortedTilesDock"));
     sortedTilesDock->setWindowTitle(tr("Tiles - Sorted"));
     sortedTilesDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     sortedTilesDock->setWidget(sortedTiles);
@@ -750,7 +750,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     allTileLayout->addWidget(layerWidget, 2, 2, 2, 1);
 
     auto allTilesDock = new QDockWidget(this);
-    allTilesDock->setObjectName("AllTilesDock");
+    allTilesDock->setObjectName(QStringLiteral("AllTilesDock"));
     allTilesDock->setWindowTitle(tr("All Tiles"));
     allTilesDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     allTilesDock->setWidget(allTileWidget);
@@ -832,7 +832,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
 
     // Tool bars
     QToolBar* tbarMain = addToolBar(QString());
-    tbarMain->setObjectName("ToolbarMain");
+    tbarMain->setObjectName(QStringLiteral("ToolbarMain"));
     tbarMain->setWindowTitle(tr("Main"));
     tbarMain->addAction(m_actions[ActionNewMap]);
     tbarMain->addAction(m_actions[ActionOpen]);
@@ -846,7 +846,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     tbarMain->addAction(m_actions[ActionCopy]);
     tbarMain->addAction(m_actions[ActionPaste]);
     QToolBar* tbarTools = addToolBar(QString());
-    tbarTools->setObjectName("ToolbarTools");
+    tbarTools->setObjectName(QStringLiteral("ToolbarTools"));
     tbarTools->setWindowTitle(tr("Tools"));
     tbarTools->addAction(m_actions[ActionDrawPencil]);
     tbarTools->addAction(m_actions[ActionDrawLine]);
@@ -934,14 +934,16 @@ CC2EditMain::CC2EditMain(QWidget* parent)
 
     // Load window settings and defaults
     QSettings settings;
-    resize(settings.value("WindowSize", QSize(1024, 768)).toSize());
-    if (settings.value("WindowMaximized", false).toBool())
+    resize(settings.value(QStringLiteral("WindowSize"), QSize(1024, 768)).toSize());
+    if (settings.value(QStringLiteral("WindowMaximized"), false).toBool())
         showMaximized();
-    if (settings.contains("WindowState"))
-        restoreState(settings.value("WindowState").toByteArray());
-    m_zoomFactor = settings.value("ZoomFactor", 1.0).toDouble();
-    m_actions[ActionViewViewport]->setChecked(settings.value("ViewViewport", true).toBool());
-    m_actions[ActionViewMonsterPaths]->setChecked(settings.value("ViewMonsterPaths", false).toBool());
+    if (settings.contains(QStringLiteral("WindowState")))
+        restoreState(settings.value(QStringLiteral("WindowState")).toByteArray());
+    m_zoomFactor = settings.value(QStringLiteral("ZoomFactor"), 1.0).toDouble();
+    m_actions[ActionViewViewport]->setChecked(
+            settings.value(QStringLiteral("ViewViewport"), true).toBool());
+    m_actions[ActionViewMonsterPaths]->setChecked(
+            settings.value(QStringLiteral("ViewMonsterPaths"), false).toBool());
 
     // Make sure the toolbox docks are visible
     QDockWidget* docks[] = {m_gamePropsDock, m_mapPropsDock, sortedTilesDock, allTilesDock};
@@ -970,7 +972,8 @@ CC2EditMain::CC2EditMain(QWidget* parent)
               QMessageBox::Ok);
         exit(1);
     } else {
-        QString tilesetFilename = settings.value("TilesetName", "CC2.tis").toString();
+        QString tilesetFilename = settings.value(QStringLiteral("TilesetName"),
+                                                 QStringLiteral("CC2.tis")).toString();
         bool foundTset = false;
         for (int i = 0; i < m_tilesetGroup->actions().size(); ++i) {
             auto tileset = m_tilesetGroup->actions()[i]->data().value<CC2ETileset*>();
@@ -1025,12 +1028,12 @@ void CC2EditMain::createNewMap()
 void CC2EditMain::createNewScript()
 {
     auto editor = addScriptEditor(QString());
-    editor->setPlainText(
+    editor->setPlainText(QStringLiteral(
                 "game \"My CC2 Game\"\n"
                 "0 flags =\n"
                 "0 score =\n"
                 "0 hispeed =\n"
-                "1 level =\n");
+                "1 level =\n"));
 
     // Select the game name for easy editing.
     QTextCursor cursor = editor->textCursor();
@@ -1201,7 +1204,7 @@ bool CC2EditMain::saveTabAs(int index)
                      : scriptEditor ? scriptEditor->filename()
                      : QString();
     if (filename.isEmpty())
-        filename = settings.value("DialogDir").toString();
+        filename = settings.value(QStringLiteral("DialogDir")).toString();
 
     bool result = false;
     if (mapEditor) {
@@ -1225,7 +1228,7 @@ bool CC2EditMain::saveTabAs(int index)
         QFileInfo info(filename);
         m_editorTabs->setTabText(index, info.fileName());
         m_editorTabs->promoteTab(index);
-        settings.setValue("DialogDir", info.dir().absolutePath());
+        settings.setValue(QStringLiteral("DialogDir"), info.dir().absolutePath());
     }
     return result;
 }
@@ -1312,31 +1315,32 @@ void CC2EditMain::findTilesets()
 
     QDir path;
     QStringList tilesets;
+    const QStringList tilesetGlob { QStringLiteral("*.tis") };
 #if defined(Q_OS_WIN)
     // Search app directory
     path.setPath(QCoreApplication::applicationDirPath());
-    tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
+    tilesets = path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name);
     for (const QString& file : qAsConst(tilesets))
         registerTileset(path.absoluteFilePath(file));
 #else
     // Search install path
     path.setPath(QCoreApplication::applicationDirPath());
     path.cdUp();
-    path.cd("share/cctools");
-    tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
+    path.cd(QStringLiteral("share/cctools"));
+    tilesets = path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name);
     for (const QString& file : qAsConst(tilesets))
         registerTileset(path.absoluteFilePath(file));
 
     // Search standard directories
-    path.setPath("/usr/share/cctools");
+    path.setPath(QStringLiteral("/usr/share/cctools"));
     if (path.exists()) {
-        tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
+        tilesets = path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name);
         for (const QString& file : qAsConst(tilesets))
             registerTileset(path.absoluteFilePath(file));
     }
-    path.setPath("/usr/local/share/cctools");
+    path.setPath(QStringLiteral("/usr/local/share/cctools"));
     if (path.exists()) {
-        tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
+        tilesets = path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name);
         for (const QString& file : qAsConst(tilesets))
             registerTileset(path.absoluteFilePath(file));
     }
@@ -1344,9 +1348,9 @@ void CC2EditMain::findTilesets()
 
     // User-space local data
     path.setPath(QDir::homePath());
-    path.cd(".cctools");
+    path.cd(QStringLiteral(".cctools"));
     if (path.exists()) {
-        tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
+        tilesets = path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name);
         for (const QString& file : qAsConst(tilesets))
             registerTileset(path.absoluteFilePath(file));
     }
@@ -1537,14 +1541,17 @@ void CC2EditMain::closeEvent(QCloseEvent* event)
     }
 
     QSettings settings;
-    settings.setValue("WindowMaximized", (windowState() & Qt::WindowMaximized) != 0);
+    settings.setValue(QStringLiteral("WindowMaximized"),
+                      (windowState() & Qt::WindowMaximized) != 0);
     showNormal();
-    settings.setValue("WindowSize", size());
-    settings.setValue("WindowState", saveState());
-    settings.setValue("ZoomFactor", m_zoomFactor);
-    settings.setValue("ViewViewport", m_actions[ActionViewViewport]->isChecked());
-    settings.setValue("ViewMonsterPaths", m_actions[ActionViewMonsterPaths]->isChecked());
-    settings.setValue("TilesetName", m_currentTileset->filename());
+    settings.setValue(QStringLiteral("WindowSize"), size());
+    settings.setValue(QStringLiteral("WindowState"), saveState());
+    settings.setValue(QStringLiteral("ZoomFactor"), m_zoomFactor);
+    settings.setValue(QStringLiteral("ViewViewport"),
+                      m_actions[ActionViewViewport]->isChecked());
+    settings.setValue(QStringLiteral("ViewMonsterPaths"),
+                      m_actions[ActionViewMonsterPaths]->isChecked());
+    settings.setValue(QStringLiteral("TilesetName"), m_currentTileset->filename());
 }
 
 void CC2EditMain::resizeEvent(QResizeEvent* event)
@@ -1569,13 +1576,14 @@ void CC2EditMain::onOpenAction()
 {
     QSettings settings;
     QString filename = QFileDialog::getOpenFileName(this, tr("Open Map..."),
-                            settings.value("DialogDir").toString(),
+                            settings.value(QStringLiteral("DialogDir")).toString(),
                             tr("All supported files (*.c2m *.c2g);;"
                                "CC2 Maps (*.c2m);;"
                                "CC2 Game Scripts (*.c2g)"));
     if (!filename.isEmpty()) {
         loadFile(filename);
-        settings.setValue("DialogDir", QFileInfo(filename).dir().absolutePath());
+        settings.setValue(QStringLiteral("DialogDir"),
+                          QFileInfo(filename).dir().absolutePath());
     }
 }
 
@@ -1583,7 +1591,7 @@ void CC2EditMain::onImportCC1Action()
 {
     QSettings settings;
     QString filename = QFileDialog::getOpenFileName(this, tr("Import Map..."),
-                            settings.value("Import/DialogDir").toString(),
+                            settings.value(QStringLiteral("Import/DialogDir")).toString(),
                             tr("CC1 Levelsets (*.ccl *.dat)"));
     if (!filename.isEmpty()) {
         ImportDialog dialog(this);
@@ -1603,7 +1611,8 @@ void CC2EditMain::onImportCC1Action()
         editor->resetClean();
         m_mapPropsDock->raise();
 
-        settings.setValue("Import/DialogDir", QFileInfo(filename).dir().absolutePath());
+        settings.setValue(QStringLiteral("Import/DialogDir"),
+                          QFileInfo(filename).dir().absolutePath());
     }
 }
 
@@ -2048,7 +2057,7 @@ void CC2EditMain::onTestChips2()
     }
 
     QSettings settings;
-    QString chips2Exe = settings.value("Chips2Exe").toString();
+    QString chips2Exe = settings.value(QStringLiteral("Chips2Exe")).toString();
     if (chips2Exe.isEmpty() || !QFile::exists(chips2Exe)) {
         QMessageBox::critical(this, tr("Could not find Chips2 executable"),
                 tr("Could not find Chip's Challenge 2 executable.\n"
@@ -2056,10 +2065,10 @@ void CC2EditMain::onTestChips2()
         return;
     }
 #ifndef Q_OS_WIN
-    QString winePath = settings.value("WineExe").toString();
+    QString winePath = settings.value(QStringLiteral("WineExe")).toString();
     if (winePath.isEmpty() || !QFile::exists(winePath)) {
         // Try standard paths
-        winePath = QStandardPaths::findExecutable("wine");
+        winePath = QStandardPaths::findExecutable(QStringLiteral("wine"));
         if (winePath.isEmpty() || !QFile::exists(winePath)) {
             QMessageBox::critical(this, tr("Could not find WINE"),
                     tr("Could not find WINE executable.\n"
@@ -2072,23 +2081,24 @@ void CC2EditMain::onTestChips2()
     QDir chips2Dir(chips2Exe);
     chips2Dir.cdUp();
     m_testGameDir = chips2Dir.absolutePath();
-    if (!chips2Dir.cd("data/games")) {
+    if (!chips2Dir.cd(QStringLiteral("data/games"))) {
         QMessageBox::critical(this, tr("Could not find game data"),
                 tr("Could not find game data relative to Chips2 executable."));
         return;
     }
 
-    if (chips2Dir.exists("CC2Edit-playtest") && chips2Dir.cd("CC2Edit-playtest")) {
+    static const QString playtestDirName = QStringLiteral("CC2Edit-playtest");
+    if (chips2Dir.exists(playtestDirName) && chips2Dir.cd(playtestDirName)) {
         chips2Dir.removeRecursively();
         chips2Dir.cdUp();
     }
-    if (!chips2Dir.mkdir("CC2Edit-playtest")) {
+    if (!chips2Dir.mkdir(playtestDirName)) {
         QMessageBox::critical(this, tr("Error setting up playtest"),
                 tr("Could not create playtest directory in %1.  Do you have write access?")
-                .arg(chips2Dir.absoluteFilePath("CC2Edit-playtest")));
+                .arg(chips2Dir.absoluteFilePath(playtestDirName)));
         return;
     }
-    chips2Dir.cd("CC2Edit-playtest");
+    chips2Dir.cd(playtestDirName);
     QString testScript = QStringLiteral(
         "game \"CC2Edit-playtest\"\n"
         "0 flags =\n"
@@ -2096,9 +2106,9 @@ void CC2EditMain::onTestChips2()
         "0 hispeed =\n"
         "1 level =\n"
         "map \"playtest.c2m\"\n");
-    if (!saveScript(testScript, chips2Dir.absoluteFilePath("playtest.c2g")))
+    if (!saveScript(testScript, chips2Dir.absoluteFilePath(QStringLiteral("playtest.c2g"))))
         return;
-    if (!saveMap(editor->map(), chips2Dir.absoluteFilePath("playtest.c2m")))
+    if (!saveMap(editor->map(), chips2Dir.absoluteFilePath(QStringLiteral("playtest.c2m"))))
         return;
 
     // Write a save and high score file, so we can jump directly into the map.
@@ -2120,26 +2130,26 @@ void CC2EditMain::onTestChips2()
     //levelScore.saveData().setChecksum(what?);
 
     QDir savesDir(m_testGameDir);
-    if (!savesDir.cd("data/saves")) {
+    if (!savesDir.cd(QStringLiteral("data/saves"))) {
         QMessageBox::critical(this, tr("Error"),
                         tr("Could not find save data relative to Chips2 executable."));
         return;
     }
 
-    if (savesDir.exists("CC2Edit-playtest") && savesDir.cd("CC2Edit-playtest")) {
+    if (savesDir.exists(playtestDirName) && savesDir.cd(playtestDirName)) {
         savesDir.removeRecursively();
         savesDir.cdUp();
     }
-    if (!savesDir.mkdir("CC2Edit-playtest")) {
+    if (!savesDir.mkdir(playtestDirName)) {
         QMessageBox::critical(this, tr("Error"),
                         tr("Could not create playtest saves directory at %1.")
-                        .arg(savesDir.absoluteFilePath("CC2Edit-playtest")));
+                        .arg(savesDir.absoluteFilePath(playtestDirName)));
         return;
     }
-    savesDir.cd("CC2Edit-playtest");
+    savesDir.cd(playtestDirName);
 
     ccl::FileStream fs;
-    const QString saveFilename = savesDir.absoluteFilePath("save.c2s");
+    const QString saveFilename = savesDir.absoluteFilePath(QStringLiteral("save.c2s"));
     if (!fs.open(saveFilename, ccl::FileStream::Write)) {
         QMessageBox::critical(this, tr("Error"),
                         tr("Could not open %1 for writing.").arg(saveFilename));
@@ -2155,7 +2165,7 @@ void CC2EditMain::onTestChips2()
     }
     fs.close();
 
-    const QString scoreFilename = savesDir.absoluteFilePath("save.c2h");
+    const QString scoreFilename = savesDir.absoluteFilePath(QStringLiteral("save.c2h"));
     if (!fs.open(scoreFilename, ccl::FileStream::Write)) {
         QMessageBox::critical(this, tr("Error"),
                 tr("Could not open %1 for writing.").arg(scoreFilename));
@@ -2173,9 +2183,12 @@ void CC2EditMain::onTestChips2()
 
     // Indicate the currently active game
     chips2Dir.cdUp();
-    if (chips2Dir.exists("save.c2l") && !chips2Dir.exists("save.c2l.CC2Edit-backup"))
-        chips2Dir.rename("save.c2l", "save.c2l.CC2Edit-backup");
-    QFile listFile(chips2Dir.absoluteFilePath("save.c2l"));
+    if (chips2Dir.exists(QStringLiteral("save.c2l"))
+            && !chips2Dir.exists(QStringLiteral("save.c2l.CC2Edit-backup"))) {
+        chips2Dir.rename(QStringLiteral("save.c2l"),
+                         QStringLiteral("save.c2l.CC2Edit-backup"));
+    }
+    QFile listFile(chips2Dir.absoluteFilePath(QStringLiteral("save.c2l")));
     if (!listFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
         QMessageBox::critical(this, tr("Error"),
                 tr("Could not open %1 for writing.").arg(listFile.fileName()));
@@ -2186,9 +2199,10 @@ void CC2EditMain::onTestChips2()
 
     QString cwd = QDir::currentPath();
     chips2Dir.setPath(m_testGameDir);
-    if (chips2Dir.exists("steam_api.dll") && !chips2Dir.exists("steam_appid.txt")) {
+    if (chips2Dir.exists(QStringLiteral("steam_api.dll"))
+            && !chips2Dir.exists(QStringLiteral("steam_appid.txt"))) {
         // This enables the game to work without being launched from Steam
-        QFile appidFile(chips2Dir.absoluteFilePath("steam_appid.txt"));
+        QFile appidFile(chips2Dir.absoluteFilePath(QStringLiteral("steam_appid.txt")));
         if (!appidFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
             QMessageBox::critical(this, tr("Error"),
                     tr("Could not open steam_appid.txt for writing."));
@@ -2570,20 +2584,25 @@ void CC2EditMain::onProcessFinished(int, QProcess::ExitStatus)
 {
     // Clean up temporary files
     QDir chips2Dir(m_testGameDir);
-    if (chips2Dir.exists("data/games/CC2Edit-playtest") && chips2Dir.cd("data/games/CC2Edit-playtest")) {
+    if (chips2Dir.exists(QStringLiteral("data/games/CC2Edit-playtest"))
+            && chips2Dir.cd(QStringLiteral("data/games/CC2Edit-playtest"))) {
         chips2Dir.removeRecursively();
-        chips2Dir.cd("../../..");
+        chips2Dir.cd(QStringLiteral("../../.."));
     }
-    if (chips2Dir.exists("data/saves/CC2Edit-playtest") && chips2Dir.cd("data/saves/CC2Edit-playtest")) {
+    if (chips2Dir.exists(QStringLiteral("data/saves/CC2Edit-playtest"))
+            && chips2Dir.cd(QStringLiteral("data/saves/CC2Edit-playtest"))) {
         chips2Dir.removeRecursively();
-        chips2Dir.cd("../../..");
+        chips2Dir.cd(QStringLiteral("../../.."));
     }
-    if (chips2Dir.exists("data/games") && chips2Dir.cd("data/games")) {
-        if (chips2Dir.exists("save.c2l") && chips2Dir.exists("save.c2l.CC2Edit-backup")) {
-            chips2Dir.remove("save.c2l");
-            chips2Dir.rename("save.c2l.CC2Edit-backup", "save.c2l");
+    if (chips2Dir.exists(QStringLiteral("data/games"))
+            && chips2Dir.cd(QStringLiteral("data/games"))) {
+        if (chips2Dir.exists(QStringLiteral("save.c2l"))
+                && chips2Dir.exists(QStringLiteral("save.c2l.CC2Edit-backup"))) {
+            chips2Dir.remove(QStringLiteral("save.c2l"));
+            chips2Dir.rename(QStringLiteral("save.c2l.CC2Edit-backup"),
+                             QStringLiteral("save.c2l"));
         }
-        chips2Dir.cd("../..");
+        chips2Dir.cd(QStringLiteral("../.."));
     }
 
     // Clean up subproc

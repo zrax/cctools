@@ -41,7 +41,7 @@ ImportDialog::ImportDialog(QWidget* parent)
     levelLabel->setBuddy(m_levelSelect);
 
     m_resizeLevel = new QCheckBox(tr("&Resize level to fit non-blank area"), this);
-    m_resizeLevel->setChecked(settings.value("Import/AutoResize", false).toBool());
+    m_resizeLevel->setChecked(settings.value(QStringLiteral("Import/AutoResize"), false).toBool());
 
     auto warningLabel = new QLabel(tr(
             "Warning:  Certain Level features, such as non-standard button "
@@ -74,7 +74,7 @@ ImportDialog::ImportDialog(QWidget* parent)
 ImportDialog::~ImportDialog()
 {
     QSettings settings;
-    settings.setValue("Import/AutoResize", m_resizeLevel->isChecked());
+    settings.setValue(QStringLiteral("Import/AutoResize"), m_resizeLevel->isChecked());
 
     delete m_levelset;
 }
