@@ -63,6 +63,14 @@ public:
         setStyle(&m_style);
     }
 
+    void promoteTab(int index)
+    {
+        if (tabData(index).toInt() == TabFloating) {
+            setTabData(currentIndex(), TabNormal);
+            update();
+        }
+    }
+
 protected:
     void mouseReleaseEvent(QMouseEvent* event) override
     {
@@ -71,6 +79,15 @@ protected:
             emit tabCloseRequested(tab);
 
         QTabBar::mouseReleaseEvent(event);
+    }
+
+    void mouseDoubleClickEvent(QMouseEvent* event) override
+    {
+        int tab = tabAt(event->pos());
+        if (tab >= 0 && event->button() == Qt::LeftButton)
+            promoteTab(tab);
+
+        QTabBar::mouseDoubleClickEvent(event);
     }
 
     QSize tabSizeHint(int index) const override
@@ -114,8 +131,5 @@ void EditorTabWidget::addFloatingTab(QWidget *tabWidget, const QString &label)
 
 void EditorTabWidget::promoteTab(int index)
 {
-    if (tabBar()->tabData(index).toInt() == TabFloating) {
-        tabBar()->setTabData(currentIndex(), TabNormal);
-        tabBar()->update();
-    }
+    static_cast<EditorTabBar*>(tabBar())->promoteTab(index);
 }
