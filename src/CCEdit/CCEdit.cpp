@@ -354,7 +354,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_hintEdit->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum));
 
     m_levelManDock = new QDockWidget(this);
-    m_levelManDock->setObjectName("LevelManagerDock");
+    m_levelManDock->setObjectName(QStringLiteral("LevelManagerDock"));
     m_levelManDock->setWindowTitle(tr("Level Manager"));
     m_levelManDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     m_levelManDock->setWidget(levelManWidget);
@@ -466,7 +466,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     tileLayout->addWidget(layerWidget, 1, 2, 2, 1);
 
     auto sortedTilesDock = new QDockWidget(this);
-    sortedTilesDock->setObjectName("SortedTilesDock");
+    sortedTilesDock->setObjectName(QStringLiteral("SortedTilesDock"));
     sortedTilesDock->setWindowTitle(tr("Tiles - Sorted"));
     sortedTilesDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     sortedTilesDock->setWidget(tileWidget);
@@ -511,7 +511,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     allTileLayout->addWidget(layerWidget, 1, 2, 2, 1);
 
     auto allTilesDock = new QDockWidget(this);
-    allTilesDock->setObjectName("AllTilesDock");
+    allTilesDock->setObjectName(QStringLiteral("AllTilesDock"));
     allTilesDock->setWindowTitle(tr("All Tiles"));
     allTilesDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     allTilesDock->setWidget(allTileWidget);
@@ -596,7 +596,7 @@ CCEditMain::CCEditMain(QWidget* parent)
 
     // Tool bars
     QToolBar* tbarMain = addToolBar(QString());
-    tbarMain->setObjectName("ToolbarMain");
+    tbarMain->setObjectName(QStringLiteral("ToolbarMain"));
     tbarMain->setWindowTitle(tr("Main"));
     tbarMain->addAction(m_actions[ActionNew]);
     tbarMain->addAction(m_actions[ActionOpen]);
@@ -610,7 +610,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     tbarMain->addAction(m_actions[ActionCopy]);
     tbarMain->addAction(m_actions[ActionPaste]);
     QToolBar* tbarTools = addToolBar(QString());
-    tbarTools->setObjectName("ToolbarTools");
+    tbarTools->setObjectName(QStringLiteral("ToolbarTools"));
     tbarTools->setWindowTitle(tr("Tools"));
     tbarTools->addAction(m_actions[ActionDrawPencil]);
     tbarTools->addAction(m_actions[ActionDrawLine]);
@@ -715,18 +715,24 @@ CCEditMain::CCEditMain(QWidget* parent)
 
     // Load window settings and defaults
     QSettings settings;
-    resize(settings.value("WindowSize", QSize(1024, 768)).toSize());
-    if (settings.value("WindowMaximized", false).toBool())
+    resize(settings.value(QStringLiteral("WindowSize"), QSize(1024, 768)).toSize());
+    if (settings.value(QStringLiteral("WindowMaximized"), false).toBool())
         showMaximized();
-    if (settings.contains("WindowState2"))
-        restoreState(settings.value("WindowState2").toByteArray());
-    m_zoomFactor = settings.value("ZoomFactor", 1.0).toDouble();
-    m_actions[ActionViewButtons]->setChecked(settings.value("ViewButtons", true).toBool());
-    m_actions[ActionViewMovers]->setChecked(settings.value("ViewMovers", true).toBool());
-    m_actions[ActionViewActivePlayer]->setChecked(settings.value("ViewActivePlayer", false).toBool());
-    m_actions[ActionViewViewport]->setChecked(settings.value("ViewViewport", true).toBool());
-    m_actions[ActionViewMonsterPaths]->setChecked(settings.value("ViewMonsterPaths", false).toBool());
-    m_actions[ActionViewErrors]->setChecked(settings.value("ViewErrors", true).toBool());
+    if (settings.contains(QStringLiteral("WindowState2")))
+        restoreState(settings.value(QStringLiteral("WindowState2")).toByteArray());
+    m_zoomFactor = settings.value(QStringLiteral("ZoomFactor"), 1.0).toDouble();
+    m_actions[ActionViewButtons]->setChecked(
+            settings.value(QStringLiteral("ViewButtons"), true).toBool());
+    m_actions[ActionViewMovers]->setChecked(
+            settings.value(QStringLiteral("ViewMovers"), true).toBool());
+    m_actions[ActionViewActivePlayer]->setChecked(
+            settings.value(QStringLiteral("ViewActivePlayer"), false).toBool());
+    m_actions[ActionViewViewport]->setChecked(
+            settings.value(QStringLiteral("ViewViewport"), true).toBool());
+    m_actions[ActionViewMonsterPaths]->setChecked(
+            settings.value(QStringLiteral("ViewMonsterPaths"), false).toBool());
+    m_actions[ActionViewErrors]->setChecked(
+            settings.value(QStringLiteral("ViewErrors"), true).toBool());
 
     // Make sure the toolbox docks are visible
     QDockWidget* docks[] = {m_levelManDock, sortedTilesDock, allTilesDock};
@@ -755,7 +761,8 @@ CCEditMain::CCEditMain(QWidget* parent)
                 QMessageBox::Ok);
         exit(1);
     } else {
-        QString tilesetFilename = settings.value("TilesetName", "WEP.tis").toString();
+        QString tilesetFilename = settings.value(QStringLiteral("TilesetName"),
+                                                 QStringLiteral("WEP.tis")).toString();
         bool foundTset = false;
         for (int i = 0; i < m_tilesetGroup->actions().size(); ++i) {
             auto tileset = m_tilesetGroup->actions()[i]->data().value<CCETileset*>();
@@ -868,7 +875,7 @@ void CCEditMain::loadLevelset(const QString& filename)
     }
 
     m_haveCcx = false;
-    QString ccxName = filename.left(filename.lastIndexOf('.')) + ".ccx";
+    QString ccxName = filename.left(filename.lastIndexOf(QLatin1Char('.'))) + QStringLiteral(".ccx");
     if (m_ccxFile.readFile(ccxName, m_levelset->levelCount()))
         m_haveCcx = true;
 
@@ -996,18 +1003,26 @@ void CCEditMain::closeEvent(QCloseEvent* event)
     }
 
     QSettings settings;
-    settings.setValue("WindowMaximized", (windowState() & Qt::WindowMaximized) != 0);
+    settings.setValue(QStringLiteral("WindowMaximized"),
+                      (windowState() & Qt::WindowMaximized) != 0);
     showNormal();
-    settings.setValue("WindowSize", size());
-    settings.setValue("WindowState2", saveState());
-    settings.setValue("ZoomFactor", m_zoomFactor);
-    settings.setValue("ViewButtons", m_actions[ActionViewButtons]->isChecked());
-    settings.setValue("ViewMovers", m_actions[ActionViewMovers]->isChecked());
-    settings.setValue("ViewActivePlayer", m_actions[ActionViewActivePlayer]->isChecked());
-    settings.setValue("ViewViewport", m_actions[ActionViewViewport]->isChecked());
-    settings.setValue("ViewMonsterPaths", m_actions[ActionViewMonsterPaths]->isChecked());
-    settings.setValue("ViewErrors", m_actions[ActionViewErrors]->isChecked());
-    settings.setValue("TilesetName", m_currentTileset->filename());
+    settings.setValue(QStringLiteral("WindowSize"), size());
+    settings.setValue(QStringLiteral("WindowState2"), saveState());
+    settings.setValue(QStringLiteral("ZoomFactor"), m_zoomFactor);
+    settings.setValue(QStringLiteral("ViewButtons"),
+                      m_actions[ActionViewButtons]->isChecked());
+    settings.setValue(QStringLiteral("ViewMovers"),
+                      m_actions[ActionViewMovers]->isChecked());
+    settings.setValue(QStringLiteral("ViewActivePlayer"),
+                      m_actions[ActionViewActivePlayer]->isChecked());
+    settings.setValue(QStringLiteral("ViewViewport"),
+                      m_actions[ActionViewViewport]->isChecked());
+    settings.setValue(QStringLiteral("ViewMonsterPaths"),
+                      m_actions[ActionViewMonsterPaths]->isChecked());
+    settings.setValue(QStringLiteral("ViewErrors"),
+                      m_actions[ActionViewErrors]->isChecked());
+    settings.setValue(QStringLiteral("TilesetName"),
+                      m_currentTileset->filename());
 }
 
 void CCEditMain::resizeEvent(QResizeEvent* event)
@@ -1015,7 +1030,7 @@ void CCEditMain::resizeEvent(QResizeEvent* event)
     if (!event)
         QWidget::resizeEvent(event);
 
-    if (m_zoomFactor == 0.0 && m_editorTabs->currentWidget() != 0) {
+    if (m_zoomFactor == 0.0 && m_editorTabs->currentWidget() != nullptr) {
         QSize zmax = ((QScrollArea*)m_editorTabs->currentWidget())->maximumViewportSize();
         double zx = (double)zmax.width() / (32 * m_currentTileset->size());
         double zy = (double)zmax.height() / (32 * m_currentTileset->size());
@@ -1128,31 +1143,32 @@ void CCEditMain::findTilesets()
 
     QDir path;
     QStringList tilesets;
+    const QStringList tilesetGlob { QStringLiteral("*.tis") };
 #if defined(Q_OS_WIN)
     // Search app directory
     path.setPath(QApplication::applicationDirPath());
-    tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
+    tilesets = path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name);
     for (const QString& file : tilesets)
         registerTileset(path.absoluteFilePath(file));
 #else
     // Search install path
     path.setPath(QApplication::applicationDirPath());
     path.cdUp();
-    path.cd("share/cctools");
-    tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
+    path.cd(QStringLiteral("share/cctools"));
+    tilesets = path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name);
     for (const QString& file : tilesets)
         registerTileset(path.absoluteFilePath(file));
 
     // Search standard directories
-    path.setPath("/usr/share/cctools");
+    path.setPath(QStringLiteral("/usr/share/cctools"));
     if (path.exists()) {
-        tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
+        tilesets = path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name);
         for (const QString& file : tilesets)
             registerTileset(path.absoluteFilePath(file));
     }
-    path.setPath("/usr/local/share/cctools");
+    path.setPath(QStringLiteral("/usr/local/share/cctools"));
     if (path.exists()) {
-        tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
+        tilesets = path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name);
         for (const QString& file : tilesets)
             registerTileset(path.absoluteFilePath(file));
     }
@@ -1160,9 +1176,9 @@ void CCEditMain::findTilesets()
 
     // User-space local data
     path.setPath(QDir::homePath());
-    path.cd(".cctools");
+    path.cd(QStringLiteral(".cctools"));
     if (path.exists()) {
-        tilesets = path.entryList(QStringList("*.tis"), QDir::Files | QDir::Readable, QDir::Name);
+        tilesets = path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name);
         for (const QString& file : tilesets)
             registerTileset(path.absoluteFilePath(file));
     }
@@ -1300,11 +1316,12 @@ void CCEditMain::onOpenAction()
 {
     QSettings settings;
     QString filename = QFileDialog::getOpenFileName(this, tr("Open Levelset..."),
-                            settings.value("DialogDir").toString(),
+                            settings.value(QStringLiteral("DialogDir")).toString(),
                             tr("All Levelsets (*.dat *.dac *.ccl)"));
     if (!filename.isEmpty()) {
         loadLevelset(filename);
-        settings.setValue("DialogDir", QFileInfo(filename).dir().absolutePath());
+        settings.setValue(QStringLiteral("DialogDir"),
+                          QFileInfo(filename).dir().absolutePath());
     }
 }
 
@@ -1323,20 +1340,22 @@ void CCEditMain::onSaveAsAction()
                               : tr("CC Levelsets (*.dat *.ccl)");
 
     if (m_levelsetFilename.isEmpty())
-        m_levelsetFilename = settings.value("DialogDir").toString();
+        m_levelsetFilename = settings.value(QStringLiteral("DialogDir")).toString();
     QString filename = QFileDialog::getSaveFileName(this, tr("Save Levelset..."),
                                                     m_levelsetFilename, filter);
     if (!filename.isEmpty()) {
         saveLevelset(filename);
-        settings.setValue("DialogDir", QFileInfo(filename).dir().absolutePath());
+        settings.setValue(QStringLiteral("DialogDir"),
+                          QFileInfo(filename).dir().absolutePath());
     }
 }
 
 void CCEditMain::onReportAction()
 {
     QSettings settings;
-    QString reportPath = m_levelsetFilename.isEmpty() ? settings.value("DialogDir").toString()
-                       : m_levelsetFilename.left(m_levelsetFilename.lastIndexOf('.')) + ".html";
+    QString reportPath = m_levelsetFilename.isEmpty()
+                ? settings.value(QStringLiteral("DialogDir")).toString()
+                : m_levelsetFilename.left(m_levelsetFilename.lastIndexOf(QLatin1Char('.'))) + QStringLiteral(".html");
     QString filename = QFileDialog::getSaveFileName(this, tr("Save Report..."),
                                                     reportPath, tr("HTML Source (*.html)"));
     if (filename.isEmpty())
@@ -1366,7 +1385,7 @@ void CCEditMain::onReportAction()
     report.write(filebase.toUtf8().constData());
     report.write("</h1>\n");
 
-    const QString dirbase = QFileInfo(filename).baseName() + "_levimg";
+    const QString dirbase = QFileInfo(filename).baseName() + QStringLiteral("_levimg");
     const QString imgdir = QFileInfo(filename).path() + QDir::separator() + dirbase;
     QDir dir;
     dir.mkdir(imgdir);
@@ -1857,7 +1876,7 @@ void CCEditMain::onTestChips()
     }
 
     QSettings settings;
-    QString chipsExe = settings.value("ChipsExe").toString();
+    QString chipsExe = settings.value(QStringLiteral("ChipsExe")).toString();
     if (chipsExe.isEmpty() || !QFile::exists(chipsExe)) {
         QMessageBox::critical(this, tr("Could not find CHIPS.EXE"),
                 tr("Could not find Chip's Challenge executable.\n"
@@ -1865,11 +1884,11 @@ void CCEditMain::onTestChips()
         return;
     }
 
-    QString winePath = settings.value("WineExe").toString();
+    QString winePath = settings.value(QStringLiteral("WineExe")).toString();
 #ifndef Q_OS_WIN
     if (winePath.isEmpty() || !QFile::exists(winePath)) {
         // Try standard paths
-        winePath = QStandardPaths::findExecutable("wine");
+        winePath = QStandardPaths::findExecutable(QStringLiteral("wine"));
         if (winePath.isEmpty() || !QFile::exists(winePath)) {
             QMessageBox::critical(this, tr("Could not find WINE"),
                     tr("Could not find WINE executable.\n"
@@ -1879,8 +1898,8 @@ void CCEditMain::onTestChips()
     }
 #endif
 
-    m_tempExe = QDir::tempPath() + "/CCRun.exe";
-    m_tempDat = QDir::tempPath() + "/CCRun.dat";
+    m_tempExe = QDir::tempPath() + QStringLiteral("/CCRun.exe");
+    m_tempDat = QDir::tempPath() + QStringLiteral("/CCRun.dat");
     QFile::remove(m_tempExe);
     if (!QFile::copy(chipsExe, m_tempExe)) {
         QMessageBox::critical(this, tr("Error Creating Test EXE"),
@@ -1897,9 +1916,9 @@ void CCEditMain::onTestChips()
     // Make a CHIPS.EXE that we can use
     ccl::ChipsHax hax;
     hax.open(&stream);
-    if (settings.value("TestPGPatch", false).toBool())
+    if (settings.value(QStringLiteral("TestPGPatch"), false).toBool())
         hax.set_PGChips(ccl::CCPatchPatched);
-    if (settings.value("TestCCPatch", true).toBool())
+    if (settings.value(QStringLiteral("TestCCPatch"), true).toBool())
         hax.set_CCPatch(ccl::CCPatchPatched);
     hax.set_LastLevel(m_levelset->levelCount());
     if (m_useDac && m_dacInfo.m_lastLevel < m_levelset->levelCount())
@@ -1921,7 +1940,7 @@ void CCEditMain::onTestChips()
         return;
     }
     unsigned int saveType = m_levelset->type();
-    if (settings.value("TestPGPatch", false).toBool())
+    if (settings.value(QStringLiteral("TestPGPatch"), false).toBool())
         m_levelset->setType(ccl::Levelset::TypePG);
     else
         m_levelset->setType(ccl::Levelset::TypeMS);
@@ -1945,10 +1964,10 @@ void CCEditMain::onTestChips()
     if (!winePath.isEmpty()) {
         // WineVDM doesn't support .ini file from the current directory...
         QDir winevdmPath = QFileInfo(winePath).absoluteDir();
-        m_tempIni = winevdmPath.absoluteFilePath("WINDOWS/CCRun.ini");
+        m_tempIni = winevdmPath.absoluteFilePath(QStringLiteral("WINDOWS/CCRun.ini"));
     } else {
 #endif
-        m_tempIni = exePath.absoluteFilePath("CCRun.ini");
+        m_tempIni = exePath.absoluteFilePath(QStringLiteral("CCRun.ini"));
 #ifdef Q_OS_WIN
     }
 #endif
@@ -2014,12 +2033,12 @@ void CCEditMain::onTestTWorld(unsigned int levelsetType)
     }
 
     QSettings settings;
-    QString tworldExe = settings.value("TWorldExe").toString();
+    QString tworldExe = settings.value(QStringLiteral("TWorldExe")).toString();
     if (tworldExe.isEmpty() || !QFile::exists(tworldExe)) {
         // Try standard paths
-        tworldExe = QStandardPaths::findExecutable("tworld2");
+        tworldExe = QStandardPaths::findExecutable(QStringLiteral("tworld2"));
         if (tworldExe.isEmpty() || !QFile::exists(tworldExe))
-            tworldExe = QStandardPaths::findExecutable("tworld");
+            tworldExe = QStandardPaths::findExecutable(QStringLiteral("tworld"));
         if (tworldExe.isEmpty() || !QFile::exists(tworldExe)) {
             QMessageBox::critical(this, tr("Could not find Tile World"),
                     tr("Could not find Tile World executable.\n"
@@ -2029,7 +2048,7 @@ void CCEditMain::onTestTWorld(unsigned int levelsetType)
     }
 
     // Save the levelset to the temp file
-    m_tempDat = QDir::toNativeSeparators(QDir::tempPath() + "/CCRun.dat");
+    m_tempDat = QDir::toNativeSeparators(QDir::tempPath() + QStringLiteral("/CCRun.dat"));
     ccl::FileStream stream;
     if (!stream.open(m_tempDat, ccl::FileStream::Write)) {
         QMessageBox::critical(this, tr("Error Creating Test Data File"),
@@ -2059,7 +2078,9 @@ void CCEditMain::onTestTWorld(unsigned int levelsetType)
     connect(m_subProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, &CCEditMain::onProcessFinished);
     connect(m_subProc, &QProcess::errorOccurred, this, &CCEditMain::onProcessError);
-    m_subProc->start(tworldExe, QStringList{ "-pr", m_tempDat, QString::number(levelNum + 1) });
+    m_subProc->start(tworldExe, QStringList{
+        QStringLiteral("-pr"), m_tempDat, QString::number(levelNum + 1)
+    });
     QDir::setCurrent(cwd);
 }
 
@@ -2129,7 +2150,7 @@ void CCEditMain::onCleanChanged(bool clean)
 
 void CCEditMain::onAddLevelAction()
 {
-    if (m_levelset == 0)
+    if (!m_levelset)
         return;
 
     auto undoCommand = new LevelsetUndoCommand(m_levelset);
@@ -2200,12 +2221,13 @@ void CCEditMain::onMoveDownAction()
 
 void CCEditMain::onPropertiesAction()
 {
-    if (m_levelset == 0)
+    if (!m_levelset)
         return;
 
     LevelsetProps props(this);
     props.setLevelset(m_levelset);
-    props.setDacFile(m_useDac ? &m_dacInfo : 0);
+    if (m_useDac)
+        props.setDacFile(&m_dacInfo);
     while (props.exec() == QDialog::Accepted) {
         if (props.useDac() && props.dacFilename().isEmpty()) {
             QMessageBox::critical(this, tr("Error"),
@@ -2224,8 +2246,10 @@ void CCEditMain::onPropertiesAction()
         if (props.useDac() != m_useDac) {
             // Fix filename
             QString fnameNoSuffix = m_levelsetFilename.left(m_levelsetFilename.lastIndexOf(QLatin1Char('.')));
-            if (!fnameNoSuffix.isEmpty())
-                m_levelsetFilename = fnameNoSuffix + (props.useDac() ? ".dac" : ".dat");
+            if (!fnameNoSuffix.isEmpty()) {
+                m_levelsetFilename = fnameNoSuffix + (props.useDac() ? QStringLiteral(".dac")
+                                                                     : QStringLiteral(".dat"));
+            }
             setLevelsetFilename(m_levelsetFilename);
         }
         m_useDac = props.useDac();

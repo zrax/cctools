@@ -30,10 +30,12 @@
 #   define EXE_FILTER tr("Executables (*.exe)")
 #   define WINEXE_FILTER tr("Executables (*.exe)")
 #   define EXE_LIST QStringList{ QStringLiteral("*.exe") }
+#   define WINEXE_LIST QStringList{ QStringLiteral("*.exe") }
 #else
 #   define EXE_FILTER tr("Executables (*)")
 #   define WINEXE_FILTER tr("Windows Executables (*.exe *.EXE)")
 #   define EXE_LIST QStringList()
+#   define WINEXE_LIST QStringList{ QStringLiteral("*.exe"), QStringLiteral("*.EXE") }
 #endif
 
 TestSetupDialog::TestSetupDialog(QWidget* parent)
@@ -43,9 +45,9 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
 
     QSettings settings;
     auto exeCompleter = new FileCompleter(EXE_LIST, this);
-    auto winExeCompleter = new FileCompleter(QStringList{ "*.exe" }, this);
+    auto winExeCompleter = new FileCompleter(WINEXE_LIST, this);
 
-    m_winePath = new QLineEdit(settings.value("WineExe").toString(), this);
+    m_winePath = new QLineEdit(settings.value(QStringLiteral("WineExe")).toString(), this);
     m_winePath->setCompleter(exeCompleter);
     auto lblWinePath = new QLabel(
 #                           ifdef Q_OS_WIN
@@ -59,14 +61,14 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     browseWine->setIcon(ICON("document-open-folder-sm"));
     browseWine->setAutoRaise(true);
 
-    m_msccPath = new QLineEdit(settings.value("ChipsExe").toString(), this);
+    m_msccPath = new QLineEdit(settings.value(QStringLiteral("ChipsExe")).toString(), this);
     m_msccPath->setCompleter(winExeCompleter);
     auto lblMsccPath = new QLabel(tr("MS&CC Path:"), this);
     lblMsccPath->setBuddy(m_msccPath);
     auto browseChips = new QToolButton(this);
     browseChips->setIcon(ICON("document-open-folder-sm"));
     browseChips->setAutoRaise(true);
-    m_tworldPath = new QLineEdit(settings.value("TWorldExe").toString(), this);
+    m_tworldPath = new QLineEdit(settings.value(QStringLiteral("TWorldExe")).toString(), this);
     m_tworldPath->setCompleter(exeCompleter);
     auto lblTWorldPath = new QLabel(tr("&Tile World Path:"), this);
     lblTWorldPath->setBuddy(m_tworldPath);
@@ -78,9 +80,9 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
             Qt::Horizontal, this);
 
     m_useCCPatch = new QCheckBox(tr("MSCC: Use CCPatch"), this);
-    m_useCCPatch->setChecked(settings.value("TestCCPatch", true).toBool());
+    m_useCCPatch->setChecked(settings.value(QStringLiteral("TestCCPatch"), true).toBool());
     m_usePGPatch = new QCheckBox(tr("MSCC: Use PGChip (Ice Blocks)"), this);
-    m_usePGPatch->setChecked(settings.value("TestPGPatch", false).toBool());
+    m_usePGPatch->setChecked(settings.value(QStringLiteral("TestPGPatch"), false).toBool());
 
     auto layout = new QGridLayout(this);
     layout->setContentsMargins(8, 8, 8, 8);
@@ -125,11 +127,11 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
 void TestSetupDialog::onSaveSettings()
 {
     QSettings settings;
-    settings.setValue("WineExe", m_winePath->text());
-    settings.setValue("ChipsExe", m_msccPath->text());
-    settings.setValue("TWorldExe", m_tworldPath->text());
-    settings.setValue("TestCCPatch", m_useCCPatch->isChecked());
-    settings.setValue("TestPGPatch", m_usePGPatch->isChecked());
+    settings.setValue(QStringLiteral("WineExe"), m_winePath->text());
+    settings.setValue(QStringLiteral("ChipsExe"), m_msccPath->text());
+    settings.setValue(QStringLiteral("TWorldExe"), m_tworldPath->text());
+    settings.setValue(QStringLiteral("TestCCPatch"), m_useCCPatch->isChecked());
+    settings.setValue(QStringLiteral("TestPGPatch"), m_usePGPatch->isChecked());
     accept();
 }
 

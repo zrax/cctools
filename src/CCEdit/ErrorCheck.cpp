@@ -39,7 +39,8 @@ ErrorCheckDialog::ErrorCheckDialog(QWidget* parent)
                                         << tr("MSCC (CCPlay / Tile World)")
                                         << tr("Lynx (Tile World)")
                                         << tr("Lynx (Pedantic)"));
-    m_checkMode->setCurrentIndex(settings.value("LevelsetCheckMode", (int)CheckMscc).toInt());
+    m_checkMode->setCurrentIndex(settings.value(QStringLiteral("LevelsetCheckMode"),
+                                                (int)CheckMscc).toInt());
     m_checkTarget = new QComboBox(this);
 
     m_errors = new QTreeWidget(this);
@@ -79,7 +80,7 @@ ErrorCheckDialog::ErrorCheckDialog(QWidget* parent)
 ErrorCheckDialog::~ErrorCheckDialog()
 {
     QSettings settings;
-    settings.setValue("LevelsetCheckMode", m_checkMode->currentIndex());
+    settings.setValue(QStringLiteral("LevelsetCheckMode"), m_checkMode->currentIndex());
 }
 
 void ErrorCheckDialog::setLevelsetInfo(ccl::Levelset* levelset, ccl::DacFile* dac)
@@ -95,7 +96,7 @@ void ErrorCheckDialog::setLevelsetInfo(ccl::Levelset* levelset, ccl::DacFile* da
     }
 }
 
-void ErrorCheckDialog::reportError(int level, QString text)
+void ErrorCheckDialog::reportError(int level, const QString& text)
 {
     QString section = (level < 0) ? tr("Levelset")
                     : QStringLiteral("%1 - %2").arg(level + 1)

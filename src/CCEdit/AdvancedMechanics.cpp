@@ -236,8 +236,8 @@ AdvancedMechanicsDialog::AdvancedMechanicsDialog(QWidget* parent)
     layout->addWidget(buttons, 1, 0);
 
     // Adjust columns
-    int numWidth = m_trapList->fontMetrics().boundingRect("000").width() + 10;
-    int pointWidth = m_trapList->fontMetrics().boundingRect("(00, 00)").width() + 20;
+    int numWidth = m_trapList->fontMetrics().boundingRect(QStringLiteral("000")).width() + 10;
+    int pointWidth = m_trapList->fontMetrics().boundingRect(QStringLiteral("(00, 00)")).width() + 20;
     m_trapList->setColumnWidth(0, numWidth);
     m_trapList->setColumnWidth(1, pointWidth);
     m_trapList->setColumnWidth(2, pointWidth);
