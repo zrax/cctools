@@ -41,6 +41,8 @@ set(CMAKE_AUTORCC ON)
 # 5.9 needed for certain features of QUndoStack
 find_package(Qt5 5.9 REQUIRED COMPONENTS Core Gui Xml Widgets Sql)
 
+add_definitions(-DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII)
+
 set(CCTools_Tilesets
     ${CMAKE_CURRENT_SOURCE_DIR}/share/cctools/CC2.tis
     ${CMAKE_CURRENT_SOURCE_DIR}/share/cctools/TW32.tis
