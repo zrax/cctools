@@ -97,7 +97,10 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionClose]->setStatusTip(tr("Close the currently open levelset"));
     m_actions[ActionClose]->setShortcut(Qt::CTRL | Qt::Key_W);
     m_actions[ActionClose]->setEnabled(false);
-    m_actions[ActionGenReport] = new QAction(tr("Generate &Report"), this);
+    m_actions[ActionProperties] = new QAction(ICON("document-properties"), tr("Levelset &Properties"), this);
+    m_actions[ActionProperties]->setStatusTip(tr("Change levelset and .DAC file properties"));
+    m_actions[ActionProperties]->setEnabled(false);
+    m_actions[ActionGenReport] = new QAction(tr("Generate &Report..."), this);
     m_actions[ActionGenReport]->setStatusTip(tr("Generate an HTML report of the current levelset"));
     m_actions[ActionGenReport]->setEnabled(false);
     m_actions[ActionExit] = new QAction(ICON("application-exit"), tr("E&xit"), this);
@@ -273,9 +276,6 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionMoveDown] = new QAction(ICON("arrow-down"), tr("Move &Down"), this);
     m_actions[ActionMoveDown]->setStatusTip(tr("Move the current level down in the level list"));
     m_actions[ActionMoveDown]->setEnabled(false);
-    m_actions[ActionProperties] = new QAction(ICON("document-properties"), tr("Levelset &Properties"), this);
-    m_actions[ActionProperties]->setStatusTip(tr("Change levelset and .DAC file properties"));
-    m_actions[ActionProperties]->setEnabled(false);
     m_actions[ActionOrganize] = new QAction(ICON("level-organize"), tr("&Organize Levels"), this);
     m_actions[ActionOrganize]->setStatusTip(tr("Organize or import levels"));
     m_actions[ActionOrganize]->setEnabled(false);
@@ -328,7 +328,6 @@ CCEditMain::CCEditMain(QWidget* parent)
     tbarLevelset->addAction(m_actions[ActionMoveUp]);
     tbarLevelset->addAction(m_actions[ActionMoveDown]);
     tbarLevelset->addSeparator();
-    tbarLevelset->addAction(m_actions[ActionProperties]);
     tbarLevelset->addAction(m_actions[ActionOrganize]);
 
     auto levelManLayout = new QGridLayout(levelManWidget);
@@ -530,6 +529,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     fileMenu->addAction(m_actions[ActionSaveAs]);
     fileMenu->addAction(m_actions[ActionClose]);
     fileMenu->addSeparator();
+    fileMenu->addAction(m_actions[ActionProperties]);
     fileMenu->addAction(m_actions[ActionGenReport]);
     fileMenu->addSeparator();
     fileMenu->addAction(m_actions[ActionExit]);
@@ -632,6 +632,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionSave], &QAction::triggered, this, &CCEditMain::onSaveAction);
     connect(m_actions[ActionSaveAs], &QAction::triggered, this, &CCEditMain::onSaveAsAction);
     connect(m_actions[ActionClose], &QAction::triggered, this, &CCEditMain::closeLevelset);
+    connect(m_actions[ActionProperties], &QAction::triggered, this, &CCEditMain::onPropertiesAction);
     connect(m_actions[ActionGenReport], &QAction::triggered, this, &CCEditMain::onReportAction);
     connect(m_actions[ActionExit], &QAction::triggered, this, &CCEditMain::close);
     connect(m_actions[ActionSelect], &QAction::toggled, this, &CCEditMain::onSelectToggled);
@@ -687,7 +688,6 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionDelLevel], &QAction::triggered, this, &CCEditMain::onDelLevelAction);
     connect(m_actions[ActionMoveUp], &QAction::triggered, this, &CCEditMain::onMoveUpAction);
     connect(m_actions[ActionMoveDown], &QAction::triggered, this, &CCEditMain::onMoveDownAction);
-    connect(m_actions[ActionProperties], &QAction::triggered, this, &CCEditMain::onPropertiesAction);
     connect(m_actions[ActionOrganize], &QAction::triggered, this, &CCEditMain::onOrganizeAction);
 
     connect(m_levelList, &QListWidget::currentRowChanged, this, &CCEditMain::onSelectLevel);
@@ -882,9 +882,9 @@ void CCEditMain::loadLevelset(const QString& filename)
     m_actions[ActionSave]->setEnabled(true);
     m_actions[ActionSaveAs]->setEnabled(true);
     m_actions[ActionClose]->setEnabled(true);
+    m_actions[ActionProperties]->setEnabled(true);
     m_actions[ActionGenReport]->setEnabled(true);
     m_actions[ActionAddLevel]->setEnabled(true);
-    m_actions[ActionProperties]->setEnabled(true);
     m_actions[ActionOrganize]->setEnabled(true);
     m_actions[ActionCheckErrors]->setEnabled(true);
 }
@@ -1098,9 +1098,9 @@ bool CCEditMain::closeLevelset()
     m_actions[ActionSave]->setEnabled(false);
     m_actions[ActionSaveAs]->setEnabled(false);
     m_actions[ActionClose]->setEnabled(false);
+    m_actions[ActionProperties]->setEnabled(false);
     m_actions[ActionGenReport]->setEnabled(false);
     m_actions[ActionAddLevel]->setEnabled(false);
-    m_actions[ActionProperties]->setEnabled(false);
     m_actions[ActionOrganize]->setEnabled(false);
     m_actions[ActionCheckErrors]->setEnabled(false);
 
@@ -1305,9 +1305,9 @@ void CCEditMain::createNewLevelset()
     m_actions[ActionSave]->setEnabled(true);
     m_actions[ActionSaveAs]->setEnabled(true);
     m_actions[ActionClose]->setEnabled(true);
+    m_actions[ActionProperties]->setEnabled(true);
     m_actions[ActionGenReport]->setEnabled(true);
     m_actions[ActionAddLevel]->setEnabled(true);
-    m_actions[ActionProperties]->setEnabled(true);
     m_actions[ActionOrganize]->setEnabled(true);
     m_actions[ActionCheckErrors]->setEnabled(true);
 }
