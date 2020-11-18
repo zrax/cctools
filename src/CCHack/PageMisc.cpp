@@ -134,6 +134,7 @@ CCHack::PageMisc::PageMisc(QWidget* parent)
     layout->addWidget(m_cbSkipLevel, ++row, 0);
     layout->addWidget(m_skipLevel, row, 1);
     layout->addWidget(m_defSkipLevel, row, 2);
+    layout->addItem(new QSpacerItem(0, 20, QSizePolicy::Maximum, QSizePolicy::Fixed), ++row, 0, 1, 3);
     layout->addWidget(m_cbNotEnoughTimers, ++row, 0);
     layout->addWidget(m_notEnoughTimers, row, 1);
     layout->addWidget(m_defNotEnoughTimers, row, 2);
