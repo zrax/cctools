@@ -18,6 +18,7 @@
 #include "CCHack.h"
 
 #include <QApplication>
+#include <QSettings>
 #include <QTreeWidget>
 #include <QStackedWidget>
 #include <QSplitter>
@@ -224,18 +225,25 @@ void CCHackMain::onChangePage(QTreeWidgetItem* page, QTreeWidgetItem*)
 
 void CCHackMain::onLoadFromAction()
 {
-    QString filename = QFileDialog::getOpenFileName(this, tr("Load from..."), QString(),
+    QSettings settings;
+    QString filename = QFileDialog::getOpenFileName(this, tr("Load from..."),
+                                settings.value(QStringLiteral("DialogDir")).toString(),
                                 tr("Supported Files (*.EXE *.exe *.ccp);;"
                                    "EXE Files (*.EXE *.exe);;"
                                    "CCPatch Files (*.ccp)"));
-    if (!filename.isEmpty())
+    if (!filename.isEmpty()) {
         loadFile(filename);
+        settings.setValue(QStringLiteral("DialogDir"),
+                          QFileInfo(filename).dir().absolutePath());
+    }
 }
 
 void CCHackMain::onSavePatchAction()
 {
+    QSettings settings;
     QString filename = QFileDialog::getSaveFileName(this, tr("Save Patch"),
-                                QString(), tr("CCHack Patch Files (*.ccp)"));
+                                settings.value(QStringLiteral("DialogDir")).toString(),
+                                tr("CCHack Patch Files (*.ccp)"));
     if (filename.isEmpty())
         return;
 
@@ -256,12 +264,17 @@ void CCHackMain::onSavePatchAction()
     }
 
     m_settings = saveSettings;
+
+    settings.setValue(QStringLiteral("DialogDir"),
+                      QFileInfo(filename).dir().absolutePath());
 }
 
 void CCHackMain::onWriteExeAction()
 {
+    QSettings settings;
     QString exeFilename = QFileDialog::getOpenFileName(this, tr("Write to EXE"),
-                                QString(), tr("EXE Files (*.exe)"));
+                                settings.value(QStringLiteral("DialogDir")).toString(),
+                                tr("EXE Files (*.exe)"));
     if (exeFilename.isEmpty())
         return;
 
@@ -282,6 +295,9 @@ void CCHackMain::onWriteExeAction()
     }
 
     m_settings = saveSettings;
+
+    settings.setValue(QStringLiteral("DialogDir"),
+                      QFileInfo(exeFilename).dir().absolutePath());
 }
 
 void CCHackMain::onResetAction()
