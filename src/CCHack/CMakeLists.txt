@@ -22,6 +22,7 @@ set(CCHack_HEADERS
     PageBitmap.h
     PageGeneral.h
     PageMenus.h
+    PageScores.h
     PageSounds.h
     PageStoryline.h
 )
@@ -32,6 +33,7 @@ set(CCHack_SOURCES
     PageBitmap.cpp
     PageGeneral.cpp
     PageMenus.cpp
+    PageScores.cpp
     PageSounds.cpp
     PageStoryline.cpp
 )

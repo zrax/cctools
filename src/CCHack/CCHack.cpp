@@ -29,9 +29,10 @@
 #include <QMessageBox>
 #include "PageGeneral.h"
 #include "PageSounds.h"
-#include "PageStoryline.h"
-#include "PageBitmap.h"
 #include "PageMenus.h"
+#include "PageStoryline.h"
+#include "PageScores.h"
+#include "PageBitmap.h"
 #include "CommonWidgets/CCTools.h"
 
 static void addPageWithType(QTreeWidgetItem* parent, const QString& name, int type)
@@ -59,7 +60,7 @@ CCHackMain::CCHackMain(QWidget* parent)
     auto tiStrings = new QTreeWidgetItem(pager, QStringList{tr("Strings")});
     addPageWithType(tiStrings, tr("Menus"), PageMenus);
     addPageWithType(tiStrings, tr("Storyline"), PageStory);
-    addPageWithType(tiStrings, tr("After Level"), PageEndLevel);
+    addPageWithType(tiStrings, tr("Scores & Records"), PageScores);
     addPageWithType(tiStrings, tr("Miscellaneous"), PageMisc);
     auto tiGraphics = new QTreeWidgetItem(pager, QStringList{tr("Graphics")});
     addPageWithType(tiGraphics, tr("VGA Tileset"), PageVGATS);
@@ -137,7 +138,7 @@ CCHackMain::CCHackMain(QWidget* parent)
     m_pages[PageSound] = new CCHack::PageSounds(this);
     m_pages[PageMenus] = new CCHack::PageMenus(this);
     m_pages[PageStory] = new CCHack::PageStoryline(this);
-    m_pages[PageEndLevel] = new PlaceholderPage(this);
+    m_pages[PageScores] = new CCHack::PageScores(this);
     m_pages[PageMisc] = new PlaceholderPage(this);
     m_pages[PageVGATS] = new CCHack::PageBitmap(CCHack::PageBitmap::VgaTileset, this);
     m_pages[PageEGATS] = new CCHack::PageBitmap(CCHack::PageBitmap::EgaTileset, this);

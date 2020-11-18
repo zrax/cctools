@@ -92,6 +92,22 @@ void HackSettings::setKnownDefaults()
                      "Bit Busters computer club, and gives him access to the "
                      "club's computer system.  Chip is in heaven!");
 
+    set_firstTryMsg("Yowser! First Try!");
+    set_thirdTryMsg("Go Bit Buster!");
+    set_fifthTryMsg("Finished! Good Work!");
+    set_finalTryMsg("At last! You did it!");
+    set_estTimeRecordMsg("You have established a time record for this level!");
+    set_beatTimeRecordMsg("You beat the previous time record by %d second%s!");
+    set_increasedScoreMsg("You increased your score on this level by %li point%s!");
+    set_endgameScoreMsg("You completed %d levels, and your total score for the "
+                        "challenge is %li points.\n\n"
+                        "You can still improve your score, by completing levels "
+                        "that you skipped, and getting better times on each "
+                        "level.  When you replay a level, if your new score is "
+                        "better than your old, your score will be adjusted by "
+                        "the difference.  Select Best Times from the Game menu "
+                        "to see your scores for each level.");
+
     clear_vgaTileset();
     clear_egaTileset();
     clear_monoTileset();
@@ -149,6 +165,15 @@ void HackSettings::clearAll()
     clear_progressMsg_10();
     clear_endgameMsg_1();
     clear_endgameMsg_2();
+
+    clear_firstTryMsg();
+    clear_thirdTryMsg();
+    clear_fifthTryMsg();
+    clear_finalTryMsg();
+    clear_estTimeRecordMsg();
+    clear_beatTimeRecordMsg();
+    clear_increasedScoreMsg();
+    clear_endgameScoreMsg();
 
     clear_vgaTileset();
     clear_egaTileset();
@@ -222,6 +247,15 @@ bool HackSettings::loadFromExe(const QString& filename)
     set_progressMsg_10(hax.get_ProgressMsg10());
     set_endgameMsg_1(hax.get_EndgameMsg1());
     set_endgameMsg_2(hax.get_EndgameMsg2());
+
+    set_firstTryMsg(hax.get_FirstTryMsg());
+    set_thirdTryMsg(hax.get_ThirdTryMsg());
+    set_fifthTryMsg(hax.get_FifthTryMsg());
+    set_finalTryMsg(hax.get_FinalTryMsg());
+    set_estTimeRecordMsg(hax.get_EstTimeRecordMsg());
+    set_beatTimeRecordMsg(hax.get_BeatTimeRecordMsg());
+    set_increasedScoreMsg(hax.get_IncreasedScoreMsg());
+    set_endgameScoreMsg(hax.get_EndgameScoreMsg());
 
     Win16::ResourceDirectory rcDir;
     Win16::RcBlob blob;
@@ -303,6 +337,14 @@ static const QString ccp_PartText_9 = QStringLiteral("Part Texts/Part9");
 static const QString ccp_PartText_10 = QStringLiteral("Part Texts/Part10");
 static const QString ccp_EndGameMsg_1 = QStringLiteral("End Game/Msg1");
 static const QString ccp_EndGameMsg_2 = QStringLiteral("End Game/Msg2");
+static const QString ccp_FirstTryMsg = QStringLiteral("End Level/FirstTry");
+static const QString ccp_ThirdTryMsg = QStringLiteral("End Level/GoBitBuster");
+static const QString ccp_FifthTryMsg = QStringLiteral("End Level/Finished");
+static const QString ccp_FinalTryMsg = QStringLiteral("End Level/AtLast");
+static const QString ccp_EstTimeRecordMsg = QStringLiteral("End Level/TimeRecord");
+static const QString ccp_BeatTimeRecordMsg = QStringLiteral("End Level/BeatTR");
+static const QString ccp_IncreasedScoreMsg = QStringLiteral("End Level/IncScore");
+static const QString ccp_EndgameScoreMsg = QStringLiteral("End Game/MsgScore");
 static const QString ccp_VgaTileset = QStringLiteral("Graphics/OBJ32_4");
 static const QString ccp_EgaTileset = QStringLiteral("Graphics/OBJ32_4E");
 static const QString ccp_MonoTileset = QStringLiteral("Graphics/OBJ32_1");
@@ -451,6 +493,24 @@ bool HackSettings::loadFromPatch(const QString& filename)
         set_endgameMsg_1(ccl::toLatin1(patch.value(ccp_EndGameMsg_1).toString()));
     if (validString(patch, ccp_EndGameMsg_2))
         set_endgameMsg_2(ccl::toLatin1(patch.value(ccp_EndGameMsg_2).toString()));
+
+    // Scores and Records
+    if (validString(patch, ccp_FirstTryMsg))
+        set_firstTryMsg(ccl::toLatin1(patch.value(ccp_FirstTryMsg).toString()));
+    if (validString(patch, ccp_ThirdTryMsg))
+        set_thirdTryMsg(ccl::toLatin1(patch.value(ccp_ThirdTryMsg).toString()));
+    if (validString(patch, ccp_FifthTryMsg))
+        set_fifthTryMsg(ccl::toLatin1(patch.value(ccp_FifthTryMsg).toString()));
+    if (validString(patch, ccp_FinalTryMsg))
+        set_finalTryMsg(ccl::toLatin1(patch.value(ccp_FinalTryMsg).toString()));
+    if (validString(patch, ccp_EstTimeRecordMsg))
+        set_estTimeRecordMsg(ccl::toLatin1(patch.value(ccp_EstTimeRecordMsg).toString()));
+    if (validString(patch, ccp_BeatTimeRecordMsg))
+        set_beatTimeRecordMsg(ccl::toLatin1(patch.value(ccp_BeatTimeRecordMsg).toString()));
+    if (validString(patch, ccp_IncreasedScoreMsg))
+        set_increasedScoreMsg(ccl::toLatin1(patch.value(ccp_IncreasedScoreMsg).toString()));
+    if (validString(patch, ccp_EndgameScoreMsg))
+        set_endgameScoreMsg(ccl::toLatin1(patch.value(ccp_EndgameScoreMsg).toString()));
 
     // Graphics
     const QDir baseDir = QFileInfo(filename).dir();
@@ -617,6 +677,24 @@ bool HackSettings::writeToExe(const QString& filename) const
     if (have_endgameMsg_2())
         hax.set_EndgameMsg2(get_endgameMsg_2());
 
+    // Scores and Records
+    if (have_firstTryMsg())
+        hax.set_FirstTryMsg(get_firstTryMsg());
+    if (have_thirdTryMsg())
+        hax.set_ThirdTryMsg(get_thirdTryMsg());
+    if (have_fifthTryMsg())
+        hax.set_FifthTryMsg(get_fifthTryMsg());
+    if (have_finalTryMsg())
+        hax.set_FinalTryMsg(get_finalTryMsg());
+    if (have_estTimeRecordMsg())
+        hax.set_EstTimeRecordMsg(get_estTimeRecordMsg());
+    if (have_beatTimeRecordMsg())
+        hax.set_BeatTimeRecordMsg(get_beatTimeRecordMsg());
+    if (have_increasedScoreMsg())
+        hax.set_IncreasedScoreMsg(get_increasedScoreMsg());
+    if (have_endgameScoreMsg())
+        hax.set_EndgameScoreMsg(get_endgameScoreMsg());
+
     Win16::ResourceDirectory rcDir;
     rcDir.read(&exeStream);
     if (have_vgaTileset()) {
@@ -758,6 +836,24 @@ bool HackSettings::writeToPatch(const QString& filename) const
         patch.setValue(ccp_EndGameMsg_1, ccl::fromLatin1(get_endgameMsg_1()));
     if (have_endgameMsg_2())
         patch.setValue(ccp_EndGameMsg_2, ccl::fromLatin1(get_endgameMsg_2()));
+
+    // Scores and Records
+    if (have_firstTryMsg())
+        patch.setValue(ccp_FirstTryMsg, ccl::fromLatin1(get_firstTryMsg()));
+    if (have_thirdTryMsg())
+        patch.setValue(ccp_ThirdTryMsg, ccl::fromLatin1(get_thirdTryMsg()));
+    if (have_fifthTryMsg())
+        patch.setValue(ccp_FifthTryMsg, ccl::fromLatin1(get_fifthTryMsg()));
+    if (have_finalTryMsg())
+        patch.setValue(ccp_FinalTryMsg, ccl::fromLatin1(get_finalTryMsg()));
+    if (have_estTimeRecordMsg())
+        patch.setValue(ccp_EstTimeRecordMsg, ccl::fromLatin1(get_estTimeRecordMsg()));
+    if (have_beatTimeRecordMsg())
+        patch.setValue(ccp_BeatTimeRecordMsg, ccl::fromLatin1(get_beatTimeRecordMsg()));
+    if (have_increasedScoreMsg())
+        patch.setValue(ccp_IncreasedScoreMsg, ccl::fromLatin1(get_increasedScoreMsg()));
+    if (have_endgameScoreMsg())
+        patch.setValue(ccp_EndgameScoreMsg, ccl::fromLatin1(get_endgameScoreMsg()));
 
     // Graphics -- we store them directly in the .ccp file for CCHack 3.0
     if (have_vgaTileset())

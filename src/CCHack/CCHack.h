@@ -49,7 +49,7 @@ private:
 
     enum PageType {
         PageGeneral, PageSound,
-        PageMenus, PageStory, PageEndLevel, PageMisc,
+        PageMenus, PageStory, PageScores, PageMisc,
         PageVGATS, PageEGATS, PageMonoTS, PageBackground, PageInfoBox,
         PageEndGfx, PageDigits,
         Pages_COUNT

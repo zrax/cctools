@@ -107,8 +107,12 @@ public:
     HACK_STRING(ThirdTryMsg,        0x5347,   14)   // Go Bit Buster!
     HACK_STRING(FifthTryMsg,        0x5356,   20)   // Finished! Good work!
     HACK_STRING(FinalTryMsg,        0x536B,   20)   // At last! You did it!
+    HACK_STRING(EstTimeRecordMsg,   0x53B7,   50)
+    HACK_STRING(BeatTimeRecordMsg,  0x53ED,   49)
+    HACK_STRING(IncreasedScoreMsg,  0x5422,   54)
     HACK_STRING(EndgameMsg1,        0x546E,   57)
     HACK_STRING(EndgameMsg2,        0x54A8,  154)
+    HACK_STRING(EndgameScoreMsg,    0x5544,  381)
     HACK_STRING(ProgressMsg1,       0x56D6,  129)
     HACK_STRING(ProgressMsg2,       0x5758,  114)
     HACK_STRING(ProgressMsg3,       0x57CB,  121)

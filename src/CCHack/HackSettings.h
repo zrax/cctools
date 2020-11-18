@@ -104,6 +104,15 @@ public:
     MAKE_SETTING_OBJ(std::string,   endgameMsg_1);
     MAKE_SETTING_OBJ(std::string,   endgameMsg_2);
 
+    MAKE_SETTING_OBJ(std::string,   firstTryMsg);
+    MAKE_SETTING_OBJ(std::string,   thirdTryMsg);
+    MAKE_SETTING_OBJ(std::string,   fifthTryMsg);
+    MAKE_SETTING_OBJ(std::string,   finalTryMsg);
+    MAKE_SETTING_OBJ(std::string,   estTimeRecordMsg);
+    MAKE_SETTING_OBJ(std::string,   beatTimeRecordMsg);
+    MAKE_SETTING_OBJ(std::string,   increasedScoreMsg);
+    MAKE_SETTING_OBJ(std::string,   endgameScoreMsg);
+
     MAKE_SETTING_OBJ(QByteArray,    vgaTileset);
     MAKE_SETTING_OBJ(QByteArray,    egaTileset);
     MAKE_SETTING_OBJ(QByteArray,    monoTileset);
