@@ -113,6 +113,18 @@ public:
     MAKE_SETTING_OBJ(std::string,   increasedScoreMsg);
     MAKE_SETTING_OBJ(std::string,   endgameScoreMsg);
 
+    MAKE_SETTING_OBJ(std::string,   fireDeathMsg);
+    MAKE_SETTING_OBJ(std::string,   waterDeathMsg);
+    MAKE_SETTING_OBJ(std::string,   bombDeathMsg);
+    MAKE_SETTING_OBJ(std::string,   blockDeathMsg);
+    MAKE_SETTING_OBJ(std::string,   creatureDeathMsg);
+    MAKE_SETTING_OBJ(std::string,   timeLimitMsg);
+    MAKE_SETTING_OBJ(std::string,   newGameConfirmMsg);
+    MAKE_SETTING_OBJ(std::string,   skipLevelMsg);
+    MAKE_SETTING_OBJ(std::string,   notEnoughTimersMsg);
+    MAKE_SETTING_OBJ(std::string,   notEnoughMemoryMsg);
+    MAKE_SETTING_OBJ(std::string,   corruptDataFileMsg);
+
     MAKE_SETTING_OBJ(QByteArray,    vgaTileset);
     MAKE_SETTING_OBJ(QByteArray,    egaTileset);
     MAKE_SETTING_OBJ(QByteArray,    monoTileset);
@@ -132,14 +144,6 @@ public:
     virtual void setValues(HackSettings* settings) = 0;
     virtual void setDefaults(HackSettings* settings) = 0;
     virtual void saveTo(HackSettings* settings) = 0;
-};
-
-class PlaceholderPage : public HackPage {
-public:
-    explicit PlaceholderPage(QWidget* parent = nullptr) : HackPage(parent) { }
-    void setValues(HackSettings*) override { }
-    void setDefaults(HackSettings*) override { }
-    void saveTo(HackSettings*) override { }
 };
 
 #endif

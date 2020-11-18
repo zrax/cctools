@@ -33,6 +33,7 @@
 #include "PageMenus.h"
 #include "PageStoryline.h"
 #include "PageScores.h"
+#include "PageMisc.h"
 #include "PageBitmap.h"
 #include "CommonWidgets/CCTools.h"
 
@@ -140,7 +141,7 @@ CCHackMain::CCHackMain(QWidget* parent)
     m_pages[PageMenus] = new CCHack::PageMenus(this);
     m_pages[PageStory] = new CCHack::PageStoryline(this);
     m_pages[PageScores] = new CCHack::PageScores(this);
-    m_pages[PageMisc] = new PlaceholderPage(this);
+    m_pages[PageMisc] = new CCHack::PageMisc(this);
     m_pages[PageVGATS] = new CCHack::PageBitmap(CCHack::PageBitmap::VgaTileset, this);
     m_pages[PageEGATS] = new CCHack::PageBitmap(CCHack::PageBitmap::EgaTileset, this);
     m_pages[PageMonoTS] = new CCHack::PageBitmap(CCHack::PageBitmap::MonoTileset, this);

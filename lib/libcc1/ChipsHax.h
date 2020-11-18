@@ -67,18 +67,18 @@ public:
 
     /* Enter all available hacks here */
     HACK_BOOL16(IgnorePasswords,    0x482E      )   // No need for the menu cheat
-    HACK_STRING(DialogTitle,        0x4868,   17)   // Used for message boxes
+    HACK_STRING(DialogTitle,        0x4868,   16)   // Used for message boxes
     HACK_STRING(NotEnoughTimers,    0x487A,   39)
     HACK_STRING(NewGameConfirm,     0x48A2,  157)
     HACK_STRING(NotEnoughMemory,    0x4940,   52)
     HACK_STRING(FireDeathMsg,       0x4976,   49)
-    HACK_STRING(WaterDeathMsg,      0x49A8,   41)
+    HACK_STRING(WaterDeathMsg,      0x49A8,   40)
     HACK_STRING(BombDeathMsg,       0x49D2,   29)
     HACK_STRING(BlockDeathMsg,      0x49F0,   35)
-    HACK_STRING(CreatureDeathMsg,   0x4A14,   31)
+    HACK_STRING(CreatureDeathMsg,   0x4A14,   30)
     HACK_STRING(TimeLimitMsg,       0x4A34,   19)
     HACK_STRING(IniFilename,        0x4A68,   11)
-    HACK_STRING(IniEntryName,       0x4A74,   17)
+    HACK_STRING(IniEntryName,       0x4A74,   16)
     HACK_STRING(DataFilename,       0x4AD4,    9)
     HACK_STRING(ToolSound,          0x4C0A,    9)
     HACK_STRING(DoorSound,          0x4C14,    8)
@@ -101,7 +101,7 @@ public:
     HACK_STRING(WindowTitle,        0x4D16,   16)   // Displayed in main window
     HACK_STRING(DefaultDeath,       0x4D7C,    6)
     HACK_STRING(IgnorePwdMenu,      0x4E31,   17)   // Not stored in MENU resource
-    HACK_STRING(SkipLevelMsg,       0x510C,   89)
+    HACK_STRING(SkipLevelMsg,       0x510C,   88)
     HACK_STRING(CorruptFileMsg,     0x5166,   39)
     HACK_STRING(FirstTryMsg,        0x5334,   18)   // Yowser! First Try!
     HACK_STRING(ThirdTryMsg,        0x5347,   14)   // Go Bit Buster!

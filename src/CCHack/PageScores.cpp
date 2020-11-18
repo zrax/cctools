@@ -18,7 +18,6 @@
 #include "PageScores.h"
 #include "CommonWidgets/CCTools.h"
 
-#include <QScrollArea>
 #include <QGridLayout>
 #include <QLabel>
 #include <QSpacerItem>
@@ -26,12 +25,6 @@
 CCHack::PageScores::PageScores(QWidget* parent)
     : HackPage(parent)
 {
-    auto scroll = new QScrollArea(this);
-    auto content = new QWidget(this);
-    scroll->setWidget(content);
-    scroll->setWidgetResizable(true);
-    scroll->setFrameShape(QFrame::NoFrame);
-
     m_cbFirstTry = new QCheckBox(tr("First Try:"), this);
     m_firstTry = new QLineEdit(this);
     m_firstTry->setEnabled(false);
@@ -88,7 +81,7 @@ CCHack::PageScores::PageScores(QWidget* parent)
     m_defEndgameScore = new QPlainTextEdit(this);
     m_defEndgameScore->setEnabled(false);
 
-    auto layout = new QGridLayout(content);
+    auto layout = new QGridLayout(this);
     int row = 0;
     layout->addWidget(new QLabel(tr("Override"), this), row, 1);
     layout->addWidget(new QLabel(tr("Default"), this), row, 2);
@@ -119,10 +112,6 @@ CCHack::PageScores::PageScores(QWidget* parent)
     layout->addWidget(m_endgameScore, row, 1);
     layout->addWidget(m_defEndgameScore, row, 2);
     layout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding), ++row, 0, 1, 3);
-
-    auto topLayout = new QVBoxLayout(this);
-    topLayout->setContentsMargins(0, 0, 0, 0);
-    topLayout->addWidget(scroll);
 
     connect(m_cbFirstTry, &QCheckBox::toggled, m_firstTry, &QWidget::setEnabled);
     connect(m_cbThirdTry, &QCheckBox::toggled, m_thirdTry, &QWidget::setEnabled);

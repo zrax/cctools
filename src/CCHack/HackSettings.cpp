@@ -108,6 +108,22 @@ void HackSettings::setKnownDefaults()
                         "the difference.  Select Best Times from the Game menu "
                         "to see your scores for each level.");
 
+    set_fireDeathMsg("Ooops! Don't step in the fire without fire boots!");
+    set_waterDeathMsg("Ooops! Chip can't swim without flippers!");
+    set_bombDeathMsg("Ooops! Don't touch the bombs!");
+    set_blockDeathMsg("Ooops! Watch out for moving blocks!");
+    set_creatureDeathMsg("Ooops! Look out for creatures!");
+    set_timeLimitMsg("Ooops! Out of time!");
+    set_newGameConfirmMsg("Starting a new game will begin you back at level 1, "
+                          "reset your score to zero, and forget the passwords to "
+                          "any levels you have visited.\n"
+                          "Is this what you want?");
+    set_skipLevelMsg("You seem to be having trouble with this level.\n"
+                     "Would you like to skip to the next level?");
+    set_notEnoughTimersMsg("Not enough system timers are available.");
+    set_notEnoughMemoryMsg("There is not enough memory to load Chip's Challenge.");
+    set_corruptDataFileMsg("Corrupt or inaccessible CHIPS.DAT file.");
+
     clear_vgaTileset();
     clear_egaTileset();
     clear_monoTileset();
@@ -174,6 +190,18 @@ void HackSettings::clearAll()
     clear_beatTimeRecordMsg();
     clear_increasedScoreMsg();
     clear_endgameScoreMsg();
+
+    clear_fireDeathMsg();
+    clear_waterDeathMsg();
+    clear_bombDeathMsg();
+    clear_blockDeathMsg();
+    clear_creatureDeathMsg();
+    clear_timeLimitMsg();
+    clear_newGameConfirmMsg();
+    clear_skipLevelMsg();
+    clear_notEnoughTimersMsg();
+    clear_notEnoughMemoryMsg();
+    clear_corruptDataFileMsg();
 
     clear_vgaTileset();
     clear_egaTileset();
@@ -256,6 +284,18 @@ bool HackSettings::loadFromExe(const QString& filename)
     set_beatTimeRecordMsg(hax.get_BeatTimeRecordMsg());
     set_increasedScoreMsg(hax.get_IncreasedScoreMsg());
     set_endgameScoreMsg(hax.get_EndgameScoreMsg());
+
+    set_fireDeathMsg(hax.get_FireDeathMsg());
+    set_waterDeathMsg(hax.get_WaterDeathMsg());
+    set_bombDeathMsg(hax.get_BombDeathMsg());
+    set_blockDeathMsg(hax.get_BlockDeathMsg());
+    set_creatureDeathMsg(hax.get_CreatureDeathMsg());
+    set_timeLimitMsg(hax.get_TimeLimitMsg());
+    set_newGameConfirmMsg(hax.get_NewGameConfirm());
+    set_skipLevelMsg(hax.get_SkipLevelMsg());
+    set_notEnoughTimersMsg(hax.get_NotEnoughTimers());
+    set_notEnoughMemoryMsg(hax.get_NotEnoughMemory());
+    set_corruptDataFileMsg(hax.get_CorruptFileMsg());
 
     Win16::ResourceDirectory rcDir;
     Win16::RcBlob blob;
@@ -345,6 +385,17 @@ static const QString ccp_EstTimeRecordMsg = QStringLiteral("End Level/TimeRecord
 static const QString ccp_BeatTimeRecordMsg = QStringLiteral("End Level/BeatTR");
 static const QString ccp_IncreasedScoreMsg = QStringLiteral("End Level/IncScore");
 static const QString ccp_EndgameScoreMsg = QStringLiteral("End Game/MsgScore");
+static const QString ccp_FireDeathMsg = QStringLiteral("Miscellaneous/Death1");
+static const QString ccp_WaterDeathMsg = QStringLiteral("Miscellaneous/Death2");
+static const QString ccp_BombDeathMsg = QStringLiteral("Miscellaneous/Death3");
+static const QString ccp_BlockDeathMsg = QStringLiteral("Miscellaneous/Death4");
+static const QString ccp_CreatureDeathMsg = QStringLiteral("Miscellaneous/Death5");
+static const QString ccp_TimeLimitMsg = QStringLiteral("Miscellaneous/Death6");
+static const QString ccp_NewGameConfirmMsg = QStringLiteral("Miscellaneous/NewGame");
+static const QString ccp_SkipLevelMsg = QStringLiteral("Miscellaneous/SkipLev");
+static const QString ccp_NotEnoughTimersMsg = QStringLiteral("Miscellaneous/NoTimers");
+static const QString ccp_NotEnoughMemoryMsg = QStringLiteral("Miscellaneous/NoMemory");
+static const QString ccp_CorruptDataFileMsg = QStringLiteral("Miscellaneous/CorruptDAT");
 static const QString ccp_VgaTileset = QStringLiteral("Graphics/OBJ32_4");
 static const QString ccp_EgaTileset = QStringLiteral("Graphics/OBJ32_4E");
 static const QString ccp_MonoTileset = QStringLiteral("Graphics/OBJ32_1");
@@ -511,6 +562,30 @@ bool HackSettings::loadFromPatch(const QString& filename)
         set_increasedScoreMsg(ccl::toLatin1(patch.value(ccp_IncreasedScoreMsg).toString()));
     if (validString(patch, ccp_EndgameScoreMsg))
         set_endgameScoreMsg(ccl::toLatin1(patch.value(ccp_EndgameScoreMsg).toString()));
+
+    // Misc strings
+    if (validString(patch, ccp_FireDeathMsg))
+        set_fireDeathMsg(ccl::toLatin1(patch.value(ccp_FireDeathMsg).toString()));
+    if (validString(patch, ccp_WaterDeathMsg))
+        set_waterDeathMsg(ccl::toLatin1(patch.value(ccp_WaterDeathMsg).toString()));
+    if (validString(patch, ccp_BombDeathMsg))
+        set_bombDeathMsg(ccl::toLatin1(patch.value(ccp_BombDeathMsg).toString()));
+    if (validString(patch, ccp_BlockDeathMsg))
+        set_blockDeathMsg(ccl::toLatin1(patch.value(ccp_BlockDeathMsg).toString()));
+    if (validString(patch, ccp_CreatureDeathMsg))
+        set_creatureDeathMsg(ccl::toLatin1(patch.value(ccp_CreatureDeathMsg).toString()));
+    if (validString(patch, ccp_TimeLimitMsg))
+        set_timeLimitMsg(ccl::toLatin1(patch.value(ccp_TimeLimitMsg).toString()));
+    if (validString(patch, ccp_NewGameConfirmMsg))
+        set_newGameConfirmMsg(ccl::toLatin1(patch.value(ccp_NewGameConfirmMsg).toString()));
+    if (validString(patch, ccp_SkipLevelMsg))
+        set_skipLevelMsg(ccl::toLatin1(patch.value(ccp_SkipLevelMsg).toString()));
+    if (validString(patch, ccp_NotEnoughTimersMsg))
+        set_notEnoughTimersMsg(ccl::toLatin1(patch.value(ccp_NotEnoughTimersMsg).toString()));
+    if (validString(patch, ccp_NotEnoughMemoryMsg))
+        set_notEnoughMemoryMsg(ccl::toLatin1(patch.value(ccp_NotEnoughMemoryMsg).toString()));
+    if (validString(patch, ccp_CorruptDataFileMsg))
+        set_corruptDataFileMsg(ccl::toLatin1(patch.value(ccp_CorruptDataFileMsg).toString()));
 
     // Graphics
     const QDir baseDir = QFileInfo(filename).dir();
@@ -695,6 +770,30 @@ bool HackSettings::writeToExe(const QString& filename) const
     if (have_endgameScoreMsg())
         hax.set_EndgameScoreMsg(get_endgameScoreMsg());
 
+    // Misc strings
+    if (have_fireDeathMsg())
+        hax.set_FireDeathMsg(get_fireDeathMsg());
+    if (have_waterDeathMsg())
+        hax.set_WaterDeathMsg(get_waterDeathMsg());
+    if (have_bombDeathMsg())
+        hax.set_BombDeathMsg(get_bombDeathMsg());
+    if (have_blockDeathMsg())
+        hax.set_BlockDeathMsg(get_blockDeathMsg());
+    if (have_creatureDeathMsg())
+        hax.set_CreatureDeathMsg(get_creatureDeathMsg());
+    if (have_timeLimitMsg())
+        hax.set_TimeLimitMsg(get_timeLimitMsg());
+    if (have_newGameConfirmMsg())
+        hax.set_NewGameConfirm(get_newGameConfirmMsg());
+    if (have_skipLevelMsg())
+        hax.set_SkipLevelMsg(get_skipLevelMsg());
+    if (have_notEnoughTimersMsg())
+        hax.set_NotEnoughTimers(get_notEnoughTimersMsg());
+    if (have_notEnoughMemoryMsg())
+        hax.set_NotEnoughMemory(get_notEnoughMemoryMsg());
+    if (have_corruptDataFileMsg())
+        hax.set_CorruptFileMsg(get_corruptDataFileMsg());
+
     Win16::ResourceDirectory rcDir;
     rcDir.read(&exeStream);
     if (have_vgaTileset()) {
@@ -854,6 +953,30 @@ bool HackSettings::writeToPatch(const QString& filename) const
         patch.setValue(ccp_IncreasedScoreMsg, ccl::fromLatin1(get_increasedScoreMsg()));
     if (have_endgameScoreMsg())
         patch.setValue(ccp_EndgameScoreMsg, ccl::fromLatin1(get_endgameScoreMsg()));
+
+    // Misc strings
+    if (have_fireDeathMsg())
+        patch.setValue(ccp_FireDeathMsg, ccl::fromLatin1(get_fireDeathMsg()));
+    if (have_waterDeathMsg())
+        patch.setValue(ccp_WaterDeathMsg, ccl::fromLatin1(get_waterDeathMsg()));
+    if (have_bombDeathMsg())
+        patch.setValue(ccp_BombDeathMsg, ccl::fromLatin1(get_bombDeathMsg()));
+    if (have_blockDeathMsg())
+        patch.setValue(ccp_BlockDeathMsg, ccl::fromLatin1(get_blockDeathMsg()));
+    if (have_creatureDeathMsg())
+        patch.setValue(ccp_CreatureDeathMsg, ccl::fromLatin1(get_creatureDeathMsg()));
+    if (have_timeLimitMsg())
+        patch.setValue(ccp_TimeLimitMsg, ccl::fromLatin1(get_timeLimitMsg()));
+    if (have_newGameConfirmMsg())
+        patch.setValue(ccp_NewGameConfirmMsg, ccl::fromLatin1(get_newGameConfirmMsg()));
+    if (have_skipLevelMsg())
+        patch.setValue(ccp_SkipLevelMsg, ccl::fromLatin1(get_skipLevelMsg()));
+    if (have_notEnoughTimersMsg())
+        patch.setValue(ccp_NotEnoughTimersMsg, ccl::fromLatin1(get_notEnoughTimersMsg()));
+    if (have_notEnoughMemoryMsg())
+        patch.setValue(ccp_NotEnoughMemoryMsg, ccl::fromLatin1(get_notEnoughMemoryMsg()));
+    if (have_corruptDataFileMsg())
+        patch.setValue(ccp_CorruptDataFileMsg, ccl::fromLatin1(get_corruptDataFileMsg()));
 
     // Graphics -- we store them directly in the .ccp file for CCHack 3.0
     if (have_vgaTileset())

@@ -42,7 +42,7 @@ CCHack::PageGeneral::PageGeneral(QWidget* parent)
     m_cbIniEntry = new QCheckBox(tr("INI Entry:"), this);
     m_iniEntry = new QLineEdit(this);
     m_iniEntry->setEnabled(false);
-    m_iniEntry->setMaxLength(17);
+    m_iniEntry->setMaxLength(16);
     m_defIniEntry = new QLineEdit(this);
     m_defIniEntry->setEnabled(false);
 
