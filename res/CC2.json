@@ -1,0 +1,8 @@
+{
+  "size": 32,
+  "name": "CC2/Editor",
+  "desc": "Chip's Challenge 2 32x32 Editor Graphics",
+  "base": "CC2_base.png",
+  "overlay": "CC2_overlay.png",
+  "cc2": "CC2_all.png"
+}

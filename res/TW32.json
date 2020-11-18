@@ -1,0 +1,7 @@
+{
+  "size": 32,
+  "name": "TileWorld/Editor 32x32",
+  "desc": "TileWorld 32x32 Editor Graphics",
+  "base": "TW32_base.png",
+  "overlay": "TW32_overlay.png"
+}
