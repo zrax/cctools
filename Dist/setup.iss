@@ -108,11 +108,11 @@ Root: HKCR; Subkey: CCLFile\DefaultIcon; ValueType: string; ValueData: {app}\CCE
 Root: HKCR; SubKey: .c2g; ValueType: string; ValueData: C2GFile; Flags: uninsdeletekey; Tasks: CC2Files; Components: CC2Edit
 Root: HKCR; SubKey: C2GFile; ValueType: string; ValueData: Chip's Challenge 2 Game Script; Flags: uninsdeletekey; Tasks: CC2Files; Components: CC2Edit
 Root: HKCR; SubKey: C2GFile\Shell\Edit\Command; ValueType: string; ValueData: """{app}\CC2Edit.exe"" ""%1"""; Flags: uninsdeletevalue; Tasks: CC2Files; Components: CC2Edit
-Root: HKCR; Subkey: C2GFile\DefaultIcon; ValueType: string; ValueData: {app}\CC2Edit.exe,2; Flags: uninsdeletevalue; Tasks: CC2Files; Components: CC2Edit
+Root: HKCR; Subkey: C2GFile\DefaultIcon; ValueType: string; ValueData: {app}\CC2Edit.exe,1; Flags: uninsdeletevalue; Tasks: CC2Files; Components: CC2Edit
 Root: HKCR; SubKey: .c2m; ValueType: string; ValueData: C2MFile; Flags: uninsdeletekey; Tasks: CC2Files; Components: CC2Edit
 Root: HKCR; SubKey: C2MFile; ValueType: string; ValueData: Chip's Challenge 2 Map; Flags: uninsdeletekey; Tasks: CC2Files; Components: CC2Edit
 Root: HKCR; SubKey: C2MFile\Shell\Edit\Command; ValueType: string; ValueData: """{app}\CC2Edit.exe"" ""%1"""; Flags: uninsdeletevalue; Tasks: CC2Files; Components: CC2Edit
-Root: HKCR; Subkey: C2MFile\DefaultIcon; ValueType: string; ValueData: {app}\CC2Edit.exe,1; Flags: uninsdeletevalue; Tasks: CC2Files; Components: CC2Edit
+Root: HKCR; Subkey: C2MFile\DefaultIcon; ValueType: string; ValueData: {app}\CC2Edit.exe,2; Flags: uninsdeletevalue; Tasks: CC2Files; Components: CC2Edit
 Root: HKCR; SubKey: .ccp; ValueType: string; ValueData: CCPFile; Flags: uninsdeletekey; Tasks: CCHackFiles; Components: CCHack
 Root: HKCR; SubKey: CCPFile; ValueType: string; ValueData: CCHack Patch File; Flags: uninsdeletekey; Tasks: CCHackFiles; Components: CCHack
 Root: HKCR; SubKey: CCPFile\Shell\Open\Command; ValueType: string; ValueData: """{app}\CCHack.exe"" ""%1"""; Flags: uninsdeletevalue; Tasks: CCHackFiles; Components: CCHack

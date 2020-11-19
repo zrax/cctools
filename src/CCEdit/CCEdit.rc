@@ -6,6 +6,7 @@
 
 /* Icons */
 APPICON                 ICON    DISCARDABLE         "icons\\boot.ico"
+CCL_FILE                ICON    DISCARDABLE         "icons\\ccl.ico"
 /* End of Icons */
 
 /* Version Info */

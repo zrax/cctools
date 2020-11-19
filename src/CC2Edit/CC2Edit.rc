@@ -6,6 +6,8 @@
 
 /* Icons */
 APPICON                 ICON    DISCARDABLE         "icons\\boot.ico"
+C2G_FILE                ICON    DISCARDABLE         "icons\\c2g.ico"
+C2M_FILE                ICON    DISCARDABLE         "icons\\c2m.ico"
 /* End of Icons */
 
 /* Version Info */

@@ -6,6 +6,7 @@
 
 /* Icons */
 APPICON                 ICON    DISCARDABLE         "icons\\sock.ico"
+CCP_FILE                ICON    DISCARDABLE         "icons\\ccp.ico"
 /* End of Icons */
 
 /* Version Info */
