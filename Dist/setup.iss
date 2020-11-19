@@ -2,9 +2,9 @@
 OutputDir=.
 OutputBaseFilename=CCTools
 AppName=CCTools
-AppVerName=CCTools 3.0
+AppVerName=CCTools 3.0 Beta1
 AppPublisher=Michael Hansen
-AppVersion=3.0
+AppVersion=2.95.0
 AppID={{CB9B9C3F-2810-44FB-8659-A0C5F9E24F1D}
 LicenseFile=..\LICENSE
 ChangesAssociations=true
@@ -17,11 +17,11 @@ Compression=lzma/ultra
 InternalCompressLevel=ultra
 SolidCompression=true
 VersionInfoDescription=CCTools Setup
-VersionInfoVersion=3.0
+VersionInfoVersion=2.95.0
 VersionInfoCompany=Michael Hansen
 VersionInfoCopyright=Copyright (C) 2020 Michael Hansen
-VersionInfoProductName=CCTools 3.0
-VersionInfoProductVersion=3.0
+VersionInfoProductName=CCTools 3.0 Beta1
+VersionInfoProductVersion=2.95.0
 
 [Types]
 Name: Full; Description: Full Install
@@ -98,6 +98,7 @@ Name: {app}; Type: dirifempty
 [Tasks]
 Name: CC1Files; Description: Associate .ccl Files with CCEdit; Components: CCEdit
 Name: CC2Files; Description: Associate .c2g and .c2m Files with CC2Edit; Components: CC2Edit
+Name: CCHackFiles; Description: Associate .ccp Files with CCHack; Components: CCHack
 
 [Registry]
 Root: HKCR; SubKey: .ccl; ValueType: string; ValueData: CCLFile; Flags: uninsdeletekey; Tasks: CC1Files; Components: CCEdit
@@ -112,6 +113,10 @@ Root: HKCR; SubKey: .c2m; ValueType: string; ValueData: C2MFile; Flags: uninsdel
 Root: HKCR; SubKey: C2MFile; ValueType: string; ValueData: Chip's Challenge 2 Map; Flags: uninsdeletekey; Tasks: CC2Files; Components: CC2Edit
 Root: HKCR; SubKey: C2MFile\Shell\Edit\Command; ValueType: string; ValueData: """{app}\CC2Edit.exe"" ""%1"""; Flags: uninsdeletevalue; Tasks: CC2Files; Components: CC2Edit
 Root: HKCR; Subkey: C2MFile\DefaultIcon; ValueType: string; ValueData: {app}\CC2Edit.exe,1; Flags: uninsdeletevalue; Tasks: CC2Files; Components: CC2Edit
+Root: HKCR; SubKey: .ccp; ValueType: string; ValueData: CCPFile; Flags: uninsdeletekey; Tasks: CCHackFiles; Components: CCHack
+Root: HKCR; SubKey: CCPFile; ValueType: string; ValueData: CCHack Patch File; Flags: uninsdeletekey; Tasks: CCHackFiles; Components: CCHack
+Root: HKCR; SubKey: CCPFile\Shell\Open\Command; ValueType: string; ValueData: """{app}\CCHack.exe"" ""%1"""; Flags: uninsdeletevalue; Tasks: CCHackFiles; Components: CCHack
+Root: HKCR; Subkey: CCPFile\DefaultIcon; ValueType: string; ValueData: {app}\CCHack.exe,1; Flags: uninsdeletevalue; Tasks: CCHackFiles; Components: CCHack
 
 [Icons]
 Name: {group}\CCEdit; Filename: {app}\CCEdit.exe; WorkingDir: {app}; IconFilename: {app}\CCEdit.exe; IconIndex: 0; Components: CCEdit
@@ -127,7 +132,7 @@ begin
   if RegQueryStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x86', 'Version', Version)
         or RegQueryStringValue(HKEY_LOCAL_MACHINE, 'Computer\HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\14.0\VC\Runtimes\X86', 'Version', Version) then
   begin
-    Result := (CompareStr(Version, 'v14.26.28720.03') < 0);
+    Result := (CompareStr(Version, 'v14.28.29325.02') < 0);
   end
   else
   begin
