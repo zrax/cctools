@@ -6,7 +6,6 @@ AppVerName=CCTools 3.0 Beta1
 AppPublisher=Michael Hansen
 AppVersion=2.95.0
 AppID={{CB9B9C3F-2810-44FB-8659-A0C5F9E24F1D}
-LicenseFile=..\LICENSE
 ChangesAssociations=true
 DefaultDirName={pf}\CCTools
 AllowNoIcons=true
