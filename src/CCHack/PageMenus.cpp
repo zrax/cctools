@@ -31,36 +31,34 @@
 #include <QMessageBox>
 
 /* Enable drag-n-drop of QTreeWidgetItems with RcMenuItem data */
-namespace {
-    QDataStream& operator<<(QDataStream& out, const Win16::RcMenuItem&)
-    {
-        return out;
-    }
-
-    QDataStream& operator>>(QDataStream& in, const Win16::RcMenuItem&)
-    {
-        return in;
-    }
-
-    QDataStream& operator<<(QDataStream& out, const Win16::Accelerator&)
-    {
-        return out;
-    }
-
-    QDataStream& operator>>(QDataStream& in, const Win16::Accelerator&)
-    {
-        return in;
-    }
-
-    struct RegisterStreamOps {
-        RegisterStreamOps()
-        {
-            qRegisterMetaTypeStreamOperators<Win16::RcMenuItem>();
-            qRegisterMetaTypeStreamOperators<Win16::Accelerator>();
-        }
-    };
-    RegisterStreamOps streamOps;
+static QDataStream& operator<<(QDataStream& out, const Win16::RcMenuItem&)
+{
+    return out;
 }
+
+static QDataStream& operator>>(QDataStream& in, const Win16::RcMenuItem&)
+{
+    return in;
+}
+
+static QDataStream& operator<<(QDataStream& out, const Win16::Accelerator&)
+{
+    return out;
+}
+
+static QDataStream& operator>>(QDataStream& in, const Win16::Accelerator&)
+{
+    return in;
+}
+
+struct RegisterStreamOps {
+    RegisterStreamOps()
+    {
+        qRegisterMetaTypeStreamOperators<Win16::RcMenuItem>();
+        qRegisterMetaTypeStreamOperators<Win16::Accelerator>();
+    }
+};
+static RegisterStreamOps streamOps;
 
 Q_DECLARE_METATYPE(Win16::RcMenuItem)
 Q_DECLARE_METATYPE(Win16::Accelerator)
