@@ -1,3 +1,109 @@
+2020-11-18 - 3.0 BETA 1 (2.95.0)
+~~~~~~~~~~
+New Tool: CC2Edit
+  * Features:
+    * Editing of maps (.c2m) and game scripts (.c2g) for Chip's Challenge 2
+      (and the Steam version of CC1, which is based on the CC2 code base).
+    * Playtesting of maps in Steam CC1 and CC2 (requires Steam to be running
+      and logged in, due to restrictions in the game itself).
+    * Many basic editing tools ported from CCEdit, including new features
+      listed below.
+    * Tile Inspector allows you to craft any combination of tiles, beyond
+      those available via normal editing.  NOTE: Creating invalid tiles may
+      cause unexpected behavior or crashes within the game.
+    * Hint Inspector allows you to directly edit hint tiles without needing
+      to count and manually modify the NOTE field.
+    * Import (Lynx-compatible) levels from CC1 levelsets (.dat or .ccl).
+      Imported levels can optionally be auto-resized to fit their content.
+  * Still missing some key features; work ongoing to complete these before the
+    final release of 3.0.
+    * Drawing hint tiles doesn't update the hint order in the NOTE field.
+    * Tile errors and monster paths are not currently rendered.
+    * Tiles are not rendered in the same layer order as CC2 in some cases.
+    * Teleport destination highlight doesn't respect wires yet.
+    * HTML Report generation is not yet implemented.
+
+CCEdit Changes:
+  * It is now possible to playtest in MSCC from 64-bit Windows using WineVDM
+    (https://github.com/otya128/winevdm).
+  * Tab management is reworked for better usability (modeled after various
+    code editors, such as vscode):
+    - Loading a level already open in another tab will focus that tab, rather
+      than opening a duplicate tab of the same level.
+    - Opening a level not already open will open a "floating" tab (indicated
+      with an italic title). This tab will be reused when switching to
+      other levels not already open in a non-floating tab.
+    - Making changes to a level, or double-clicking on the level or
+      floating tab will cause the level to be opened in a non-floating
+      mode, which means it will stay open until explicitly closed.
+    - You can now middle-click anywhere on a tab to close it, in addition
+      to the usual close button on the tab.
+  * The Level Manager and the two Tiles pages now live in their own dockable
+    widgets, and as such can be attached, detached, moved, and even hidden
+    independently of each other.
+  * Undo and Redo actions are now global to the entire levelset, not just
+    the currently open level. This means you can undo changes even after
+    closing a level's tab.
+  * It is now possible to undo and redo changes to the levelset itself,
+    such as adding/deleting/reordering levels and changing level properties.
+  * Holding SHIFT (used for drawing directly on the lower layer) will now
+    also reveal the lower layer by drawing the upper layer very faintly
+    above it.
+  * Copying a selection will now also copy a graphic of the selected tiles.
+  * Add a flood-fill drawing tool.
+  * Add a tile inspector tool, which can set any valid or invalid tile
+    (except tile 255, which is reserved for RLE encoding).
+  * Fixed a crash when dragging levels in the Levelset Organizer dialog.
+  * Fixed a crash when using Pedantic mode in the Error Checker.
+  * Fixed a crash when rendering levels that have tiles outside of the
+    normal 00-6f range.
+  * Fix: Monster paths now consider tanks switching direction, and account
+    for things that manipulate monster direction such as force floors and
+    ice corners.
+  * Fixed some minor issues with HTML report generation.
+  * Fix: Level numbers are no longer incorrect in the Level Manager after
+    deleting levels from the Levelset Organizer.
+  * Fix: Drawing tools no longer get "stuck" when CCEdit loses focus while
+    the mouse is pressed.
+
+CCPlay Changes:
+  * It is now possible to play in MSCC from 64-bit Windows using WineVDM
+    (https://github.com/otya128/winevdm).
+  * CCPlay can now launch arbitrary Java-based tools (assuming the java
+    executable is in your system PATH). This enables better support for
+    tools like SuperCC and CCCreator.
+  * The "Edit" button in CCPlay is now renamed "Open", and the list of
+    Editors in the settings is now a list of Tools, to more clearly
+    indicate that it can be used for more than just editors.
+  * Levelsets are now sorted case-insensitively.
+  * Fix: Don't throw an error trying to read an invalid .dat file (e.g.
+    the unins000.dat that various setup programs create).
+  * Fix: CCPlay no longer crashes when failing to parse levelset data in
+    some more exotic levelsets.
+  * Fix: Opening tools with a specific level selected now actually works.
+  * Fix: Level names are now correctly interpreted as Latin-1.
+
+CCHack Changes:
+  * CCHack is back -- ported to Qt5 with a completely new UI. This means
+    it is now usable on non-Windows platforms without Wine.
+  * Add support for applying and removing code patches:
+    - Always grant First Try bonus
+    - ccpatch (fixes crash related to two masked tiles in the same space)
+    - fullsec (always enable full first second)
+    - pgchips (adds ice block support)
+  * Extend menu editing to cover full Menu (and Accelerator) resource
+    editing / replacement, rather than just modifying strings.
+  * Fix: CCHack properly updates the "real" and "fake" last levels in multiple
+    places in the code, rather than just one check.
+  * Fix: CCHack no longer pollutes your current working directory with
+    extracted bitmaps every time you load an existing executable.
+  * NOTE: CCHack 3.0 *should* be able to read CCHack 1.2 patches (.ccp files),
+    but newly created patch files are are not backwards compatible with
+    CCHack 1.2. This is intentional, since the old patch format was actually
+    somewhat broken, and we now store replaced bitmaps directly in the patch
+    as well for easier distribution.
+
+
 2013-01-21 - 2.0.1 RELEASE (2.0.1)
 ~~~~~~~~~~
 New Features
