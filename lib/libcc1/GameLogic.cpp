@@ -178,7 +178,8 @@ ccl::MoveState ccl::CheckMove(ccl::LevelData* level, tile_t tile, int x, int y)
             || (peek >= TileExit && peek <= TileDoor_Yellow)
             || (peek >= TileBlueFloor && peek <= TileSocket)
             || (peek >= TileAppearingWall && peek <= TilePopUpWall)
-            || (peek >= TileCloner && peek <= TileExitAnim3))
+            || (peek >= TileCloner && peek <= TileExitAnim3)
+            || (peek >= NUM_TILE_TYPES))
             continue;
         if ((peek == TileBarrier_S || peek == TileBarrier_SE || peek == TileIce_NE
             || peek == TileIce_NW) && dir == DirNorth)
