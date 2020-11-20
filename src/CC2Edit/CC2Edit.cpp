@@ -2130,9 +2130,9 @@ void CC2EditMain::onTestChips2()
     //levelScore.saveData().setChecksum(what?);
 
     QDir savesDir(m_testGameDir);
-    if (!savesDir.cd(QStringLiteral("data/saves"))) {
+    if (!savesDir.mkpath(QStringLiteral("data/saves")) || !savesDir.cd(QStringLiteral("data/saves"))) {
         QMessageBox::critical(this, tr("Error"),
-                        tr("Could not find save data relative to Chips2 executable."));
+                        tr("Could not find or create save data directory relative to Chips2 executable."));
         return;
     }
 
