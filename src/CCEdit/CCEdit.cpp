@@ -1927,7 +1927,7 @@ void CCEditMain::onTestChips()
         hax.set_FakeLastLevel(m_levelset->levelCount());
     hax.set_IgnorePasswords(true);
     hax.set_DataFilename("CCRun.dat");
-    hax.set_IniFilename("./CCRun.ini");
+    hax.set_IniFilename(".\\CCRun.ini");
     hax.set_IniEntryName("CCEdit Playtest");
     hax.set_DialogTitle("CCEdit Playtest");
     hax.set_WindowTitle("CCEdit Playtest");
@@ -1960,17 +1960,7 @@ void CCEditMain::onTestChips()
     QString cwd = QDir::currentPath();
     QDir exePath = QFileInfo(chipsExe).absoluteDir();
 
-#ifdef Q_OS_WIN
-    if (!winePath.isEmpty()) {
-        // WineVDM doesn't support .ini file from the current directory...
-        QDir winevdmPath = QFileInfo(winePath).absoluteDir();
-        m_tempIni = winevdmPath.absoluteFilePath(QStringLiteral("WINDOWS/CCRun.ini"));
-    } else {
-#endif
-        m_tempIni = exePath.absoluteFilePath(QStringLiteral("CCRun.ini"));
-#ifdef Q_OS_WIN
-    }
-#endif
+    m_tempIni = exePath.absoluteFilePath(QStringLiteral("CCRun.ini"));
     ccl::unique_FILE iniStream = ccl::FileStream::Fopen(m_tempIni, ccl::FileStream::ReadWriteText);
     if (!iniStream)
         iniStream = ccl::FileStream::Fopen(m_tempIni, ccl::FileStream::RWCreateText);

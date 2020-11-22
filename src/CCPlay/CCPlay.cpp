@@ -466,7 +466,7 @@ void CCPlayMain::onPlayMSCC()
     hax.set_LastLevel(levelset->levelCount());
     hax.set_FakeLastLevel(dacLastLevel);
     hax.set_DataFilename("CCRun.dat");
-    hax.set_IniFilename("./CCRun.ini");
+    hax.set_IniFilename(".\\CCRun.ini");
     hax.set_IniEntryName("CCPlay Runtime");
     stream.close();
 
@@ -486,18 +486,7 @@ void CCPlayMain::onPlayMSCC()
         curLevel = query.value(2).toInt();
     }
 
-    QString tempIni;
-#ifdef Q_OS_WIN
-    if (!winePath.isEmpty()) {
-        // WineVDM doesn't support .ini file from the current directory...
-        QDir winevdmPath = QFileInfo(winePath).absoluteDir();
-        tempIni = winevdmPath.absoluteFilePath(QStringLiteral("WINDOWS/CCRun.ini"));
-    } else {
-#endif
-        tempIni = exePath.absoluteFilePath(QStringLiteral("CCRun.ini"));
-#ifdef Q_OS_WIN
-    }
-#endif
+    QString tempIni = exePath.absoluteFilePath(QStringLiteral("CCRun.ini"));
     ccl::unique_FILE iniStream = ccl::FileStream::Fopen(tempIni, ccl::FileStream::ReadWriteText);
     if (!iniStream)
         iniStream = ccl::FileStream::Fopen(tempIni, ccl::FileStream::RWCreateText);
