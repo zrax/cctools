@@ -1212,16 +1212,20 @@ bool CC2EditMain::saveTabAs(int index)
                                                 filename, tr("CC2 Maps (*.c2m)"));
         if (!filename.isEmpty())
             result = saveMap(mapEditor->map(), filename);
-        if (result)
+        if (result) {
+            mapEditor->setFilename(filename);
             mapEditor->setClean();
+        }
     }
     if (scriptEditor) {
         filename = QFileDialog::getSaveFileName(this, tr("Save Game Script..."),
                                                 filename, tr("CC2 Game Scripts (*.c2g)"));
         if (!filename.isEmpty())
             result = saveScript(scriptEditor->toPlainText(), filename);
-        if (result)
+        if (result) {
+            scriptEditor->setFilename(filename);
             scriptEditor->setClean();
+        }
     }
 
     if (result) {
