@@ -493,7 +493,7 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
     else
         clearPaintFlag(RevealLower);
 
-    if (m_cachedButton == Qt::MidButton && m_origin != QPoint(-1, -1)) {
+    if (m_cachedButton == Qt::MiddleButton && m_origin != QPoint(-1, -1)) {
         int lowX = std::min(m_origin.x(), m_current.x());
         int lowY = std::min(m_origin.y(), m_current.y());
         int highX = std::max(m_origin.x(), m_current.x());
@@ -687,7 +687,7 @@ void EditorWidget::mousePressEvent(QMouseEvent* event)
     if (!m_tileset || !m_levelData || !rect().contains(event->pos()))
         return;
     if (m_cachedButton != Qt::NoButton
-        || (event->button() & (Qt::LeftButton | Qt ::MidButton | Qt::RightButton)) == 0)
+        || (event->button() & (Qt::LeftButton | Qt ::MiddleButton | Qt::RightButton)) == 0)
         return;
 
     const int posX = event->x() / (m_tileset->size() * m_zoomFactor);
@@ -701,12 +701,12 @@ void EditorWidget::mousePressEvent(QMouseEvent* event)
             || m_drawMode == DrawFlood || m_drawMode == DrawPathMaker))
         emit editingStarted();
 
-    if (m_drawMode != DrawSelect && event->button() != Qt::MidButton) {
+    if (m_drawMode != DrawSelect && event->button() != Qt::MiddleButton) {
         m_selectRect = QRect(-1, -1, -1, -1);
         emit hasSelection(false);
     }
 
-    if (m_cachedButton == Qt::MidButton) {
+    if (m_cachedButton == Qt::MiddleButton) {
         m_origin = QPoint(posX, posY);
     } else if (m_drawMode == DrawButtonConnect) {
         if (m_cachedButton == Qt::RightButton) {
@@ -768,7 +768,7 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
     bool resetOrigin = true;
     if (m_drawMode == DrawInspectTile) {
         emit tilePicked(m_origin.x(), m_origin.y());
-    } else if (m_drawMode == DrawSelect || m_cachedButton == Qt::MidButton) {
+    } else if (m_drawMode == DrawSelect || m_cachedButton == Qt::MiddleButton) {
         resetOrigin = false;
     } else if (m_drawMode == DrawFlood) {
         if (m_cachedButton == Qt::LeftButton)
