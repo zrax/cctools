@@ -2,9 +2,9 @@
 OutputDir=.
 OutputBaseFilename=CCTools
 AppName=CCTools
-AppVerName=CCTools 3.0 Beta1
+AppVerName=CCTools 3.0 Beta2
 AppPublisher=Michael Hansen
-AppVersion=2.95.0
+AppVersion=2.96.0
 AppID={{CB9B9C3F-2810-44FB-8659-A0C5F9E24F1D}
 ChangesAssociations=true
 DefaultDirName={pf}\CCTools
@@ -16,11 +16,11 @@ Compression=lzma/ultra
 InternalCompressLevel=ultra
 SolidCompression=true
 VersionInfoDescription=CCTools Setup
-VersionInfoVersion=2.95.0
+VersionInfoVersion=2.96.0
 VersionInfoCompany=Michael Hansen
 VersionInfoCopyright=Copyright (C) 2020 Michael Hansen
-VersionInfoProductName=CCTools 3.0 Beta1
-VersionInfoProductVersion=2.95.0
+VersionInfoProductName=CCTools 3.0 Beta2
+VersionInfoProductVersion=2.96.0
 
 [Types]
 Name: Full; Description: Full Install
