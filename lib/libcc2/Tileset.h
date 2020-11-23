@@ -127,6 +127,7 @@ private:
 
     QPixmap m_gfx[cc2::NUM_GRAPHICS];
 
+    void drawLayer(QPainter& painter, int x, int y, const cc2::Tile* tile, bool reveal) const;
     void drawArrow(QPainter& painter, int x, int y, cc2::Tile::Direction direction) const;
     void drawGlyph(QPainter& painter, int x, int y, uint32_t glyph) const;
     void drawTracks(QPainter& painter, int x, int y, uint32_t tracks) const;

@@ -297,6 +297,13 @@ public:
         return *tp;
     }
 
+    // For drawing tiles in the appropriate render order
+    const Tile* baseLayer() const;
+    const Tile* itemLayer() const;
+    const Tile* mobLayer() const;
+    const Tile* blockLayer() const;
+    const Tile* topLayer() const;
+
     static bool haveLower(int type);
     static bool haveDirection(int type);
     static bool supportsWires(int type);
@@ -308,7 +315,7 @@ public:
 
     bool needXray() const
     {
-        return (m_type > Floor) || (m_type == Floor && m_modifier != 0);
+        return (m_type != Floor) || (m_modifier != 0);
     }
 
     enum TileClass {
@@ -333,6 +340,7 @@ public:
     bool isTerrain() const { return tileClass() == ClassTerrain; }
     bool isPanelCanopy() const { return tileClass() == ClassPanelCanopy; }
     bool isOtherClass() const { return tileClass() == ClassOther; }
+    bool isInvalidClass() const { return tileClass() == ClassInvalid; }
 
     void rotateLeft();
     void rotateRight();

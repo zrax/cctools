@@ -17,6 +17,7 @@
 
 #include "Tileset.h"
 
+#include <stack>
 #include <QPainter>
 #include <QFile>
 #include <QFileInfo>
@@ -94,16 +95,45 @@ bool CC2ETileset::load(const QString& filename)
 void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile,
                          bool allLayers) const
 {
-    // Recurse up from the bottom-most layer
-    const cc2::Tile* lower = tile->lower();
-    if (lower) {
-        if (allLayers)
-            drawAt(painter, x, y, lower, true);
-        else
-            painter.drawPixmap(x, y, m_gfx[cc2::G_Floor]);
-    }
+    if (allLayers) {
+        const cc2::Tile* base = tile->baseLayer();
+        const cc2::Tile* item = tile->itemLayer();
+        const cc2::Tile* mob = tile->mobLayer();
+        const cc2::Tile* block = tile->blockLayer();
+        const cc2::Tile* top = tile->topLayer();
 
-    // Draw the base tile
+        const bool needXray = (item != nullptr) || (item != nullptr)
+                              || (mob != nullptr) || base->needXray();
+
+        std::stack<const cc2::Tile*> tileStack;
+#define WALK_STACK(stack)                               \
+        while (stack) {                                 \
+            tileStack.push(stack);                      \
+            stack = stack->lower();                     \
+            if (stack)                                  \
+                stack = stack->stack##Layer();          \
+        }
+
+        WALK_STACK(top)
+        WALK_STACK(block)
+        WALK_STACK(mob)
+        WALK_STACK(item)
+        WALK_STACK(base)
+#undef WALK_STACK
+
+        while (!tileStack.empty()) {
+            drawLayer(painter, x, y, tileStack.top(), needXray);
+            tileStack.pop();
+        }
+    } else {
+        painter.drawPixmap(x, y, m_gfx[cc2::G_Floor]);
+        drawLayer(painter, x, y, tile, false);
+    }
+}
+
+void CC2ETileset::drawLayer(QPainter& painter, int x, int y, const cc2::Tile* tile,
+                            bool reveal) const
+{
     switch (tile->type()) {
     case cc2::Tile::Floor:
         if (tile->modifier() != 0) {
@@ -217,7 +247,7 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile,
         }
         break;
     case cc2::Tile::DirtBlock:
-        if (allLayers && tile->lower()->needXray())
+        if (reveal)
             painter.drawPixmap(x, y, m_gfx[cc2::G_DirtBlock_Xray]);
         else
             painter.drawPixmap(x, y, m_gfx[cc2::G_DirtBlock]);
@@ -249,7 +279,7 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile,
         }
         break;
     case cc2::Tile::IceBlock:
-        if (allLayers && tile->lower()->needXray())
+        if (reveal)
             painter.drawPixmap(x, y, m_gfx[cc2::G_IceBlock_Xray]);
         else
             painter.drawPixmap(x, y, m_gfx[cc2::G_IceBlock]);
@@ -799,7 +829,7 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile,
     //    break;
     case cc2::Tile::PanelCanopy:
         if (tile->tileFlags() & cc2::Tile::Canopy) {
-            if (allLayers && lower->needXray())
+            if (reveal)
                 painter.drawPixmap(x, y, m_gfx[cc2::G_Canopy_Xray]);
             else
                 painter.drawPixmap(x, y, m_gfx[cc2::G_Canopy]);
@@ -974,7 +1004,8 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile,
         painter.drawPixmap(x, y, m_gfx[cc2::G_Hook]);
         break;
     default:
-        painter.drawPixmap(x, y, m_gfx[cc2::G_Floor]);
+        if (!reveal)
+            painter.drawPixmap(x, y, m_gfx[cc2::G_Floor]);
         painter.drawPixmap(x, y, m_gfx[cc2::G_InvalidBase]);
         if (tile->haveDirection())
             drawArrow(painter, x, y, tile->direction());

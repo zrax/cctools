@@ -40,11 +40,10 @@ public:
     };
 
     enum PaintFlags {
-        ShowMovement = (1<<0),
-        ShowMovePaths = (1<<1),
-        ShowViewBox = (1<<2),
-        ShowErrors = (1<<3),
-        ShowAll = ShowMovement | ShowMovePaths | ShowViewBox | ShowErrors,
+        ShowMovePaths = (1<<0),
+        ShowViewBox = (1<<1),
+        ShowErrors = (1<<2),
+        ShowAll = ShowMovePaths | ShowViewBox | ShowErrors,
     };
 
     CC2EditorWidget(QWidget* parent = nullptr);

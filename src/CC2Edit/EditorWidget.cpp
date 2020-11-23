@@ -796,10 +796,8 @@ void CC2EditorWidget::mouseMoveEvent(QMouseEvent* event)
 
     const cc2::Tile* tile = &map.tile(posX, posY);
     QString info = QStringLiteral("(%1, %2): %3").arg(posX).arg(posY).arg(CC2ETileset::getName(tile));
-    while (tile->haveLower() && tile->lower()->type() != cc2::Tile::Floor) {
-        tile = tile->lower();
+    while ((tile = tile->lower()) != nullptr && tile->type() != cc2::Tile::Floor)
         info += tr(" / %1").arg(CC2ETileset::getName(tile));
-    }
     emit mouseInfo(info);
 
     QString tipText;

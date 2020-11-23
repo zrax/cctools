@@ -206,6 +206,67 @@ void cc2::Tile::write(ccl::Stream* stream) const
     }
 }
 
+const cc2::Tile* cc2::Tile::baseLayer() const
+{
+    const Tile* tp = this;
+    for ( ;; ) {
+        if (!tp->haveLower() || tp->isInvalidClass())
+            return tp;
+        tp = tp->m_lower;
+    }
+}
+
+const cc2::Tile* cc2::Tile::itemLayer() const
+{
+    const Tile* tp = this;
+    for ( ;; ) {
+        if (!tp->haveLower())
+            return nullptr;
+        if (tp->isItem())
+            return tp;
+        tp = tp->m_lower;
+    }
+}
+
+const cc2::Tile* cc2::Tile::mobLayer() const
+{
+    const Tile* tp = this;
+    for ( ;; ) {
+        if (!tp->haveLower())
+            return nullptr;
+        if (tp->isCreature() || tp->isPlayer())
+            return tp;
+        tp = tp->m_lower;
+    }
+}
+
+const cc2::Tile* cc2::Tile::blockLayer() const
+{
+    // NOTE: CC2 actually puts block on the Mob layer, but we move it into
+    // its own layer to handle the Xray logic properly while rendering all
+    // tiles (instead of only one per layer, as CC2 does).
+    const Tile* tp = this;
+    for ( ;; ) {
+        if (!tp->haveLower())
+            return nullptr;
+        if (tp->isBlock())
+            return tp;
+        tp = tp->m_lower;
+    }
+}
+
+const cc2::Tile* cc2::Tile::topLayer() const
+{
+    const Tile* tp = this;
+    for ( ;; ) {
+        if (!tp->haveLower())
+            return nullptr;
+        if (tp->isPanelCanopy() || tp->type() == cc2::Tile::Disallow)
+            return tp;
+        tp = tp->m_lower;
+    }
+}
+
 bool cc2::Tile::haveLower(int type)
 {
     switch (type) {
