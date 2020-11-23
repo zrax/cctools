@@ -871,6 +871,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     connect(m_actions[ActionSave], &QAction::triggered, this, &CC2EditMain::onSaveAction);
     connect(m_actions[ActionSaveAs], &QAction::triggered, this, &CC2EditMain::onSaveAsAction);
     connect(m_actions[ActionClose], &QAction::triggered, this, &CC2EditMain::closeScript);
+    connect(m_actions[ActionExit], &QAction::triggered, this, &CC2EditMain::close);
 
     connect(m_actions[ActionSelect], &QAction::toggled, this, &CC2EditMain::onSelectToggled);
     connect(m_actions[ActionCut], &QAction::triggered, this, &CC2EditMain::onCutAction);
