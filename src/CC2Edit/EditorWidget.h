@@ -44,6 +44,7 @@ public:
         ShowMovePaths = (1<<1),
         ShowViewBox = (1<<2),
         ShowErrors = (1<<3),
+        ShowAll = ShowMovement | ShowMovePaths | ShowViewBox | ShowErrors,
     };
 
     CC2EditorWidget(QWidget* parent = nullptr);
@@ -120,6 +121,7 @@ public:
     double zoom() const { return m_zoomFactor; }
 
     void renderTo(QPainter& painter);
+    QImage renderReport();
     QImage renderSelection();
 
 signals:

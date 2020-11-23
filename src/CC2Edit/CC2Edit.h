@@ -80,6 +80,7 @@ private slots:
     void onImportCC1Action();
     void onSaveAction();
     void onSaveAsAction();
+    void onReportAction();
     void onSelectToggled(bool);
     void onClipboardDataChanged();
     void onCutAction();

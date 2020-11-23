@@ -55,7 +55,9 @@
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QFileDialog>
+#include <QProgressDialog>
 #include <QTextBlock>
+#include <QElapsedTimer>
 
 Q_DECLARE_METATYPE(CC2ETileset*)
 
@@ -871,6 +873,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     connect(m_actions[ActionSave], &QAction::triggered, this, &CC2EditMain::onSaveAction);
     connect(m_actions[ActionSaveAs], &QAction::triggered, this, &CC2EditMain::onSaveAsAction);
     connect(m_actions[ActionClose], &QAction::triggered, this, &CC2EditMain::closeScript);
+    connect(m_actions[ActionGenReport], &QAction::triggered, this, &CC2EditMain::onReportAction);
     connect(m_actions[ActionExit], &QAction::triggered, this, &CC2EditMain::close);
 
     connect(m_actions[ActionSelect], &QAction::toggled, this, &CC2EditMain::onSelectToggled);
@@ -1631,6 +1634,191 @@ void CC2EditMain::onSaveAsAction()
     saveTabAs(m_editorTabs->currentIndex());
 }
 
+void CC2EditMain::onReportAction()
+{
+    if (m_currentGameScript.isEmpty())
+        return;
+
+    QSettings settings;
+    QString reportPath = m_currentGameScript.left(m_currentGameScript.lastIndexOf(QLatin1Char('.')))
+                            + QStringLiteral(".html");
+    QString filename = QFileDialog::getSaveFileName(this, tr("Save Report..."),
+                                                    reportPath, tr("HTML Source (*.html)"));
+    if (filename.isEmpty())
+        return;
+
+    QProgressDialog proDlg(this);
+    proDlg.setMaximum(m_gameMapList->count() + 1);
+    proDlg.setMinimumDuration(2000);
+    proDlg.setLabelText(tr("Generating HTML report.  Please be patient..."));
+
+    QElapsedTimer timer;
+    timer.start();
+
+    // Generate HTML output
+    QFile report(filename);
+    if (!report.open(QIODevice::Truncate | QIODevice::WriteOnly)) {
+        QMessageBox::critical(this, tr("Error creating report"),
+                tr("Error creating report: Could not write HTML report"));
+        return;
+    }
+    const QString filebase = QFileInfo(m_currentGameScript).fileName();
+    report.write("<html>\n<head><title>Levelset Report for ");
+    report.write(filebase.toUtf8().constData());
+    report.write("</title></head>\n\n");
+    report.write("<body>\n<h1 align=\"center\">Levelset Report for ");
+    report.write(filebase.toUtf8().constData());
+    report.write("</h1>\n");
+
+    const QString dirbase = QFileInfo(filename).baseName() + QStringLiteral("_mapimg");
+    const QString imgdir = QFileInfo(filename).path() + QDir::separator() + dirbase;
+    QDir dir;
+    dir.mkdir(imgdir);
+    if (!dir.cd(imgdir)) {
+        QMessageBox::critical(this, tr("Error creating report"),
+                              tr("Error creating report: Could not create level image folder"));
+        return;
+    }
+
+    for (int i = 0; i < m_gameMapList->count(); ++i) {
+        const QString mapFile = m_gameMapList->item(i)->data(Qt::UserRole).toString();
+
+        ccl::FileStream fs;
+        if (!fs.open(mapFile, ccl::FileStream::Read)) {
+            QMessageBox::critical(this, tr("Error loading map"),
+                                  tr("Could not open %1 for reading.").arg(mapFile));
+            return;
+        }
+
+        auto map = new cc2::Map;
+        try {
+            map->read(&fs);
+        } catch (const ccl::RuntimeError& ex) {
+            QMessageBox::critical(this, tr("Error loading map"), ex.message());
+            map->unref();
+            return;
+        }
+
+        report.write("<hr />\n<h2>Level ");
+        report.write(QString::number(i + 1).toUtf8().constData());
+        report.write("</h2>\n<pre>\n");
+        if (!map->title().empty()) {
+            report.write("<b>Title:</b>    ");
+            report.write(map->title().c_str());
+            report.write("\n");
+        }
+        if (!map->author().empty()) {
+            report.write("<b>Author:</b>   ");
+            report.write(map->author().c_str());
+            report.write("\n");
+        }
+        if (!map->lock().empty()) {
+            report.write("<b>Lock:</b>     ");
+            report.write(map->lock().c_str());
+            report.write("\n");
+        }
+        if (!map->editorVersion().empty()) {
+            report.write("<b>Version:</b>  ");
+            report.write(map->editorVersion().c_str());
+            report.write("\n");
+        }
+        report.write("\n<b>Map Size:</b> ");
+        report.write(tr("%1 x %2").arg(map->mapData().width())
+                                  .arg(map->mapData().height()).toUtf8().constData());
+        report.write("\n<b>Chips:</b>    ");
+        const auto chips = map->mapData().countChips();
+        if (std::get<0>(chips) != std::get<1>(chips)) {
+            report.write(tr("%1 (of %2)").arg(std::get<0>(chips))
+                                         .arg(std::get<1>(chips)).toUtf8().constData());
+        } else {
+            report.write(QString::number(std::get<0>(chips)).toUtf8().constData());
+        }
+        report.write("\n<b>Points:</b>   ");
+        const auto points = map->mapData().countPoints();
+        if (std::get<1>(points) != 1) {
+            report.write(tr("%1 (x%2)").arg(std::get<0>(points))
+                                       .arg(std::get<1>(points)).toUtf8().constData());
+        } else {
+            report.write(QString::number(std::get<0>(points)).toUtf8().constData());
+        }
+        report.write("\n<b>Time:</b>     ");
+        report.write(QString::number(map->option().timeLimit()).toUtf8().constData());
+        report.write("\n<b>View:</b>     ");
+        switch (map->option().view()) {
+        case cc2::MapOption::View10x10:
+            report.write("10x10");
+            break;
+        case cc2::MapOption::View9x9:
+            report.write("9x9");
+            break;
+        case cc2::MapOption::ViewSplit:
+            report.write("Split");
+            break;
+        default:
+            report.write(tr("Unknown (%d)").arg(static_cast<int>(map->option().view()))
+                         .toUtf8().constData());
+            break;
+        }
+        report.write("\n<b>Blobs:</b>    ");
+        switch (map->option().blobPattern()) {
+        case cc2::MapOption::BlobsDeterministic:
+            report.write("Deterministic");
+            break;
+        case cc2::MapOption::Blobs4Pattern:
+            report.write("4 Patterns");
+            break;
+        case cc2::MapOption::BlobsExtraRandom:
+            report.write("Extra Random");
+            break;
+        default:
+            report.write(tr("Unknown (%d)").arg(static_cast<int>(map->option().blobPattern()))
+                         .toUtf8().constData());
+            break;
+        }
+        report.write("\n<b>Options:</b>\n");
+        if (map->option().hideLogic())
+            report.write("\tHide Logic\n");
+        if (map->option().cc1Boots())
+            report.write("\tCC1 Boots\n");
+        if (map->option().readOnly())
+            report.write("\tRead Only\n");
+        if (!map->clue().empty()) {
+            report.write("\n<b>Clue:</b>\n");
+            report.write(map->clue().c_str());
+            report.write("\n");
+        }
+        if (!map->note().empty()) {
+            report.write("\n<b>Notes:</b>\n");
+            report.write(map->note().c_str());
+            report.write("\n");
+        }
+        report.write("\n</pre>\n<img src=\"");
+        report.write(QStringLiteral("%1/map%2.png").arg(dirbase).arg(i + 1).toUtf8().constData());
+        report.write("\" />\n");
+        report.write("<p style=\"page-break-after: always;\">&nbsp;</p>\n");
+
+        // Write the level image
+        CC2EditorWidget reportDummy;
+        reportDummy.setVisible(false);
+        reportDummy.setTileset(m_currentTileset);
+        reportDummy.setMap(map);
+        QImage levelImage = reportDummy.renderReport();
+        levelImage.save(QStringLiteral("%1/map%2.png").arg(imgdir).arg(i + 1), "PNG");
+
+        map->unref();
+
+        proDlg.setValue(i + 1);
+        QApplication::processEvents();
+        if (proDlg.wasCanceled())
+            return;
+    }
+    report.write("</body>\n</html>\n");
+
+    QMessageBox::information(this, tr("Report Complete"),
+            tr("Generated report in %1 sec")
+            .arg(timer.elapsed() / 1000., 0, 'f', 2));
+}
+
 static void uncheckAll(QActionGroup* group, QAction* exceptFor = nullptr)
 {
     for (QAction* action : group->actions()) {
@@ -2335,7 +2523,7 @@ void CC2EditMain::onTabChanged(int index)
 
 void CC2EditMain::updateCounters(const cc2::MapData& mapData)
 {
-    const std::tuple<int, int> chips = mapData.countChips();
+    const auto chips = mapData.countChips();
     if (std::get<0>(chips) != std::get<1>(chips))
         m_chipCounter->setText(tr("%1 (of %2)").arg(std::get<0>(chips)).arg(std::get<1>(chips)));
     else

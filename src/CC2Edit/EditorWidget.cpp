@@ -339,6 +339,36 @@ void CC2EditorWidget::renderTo(QPainter& painter)
         painter.drawRect(calcTileRect(hi.x(), hi.y()));
 }
 
+static QPoint findPlayer(const cc2::MapData& mapData)
+{
+    for (int y = 0; y < mapData.height(); ++y) {
+        for (int x = 0; x < mapData.width(); ++x) {
+            if (mapData.haveTile(x, y, cc2::Tile::Player)
+                    || mapData.haveTile(x, y, cc2::Tile::Player2))
+                return {x, y};
+        }
+    }
+    return {0, 0};
+}
+
+/* This is only used to generate special reports, so no old draw/render state
+ * data needs to be saved.
+ */
+QImage CC2EditorWidget::renderReport()
+{
+    m_paintFlags = ShowAll;
+    m_zoomFactor = 1.0;
+    m_cacheDirty = true;
+    m_current = findPlayer(m_map->mapData());
+
+    QImage output(m_tileset->size() * m_map->mapData().width(),
+                  m_tileset->size() * m_map->mapData().height(),
+                  QImage::Format_RGB32);
+    QPainter painter(&output);
+    renderTo(painter);
+    return output;
+}
+
 QImage CC2EditorWidget::renderSelection()
 {
     if (m_selectRect == QRect(-1, -1, -1, -1))
