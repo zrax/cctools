@@ -81,7 +81,7 @@ enum GraphicIndex {
     G_GreenBomb, G_GreenChip, G_RevLogicButton, G_Switch_Off, G_Switch_On,
     G_Switch_Base, G_KeyThief, G_Ghost_N, G_Ghost_E, G_Ghost_S, G_Ghost_W,
     G_SteelFoil, G_Turtle, G_Eye, G_Bribe, G_SpeedShoes, G_Hook,
-    G_WireFill, G_LiveWireFill,
+    G_WireFill, G_LiveWireFill, G_Explosion,
 
     G_GlyphArrows = 0xef, G_GlyphAscii_Base, G_GlyphAscii_End = 0xff,
 

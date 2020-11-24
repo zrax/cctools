@@ -63,7 +63,7 @@ Q_DECLARE_METATYPE(CC2ETileset*)
 
 enum TileListId {
     ListStandard, ListObstacles, ListDoors, ListItems, ListMonsters,
-    ListLogic, ListGlyphs, ListMisc, NUM_TILE_LISTS
+    ListLogic, ListGlyphs, ListMisc, ListAdvanced, NUM_TILE_LISTS
 };
 
 #define DIR_TILE_LIST(baseTile)                     \
@@ -477,7 +477,6 @@ CC2EditMain::CC2EditMain(QWidget* parent)
         cc2::Tile(cc2::Tile::Slime),
         cc2::Tile(cc2::Tile::RedBomb),
         cc2::Tile(cc2::Tile::Trap),
-        cc2::Tile(cc2::Tile::Trap_Open),
         cc2::Tile(cc2::Tile::TrapButton),
         cc2::Tile(cc2::Tile::PopUpWall),
         cc2::Tile(cc2::Tile::AppearingWall),
@@ -645,6 +644,29 @@ CC2EditMain::CC2EditMain(QWidget* parent)
         cc2::Tile(cc2::Tile::Flag2x),
     });
     tileBox->addItem(tileLists[ListMisc], tr("Miscellaneous"));
+    tileLists[ListAdvanced] = new TileListWidget(tileBox);
+    tileLists[ListAdvanced]->setTiles({
+        cc2::Tile(cc2::Tile::Trap_Open),
+        cc2::Tile(cc2::Tile::CC1_Cloner),
+        cc2::Tile(cc2::Tile::CC1_Barrier_S),
+        cc2::Tile(cc2::Tile::CC1_Barrier_E),
+        cc2::Tile(cc2::Tile::CC1_Barrier_SE),
+        DIR_TILE_LIST(cc2::Tile::UNUSED_Explosion),
+        cc2::Tile(cc2::Tile::UNUSED_53),
+        cc2::Tile(cc2::Tile::UNUSED_54),
+        cc2::Tile(cc2::Tile::UNUSED_55),
+        cc2::Tile(cc2::Tile::UNUSED_5d),
+        cc2::Tile(cc2::Tile::UNUSED_67),
+        cc2::Tile(cc2::Tile::UNUSED_6c),
+        cc2::Tile(cc2::Tile::UNUSED_6e),
+        cc2::Tile(cc2::Tile::UNUSED_74),
+        cc2::Tile(cc2::Tile::UNUSED_75),
+        cc2::Tile(cc2::Tile::UNUSED_79),
+        cc2::Tile(cc2::Tile::UNUSED_85),
+        cc2::Tile(cc2::Tile::UNUSED_86),
+        cc2::Tile(cc2::Tile::UNUSED_91),
+    });
+    tileBox->addItem(tileLists[ListAdvanced], tr("Advanced"));
 
     for (auto listWidget : tileLists) {
         connect(listWidget, &TileListWidget::tileSelectedLeft, this, &CC2EditMain::setLeftTile);

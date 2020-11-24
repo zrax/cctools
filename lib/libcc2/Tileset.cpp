@@ -546,16 +546,17 @@ void CC2ETileset::drawLayer(QPainter& painter, int x, int y, const cc2::Tile* ti
     case cc2::Tile::Helmet:
         painter.drawPixmap(x, y, m_gfx[cc2::G_Helmet]);
         break;
-    //case cc2::Tile::UNUSED_53:
-    //    painter.drawPixmap(x, y, m_gfx[cc2::G_PopDownGWall]);
-    //    drawArrow(painter, x, y, tile->direction());
-    //    break;
-    //case cc2::Tile::UNUSED_54:
-    //    painter.drawPixmap(x, y, m_gfx[cc2::G_ToggleFloor]);
-    //    break;
-    //case cc2::Tile::UNUSED_55:
-    //    painter.drawPixmap(x, y, m_gfx[cc2::G_ToggleFloor]);
-    //    break;
+    case cc2::Tile::UNUSED_53:
+        // This actually renders as a number of different tiles based on the
+        // "direction" value...
+        //painter.drawPixmap(x, y, m_gfx[cc2::G_StayUpGWall]);
+        painter.drawPixmap(x, y, m_gfx[cc2::G_InvalidBase]);
+        break;
+    case cc2::Tile::UNUSED_54:
+    case cc2::Tile::UNUSED_55:
+        painter.drawPixmap(x, y, m_gfx[cc2::G_ToggleFloor]);
+        painter.drawPixmap(x, y, m_gfx[cc2::G_InvalidBase]);
+        break;
     case cc2::Tile::MirrorPlayer2:
         painter.drawPixmap(x, y, m_gfx[cc2::G_MirrorPlayer_Underlay]);
         /* fall through */
@@ -598,9 +599,10 @@ void CC2ETileset::drawLayer(QPainter& painter, int x, int y, const cc2::Tile* ti
             break;
         }
         break;
-    //case cc2::Tile::UNUSED_Explosion:
-    //    painter.drawPixmap(x, y, m_gfx[cc2::G_??]);
-    //    break;
+    case cc2::Tile::UNUSED_Explosion:
+        painter.drawPixmap(x, y, m_gfx[cc2::G_Explosion]);
+        drawArrow(painter, x, y, tile->direction());
+        break;
     case cc2::Tile::HikingBoots:
         painter.drawPixmap(x, y, m_gfx[cc2::G_HikingBoots]);
         break;
@@ -733,9 +735,13 @@ void CC2ETileset::drawLayer(QPainter& painter, int x, int y, const cc2::Tile* ti
             break;
         }
         break;
-    //case cc2::Tile::UNUSED_5d:
-    //    painter.drawPixmap(x, y, m_gfx[cc2::G_Player]);
-    //    break;
+    case cc2::Tile::UNUSED_5d:
+    case cc2::Tile::UNUSED_79:
+        // These render as different frames of various animations
+        // based on the "direction" value...
+        //painter.drawPixmap(x, y, m_gfx[cc2::G_Player_N]);
+        painter.drawPixmap(x, y, m_gfx[cc2::G_InvalidBase]);
+        break;
     case cc2::Tile::LogicButton:
         drawWires(painter, x, y, tile->modifier(), cc2::G_Floor);
         painter.drawPixmap(x, y, m_gfx[cc2::G_LogicSwitch]);
@@ -775,9 +781,11 @@ void CC2ETileset::drawLayer(QPainter& painter, int x, int y, const cc2::Tile* ti
     case cc2::Tile::YellowTankCtrl:
         painter.drawPixmap(x, y, m_gfx[cc2::G_YellowTankCtrl]);
         break;
-    //case cc2::Tile::UNUSED_67:
-    //    painter.drawPixmap(x, y, m_gfx[cc2::G_BowlingBall]);
-    //    break;
+    case cc2::Tile::UNUSED_67:
+        painter.drawPixmap(x, y, m_gfx[cc2::G_Floor]);
+        painter.drawPixmap(x, y, m_gfx[cc2::G_BowlingBall]);
+        painter.drawPixmap(x, y, m_gfx[cc2::G_InvalidBase]);
+        break;
     case cc2::Tile::BowlingBall:
         painter.drawPixmap(x, y, m_gfx[cc2::G_BowlingBall]);
         break;
@@ -824,9 +832,11 @@ void CC2ETileset::drawLayer(QPainter& painter, int x, int y, const cc2::Tile* ti
             break;
         }
         break;
-    //case cc2::Tile::UNUSED_6c:
-    //    painter.drawPixmap(x, y, m_gfx[cc2::G_??]);
-    //    break;
+    case cc2::Tile::UNUSED_6c:
+        painter.drawPixmap(x, y, m_gfx[cc2::G_Floor]);
+        painter.drawPixmap(x, y, m_gfx[cc2::G_WireTunnels]);
+        painter.drawPixmap(x, y, m_gfx[cc2::G_InvalidBase]);
+        break;
     case cc2::Tile::PanelCanopy:
         if (tile->tileFlags() & cc2::Tile::Canopy) {
             if (reveal)
@@ -847,9 +857,11 @@ void CC2ETileset::drawLayer(QPainter& painter, int x, int y, const cc2::Tile* ti
             painter.drawPixmap(x, y, m_gfx[cc2::G_InvalidBase]);
         }
         break;
-    //case cc2::Tile::UNUSED_6e:
-    //    painter.drawPixmap(x, y, m_gfx[cc2::G_RRSign]);
-    //    break;
+    case cc2::Tile::UNUSED_6e:
+        painter.drawPixmap(x, y, m_gfx[cc2::G_Floor]);
+        painter.drawPixmap(x, y, m_gfx[cc2::G_RRSign]);
+        painter.drawPixmap(x, y, m_gfx[cc2::G_InvalidBase]);
+        break;
     case cc2::Tile::RRSign:
         painter.drawPixmap(x, y, m_gfx[cc2::G_RRSign]);
         break;
@@ -888,10 +900,6 @@ void CC2ETileset::drawLayer(QPainter& painter, int x, int y, const cc2::Tile* ti
     //    break;
     //case cc2::Tile::UNUSED_75:
     //    painter.drawPixmap(x, y, m_gfx[cc2::G_??]);
-    //    break;
-    //case cc2::Tile::UNUSED_79:
-    //    painter.drawPixmap(x, y, m_gfx[cc2::G_??]);
-    //    drawArrow(painter, x, y, tile->direction());
     //    break;
     case cc2::Tile::Flag10:
         painter.drawPixmap(x, y, m_gfx[cc2::G_Flag10]);
@@ -941,12 +949,14 @@ void CC2ETileset::drawLayer(QPainter& painter, int x, int y, const cc2::Tile* ti
     case cc2::Tile::GreenChip:
         painter.drawPixmap(x, y, m_gfx[cc2::G_GreenChip]);
         break;
-    //case cc2::Tile::UNUSED_85:
-    //    painter.drawPixmap(x, y, m_gfx[cc2::G_GreenBomb]);
-    //    break;
-    //case cc2::Tile::UNUSED_86:
-    //    painter.drawPixmap(x, y, m_gfx[cc2::G_GreenChip]);
-    //    break;
+    case cc2::Tile::UNUSED_85:
+        painter.drawPixmap(x, y, m_gfx[cc2::G_GreenBomb]);
+        painter.drawPixmap(x, y, m_gfx[cc2::G_InvalidBase]);
+        break;
+    case cc2::Tile::UNUSED_86:
+        painter.drawPixmap(x, y, m_gfx[cc2::G_GreenChip]);
+        painter.drawPixmap(x, y, m_gfx[cc2::G_InvalidBase]);
+        break;
     case cc2::Tile::RevLogicButton:
         drawWires(painter, x, y, tile->modifier(), cc2::G_Floor);
         painter.drawPixmap(x, y, m_gfx[cc2::G_RevLogicButton]);
@@ -997,15 +1007,15 @@ void CC2ETileset::drawLayer(QPainter& painter, int x, int y, const cc2::Tile* ti
     case cc2::Tile::SpeedShoes:
         painter.drawPixmap(x, y, m_gfx[cc2::G_SpeedShoes]);
         break;
-    //case cc2::Tile::UNUSED_91:
-    //    painter.drawPixmap(x, y, m_gfx[cc2::G_Canopy]);
-    //    break;
+    case cc2::Tile::UNUSED_91:
+        painter.drawPixmap(x, y, m_gfx[cc2::G_Canopy]);
+        painter.drawPixmap(x, y, m_gfx[cc2::G_InvalidBase]);
+        break;
     case cc2::Tile::Hook:
         painter.drawPixmap(x, y, m_gfx[cc2::G_Hook]);
         break;
     default:
-        if (!reveal)
-            painter.drawPixmap(x, y, m_gfx[cc2::G_Floor]);
+        painter.drawPixmap(x, y, m_gfx[cc2::G_Floor]);
         painter.drawPixmap(x, y, m_gfx[cc2::G_InvalidBase]);
         if (tile->haveDirection())
             drawArrow(painter, x, y, tile->direction());
@@ -1333,6 +1343,8 @@ QString CC2ETileset::baseName(cc2::Tile::Type type)
         return tr("Melinda");
     case cc2::Tile::TimidTeeth:
         return tr("Timid Teeth");
+    case cc2::Tile::UNUSED_Explosion:
+        return tr("Explosion");
     case cc2::Tile::HikingBoots:
         return tr("Hiking Boots");
     case cc2::Tile::MaleOnly:
