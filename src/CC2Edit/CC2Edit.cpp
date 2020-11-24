@@ -700,7 +700,9 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     glyphAction->setCheckable(true);
     allTileTbar->addSeparator();
     auto rolAction = allTileTbar->addAction(ICON("object-rotate-left-lg"), tr("Rotate Left"));
+    rolAction->setShortcut(Qt::Key_Comma);
     auto rorAction = allTileTbar->addAction(ICON("object-rotate-right-lg"), tr("Rotate Right"));
+    rorAction->setShortcut(Qt::Key_Period);
 
     connect(rolAction, &QAction::triggered, this, [this, allTiles] {
         allTiles->rotateLeft();
