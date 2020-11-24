@@ -235,9 +235,11 @@ BigTileWidget::BigTileWidget(QWidget* parent)
         cc2::Tile(cc2::Tile::LogicGate, cc2::TileModifier::Inverter_N),
         cc2::Tile(cc2::Tile::Eye),
         cc2::Tile(cc2::Tile::Clue),
-
-        // Not in the CC2 Editor (TODO: Reorganize these to put them
-        // somewhere closer to other related tiles?)
+        cc2::Tile(cc2::Tile::Invalid),
+        cc2::Tile(cc2::Tile::Invalid),
+        cc2::Tile(cc2::Tile::Invalid),
+        cc2::Tile(cc2::Tile::Invalid),
+        cc2::Tile(cc2::Tile::Invalid),
         cc2::Tile::dirBlockTile(0),
         cc2::Tile(cc2::Tile::Trap_Open),
     };
@@ -283,7 +285,8 @@ void BigTileWidget::paintEvent(QPaintEvent* event)
     QPainter painter(this);
     int x = 0, y = 0;
     for (const cc2::Tile& tile : tileList()) {
-        m_tileset->draw(painter, x, y, &tile, false);
+        if (tile.type() != cc2::Tile::Invalid)
+            m_tileset->draw(painter, x, y, &tile, false);
         if (++x >= 9) {
             ++y;
             x = 0;
@@ -299,7 +302,7 @@ void BigTileWidget::mousePressEvent(QMouseEvent* event)
     const auto& tiles = tileList();
     size_t which = ((event->y() / m_tileset->size()) * 9)
                  + (event->x() / m_tileset->size());
-    if (which >= tiles.size())
+    if (which >= tiles.size() || tiles[which].type() == cc2::Tile::Invalid)
         return;
     if (event->button() == Qt::LeftButton)
         emit tileSelectedLeft(tiles[which]);
@@ -318,7 +321,7 @@ void BigTileWidget::mouseMoveEvent(QMouseEvent* event)
     const auto& tiles = tileList();
     size_t which = ((event->y() / m_tileset->size()) * 9)
                  + (event->x() / m_tileset->size());
-    if (which >= tiles.size()) {
+    if (which >= tiles.size() || tiles[which].type() == cc2::Tile::Invalid) {
         setToolTip(QString());
         return;
     }
