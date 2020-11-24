@@ -1147,30 +1147,26 @@ void CCEditMain::findTilesets()
 #if defined(Q_OS_WIN)
     // Search app directory
     path.setPath(QApplication::applicationDirPath());
-    tilesets = path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name);
-    for (const QString& file : tilesets)
-        registerTileset(path.absoluteFilePath(file));
+    for (const QString& file : path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name))
+        tilesets << path.absoluteFilePath(file);
 #else
     // Search install path
     path.setPath(QApplication::applicationDirPath());
     path.cdUp();
     path.cd(QStringLiteral("share/cctools"));
-    tilesets = path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name);
-    for (const QString& file : tilesets)
-        registerTileset(path.absoluteFilePath(file));
+    for (const QString& file : path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name))
+        tilesets << path.absoluteFilePath(file);
 
     // Search standard directories
     path.setPath(QStringLiteral("/usr/share/cctools"));
     if (path.exists()) {
-        tilesets = path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name);
-        for (const QString& file : tilesets)
-            registerTileset(path.absoluteFilePath(file));
+        for (const QString& file : path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name))
+            tilesets << path.absoluteFilePath(file);
     }
     path.setPath(QStringLiteral("/usr/local/share/cctools"));
     if (path.exists()) {
-        tilesets = path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name);
-        for (const QString& file : tilesets)
-            registerTileset(path.absoluteFilePath(file));
+        for (const QString& file : path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name))
+            tilesets << path.absoluteFilePath(file);
     }
 #endif
 
@@ -1178,10 +1174,13 @@ void CCEditMain::findTilesets()
     path.setPath(QDir::homePath());
     path.cd(QStringLiteral(".cctools"));
     if (path.exists()) {
-        tilesets = path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name);
-        for (const QString& file : tilesets)
-            registerTileset(path.absoluteFilePath(file));
+        for (const QString& file : path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name))
+            tilesets << path.absoluteFilePath(file);
     }
+
+    tilesets.removeDuplicates();
+    for (const QString& file : tilesets)
+        registerTileset(file);
 }
 
 void CCEditMain::loadLevel(int levelNum)

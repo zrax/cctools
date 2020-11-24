@@ -1327,30 +1327,26 @@ void CC2EditMain::findTilesets()
 #if defined(Q_OS_WIN)
     // Search app directory
     path.setPath(QCoreApplication::applicationDirPath());
-    tilesets = path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name);
-    for (const QString& file : qAsConst(tilesets))
-        registerTileset(path.absoluteFilePath(file));
+    for (const QString& file : path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name))
+        tilesets << path.absoluteFilePath(file);
 #else
     // Search install path
     path.setPath(QCoreApplication::applicationDirPath());
     path.cdUp();
     path.cd(QStringLiteral("share/cctools"));
-    tilesets = path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name);
-    for (const QString& file : qAsConst(tilesets))
-        registerTileset(path.absoluteFilePath(file));
+    for (const QString& file : path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name))
+        tilesets << path.absoluteFilePath(file);
 
     // Search standard directories
     path.setPath(QStringLiteral("/usr/share/cctools"));
     if (path.exists()) {
-        tilesets = path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name);
-        for (const QString& file : qAsConst(tilesets))
-            registerTileset(path.absoluteFilePath(file));
+        for (const QString& file : path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name))
+            tilesets << path.absoluteFilePath(file);
     }
     path.setPath(QStringLiteral("/usr/local/share/cctools"));
     if (path.exists()) {
-        tilesets = path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name);
-        for (const QString& file : qAsConst(tilesets))
-            registerTileset(path.absoluteFilePath(file));
+        for (const QString& file : path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name))
+            tilesets << path.absoluteFilePath(file);
     }
 #endif
 
@@ -1358,10 +1354,13 @@ void CC2EditMain::findTilesets()
     path.setPath(QDir::homePath());
     path.cd(QStringLiteral(".cctools"));
     if (path.exists()) {
-        tilesets = path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name);
-        for (const QString& file : qAsConst(tilesets))
-            registerTileset(path.absoluteFilePath(file));
+        for (const QString& file : path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name))
+            tilesets << path.absoluteFilePath(file);
     }
+
+    tilesets.removeDuplicates();
+    for (const QString& file : tilesets)
+        registerTileset(file);
 }
 
 void CC2EditMain::loadTileset(CC2ETileset* tileset)
