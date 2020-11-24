@@ -235,6 +235,11 @@ BigTileWidget::BigTileWidget(QWidget* parent)
         cc2::Tile(cc2::Tile::LogicGate, cc2::TileModifier::Inverter_N),
         cc2::Tile(cc2::Tile::Eye),
         cc2::Tile(cc2::Tile::Clue),
+
+        // Not in the CC2 Editor (TODO: Reorganize these to put them
+        // somewhere closer to other related tiles?)
+        cc2::Tile::dirBlockTile(0),
+        cc2::Tile(cc2::Tile::Trap_Open),
     };
 
     m_glyphs.reserve(cc2::TileModifier::GlyphMAX - cc2::TileModifier::GlyphMIN);

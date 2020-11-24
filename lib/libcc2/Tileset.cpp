@@ -1690,7 +1690,9 @@ QString CC2ETileset::getName(const cc2::Tile* tile)
             name += tr(" - Invalid (0x%1)").arg(tile->modifier(), 0, 16);
         break;
     case cc2::Tile::DirBlock:
-        if (tile->tileFlags() == cc2::Tile::AllArrows) {
+        if (tile->tileFlags() == 0) {
+            name += tr(" - None");
+        } else if (tile->tileFlags() == cc2::Tile::AllArrows) {
             name += tr(" - Any");
         } else {
             QStringList arrows;
