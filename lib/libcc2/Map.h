@@ -297,6 +297,9 @@ public:
         return *tp;
     }
 
+    bool haveTile(Tile::Type type) const;
+    bool haveTile(const std::vector<Tile::Type>& types) const;
+
     // For drawing tiles in the appropriate render order
     const Tile* baseLayer() const;
     const Tile* itemLayer() const;
@@ -397,9 +400,6 @@ public:
             throw std::out_of_range("Map index out of bounds");
         return m_map[(y * m_width) + x];
     }
-
-    bool haveTile(int x, int y, Tile::Type type) const;
-    bool haveTile(int x, int y, const std::vector<Tile::Type>& types) const;
 
 private:
     uint8_t m_width, m_height;

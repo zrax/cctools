@@ -206,6 +206,32 @@ void cc2::Tile::write(ccl::Stream* stream) const
     }
 }
 
+bool cc2::Tile::haveTile(Tile::Type type) const
+{
+    const cc2::Tile* stile = this;
+    do {
+        if (stile->type() == type)
+            return true;
+        stile = stile->lower();
+    } while (stile);
+
+    return false;
+}
+
+bool cc2::Tile::haveTile(const std::vector<Tile::Type>& types) const
+{
+    const cc2::Tile* stile = this;
+    do {
+        for (Tile::Type type : types) {
+            if (stile->type() == type)
+                return true;
+        }
+        stile = stile->lower();
+    } while (stile);
+
+    return false;
+}
+
 const cc2::Tile* cc2::Tile::baseLayer() const
 {
     const Tile* tp = this;
@@ -1212,32 +1238,6 @@ std::tuple<int, int> cc2::MapData::countPoints() const
     return points;
 }
 
-bool cc2::MapData::haveTile(int x, int y, Tile::Type type) const
-{
-    const cc2::Tile* stile = &tile(x, y);
-    do {
-        if (stile->type() == type)
-            return true;
-        stile = stile->lower();
-    } while (stile);
-
-    return false;
-}
-
-bool cc2::MapData::haveTile(int x, int y, const std::vector<Tile::Type>& types) const
-{
-    const cc2::Tile* stile = &tile(x, y);
-    do {
-        for (Tile::Type type : types) {
-            if (stile->type() == type)
-                return true;
-        }
-        stile = stile->lower();
-    } while (stile);
-
-    return false;
-}
-
 
 void cc2::Map::copyFrom(const cc2::Map* map)
 {
@@ -1470,13 +1470,13 @@ void cc2::Map::write(ccl::Stream* stream) const
 
 std::string cc2::Map::clueForTile(int x, int y)
 {
-    if (!m_mapData.haveTile(x, y, Tile::Clue))
+    if (m_mapData.tile(x, y).bottom().type() != Tile::Clue)
         return std::string();
 
     size_t start = 0;
     for (int sy = 0; sy < m_mapData.height(); ++sy) {
         for (int sx = 0; sx < m_mapData.width(); ++sx) {
-            if (!m_mapData.haveTile(sx, sy, Tile::Clue))
+            if (m_mapData.tile(sx, sy).bottom().type() != Tile::Clue)
                 continue;
 
             // Scan the NOTE for the next [CLUE] tag
@@ -1505,7 +1505,7 @@ std::string cc2::Map::clueForTile(int x, int y)
 
 void cc2::Map::setClueForTile(int x, int y, const std::string& clue)
 {
-    if (!m_mapData.haveTile(x, y, Tile::Clue))
+    if (m_mapData.tile(x, y).bottom().type() == Tile::Clue)
         return;
 
     // This function always assumes we want to directly update the tile-specific
@@ -1515,7 +1515,7 @@ void cc2::Map::setClueForTile(int x, int y, const std::string& clue)
     size_t start = 0;
     for (int sy = 0; sy < m_mapData.height(); ++sy) {
         for (int sx = 0; sx < m_mapData.width(); ++sx) {
-            if (!m_mapData.haveTile(sx, sy, Tile::Clue))
+            if (m_mapData.tile(sx, sy).bottom().type() != Tile::Clue)
                 continue;
 
             // Scan the NOTE for the next [CLUE] tag

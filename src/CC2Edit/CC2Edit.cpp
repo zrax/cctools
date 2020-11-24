@@ -2182,7 +2182,7 @@ void CC2EditMain::onTilePicked(int x, int y)
             editor->endEdit();
         }
     } else if (m_currentDrawMode == CC2EditorWidget::DrawInspectHint) {
-        if (!editor->map()->mapData().haveTile(x, y, cc2::Tile::Clue))
+        if (editor->map()->mapData().tile(x, y).bottom().type() != cc2::Tile::Clue)
             return;
 
         std::string clue = editor->map()->clueForTile(x, y);
