@@ -862,7 +862,8 @@ void CC2EditorWidget::mouseMoveEvent(QMouseEvent* event)
         }
     }
     if (map.haveTile(posX, posY, cc2::Tile::TrapButton)) {
-        QPoint trap = scanForControl({cc2::Tile::Trap}, posX, posY, map);
+        QPoint trap = scanForControl({cc2::Tile::Trap, cc2::Tile::Trap_Open},
+                                     posX, posY, map);
         if (trap != QPoint(-1, -1)) {
             m_hilights << trap;
             if (!tipText.isEmpty())
@@ -870,8 +871,9 @@ void CC2EditorWidget::mouseMoveEvent(QMouseEvent* event)
             tipText += tr("Trap: (%1, %2)").arg(trap.x()).arg(trap.y());
         }
     }
-    if (map.haveTile(posX, posY, cc2::Tile::Trap)) {
-        QList<QPoint> buttons = scanForButtons(cc2::Tile::TrapButton, {cc2::Tile::Trap},
+    if (map.haveTile(posX, posY, cc2::Tile::Trap) || map.haveTile(posX, posY, cc2::Tile::Trap_Open)) {
+        QList<QPoint> buttons = scanForButtons(cc2::Tile::TrapButton,
+                                               {cc2::Tile::Trap, cc2::Tile::Trap_Open},
                                                posX, posY, map);
         for (const QPoint& button : buttons) {
             m_hilights << button;
