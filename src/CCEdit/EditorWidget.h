@@ -168,6 +168,13 @@ private:
                       (int)((y * m_tileset->size() + (m_tileset->size() / 2)) * m_zoomFactor));
     }
 
+    QPoint calcPathCenter(int x, int y) const
+    {
+        // Offset slightly to avoid drawing over connection lines
+        const QPoint tileCenter = calcTileCenter(x, y);
+        return QPoint(tileCenter.x() + 2, tileCenter.y() + 2);
+    }
+
     QPoint calcTileCenter(const QPoint& point) const
     {
         return calcTileCenter(point.x(), point.y());

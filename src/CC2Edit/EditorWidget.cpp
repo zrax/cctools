@@ -17,6 +17,7 @@
 
 #include "EditorWidget.h"
 #include "CommonWidgets/CCTools.h"
+#include "libcc2/GameLogic.h"
 
 #include <QUndoStack>
 #include <QPainter>
@@ -296,6 +297,17 @@ void CC2EditorWidget::paintEvent(QPaintEvent*)
     renderTo(painter);
 }
 
+static const cc2::Tile* findCreature(const cc2::Tile* tile)
+{
+    do {
+        if (tile->isCreature())
+            return tile;
+        tile = tile->lower();
+    } while (tile);
+
+    return nullptr;
+}
+
 void CC2EditorWidget::renderTo(QPainter& painter)
 {
     if (m_cacheDirty) {
@@ -310,6 +322,51 @@ void CC2EditorWidget::renderTo(QPainter& painter)
         painter.fillRect(selectionArea, QBrush(QColor(95, 95, 191, 127)));
         painter.setPen(QColor(63, 63, 191));
         painter.drawRect(selectionArea);
+    }
+
+    const cc2::MapData& mapData = m_map->mapData();
+    if ((m_paintFlags & ShowMovePaths) != 0) {
+        painter.setPen(QColor(0, 127, 255));
+        std::vector<uint8_t> looked;
+        looked.resize(mapData.width() * mapData.height());
+
+        for (int y = 0; y < mapData.height(); ++y) {
+            for (int x = 0; x < mapData.width(); ++x) {
+                const cc2::Tile* tile = &mapData.tile(x, y);
+                while (tile && (tile = findCreature(tile)) != nullptr) {
+                    std::fill(looked.begin(), looked.end(), 0);
+                    cc2::MoveState move = cc2::CheckMove(mapData, tile, x, y);
+
+                    cc2::Tile tmpCre(*tile);
+                    QPoint from(x, y);
+                    do {
+                        looked[(from.y() * mapData.width()) + from.x()] |= 1 << (int)tmpCre.direction();
+                        if ((move & cc2::MoveDirMask) < cc2::MoveBlocked) {
+                            if ((move & cc2::MoveTrapped) != 0)
+                                break;
+
+                            QPoint to = cc2::AdvanceCreature(from, move);
+                            painter.drawLine(calcPathCenter(from.x(), from.y()),
+                                             calcPathCenter(to.x(), to.y()));
+                            if ((move & cc2::MoveDeath) != 0)
+                                break;
+                            if ((move & cc2::MoveTeleport) != 0) {
+                                //TODO
+                                break;
+                            }
+                            from = to;
+                            cc2::TurnCreature(&tmpCre, move);
+                        } else {
+                            break;
+                        }
+                        move = cc2::CheckMove(mapData, &tmpCre, from.x(), from.y());
+                    } while ((looked[(from.y() * mapData.width()) + from.x()]
+                               & (1 << (int)tmpCre.direction())) == 0);
+
+                    tile = tile->lower();
+                }
+            }
+        }
     }
 
     if ((m_paintFlags & ShowViewBox) != 0) {

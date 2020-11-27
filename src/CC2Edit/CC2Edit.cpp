@@ -921,6 +921,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     connect(m_actions[ActionToggleGreens], &QAction::triggered, this, &CC2EditMain::onToggleGreensAction);
 
     connect(m_actions[ActionViewViewport], &QAction::toggled, this, &CC2EditMain::onViewViewportToggled);
+    connect(m_actions[ActionViewMonsterPaths], &QAction::toggled, this, &CC2EditMain::onViewMonsterPathsToggled);
 
     connect(m_tilesetGroup, &QActionGroup::triggered, this, &CC2EditMain::onTilesetMenu);
     connect(m_actions[ActionZoom100], &QAction::triggered, this, [this] { setZoomFactor(1.0); });
@@ -2184,6 +2185,19 @@ void CC2EditMain::onViewViewportToggled(bool view)
                 editor->setPaintFlag(CC2EditorWidget::ShowViewBox);
             else
                 editor->clearPaintFlag(CC2EditorWidget::ShowViewBox);
+        }
+    }
+}
+
+void CC2EditMain::onViewMonsterPathsToggled(bool view)
+{
+    for (int i = 0; i < m_editorTabs->count(); ++i) {
+        CC2EditorWidget* editor = getEditorAt(i);
+        if (editor) {
+            if (view)
+                editor->setPaintFlag(CC2EditorWidget::ShowMovePaths);
+            else
+                editor->clearPaintFlag(CC2EditorWidget::ShowMovePaths);
         }
     }
 }

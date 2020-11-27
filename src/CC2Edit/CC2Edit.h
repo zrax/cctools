@@ -100,6 +100,7 @@ private slots:
     void onToggleGreensAction();
 
     void onViewViewportToggled(bool);
+    void onViewMonsterPathsToggled(bool);
 
     void onTilePicked(int x, int y);
 

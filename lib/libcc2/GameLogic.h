@@ -22,6 +22,24 @@
 
 namespace cc2 {
 
+enum MoveState {
+    MoveNorth,      // OK to move, moves North
+    MoveEast,       // OK to move, moves East
+    MoveSouth,      // OK to move, moves South
+    MoveWest,       // OK to move, moves West
+    MoveBlocked,    // All 4 directions are blocked
+    MoveDirMask = 0x0F,
+
+    // Extra data
+    MoveTrapped  = (1<<4),  // Monster is on unreleased trap
+    MoveDeath    = (1<<5),  // OK to move, but results in death
+    MoveTeleport = (1<<6),  // Entered teleporter, move to exit teleport
+};
+
+MoveState CheckMove(const MapData& map, const Tile* tile, int x, int y);
+void TurnCreature(Tile* tile, MoveState state);
+QPoint AdvanceCreature(const QPoint& pos, MoveState state);
+
 void ToggleGreens(Map* map);
 
 }

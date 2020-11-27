@@ -185,10 +185,11 @@ private:
         return calcTileRect(rect.left(), rect.top(), rect.width(), rect.height());
     }
 
-    QPoint calcTileCenter(int x, int y) const
+    QPoint calcPathCenter(int x, int y) const
     {
-        return QPoint((int)((x * m_tileset->size() + (m_tileset->size() / 2)) * m_zoomFactor),
-                      (int)((y * m_tileset->size() + (m_tileset->size() / 2)) * m_zoomFactor));
+        // Offset slightly to avoid drawing over logic wires
+        return QPoint((int)((x * m_tileset->size() + (m_tileset->size() / 2)) * m_zoomFactor) + 2,
+                      (int)((y * m_tileset->size() + (m_tileset->size() / 2)) * m_zoomFactor) + 2);
     }
 
     QSize renderSize() const

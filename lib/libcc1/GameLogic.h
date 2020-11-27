@@ -20,11 +20,6 @@
 
 #include "Levelset.h"
 
-#define TILE_DIR(tile)          ((tile & 0x03) + ccl::DirNorth)
-#define TURN_TILE(tile, dir)    ((tile & 0xFC) | (dir - 1))
-#define TURN_CW(tile)           ((tile & 0xFC) | ((tile - 1) & 0x03))
-#define TURN_CCW(tile)          ((tile & 0xFC) | ((tile + 1) & 0x03))
-
 namespace ccl {
 
 enum MoveState {
@@ -42,7 +37,7 @@ enum MoveState {
 };
 
 void GetPreferredDirections(tile_t tile, ccl::Direction dirs[]);
-MoveState CheckMove(LevelData* level, tile_t tile, int x, int y);
+MoveState CheckMove(const LevelData* level, tile_t tile, int x, int y);
 
 tile_t TurnCreature(tile_t tile, MoveState state);
 ccl::Point AdvanceCreature(const ccl::Point& pos, MoveState state);

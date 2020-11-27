@@ -343,11 +343,8 @@ void EditorWidget::renderTo(QPainter& painter)
     }
 
     if ((m_paintFlags & ShowMovePaths) != 0) {
-        painter.setPen(QColor(0, 0, 255));
-        std::list<ccl::Point>::const_iterator move_iter;
-        for (move_iter = m_levelData->moveList().begin();
-             move_iter != m_levelData->moveList().end(); ++move_iter) {
-            ccl::Point from = *move_iter;
+        painter.setPen(QColor(0, 127, 255));
+        for (ccl::Point from : m_levelData->moveList()) {
             if (!isValidPoint(from))
                 continue;
 
@@ -357,18 +354,14 @@ void EditorWidget::renderTo(QPainter& painter)
             tile_t tileN = tile & 0xFC;
             ccl::MoveState move = ccl::CheckMove(m_levelData, tile, from.X, from.Y);
 
-            if (tileN == ccl::TileTeeth_N || tileN == ccl::TileWalker_N
-                || tileN == ccl::TileBlob_N)
-                continue;
-
             do {
                 looked[(from.Y*32)+from.X] |= 1 << (tile & 0x03);
                 if ((move & ccl::MoveDirMask) < ccl::MoveBlocked) {
                     if ((move & ccl::MoveTrapped) != 0)
                         break;
                     ccl::Point to = ccl::AdvanceCreature(from, move);
-                    painter.drawLine(calcTileCenter(from.X, from.Y),
-                                     calcTileCenter(to.X, to.Y));
+                    painter.drawLine(calcPathCenter(from.X, from.Y),
+                                     calcPathCenter(to.X, to.Y));
                     if ((move & ccl::MoveDeath) != 0)
                         break;
                     if ((move & ccl::MoveTeleport) != 0) {
