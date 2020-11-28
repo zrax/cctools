@@ -351,7 +351,6 @@ void EditorWidget::renderTo(QPainter& painter)
             uint8_t looked[32*32];
             memset(looked, 0, sizeof(looked));
             tile_t tile = m_levelData->map().getFG(from.X, from.Y);
-            tile_t tileN = tile & 0xFC;
             ccl::MoveState move = ccl::CheckMove(m_levelData, tile, from.X, from.Y);
 
             do {

@@ -17,6 +17,8 @@
 
 #include "GameLogic.h"
 
+#include <QPoint>
+
 #define TILE_DIR(dir)   (cc2::Tile::Direction)((dir) & 0x03)
 
 static void getPreferredDirections(const cc2::Tile* tile, cc2::Tile::Direction dirs[])
@@ -243,6 +245,7 @@ cc2::MoveState cc2::CheckMove(const MapData& map, const Tile* tile, int x, int y
             // TODO: Blocked isn't really accurate here...
             return MoveBlocked;
         }
+        break;
     case Tile::Trap:
         if (tile->type() != Tile::Ghost) {
             state |= MoveTrapped;

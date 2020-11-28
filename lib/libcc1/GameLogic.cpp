@@ -63,29 +63,29 @@ void ccl::GetPreferredDirections(tile_t tile, Direction dirs[])
     }
 }
 
-static const tile_t peekTile(const ccl::LevelData* level, int x, int y,
-                             ccl::Direction dir)
+static tile_t peekTile(const ccl::LevelData* level, int x, int y,
+                       ccl::Direction dir)
 {
     tile_t tile = ccl::TileWall;
 
     switch (dir) {
     case ccl::DirNorth:
-        tile = (y > 0) ? level->map().getFG(x, y - 1) : ccl::TileWall;
+        tile = (y > 0) ? level->map().getFG(x, y - 1) : (tile_t)ccl::TileWall;
         if (MASKED_TILE(tile))
             tile = level->map().getBG(x, y - 1);
         break;
     case ccl::DirWest:
-        tile = (x > 0) ? level->map().getFG(x - 1, y) : ccl::TileWall;
+        tile = (x > 0) ? level->map().getFG(x - 1, y) : (tile_t)ccl::TileWall;
         if (MASKED_TILE(tile))
             tile = level->map().getBG(x - 1, y);
         break;
     case ccl::DirSouth:
-        tile = (y < 31) ? level->map().getFG(x, y + 1) : ccl::TileWall;
+        tile = (y < 31) ? level->map().getFG(x, y + 1) : (tile_t)ccl::TileWall;
         if (MASKED_TILE(tile))
             tile = level->map().getBG(x, y + 1);
         break;
     case ccl::DirEast:
-        tile = (x < 31) ? level->map().getFG(x + 1, y) : ccl::TileWall;
+        tile = (x < 31) ? level->map().getFG(x + 1, y) : (tile_t)ccl::TileWall;
         if (MASKED_TILE(tile))
             tile = level->map().getBG(x + 1, y);
         break;
