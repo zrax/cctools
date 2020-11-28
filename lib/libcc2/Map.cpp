@@ -1203,7 +1203,7 @@ std::tuple<int, int> cc2::MapData::countChips() const
 static std::tuple<int, int> tilePoints(const cc2::Tile* tile)
 {
     const cc2::Tile* lower = tile->lower();
-    auto points = lower ? tilePoints(lower) : std::make_tuple(0, 1);
+    auto points = lower ? tilePoints(lower) : std::make_tuple(0, 0);
 
     switch (tile->type()) {
     case cc2::Tile::Flag10:
@@ -1216,7 +1216,7 @@ static std::tuple<int, int> tilePoints(const cc2::Tile* tile)
         std::get<0>(points) += 1000;
         break;
     case cc2::Tile::Flag2x:
-        std::get<1>(points) *= 2;
+        std::get<1>(points) += 1;
         break;
     default:
         break;
@@ -1228,12 +1228,12 @@ static std::tuple<int, int> tilePoints(const cc2::Tile* tile)
 std::tuple<int, int> cc2::MapData::countPoints() const
 {
     // Raw points and multiplier
-    auto points = std::make_tuple(0, 1);
+    auto points = std::make_tuple(0, 0);
     const Tile* mapEnd = m_map + (m_width * m_height);
     for (const Tile* tp = m_map; tp != mapEnd; ++tp) {
         auto p = tilePoints(tp);
         std::get<0>(points) += std::get<0>(p);
-        std::get<1>(points) *= std::get<1>(p);
+        std::get<1>(points) += std::get<1>(p);
     }
     return points;
 }

@@ -1660,6 +1660,27 @@ void CC2EditMain::onSaveAsAction()
     saveTabAs(m_editorTabs->currentIndex());
 }
 
+static QString formatChips(const std::tuple<int, int>& chips)
+{
+    if (std::get<0>(chips) != std::get<1>(chips)) {
+        return CC2EditMain::tr("%1 (of %2)").arg(std::get<0>(chips))
+                                            .arg(std::get<1>(chips));
+    } else {
+        return QString::number(std::get<0>(chips));
+    }
+}
+
+static QString formatPoints(const std::tuple<int, int>& points)
+{
+    // Display >=16 x2 flags as an exponent instead
+    const int x2flags = std::get<1>(points);
+    if (x2flags >= 16)
+        return CC2EditMain::tr("%1 (x2^%2)").arg(std::get<0>(points)).arg(x2flags);
+    if (x2flags != 0)
+        return CC2EditMain::tr("%1 (x%2)").arg(std::get<0>(points)).arg(1u << x2flags);
+    return QString::number(std::get<0>(points));
+}
+
 void CC2EditMain::onReportAction()
 {
     if (m_currentGameScript.isEmpty())
@@ -1752,21 +1773,9 @@ void CC2EditMain::onReportAction()
         report.write(tr("%1 x %2").arg(map->mapData().width())
                                   .arg(map->mapData().height()).toUtf8().constData());
         report.write("\n<b>Chips:</b>    ");
-        const auto chips = map->mapData().countChips();
-        if (std::get<0>(chips) != std::get<1>(chips)) {
-            report.write(tr("%1 (of %2)").arg(std::get<0>(chips))
-                                         .arg(std::get<1>(chips)).toUtf8().constData());
-        } else {
-            report.write(QString::number(std::get<0>(chips)).toUtf8().constData());
-        }
+        report.write(formatChips(map->mapData().countChips()).toUtf8().constData());
         report.write("\n<b>Points:</b>   ");
-        const auto points = map->mapData().countPoints();
-        if (std::get<1>(points) != 1) {
-            report.write(tr("%1 (x%2)").arg(std::get<0>(points))
-                                       .arg(std::get<1>(points)).toUtf8().constData());
-        } else {
-            report.write(QString::number(std::get<0>(points)).toUtf8().constData());
-        }
+        report.write(formatPoints(map->mapData().countPoints()).toUtf8().constData());
         report.write("\n<b>Time:</b>     ");
         report.write(QString::number(map->option().timeLimit()).toUtf8().constData());
         report.write("\n<b>View:</b>     ");
@@ -2562,18 +2571,8 @@ void CC2EditMain::onTabChanged(int index)
 
 void CC2EditMain::updateCounters(const cc2::MapData& mapData)
 {
-    const auto chips = mapData.countChips();
-    if (std::get<0>(chips) != std::get<1>(chips))
-        m_chipCounter->setText(tr("%1 (of %2)").arg(std::get<0>(chips)).arg(std::get<1>(chips)));
-    else
-        m_chipCounter->setText(QString::number(std::get<0>(chips)));
-    const auto points = mapData.countPoints();
-    if (std::get<1>(points) != 1) {
-        m_pointCounter->setText(tr("%1 (x%2)").arg(std::get<0>(points))
-                                        .arg(std::get<1>(points)));
-    } else {
-        m_pointCounter->setText(QString::number(std::get<0>(points)));
-    }
+    m_chipCounter->setText(formatChips(mapData.countChips()));
+    m_pointCounter->setText(formatPoints(mapData.countPoints()));
 }
 
 void CC2EditMain::updateMapProperties(cc2::Map* map)
