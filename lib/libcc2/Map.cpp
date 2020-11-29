@@ -1505,7 +1505,7 @@ std::string cc2::Map::clueForTile(int x, int y)
 
 void cc2::Map::setClueForTile(int x, int y, const std::string& clue)
 {
-    if (m_mapData.tile(x, y).bottom().type() == Tile::Clue)
+    if (m_mapData.tile(x, y).bottom().type() != Tile::Clue)
         return;
 
     // This function always assumes we want to directly update the tile-specific
