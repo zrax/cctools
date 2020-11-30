@@ -132,6 +132,8 @@ signals:
     void updateCounters();
 
     void tilePicked(int x, int y);
+    void clueAdded(int x, int y);
+    void clueDeleted(int x, int y);
 
 public slots:
     void putTile(const cc2::Tile& tile, int x, int y, CombineMode mode);

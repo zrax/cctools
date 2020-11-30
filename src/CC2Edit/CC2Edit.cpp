@@ -1464,6 +1464,19 @@ CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename, 
     connect(editor, &CC2EditorWidget::hasSelection, m_actions[ActionClear], &QAction::setEnabled);
     connect(editor, &CC2EditorWidget::tilePicked, this, &CC2EditMain::onTilePicked);
 
+    connect(editor, &CC2EditorWidget::clueAdded, this, [this, editor](int x, int y) {
+        editor->beginEdit(CC2EditHistory::EditMap);
+        editor->map()->insertClue(x, y);
+        editor->endEdit();
+        updateMapProperties(editor->map());
+    });
+    connect(editor, &CC2EditorWidget::clueDeleted, this, [this, editor](int x, int y) {
+        editor->beginEdit(CC2EditHistory::EditMap);
+        editor->map()->deleteClue(x, y);
+        editor->endEdit();
+        updateMapProperties(editor->map());
+    });
+
     connect(editor, &CC2EditorWidget::cleanChanged, this, [this, scroll](bool clean) {
         const int index = m_editorTabs->indexOf(scroll);
         if (index < 0)

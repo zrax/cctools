@@ -1153,6 +1153,12 @@ void CC2EditorWidget::putTile(const cc2::Tile& tile, int x, int y, CombineMode m
     cc2::Tile& baseTile = curTile.bottom();
     // WARNING: Modifying curTile's layers can invalidate the baseTile reference!
 
+    if (baseTile.type() == cc2::Tile::Clue) {
+        if (tile.type() == cc2::Tile::Clue)
+            return;
+        emit clueDeleted(x, y);
+    }
+
     if (mode == Replace) {
         curTile = tile;
     } else if (mode == CombineForce) {
@@ -1257,6 +1263,9 @@ void CC2EditorWidget::putTile(const cc2::Tile& tile, int x, int y, CombineMode m
             }
         }
     }
+
+    if (curTile.bottom().type() == cc2::Tile::Clue)
+        emit clueAdded(x, y);
 
     dirtyBuffer();
 }

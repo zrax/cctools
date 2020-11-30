@@ -1503,6 +1503,26 @@ std::string cc2::Map::clueForTile(int x, int y)
     Q_UNREACHABLE();
 }
 
+static size_t scanNextClue(std::string& note, size_t start)
+{
+    size_t next = note.find("[CLUE]", start);
+    if (next == std::string::npos) {
+        note.insert(start, "[CLUE]\n");
+        next = start + std::char_traits<char>::length("[CLUE]\n");
+    } else {
+        // Find the newline...  CC2 discards anything else on the same
+        // line as the [CLUE] tag.
+        next = note.find('\n', next);
+        if (next == std::string::npos) {
+            note += "\n";
+            next = note.size();
+        } else {
+            ++next;
+        }
+    }
+    return next;
+}
+
 void cc2::Map::setClueForTile(int x, int y, const std::string& clue)
 {
     if (m_mapData.tile(x, y).bottom().type() != Tile::Clue)
@@ -1519,36 +1539,81 @@ void cc2::Map::setClueForTile(int x, int y, const std::string& clue)
                 continue;
 
             // Scan the NOTE for the next [CLUE] tag
-            start = m_note.find("[CLUE]", start);
-            if (start == std::string::npos) {
-                if (!m_note.empty() && m_note.back() != '\n')
-                    m_note += "\n";
-                m_note += "[CLUE]\n";
-                start = m_note.size();
-            } else {
-                // Find the newline...  CC2 discards anything else on the same
-                // line as the [CLUE] tag.
-                start = m_note.find('\n', start);
-                if (start == std::string::npos) {
-                    m_note += "\n";
-                    start = m_note.size();
-                } else {
-                    ++start;
-                }
-            }
+            start = scanNextClue(m_note, start);
 
             if (sx == x && sy == y) {
                 size_t next = m_note.find("[CLUE]", start);
                 if (next == std::string::npos) {
-                    m_note += clue;
-                    if (!m_note.empty() && m_note.back() != '\n')
-                        m_note += "\n";
-                    m_note += "[CLUE]\n";
+                    m_note.insert(start, clue);
+                    start += clue.size();
+                    if (!clue.empty() && clue.back() != '\n') {
+                        m_note.insert(start, "\n");
+                        ++start;
+                    }
+                    m_note.insert(start, "[CLUE]\n");
                 } else {
                     if (!clue.empty() && clue.back() != '\n')
                         m_note.replace(start, next - start, clue + "\n");
                     else
                         m_note.replace(start, next - start, clue);
+                }
+                return;
+            }
+        }
+    }
+
+    Q_UNREACHABLE();
+}
+
+void cc2::Map::insertClue(int x, int y)
+{
+    if (m_mapData.tile(x, y).bottom().type() != Tile::Clue
+            || m_note.find("[CLUE]") == std::string::npos)
+        return;
+
+    size_t start = 0;
+    for (int sy = 0; sy < m_mapData.height(); ++sy) {
+        for (int sx = 0; sx < m_mapData.width(); ++sx) {
+            if (m_mapData.tile(sx, sy).bottom().type() != Tile::Clue)
+                continue;
+
+            // Scan the NOTE for the next [CLUE] tag
+            start = scanNextClue(m_note, start);
+
+            if (sx == x && sy == y) {
+                m_note.insert(start, "[CLUE]\n");
+                return;
+            }
+        }
+    }
+
+    Q_UNREACHABLE();
+}
+
+void cc2::Map::deleteClue(int x, int y)
+{
+    if (m_mapData.tile(x, y).bottom().type() != Tile::Clue
+            || m_note.find("[CLUE]") == std::string::npos)
+        return;
+
+    size_t start = 0;
+    for (int sy = 0; sy < m_mapData.height(); ++sy) {
+        for (int sx = 0; sx < m_mapData.width(); ++sx) {
+            if (m_mapData.tile(sx, sy).bottom().type() != Tile::Clue)
+                continue;
+
+            // Scan the NOTE for the next [CLUE] tag
+            start = scanNextClue(m_note, start);
+
+            if (sx == x && sy == y) {
+                size_t next = m_note.find("[CLUE]", start);
+                if (next != std::string::npos) {
+                    m_note.erase(start, next - start);
+                    next = m_note.find('\n', start);
+                    if (next != std::string::npos)
+                        m_note.erase(start, (next - start) + 1);
+                    else
+                        m_note.erase(start);
                 }
                 return;
             }

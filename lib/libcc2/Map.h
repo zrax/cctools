@@ -464,6 +464,9 @@ public:
     std::string clueForTile(int x, int y);
     void setClueForTile(int x, int y, const std::string& clue);
 
+    void insertClue(int x, int y);
+    void deleteClue(int x, int y);
+
     void ref()
     {
         ++m_refs;
