@@ -58,6 +58,46 @@ CCHack::PageBitmap::PageBitmap(int which, QWidget* parent)
     });
 }
 
+struct BitmapCoreHeader
+{
+    uint32_t bcSize;
+    uint16_t bcWidth;
+    uint16_t bcHeight;
+    uint16_t bcPlanes;
+    uint16_t bcBitCount;
+};
+static_assert(sizeof(BitmapCoreHeader) == 12,
+              "Invalid compiler packing for BitmapCoreHeader");
+
+struct BitmapInfoHeader
+{
+    uint32_t biSize;
+    int32_t biWidth;
+    int32_t biHeight;
+    uint16_t biPlanes;
+    uint16_t biBitCount;
+    uint32_t biCompression;
+    uint32_t biSizeImage;
+    int32_t biXPelsPerMeter;
+    int32_t biYPelsPerMeter;
+    uint32_t biClrUsed;
+    uint32_t biClrImportant;
+};
+static_assert(sizeof(BitmapInfoHeader) == 40,
+              "Invalid compiler packing for BitmapInfoHeader");
+
+static uint32_t bitmapDataSize(const BitmapInfoHeader& bmih)
+{
+    if (bmih.biCompression > 0)
+        return bmih.biSizeImage;
+
+    uint32_t stride = (bmih.biWidth * bmih.biBitCount + 7) / 8;
+    uint32_t padding = 4 - (stride % 4);
+    if (padding != 4)
+        stride += padding;
+    return std::abs(bmih.biHeight) * stride;
+}
+
 void CCHack::PageBitmap::setValues(HackSettings* settings)
 {
     QByteArray bmpData;
@@ -94,38 +134,38 @@ void CCHack::PageBitmap::setValues(HackSettings* settings)
         buffer.open(QIODevice::ReadWrite);
         buffer.write("BM", 2);
 
-        uint32_t headerSize;
-        uint32_t ofImageData;
-        memcpy(&headerSize, bmpData.constData(), sizeof(headerSize));
-        if (headerSize >= 40 && headerSize != 64) {
-            uint16_t bpp;
-            memcpy(&bpp, bmpData.constData() + 14, sizeof(bpp));
-            if (bpp <= 8) {
-                uint32_t paletteSize;
+        BitmapInfoHeader bmih = {0};
+        uint32_t paletteSize = 0;
+        memcpy(&bmih.biSize, bmpData.constData(), sizeof(bmih.biSize));
+        if (bmih.biSize >= 40 && bmih.biSize != 64) {
+            memcpy(&bmih, bmpData.constData(), sizeof(bmih));
+            if (bmih.biBitCount <= 8) {
                 memcpy(&paletteSize, bmpData.constData() + 32, sizeof(paletteSize));
                 if (paletteSize == 0)
-                    paletteSize = 1u << bpp;
-                ofImageData = BITMAPFILEHEADER_SIZE + headerSize + (paletteSize * 4);
-            } else {
-                ofImageData = BITMAPFILEHEADER_SIZE + headerSize;
+                    paletteSize = 1u << bmih.biBitCount;
             }
         } else {
-            uint16_t bpp;
-            memcpy(&bpp, bmpData.constData() + 10, sizeof(bpp));
-            if (bpp <= 8) {
-                uint32_t paletteSize = 1u << bpp;
-                ofImageData = BITMAPFILEHEADER_SIZE + headerSize + (paletteSize * 4);
-            } else {
-                ofImageData = BITMAPFILEHEADER_SIZE + headerSize;
-            }
-        }
+            BitmapCoreHeader bmch = {0};
+            memcpy(&bmch, bmpData.constData(), sizeof(bmch));
+            if (bmch.bcBitCount <= 8)
+                paletteSize = 1u << bmch.bcBitCount;
 
-        uint32_t cbFileSize = BITMAPFILEHEADER_SIZE + bmpData.size();
+            bmih.biWidth = bmch.bcWidth;
+            bmih.biHeight = bmch.bcHeight;
+            bmih.biPlanes = bmch.bcPlanes;
+            bmih.biBitCount = bmch.bcBitCount;
+        }
+        uint32_t ofImageData = BITMAPFILEHEADER_SIZE + bmih.biSize + (paletteSize * 4);
+        uint32_t cbDataSize = bitmapDataSize(bmih);
+        if (cbDataSize == 0)
+            cbDataSize = bmpData.size();
+
+        uint32_t cbFileSize = ofImageData + cbDataSize;
         buffer.write((const char *)&cbFileSize, sizeof(cbFileSize));
         uint16_t reserved[2] = { 0, 0 };
         buffer.write((const char *)&reserved, sizeof(reserved));
         buffer.write((const char *)&ofImageData, sizeof(ofImageData));
-        buffer.write(bmpData);
+        buffer.write(bmpData.left(int(cbFileSize - BITMAPFILEHEADER_SIZE)));
         m_bitmap = buffer.data();
     }
 
