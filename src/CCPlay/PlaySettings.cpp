@@ -76,6 +76,8 @@ QIcon SettingsDialog::IconForTool(const QString& iconName)
         return ICON("edit-chipw");
     if (iconName == QStringLiteral("CCDesign"))
         return ICON("edit-ccdesign");
+    if (iconName == QStringLiteral("SuperCC"))
+        return ICON("tool-succ");
     if (iconName == QStringLiteral("Generic"))
         return ICON("application-x-executable");
     if (iconName == QStringLiteral("GenericScript"))
@@ -408,36 +410,36 @@ ConfigToolDialog::ConfigToolDialog(QWidget* parent)
     auto exeCompleter = new FileCompleter(EXE_LIST, this);
 
     m_name = new QLineEdit(this);
-    QLabel* lblName = new QLabel(tr("&Name:"), this);
+    auto lblName = new QLabel(tr("&Name:"), this);
     lblName->setBuddy(m_name);
     m_icon = new QComboBox(this);
     m_icon->setIconSize(QSize(32, 32));
     static const QString iconNames[] = {
         QStringLiteral("CCEdit"), QStringLiteral("ChipEdit"),
         QStringLiteral("ChipW"), QStringLiteral("CCDesign"),
-        QStringLiteral("Generic"), QStringLiteral("GenericScript"),
-        QStringLiteral("JavaJar")
+        QStringLiteral("SuperCC"), QStringLiteral("Generic"),
+        QStringLiteral("GenericScript"), QStringLiteral("JavaJar")
     };
     for (const QString& icon : iconNames)
         m_icon->addItem(SettingsDialog::IconForTool(icon), QString(), icon);
-    QLabel* lblIcon = new QLabel(tr("&Icon:"), this);
+    auto lblIcon = new QLabel(tr("&Icon:"), this);
     lblIcon->setBuddy(m_icon);
     m_path = new QLineEdit(this);
     m_path->setCompleter(exeCompleter);
-    QLabel* lblPath = new QLabel(tr("Tool &Path:"), this);
+    auto lblPath = new QLabel(tr("Tool &Path:"), this);
     lblPath->setBuddy(m_path);
     auto browseTool = new QToolButton(this);
     browseTool->setIcon(ICON("document-open-folder"));
     browseTool->setAutoRaise(true);
     m_args = new QLineEdit(this);
-    QLabel* lblArgs = new QLabel(tr("P&arameters:"), this);
+    auto lblArgs = new QLabel(tr("P&arameters:"), this);
     lblArgs->setBuddy(m_args);
 
-    QDialogButtonBox* buttons = new QDialogButtonBox(
+    auto buttons = new QDialogButtonBox(
             QDialogButtonBox::Save | QDialogButtonBox::Cancel,
             Qt::Horizontal, this);
 
-    QGridLayout* layout = new QGridLayout(this);
+    auto layout = new QGridLayout(this);
     layout->setContentsMargins(8, 8, 8, 8);
     layout->setVerticalSpacing(8);
     layout->setHorizontalSpacing(8);
