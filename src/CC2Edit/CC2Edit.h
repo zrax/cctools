@@ -145,7 +145,7 @@ private:
         ActionUndo, ActionRedo, ActionDrawPencil, ActionDrawLine, ActionDrawFill,
         ActionDrawFlood, ActionPathMaker, ActionDrawWire, ActionInspectHints,
         ActionInspectTiles, ActionToggleGreens, ActionViewViewport,
-        ActionViewMonsterPaths,
+        ActionViewMonsterPaths, ActionZoom200, ActionZoom150,
         ActionZoom100, ActionZoom75, ActionZoom50, ActionZoom25, ActionZoom125,
         ActionZoomCust, ActionZoomFit, ActionTest, ActionTestSetup, ActionAbout,
         ActionScriptHelp, ActionReloadScript, ActionEditScript,

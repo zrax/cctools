@@ -209,25 +209,27 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionViewErrors]->setStatusTip(tr("Visually mark invalid tile combinations in the editor"));
     m_actions[ActionViewErrors]->setCheckable(true);
 
+    m_actions[ActionZoom200] = new QAction(tr("200%"), this);
+    m_actions[ActionZoom200]->setStatusTip(tr("Zoom to 200%"));
+    m_actions[ActionZoom200]->setCheckable(true);
+    m_actions[ActionZoom150] = new QAction(tr("150%"), this);
+    m_actions[ActionZoom150]->setStatusTip(tr("Zoom to 150%"));
+    m_actions[ActionZoom150]->setCheckable(true);
     m_actions[ActionZoom100] = new QAction(tr("&100%"), this);
     m_actions[ActionZoom100]->setStatusTip(tr("Zoom to 100%"));
     m_actions[ActionZoom100]->setShortcut(Qt::CTRL | Qt::Key_1);
     m_actions[ActionZoom100]->setCheckable(true);
-    m_actions[ActionZoom75] = new QAction(tr("&75%"), this);
+    m_actions[ActionZoom75] = new QAction(tr("75%"), this);
     m_actions[ActionZoom75]->setStatusTip(tr("Zoom to 75%"));
-    m_actions[ActionZoom75]->setShortcut(Qt::CTRL | Qt::Key_7);
     m_actions[ActionZoom75]->setCheckable(true);
-    m_actions[ActionZoom50] = new QAction(tr("&50%"), this);
+    m_actions[ActionZoom50] = new QAction(tr("50%"), this);
     m_actions[ActionZoom50]->setStatusTip(tr("Zoom to 50%"));
-    m_actions[ActionZoom50]->setShortcut(Qt::CTRL | Qt::Key_5);
     m_actions[ActionZoom50]->setCheckable(true);
-    m_actions[ActionZoom25] = new QAction(tr("&25%"), this);
+    m_actions[ActionZoom25] = new QAction(tr("25%"), this);
     m_actions[ActionZoom25]->setStatusTip(tr("Zoom to 25%"));
-    m_actions[ActionZoom25]->setShortcut(Qt::CTRL | Qt::Key_2);
     m_actions[ActionZoom25]->setCheckable(true);
-    m_actions[ActionZoom125] = new QAction(tr("12.5&%"), this);
+    m_actions[ActionZoom125] = new QAction(tr("12.5%"), this);
     m_actions[ActionZoom125]->setStatusTip(tr("Zoom to 12.5%"));
-    m_actions[ActionZoom125]->setShortcut(Qt::CTRL | Qt::Key_3);
     m_actions[ActionZoom125]->setCheckable(true);
     m_actions[ActionZoomCust] = new QAction(tr("&Custom..."), this);
     m_actions[ActionZoomCust]->setStatusTip(tr("Zoom to custom percentage"));
@@ -238,6 +240,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionZoomFit]->setShortcut(Qt::CTRL | Qt::Key_0);
     m_actions[ActionZoomFit]->setCheckable(true);
     auto zoomGroup = new QActionGroup(this);
+    zoomGroup->addAction(m_actions[ActionZoom200]);
+    zoomGroup->addAction(m_actions[ActionZoom150]);
     zoomGroup->addAction(m_actions[ActionZoom100]);
     zoomGroup->addAction(m_actions[ActionZoom75]);
     zoomGroup->addAction(m_actions[ActionZoom50]);
@@ -576,6 +580,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_tilesetMenu = viewMenu->addMenu(tr("Tile&set"));
     m_tilesetGroup = new QActionGroup(this);
     QMenu* zoomMenu = viewMenu->addMenu(tr("&Zoom"));
+    zoomMenu->addAction(m_actions[ActionZoom200]);
+    zoomMenu->addAction(m_actions[ActionZoom150]);
     zoomMenu->addAction(m_actions[ActionZoom100]);
     zoomMenu->addAction(m_actions[ActionZoom75]);
     zoomMenu->addAction(m_actions[ActionZoom50]);
@@ -659,6 +665,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionViewMonsterPaths], &QAction::toggled, this, &CCEditMain::onViewMonsterPathsToggled);
     connect(m_actions[ActionViewErrors], &QAction::toggled, this, &CCEditMain::onViewErrorsToggled);
     connect(m_tilesetGroup, &QActionGroup::triggered, this, &CCEditMain::onTilesetMenu);
+    connect(m_actions[ActionZoom200], &QAction::triggered, this, [this] { setZoomFactor(2.0); });
+    connect(m_actions[ActionZoom150], &QAction::triggered, this, [this] { setZoomFactor(1.5); });
     connect(m_actions[ActionZoom100], &QAction::triggered, this, [this] { setZoomFactor(1.0); });
     connect(m_actions[ActionZoom75], &QAction::triggered, this, [this] { setZoomFactor(0.75); });
     connect(m_actions[ActionZoom50], &QAction::triggered, this, [this] { setZoomFactor(0.5); });
@@ -781,6 +789,12 @@ CCEditMain::CCEditMain(QWidget* parent)
 
     if (m_zoomFactor == 1.0)
         m_actions[ActionZoom100]->setChecked(true);
+    else if (m_zoomFactor == 0.0)
+        m_actions[ActionZoomFit]->setChecked(true);
+    else if (m_zoomFactor == 2.0)
+        m_actions[ActionZoom200]->setChecked(true);
+    else if (m_zoomFactor == 1.5)
+        m_actions[ActionZoom150]->setChecked(true);
     else if (m_zoomFactor == 0.75)
         m_actions[ActionZoom75]->setChecked(true);
     else if (m_zoomFactor == 0.5)
@@ -789,8 +803,6 @@ CCEditMain::CCEditMain(QWidget* parent)
         m_actions[ActionZoom25]->setChecked(true);
     else if (m_zoomFactor == 0.125)
         m_actions[ActionZoom125]->setChecked(true);
-    else if (m_zoomFactor == 0.0)
-        m_actions[ActionZoomFit]->setChecked(true);
     else
         m_actions[ActionZoomCust]->setChecked(true);
 
@@ -1837,6 +1849,12 @@ void CCEditMain::onZoomCust()
         setZoomFactor(zoom / 100.0);
     if (m_zoomFactor == 1.0)
         m_actions[ActionZoom100]->setChecked(true);
+    else if (m_zoomFactor == 2.0)
+        m_actions[ActionZoom200]->setChecked(true);
+    else if (m_zoomFactor == 1.5)
+        m_actions[ActionZoom150]->setChecked(true);
+    else if (m_zoomFactor == 0.75)
+        m_actions[ActionZoom75]->setChecked(true);
     else if (m_zoomFactor == 0.5)
         m_actions[ActionZoom50]->setChecked(true);
     else if (m_zoomFactor == 0.25)
