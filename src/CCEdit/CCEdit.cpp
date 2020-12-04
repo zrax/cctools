@@ -211,9 +211,11 @@ CCEditMain::CCEditMain(QWidget* parent)
 
     m_actions[ActionZoom200] = new QAction(tr("200%"), this);
     m_actions[ActionZoom200]->setStatusTip(tr("Zoom to 200%"));
+    m_actions[ActionZoom200]->setShortcut(Qt::CTRL | Qt::Key_2);
     m_actions[ActionZoom200]->setCheckable(true);
     m_actions[ActionZoom150] = new QAction(tr("150%"), this);
     m_actions[ActionZoom150]->setStatusTip(tr("Zoom to 150%"));
+    m_actions[ActionZoom150]->setShortcut(Qt::CTRL | Qt::Key_3);
     m_actions[ActionZoom150]->setCheckable(true);
     m_actions[ActionZoom100] = new QAction(tr("&100%"), this);
     m_actions[ActionZoom100]->setStatusTip(tr("Zoom to 100%"));
@@ -221,15 +223,19 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionZoom100]->setCheckable(true);
     m_actions[ActionZoom75] = new QAction(tr("75%"), this);
     m_actions[ActionZoom75]->setStatusTip(tr("Zoom to 75%"));
+    m_actions[ActionZoom75]->setShortcut(Qt::CTRL | Qt::Key_4);
     m_actions[ActionZoom75]->setCheckable(true);
     m_actions[ActionZoom50] = new QAction(tr("50%"), this);
     m_actions[ActionZoom50]->setStatusTip(tr("Zoom to 50%"));
+    m_actions[ActionZoom50]->setShortcut(Qt::CTRL | Qt::Key_5);
     m_actions[ActionZoom50]->setCheckable(true);
     m_actions[ActionZoom25] = new QAction(tr("25%"), this);
     m_actions[ActionZoom25]->setStatusTip(tr("Zoom to 25%"));
+    m_actions[ActionZoom25]->setShortcut(Qt::CTRL | Qt::Key_6);
     m_actions[ActionZoom25]->setCheckable(true);
     m_actions[ActionZoom125] = new QAction(tr("12.5%"), this);
     m_actions[ActionZoom125]->setStatusTip(tr("Zoom to 12.5%"));
+    m_actions[ActionZoom125]->setShortcut(Qt::CTRL | Qt::Key_7);
     m_actions[ActionZoom125]->setCheckable(true);
     m_actions[ActionZoomCust] = new QAction(tr("&Custom..."), this);
     m_actions[ActionZoomCust]->setStatusTip(tr("Zoom to custom percentage"));
