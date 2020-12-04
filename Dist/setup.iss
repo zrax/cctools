@@ -36,6 +36,7 @@ Name: CCHack; Description: CCHack Game Customizer; Types: Custom Full
 Source: vc_redist.x86.exe; DestDir: {tmp}; Flags: deleteafterinstall; Check: NeedMSVCRTInstaller
 Source: ..\changelog.txt; DestDir: {app}
 Source: ..\LICENSE; DestDir: {app}
+Source: ..\LICENSE-breeze-cursors; DestDir: {app}
 Source: ..\LICENSE-oxygen-icon-theme; DestDir: {app}
 Source: CCEdit.exe; DestDir: {app}; Flags: ignoreversion; Components: CCEdit
 Source: CC2Edit.exe; DestDir: {app}; Flags: ignoreversion; Components: CC2Edit
