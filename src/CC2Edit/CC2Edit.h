@@ -140,7 +140,7 @@ private slots:
 private:
     enum ActionType {
         ActionNewMap, ActionNewScript, ActionOpen, ActionImportCC1, ActionSave,
-        ActionSaveAs, ActionClose, ActionGenReport, ActionExit,
+        ActionSaveAs, ActionCloseTab, ActionCloseGame, ActionGenReport, ActionExit,
         ActionSelect, ActionCut, ActionCopy, ActionPaste, ActionClear,
         ActionUndo, ActionRedo, ActionDrawPencil, ActionDrawLine, ActionDrawFill,
         ActionDrawFlood, ActionPathMaker, ActionDrawWire, ActionInspectHints,

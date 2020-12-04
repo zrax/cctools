@@ -29,7 +29,6 @@
 class QMenu;
 class QAction;
 class QActionGroup;
-class QTabWidget;
 class QListWidget;
 class QLineEdit;
 class QSpinBox;
@@ -68,7 +67,8 @@ public slots:
 
 private:
     enum ActionType {
-        ActionNew, ActionOpen, ActionSave, ActionSaveAs, ActionClose,
+        ActionNew, ActionOpen, ActionSave, ActionSaveAs, ActionCloseTab,
+        ActionCloseLevelset,
         ActionGenReport, ActionExit, ActionSelect, ActionCut, ActionCopy,
         ActionPaste, ActionClear, ActionUndo, ActionRedo, ActionDrawPencil,
         ActionDrawLine, ActionDrawFill, ActionDrawFlood, ActionPathMaker,

@@ -93,10 +93,14 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionSaveAs]->setStatusTip(tr("Save the current levelset to a new file or location"));
     m_actions[ActionSaveAs]->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_S);
     m_actions[ActionSaveAs]->setEnabled(false);
-    m_actions[ActionClose] = new QAction(tr("&Close Levelset"), this);
-    m_actions[ActionClose]->setStatusTip(tr("Close the currently open levelset"));
-    m_actions[ActionClose]->setShortcut(Qt::CTRL | Qt::Key_W);
-    m_actions[ActionClose]->setEnabled(false);
+    m_actions[ActionCloseTab] = new QAction(tr("Close &Tab"), this);
+    m_actions[ActionCloseTab]->setStatusTip(tr("Close the currently open editor tab"));
+    m_actions[ActionCloseTab]->setShortcut(Qt::CTRL | Qt::Key_W);
+    m_actions[ActionCloseTab]->setEnabled(false);
+    m_actions[ActionCloseLevelset] = new QAction(tr("&Close Levelset"), this);
+    m_actions[ActionCloseLevelset]->setStatusTip(tr("Close the currently open levelset"));
+    m_actions[ActionCloseLevelset]->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_W);
+    m_actions[ActionCloseLevelset]->setEnabled(false);
     m_actions[ActionProperties] = new QAction(ICON("document-properties"), tr("Levelset &Properties"), this);
     m_actions[ActionProperties]->setStatusTip(tr("Change levelset and .DAC file properties"));
     m_actions[ActionProperties]->setEnabled(false);
@@ -537,7 +541,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     fileMenu->addAction(m_actions[ActionOpen]);
     fileMenu->addAction(m_actions[ActionSave]);
     fileMenu->addAction(m_actions[ActionSaveAs]);
-    fileMenu->addAction(m_actions[ActionClose]);
+    fileMenu->addAction(m_actions[ActionCloseTab]);
+    fileMenu->addAction(m_actions[ActionCloseLevelset]);
     fileMenu->addSeparator();
     fileMenu->addAction(m_actions[ActionProperties]);
     fileMenu->addAction(m_actions[ActionGenReport]);
@@ -643,7 +648,12 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionOpen], &QAction::triggered, this, &CCEditMain::onOpenAction);
     connect(m_actions[ActionSave], &QAction::triggered, this, &CCEditMain::onSaveAction);
     connect(m_actions[ActionSaveAs], &QAction::triggered, this, &CCEditMain::onSaveAsAction);
-    connect(m_actions[ActionClose], &QAction::triggered, this, &CCEditMain::closeLevelset);
+    connect(m_actions[ActionCloseTab], &QAction::triggered, this, [this] {
+        const int index = m_editorTabs->currentIndex();
+        if (index >= 0)
+            m_editorTabs->widget(index)->deleteLater();
+    });
+    connect(m_actions[ActionCloseLevelset], &QAction::triggered, this, &CCEditMain::closeLevelset);
     connect(m_actions[ActionProperties], &QAction::triggered, this, &CCEditMain::onPropertiesAction);
     connect(m_actions[ActionGenReport], &QAction::triggered, this, &CCEditMain::onReportAction);
     connect(m_actions[ActionExit], &QAction::triggered, this, &CCEditMain::close);
@@ -899,7 +909,7 @@ void CCEditMain::loadLevelset(const QString& filename)
 
     m_actions[ActionSave]->setEnabled(true);
     m_actions[ActionSaveAs]->setEnabled(true);
-    m_actions[ActionClose]->setEnabled(true);
+    m_actions[ActionCloseLevelset]->setEnabled(true);
     m_actions[ActionProperties]->setEnabled(true);
     m_actions[ActionGenReport]->setEnabled(true);
     m_actions[ActionAddLevel]->setEnabled(true);
@@ -1115,7 +1125,7 @@ bool CCEditMain::closeLevelset()
 
     m_actions[ActionSave]->setEnabled(false);
     m_actions[ActionSaveAs]->setEnabled(false);
-    m_actions[ActionClose]->setEnabled(false);
+    m_actions[ActionCloseLevelset]->setEnabled(false);
     m_actions[ActionProperties]->setEnabled(false);
     m_actions[ActionGenReport]->setEnabled(false);
     m_actions[ActionAddLevel]->setEnabled(false);
@@ -1303,7 +1313,7 @@ EditorWidget* CCEditMain::addEditor(ccl::LevelData* level)
 
 void CCEditMain::closeAllTabs()
 {
-    while (getEditorAt(0) != 0) {
+    while (getEditorAt(0)) {
         delete m_editorTabs->widget(0);
         m_editorTabs->removeTab(0);
     }
@@ -1321,7 +1331,7 @@ void CCEditMain::createNewLevelset()
 
     m_actions[ActionSave]->setEnabled(true);
     m_actions[ActionSaveAs]->setEnabled(true);
-    m_actions[ActionClose]->setEnabled(true);
+    m_actions[ActionCloseLevelset]->setEnabled(true);
     m_actions[ActionProperties]->setEnabled(true);
     m_actions[ActionGenReport]->setEnabled(true);
     m_actions[ActionAddLevel]->setEnabled(true);
@@ -2451,6 +2461,8 @@ void CCEditMain::onClipboardDataChanged()
 
 void CCEditMain::onTabChanged(int tabIdx)
 {
+    m_actions[ActionCloseTab]->setEnabled(tabIdx >= 0);
+
     EditorWidget* editor = getEditorAt(tabIdx);
     if (!editor) {
         m_nameEdit->setEnabled(false);
@@ -2491,7 +2503,7 @@ void CCEditMain::onTabChanged(int tabIdx)
     m_timeEdit->setValue(level->timer());
     m_hintEdit->setPlainText(ccl::fromLatin1(level->hint()));
 
-    bool hasSelection = editor->selection() != QRect(-1, -1, -1, -1);
+    const bool hasSelection = editor->selection() != QRect(-1, -1, -1, -1);
     m_actions[ActionCut]->setEnabled(hasSelection);
     m_actions[ActionCopy]->setEnabled(hasSelection);
     m_actions[ActionPaste]->setEnabled(haveClipboardData());

@@ -79,7 +79,7 @@ enum TileListId {
     cc2::Tile(cc2::Tile::LogicGate, baseGate##_W)
 
 CC2EditMain::CC2EditMain(QWidget* parent)
-    : QMainWindow(parent), m_currentTileset(),  m_savedDrawMode(ActionDrawPencil),
+    : QMainWindow(parent), m_currentTileset(), m_savedDrawMode(ActionDrawPencil),
       m_currentDrawMode(CC2EditorWidget::DrawPencil), m_subProc()
 {
     setWindowTitle(QStringLiteral("CC2Edit " CCTOOLS_VERSION));
@@ -105,10 +105,14 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_actions[ActionSaveAs]->setStatusTip(tr("Save the current document to a new file or location"));
     m_actions[ActionSaveAs]->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_S);
     m_actions[ActionSaveAs]->setEnabled(false);
-    m_actions[ActionClose] = new QAction(tr("&Close Game"), this);
-    m_actions[ActionClose]->setStatusTip(tr("Close the currently open game"));
-    m_actions[ActionClose]->setShortcut(Qt::CTRL | Qt::Key_W);
-    m_actions[ActionClose]->setEnabled(false);
+    m_actions[ActionCloseTab] = new QAction(tr("Close &Tab"), this);
+    m_actions[ActionCloseTab]->setStatusTip(tr("Close the current editor tab"));
+    m_actions[ActionCloseTab]->setShortcut(Qt::CTRL | Qt::Key_W);
+    m_actions[ActionCloseTab]->setEnabled(false);
+    m_actions[ActionCloseGame] = new QAction(tr("&Close Game"), this);
+    m_actions[ActionCloseGame]->setStatusTip(tr("Close the currently open game"));
+    m_actions[ActionCloseGame]->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_W);
+    m_actions[ActionCloseGame]->setEnabled(false);
     m_actions[ActionGenReport] = new QAction(tr("Generate &Report"), this);
     m_actions[ActionGenReport]->setStatusTip(tr("Generate an HTML report of the current game"));
     m_actions[ActionGenReport]->setEnabled(false);
@@ -807,7 +811,8 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     fileMenu->addAction(m_actions[ActionImportCC1]);
     fileMenu->addAction(m_actions[ActionSave]);
     fileMenu->addAction(m_actions[ActionSaveAs]);
-    fileMenu->addAction(m_actions[ActionClose]);
+    fileMenu->addAction(m_actions[ActionCloseTab]);
+    fileMenu->addAction(m_actions[ActionCloseGame]);
     fileMenu->addSeparator();
     fileMenu->addAction(m_actions[ActionGenReport]);
     fileMenu->addSeparator();
@@ -910,7 +915,12 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     connect(m_actions[ActionImportCC1], &QAction::triggered, this, &CC2EditMain::onImportCC1Action);
     connect(m_actions[ActionSave], &QAction::triggered, this, &CC2EditMain::onSaveAction);
     connect(m_actions[ActionSaveAs], &QAction::triggered, this, &CC2EditMain::onSaveAsAction);
-    connect(m_actions[ActionClose], &QAction::triggered, this, &CC2EditMain::closeScript);
+    connect(m_actions[ActionCloseTab], &QAction::triggered, this, [this] {
+        const int index = m_editorTabs->currentIndex();
+        if (index >= 0)
+            onTabClosed(index);
+    });
+    connect(m_actions[ActionCloseGame], &QAction::triggered, this, &CC2EditMain::closeScript);
     connect(m_actions[ActionGenReport], &QAction::triggered, this, &CC2EditMain::onReportAction);
     connect(m_actions[ActionExit], &QAction::triggered, this, &CC2EditMain::close);
 
@@ -1171,7 +1181,7 @@ bool CC2EditMain::loadScript(const QString& filename)
     if (mapLoader.loadScript(filename)) {
         m_currentGameScript = filename;
         m_gameProperties->setEnabled(true);
-        m_actions[ActionClose]->setEnabled(true);
+        m_actions[ActionCloseGame]->setEnabled(true);
         m_actions[ActionGenReport]->setEnabled(true);
         return true;
     } else {
@@ -1209,7 +1219,7 @@ void CC2EditMain::closeScript()
     m_currentGameScript = QString();
     setGameName(QString());
     m_gameProperties->setEnabled(false);
-    m_actions[ActionClose]->setEnabled(false);
+    m_actions[ActionCloseGame]->setEnabled(false);
     m_actions[ActionGenReport]->setEnabled(false);
 }
 
@@ -2538,6 +2548,8 @@ void CC2EditMain::onTabClosed(int index)
 
 void CC2EditMain::onTabChanged(int index)
 {
+    m_actions[ActionCloseTab]->setEnabled(index >= 0);
+
     CC2EditorWidget* mapEditor = getEditorAt(index);
     CC2ScriptEditor* scriptEditor = getScriptEditorAt(index);
 
