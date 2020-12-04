@@ -193,6 +193,8 @@ CC2EditorWidget::CC2EditorWidget(QWidget* parent)
 void CC2EditorWidget::setTileset(CC2ETileset* tileset)
 {
     m_tileset = tileset;
+    const QSize size = mapSize();
+    m_tileBuffer = QPixmap(size.width() * m_tileset->size(), size.height() * m_tileset->size());
     resize(sizeHint());
     dirtyBuffer();
 }

@@ -65,12 +65,18 @@ public:
     void setFilename(const QString& filename) { m_filename = filename; }
     QString filename() const { return m_filename; }
 
+    QSize mapSize() const
+    {
+        return QSize(m_map ? m_map->mapData().width() : 16,
+                     m_map ? m_map->mapData().height() : 16);
+    }
+
     QSize sizeHint() const override
     {
         const int tilesetSize = m_tileset ? m_tileset->size() : 32;
-        const int width = m_map ? m_map->mapData().width() : 16;
-        const int height = m_map ? m_map->mapData().height() : 16;
-        return QSize(width * tilesetSize * m_zoomFactor, height * tilesetSize * m_zoomFactor);
+        const QSize size = mapSize();
+        return QSize(size.width() * tilesetSize * m_zoomFactor,
+                     size.height() * tilesetSize * m_zoomFactor);
     }
 
     DrawMode drawMode() const { return m_drawMode; }
