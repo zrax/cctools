@@ -36,6 +36,9 @@
     <file>res/object-rotate-left-lg.png</file>
     <file>res/object-rotate-right-lg.png</file>
     <file>res/tile-glyph-lg.png</file>
+    <file>res/cur-wire.png</file>
+    <file>res/cur-hint.png</file>
+    <file>res/cur-inspect.png</file>
 
     <file>icons/boot-16.png</file>
     <file>icons/boot-24.png</file>

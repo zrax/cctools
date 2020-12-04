@@ -234,6 +234,21 @@ void CC2EditorWidget::setDrawMode(DrawMode mode)
         m_selectRect = QRect(-1, -1, -1, -1);
         update();
         emit hasSelection(false);
+
+        switch (m_drawMode) {
+        case DrawWires:
+            setCursor(QCursor(QPixmap(QStringLiteral(":/res/cur-wire.png")), 4, 4));
+            break;
+        case DrawInspectHint:
+            setCursor(QCursor(QPixmap(QStringLiteral(":/res/cur-hint.png")), 4, 4));
+            break;
+        case DrawInspectTile:
+            setCursor(QCursor(QPixmap(QStringLiteral(":/res/cur-inspect.png")), 4, 4));
+            break;
+        default:
+            setCursor(Qt::ArrowCursor);
+            break;
+        }
     }
 }
 

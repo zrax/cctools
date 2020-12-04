@@ -819,6 +819,18 @@ void EditorWidget::setDrawMode(DrawMode mode)
         m_selectRect = QRect(-1, -1, -1, -1);
         update();
         emit hasSelection(false);
+
+        switch (m_drawMode) {
+        case DrawButtonConnect:
+            setCursor(QCursor(QPixmap(QStringLiteral(":/res/cur-button.png")), 4, 4));
+            break;
+        case DrawInspectTile:
+            setCursor(QCursor(QPixmap(QStringLiteral(":/res/cur-inspect.png")), 4, 4));
+            break;
+        default:
+            setCursor(Qt::ArrowCursor);
+            break;
+        }
     }
 }
 
