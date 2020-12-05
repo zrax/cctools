@@ -1,7 +1,8 @@
 {
   "size": 32,
-  "name": "MSCC/Editor Color",
+  "name": "WEP/Editor Color",
   "desc": "Microsoft WEP 32x32 Editor Graphics",
   "base": "MSCC_base.png",
-  "overlay": "MSCC_overlay.png"
+  "overlay": "MSCC_overlay.png",
+  "cc2": "WEP_cc2.png"
 }

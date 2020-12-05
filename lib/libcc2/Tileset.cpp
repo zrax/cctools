@@ -415,6 +415,8 @@ void CC2ETileset::drawLayer(QPainter& painter, int x, int y, const cc2::Tile* ti
             painter.drawPixmap(x, y, m_gfx[cc2::G_InvalidBase]);
             break;
         }
+        // Needed for WEP tileset...
+        drawArrow(painter, x, y, tile->direction());
         break;
     case cc2::Tile::Ball:
         painter.drawPixmap(x, y, m_gfx[cc2::G_Ball]);

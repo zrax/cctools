@@ -1,0 +1,7 @@
+{
+  "size": 48,
+  "name": "TileWorld/Editor 48x48",
+  "desc": "TileWorld 48x48 Editor Graphics",
+  "base": "TW48_base.png",
+  "overlay": "TW48_overlay.png"
+}

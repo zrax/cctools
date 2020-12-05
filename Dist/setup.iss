@@ -43,43 +43,44 @@ Source: CC2Edit.exe; DestDir: {app}; Flags: ignoreversion; Components: CC2Edit
 Source: CCPlay.exe; DestDir: {app}; Flags: ignoreversion; Components: CCPlay
 Source: CCHack.exe; DestDir: {app}; Flags: ignoreversion; Components: CCHack
 Source: KF5SyntaxHighlighting.dll; DestDir: {app}; Flags: ignoreversion; Components: CC2Edit
-Source: Qt5Core.dll; DestDir: {app}; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: Qt5Gui.dll; DestDir: {app}; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
+Source: Qt5Core.dll; DestDir: {app}; Flags: ignoreversion
+Source: Qt5Gui.dll; DestDir: {app}; Flags: ignoreversion
 Source: Qt5Network.dll; DestDir: {app}; Flags: ignoreversion; Components: CC2Edit
 Source: Qt5Sql.dll; DestDir: {app}; Flags: ignoreversion; Components: CCPlay
-Source: Qt5Widgets.dll; DestDir: {app}; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: Qt5Xml.dll; DestDir: {app}; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
+Source: Qt5Widgets.dll; DestDir: {app}; Flags: ignoreversion
+Source: Qt5Xml.dll; DestDir: {app}; Flags: ignoreversion
 Source: bearer\qgenericbearer.dll; DestDir: {app}\bearer; Flags: ignoreversion; Components: CC2Edit
-Source: imageformats\qico.dll; DestDir: {app}\imageformats; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: imageformats\qwbmp.dll; DestDir: {app}\imageformats; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: platforms\qwindows.dll; DestDir: {app}\platforms; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: sqldrivers\qsqlite.dll; DestDir: {app}\sqldrivers; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: styles\qwindowsvistastyle.dll; DestDir: {app}\styles; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: translations\qt_ar.qm; DestDir: {app}\translations; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: translations\qt_bg.qm; DestDir: {app}\translations; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: translations\qt_ca.qm; DestDir: {app}\translations; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: translations\qt_cs.qm; DestDir: {app}\translations; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: translations\qt_da.qm; DestDir: {app}\translations; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: translations\qt_de.qm; DestDir: {app}\translations; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: translations\qt_en.qm; DestDir: {app}\translations; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: translations\qt_es.qm; DestDir: {app}\translations; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: translations\qt_fi.qm; DestDir: {app}\translations; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: translations\qt_fr.qm; DestDir: {app}\translations; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: translations\qt_gd.qm; DestDir: {app}\translations; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: translations\qt_he.qm; DestDir: {app}\translations; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: translations\qt_hu.qm; DestDir: {app}\translations; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: translations\qt_it.qm; DestDir: {app}\translations; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: translations\qt_ja.qm; DestDir: {app}\translations; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: translations\qt_ko.qm; DestDir: {app}\translations; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: translations\qt_lv.qm; DestDir: {app}\translations; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: translations\qt_pl.qm; DestDir: {app}\translations; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: translations\qt_ru.qm; DestDir: {app}\translations; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: translations\qt_sk.qm; DestDir: {app}\translations; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: translations\qt_uk.qm; DestDir: {app}\translations; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: translations\qt_zh_TW.qm; DestDir: {app}; Flags: ignoreversion; Components: CCEdit CC2Edit CCPlay CCHack
-Source: CC2.tis; DestDir: {app}; Flags: ignoreversion; Components: CC2Edit
-Source: TW32.tis; DestDir: {app}; Flags: ignoreversion; Components: CCEdit CCPlay
-Source: WEP.tis; DestDir: {app}; Flags: ignoreversion; Components: CCEdit CCPlay
+Source: imageformats\qico.dll; DestDir: {app}\imageformats; Flags: ignoreversion
+Source: imageformats\qwbmp.dll; DestDir: {app}\imageformats; Flags: ignoreversion
+Source: platforms\qwindows.dll; DestDir: {app}\platforms; Flags: ignoreversion
+Source: sqldrivers\qsqlite.dll; DestDir: {app}\sqldrivers; Flags: ignoreversion
+Source: styles\qwindowsvistastyle.dll; DestDir: {app}\styles; Flags: ignoreversion
+Source: translations\qt_ar.qm; DestDir: {app}\translations; Flags: ignoreversion
+Source: translations\qt_bg.qm; DestDir: {app}\translations; Flags: ignoreversion
+Source: translations\qt_ca.qm; DestDir: {app}\translations; Flags: ignoreversion
+Source: translations\qt_cs.qm; DestDir: {app}\translations; Flags: ignoreversion
+Source: translations\qt_da.qm; DestDir: {app}\translations; Flags: ignoreversion
+Source: translations\qt_de.qm; DestDir: {app}\translations; Flags: ignoreversion
+Source: translations\qt_en.qm; DestDir: {app}\translations; Flags: ignoreversion
+Source: translations\qt_es.qm; DestDir: {app}\translations; Flags: ignoreversion
+Source: translations\qt_fi.qm; DestDir: {app}\translations; Flags: ignoreversion
+Source: translations\qt_fr.qm; DestDir: {app}\translations; Flags: ignoreversion
+Source: translations\qt_gd.qm; DestDir: {app}\translations; Flags: ignoreversion
+Source: translations\qt_he.qm; DestDir: {app}\translations; Flags: ignoreversion
+Source: translations\qt_hu.qm; DestDir: {app}\translations; Flags: ignoreversion
+Source: translations\qt_it.qm; DestDir: {app}\translations; Flags: ignoreversion
+Source: translations\qt_ja.qm; DestDir: {app}\translations; Flags: ignoreversion
+Source: translations\qt_ko.qm; DestDir: {app}\translations; Flags: ignoreversion
+Source: translations\qt_lv.qm; DestDir: {app}\translations; Flags: ignoreversion
+Source: translations\qt_pl.qm; DestDir: {app}\translations; Flags: ignoreversion
+Source: translations\qt_ru.qm; DestDir: {app}\translations; Flags: ignoreversion
+Source: translations\qt_sk.qm; DestDir: {app}\translations; Flags: ignoreversion
+Source: translations\qt_uk.qm; DestDir: {app}\translations; Flags: ignoreversion
+Source: translations\qt_zh_TW.qm; DestDir: {app}; Flags: ignoreversion
+Source: CC2.tis; DestDir: {app}; Flags: ignoreversion; Components: CCEdit CC2Edit
+Source: TW32.tis; DestDir: {app}; Flags: ignoreversion; Components: CCEdit
+Source: TW48.tis; DestDir: {app}; Flags: ignoreversion; Components: CCEdit
+Source: WEP.tis; DestDir: {app}; Flags: ignoreversion; Components: CCEdit CC2Edit
 
 [Run]
 Filename: {tmp}\vc_redist.x86.exe; Parameters: "/norestart /quiet"; Check: NeedMSVCRTInstaller
