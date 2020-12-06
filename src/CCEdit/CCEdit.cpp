@@ -539,6 +539,9 @@ CCEditMain::CCEditMain(QWidget* parent)
     fileMenu->addAction(m_actions[ActionNew]);
     fileMenu->addSeparator();
     fileMenu->addAction(m_actions[ActionOpen]);
+    m_recentFiles = fileMenu->addMenu(tr("Open &Recent"));
+    populateRecentFiles();
+    fileMenu->addSeparator();
     fileMenu->addAction(m_actions[ActionSave]);
     fileMenu->addAction(m_actions[ActionSaveAs]);
     fileMenu->addAction(m_actions[ActionCloseTab]);
@@ -915,6 +918,10 @@ void CCEditMain::loadLevelset(const QString& filename)
     m_actions[ActionAddLevel]->setEnabled(true);
     m_actions[ActionOrganize]->setEnabled(true);
     m_actions[ActionCheckErrors]->setEnabled(true);
+
+    QSettings settings;
+    addRecentFile(settings, filename);
+    populateRecentFiles();
 }
 
 void CCEditMain::doLevelsetLoad()
@@ -953,6 +960,30 @@ void CCEditMain::setLevelsetFilename(const QString& filename)
         setWindowTitle(s_appTitle + QStringLiteral(" - ") + displayName + QStringLiteral(" *"));
     else
         setWindowTitle(s_appTitle + QStringLiteral(" - ") + displayName);
+}
+
+void CCEditMain::populateRecentFiles()
+{
+    m_recentFiles->clear();
+
+    QSettings settings;
+    QStringList recent = recentFiles(settings);
+    for (const QString& path : recent) {
+        QFileInfo info(path);
+        const QString label = QStringLiteral("%1 [%2]").arg(info.fileName(), info.absolutePath());
+        auto recentFileAction = m_recentFiles->addAction(label);
+        connect(recentFileAction, &QAction::triggered, this, [this, path] {
+            loadLevelset(path);
+        });
+    }
+
+    m_recentFiles->addSeparator();
+    auto clearListAction = m_recentFiles->addAction(tr("Clear List"));
+    connect(clearListAction, &QAction::triggered, this, [this] {
+        QSettings settings;
+        clearRecentFiles(settings);
+        populateRecentFiles();
+    });
 }
 
 void CCEditMain::saveLevelset(const QString& filename)
@@ -1015,6 +1046,10 @@ void CCEditMain::saveLevelset(const QString& filename)
     m_checkSave = true;
     m_undoStack->setClean();
     m_dirtyFlag = 0;
+
+    QSettings settings;
+    addRecentFile(settings, filename);
+    populateRecentFiles();
 }
 
 void CCEditMain::closeEvent(QCloseEvent* event)

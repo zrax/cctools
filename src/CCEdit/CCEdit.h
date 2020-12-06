@@ -88,6 +88,7 @@ private:
     QAction* m_actions[NUM_ACTIONS];
     QActionGroup* m_drawModeGroup;
     QActionGroup* m_modalToolGroup;
+    QMenu* m_recentFiles;
     QMenu* m_tilesetMenu;
     QActionGroup* m_tilesetGroup;
     QUndoStack* m_undoStack;
@@ -124,13 +125,16 @@ private:
     void updateForUndoCommand(const QUndoCommand*);
 
 protected:
-    void registerTileset(const QString& filename);
-    void doLevelsetLoad();
-    void setLevelsetFilename(const QString& filename);
     void closeEvent(QCloseEvent*) override;
     void resizeEvent(QResizeEvent*) override;
     void keyPressEvent(QKeyEvent*) override;
     void keyReleaseEvent(QKeyEvent*) override;
+
+private:
+    void registerTileset(const QString& filename);
+    void doLevelsetLoad();
+    void setLevelsetFilename(const QString& filename);
+    void populateRecentFiles();
 
 private slots:
     void onOpenAction();

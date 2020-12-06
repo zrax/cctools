@@ -25,6 +25,21 @@
 
 #define ICON(name)  QIcon(QStringLiteral(":/res/" name ".png"))
 
+// Dammit Qt
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+#   define QT_SKIP_EMPTY_PARTS Qt::SkipEmptyParts
+#else
+#   define QT_SKIP_EMPTY_PARTS QString::SkipEmptyParts
+#endif
+
+#ifdef Q_OS_WIN
+#   define FILE_COMPARE_CS Qt::CaseInsensitive
+#else
+#   define FILE_COMPARE_CS Qt::CaseSensitive
+#endif
+
+class QSettings;
+
 class AboutWidget : public QWidget {
 public:
     AboutWidget(const QString& name, const QPixmap& icon, QWidget *parent = nullptr);
@@ -34,6 +49,10 @@ class AboutDialog : public QDialog {
 public:
     AboutDialog(const QString& name, const QPixmap& icon, QWidget* parent = nullptr);
 };
+
+QStringList recentFiles(QSettings& settings);
+void addRecentFile(QSettings& settings, const QString& filename);
+void clearRecentFiles(QSettings& settings);
 
 namespace ccl {
 

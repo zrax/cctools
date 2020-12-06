@@ -809,6 +809,9 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     fileMenu->addSeparator();
     fileMenu->addAction(m_actions[ActionOpen]);
     fileMenu->addAction(m_actions[ActionImportCC1]);
+    m_recentFiles = fileMenu->addMenu(tr("Open &Recent"));
+    populateRecentFiles();
+    fileMenu->addSeparator();
     fileMenu->addAction(m_actions[ActionSave]);
     fileMenu->addAction(m_actions[ActionSaveAs]);
     fileMenu->addAction(m_actions[ActionCloseTab]);
@@ -1108,15 +1111,22 @@ void CC2EditMain::loadFile(const QString& filename)
 {
     QFileInfo info(filename);
     if (info.suffix().compare(QLatin1String("c2g"), Qt::CaseInsensitive) == 0) {
-        if (loadScript(filename))
-            m_gamePropsDock->raise();
+        if (!loadScript(filename))
+            return;
+        m_gamePropsDock->raise();
     } else if (info.suffix().compare(QLatin1String("c2m"), Qt::CaseInsensitive) == 0) {
-        if (loadMap(filename, false))
-            m_mapPropsDock->raise();
+        if (!loadMap(filename, false))
+            return;
+        m_mapPropsDock->raise();
     } else {
         QMessageBox::critical(this, tr("Invalid filename"),
                               tr("Unsupported file type for %1").arg(filename));
+        return;
     }
+
+    QSettings settings;
+    addRecentFile(settings, filename);
+    populateRecentFiles();
 }
 
 bool CC2EditMain::loadMap(const QString& filename, bool floatTab)
@@ -1234,21 +1244,22 @@ bool CC2EditMain::saveTab(int index)
     if (filename.isEmpty())
         return saveTabAs(index);
 
-    bool result = false;
     if (mapEditor) {
-        result = saveMap(mapEditor->map(), filename);
-        if (result)
-            mapEditor->setClean();
+        if (!saveMap(mapEditor->map(), filename))
+            return false;
+        mapEditor->setClean();
     }
     if (scriptEditor) {
-        result = saveScript(scriptEditor->toPlainText(), filename);
-        if (result)
-            scriptEditor->setClean();
+        if (!saveScript(scriptEditor->toPlainText(), filename))
+            return false;
+        scriptEditor->setClean();
     }
 
-    if (result)
-        m_editorTabs->promoteTab(index);
-    return result;
+    QSettings settings;
+    addRecentFile(settings, filename);
+    populateRecentFiles();
+    m_editorTabs->promoteTab(index);
+    return true;
 }
 
 bool CC2EditMain::saveTabAs(int index)
@@ -1265,13 +1276,12 @@ bool CC2EditMain::saveTabAs(int index)
     if (filename.isEmpty())
         filename = settings.value(QStringLiteral("DialogDir")).toString();
 
-    bool result = false;
     if (mapEditor) {
         filename = QFileDialog::getSaveFileName(this, tr("Save Map..."),
                                                 filename, tr("CC2 Maps (*.c2m)"));
-        if (!filename.isEmpty())
-            result = saveMap(mapEditor->map(), filename);
-        if (result) {
+        if (!filename.isEmpty()) {
+            if (!saveMap(mapEditor->map(), filename))
+                return false;
             mapEditor->setFilename(filename);
             mapEditor->setClean();
         }
@@ -1279,21 +1289,21 @@ bool CC2EditMain::saveTabAs(int index)
     if (scriptEditor) {
         filename = QFileDialog::getSaveFileName(this, tr("Save Game Script..."),
                                                 filename, tr("CC2 Game Scripts (*.c2g)"));
-        if (!filename.isEmpty())
-            result = saveScript(scriptEditor->toPlainText(), filename);
-        if (result) {
+        if (!filename.isEmpty()) {
+            if (!saveScript(scriptEditor->toPlainText(), filename))
+                return false;
             scriptEditor->setFilename(filename);
             scriptEditor->setClean();
         }
     }
 
-    if (result) {
-        QFileInfo info(filename);
-        m_editorTabs->setTabText(index, info.fileName());
-        m_editorTabs->promoteTab(index);
-        settings.setValue(QStringLiteral("DialogDir"), info.dir().absolutePath());
-    }
-    return result;
+    QFileInfo info(filename);
+    m_editorTabs->setTabText(index, info.fileName());
+    m_editorTabs->promoteTab(index);
+    settings.setValue(QStringLiteral("DialogDir"), info.dir().absolutePath());
+    addRecentFile(settings, filename);
+    populateRecentFiles();
+    return true;
 }
 
 bool CC2EditMain::saveMap(cc2::Map* map, const QString& filename)
@@ -1370,6 +1380,30 @@ void CC2EditMain::loadEditorForItem(QListWidgetItem* item)
     QString filename = item->data(Qt::UserRole).toString();
     if (!filename.isEmpty())
         loadMap(filename, true);
+}
+
+void CC2EditMain::populateRecentFiles()
+{
+    m_recentFiles->clear();
+
+    QSettings settings;
+    QStringList recent = recentFiles(settings);
+    for (const QString& path : recent) {
+        QFileInfo info(path);
+        const QString label = QStringLiteral("%1 [%2]").arg(info.fileName(), info.absolutePath());
+        auto recentFileAction = m_recentFiles->addAction(label);
+        connect(recentFileAction, &QAction::triggered, this, [this, path] {
+            loadFile(path);
+        });
+    }
+
+    m_recentFiles->addSeparator();
+    auto clearListAction = m_recentFiles->addAction(tr("Clear List"));
+    connect(clearListAction, &QAction::triggered, this, [this] {
+        QSettings settings;
+        clearRecentFiles(settings);
+        populateRecentFiles();
+    });
 }
 
 void CC2EditMain::findTilesets()

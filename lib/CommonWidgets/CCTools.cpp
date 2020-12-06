@@ -21,6 +21,8 @@
 #include <QLabel>
 #include <QDialogButtonBox>
 #include <QGridLayout>
+#include <QSettings>
+#include <QFileInfo>
 
 AboutWidget::AboutWidget(const QString& name, const QPixmap& icon, QWidget *parent)
     : QWidget(parent)
@@ -76,4 +78,49 @@ AboutDialog::AboutDialog(const QString& name, const QPixmap& icon, QWidget* pare
     layout->addWidget(buttons);
 
     connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
+}
+
+#define NUM_RECENT_FILES 10
+
+QStringList recentFiles(QSettings& settings)
+{
+    QStringList recentList;
+    recentList.reserve(NUM_RECENT_FILES);
+    for (int i = 0; i < NUM_RECENT_FILES; ++i) {
+        const auto key = QStringLiteral("RecentFiles/File_%1").arg(i, 2, 10, QLatin1Char('0'));
+        if (settings.contains(key))
+            recentList << settings.value(key).toString();
+    }
+    return recentList;
+}
+
+void addRecentFile(QSettings& settings, const QString& filename)
+{
+    QStringList recent = recentFiles(settings);
+
+    const QString absFilename = QFileInfo(filename).absoluteFilePath();
+    auto iter = recent.begin();
+    while (iter != recent.end()) {
+        if (iter->compare(absFilename, FILE_COMPARE_CS) == 0)
+            iter = recent.erase(iter);
+        else
+            ++iter;
+    }
+    recent.prepend(absFilename);
+
+    for (int i = 0; i < NUM_RECENT_FILES; ++i) {
+        if (i >= recent.size())
+            break;
+        const auto &filePath = recent.at(i);
+        const auto key = QStringLiteral("RecentFiles/File_%1").arg(i, 2, 10, QLatin1Char('0'));
+        settings.setValue(key, filePath);
+    }
+}
+
+void clearRecentFiles(QSettings& settings)
+{
+    for (int i = 0; i < NUM_RECENT_FILES; ++i) {
+        const auto key = QStringLiteral("RecentFiles/File_%1").arg(i, 2, 10, QLatin1Char('0'));
+        settings.remove(key);
+    }
 }

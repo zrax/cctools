@@ -155,6 +155,7 @@ private:
     QAction* m_actions[NUM_ACTIONS];
     QActionGroup* m_drawModeGroup;
     QActionGroup* m_modalToolGroup;
+    QMenu* m_recentFiles;
     QMenu* m_tilesetMenu;
     QActionGroup* m_tilesetGroup;
     CC2ETileset* m_currentTileset;
@@ -199,6 +200,7 @@ private:
 
     void registerTileset(const QString& filename);
     void loadEditorForItem(QListWidgetItem* item);
+    void populateRecentFiles();
 };
 
 #endif // _CC2EDIT_H

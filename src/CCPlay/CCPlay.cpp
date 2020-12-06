@@ -38,13 +38,6 @@
 #include "CommonWidgets/CCTools.h"
 #include "CommonWidgets/PathCompleter.h"
 
-// Dammit Qt
-#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
-#define QT_SKIP_EMPTY_PARTS Qt::SkipEmptyParts
-#else
-#define QT_SKIP_EMPTY_PARTS QString::SkipEmptyParts
-#endif
-
 std::unique_ptr<ccl::Levelset>
 CCPlayMain::loadLevelset(const QString& filename, int* dacLastLevel)
 {
