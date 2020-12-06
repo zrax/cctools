@@ -1,0 +1,7 @@
+{
+  "size": 32,
+  "name": "Lexy's Labyrinth/Editor 32x32",
+  "desc": "Lexy's Labyrinth 32x32 Editor Graphics",
+  "base": "tileset-lexy-tw-editor-base.png",
+  "overlay": "tileset-lexy-tw-editor-overlay.png"
+}

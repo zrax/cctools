@@ -78,6 +78,7 @@ Source: translations\qt_sk.qm; DestDir: {app}\translations; Flags: ignoreversion
 Source: translations\qt_uk.qm; DestDir: {app}\translations; Flags: ignoreversion
 Source: translations\qt_zh_TW.qm; DestDir: {app}; Flags: ignoreversion
 Source: CC2.tis; DestDir: {app}; Flags: ignoreversion; Components: CCEdit CC2Edit
+Source: Lexy.tis; DestDir: {app}; Flags: ignoreversion; Components: CCEdit CC2Edit
 Source: TW32.tis; DestDir: {app}; Flags: ignoreversion; Components: CCEdit
 Source: TW48.tis; DestDir: {app}; Flags: ignoreversion; Components: CCEdit
 Source: WEP.tis; DestDir: {app}; Flags: ignoreversion; Components: CCEdit CC2Edit

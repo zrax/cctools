@@ -45,6 +45,7 @@ add_definitions(-DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII)
 
 set(CCTools_Tilesets
     ${CMAKE_CURRENT_SOURCE_DIR}/share/cctools/CC2.tis
+    ${CMAKE_CURRENT_SOURCE_DIR}/share/cctools/Lexy.tis
     ${CMAKE_CURRENT_SOURCE_DIR}/share/cctools/TW32.tis
     ${CMAKE_CURRENT_SOURCE_DIR}/share/cctools/TW48.tis
     ${CMAKE_CURRENT_SOURCE_DIR}/share/cctools/WEP.tis
