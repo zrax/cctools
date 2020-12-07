@@ -156,6 +156,10 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_actions[ActionDrawLine]->setStatusTip(tr("Draw tiles with the line tool"));
     m_actions[ActionDrawLine]->setShortcut(Qt::CTRL | Qt::Key_L);
     m_actions[ActionDrawLine]->setCheckable(true);
+    m_actions[ActionDrawRect] = new QAction(ICON("draw-rect"), tr("&Rectangle"), this);
+    m_actions[ActionDrawRect]->setStatusTip(tr("Draw tiles with the rectangle tool"));
+    m_actions[ActionDrawRect]->setShortcut(Qt::CTRL | Qt::Key_R);
+    m_actions[ActionDrawRect]->setCheckable(true);
     m_actions[ActionDrawFill] = new QAction(ICON("draw-box"), tr("&Box"), this);
     m_actions[ActionDrawFill]->setStatusTip(tr("Draw tiles with the box fill tool"));
     m_actions[ActionDrawFill]->setShortcut(Qt::CTRL | Qt::Key_B);
@@ -187,6 +191,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_drawModeGroup = new QActionGroup(this);
     m_drawModeGroup->addAction(m_actions[ActionDrawPencil]);
     m_drawModeGroup->addAction(m_actions[ActionDrawLine]);
+    m_drawModeGroup->addAction(m_actions[ActionDrawRect]);
     m_drawModeGroup->addAction(m_actions[ActionDrawFill]);
     m_drawModeGroup->addAction(m_actions[ActionDrawFlood]);
     m_drawModeGroup->addAction(m_actions[ActionPathMaker]);
@@ -835,6 +840,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     QMenu* toolsMenu = menuBar()->addMenu(tr("&Tools"));
     toolsMenu->addAction(m_actions[ActionDrawPencil]);
     toolsMenu->addAction(m_actions[ActionDrawLine]);
+    toolsMenu->addAction(m_actions[ActionDrawRect]);
     toolsMenu->addAction(m_actions[ActionDrawFill]);
     toolsMenu->addAction(m_actions[ActionDrawFlood]);
     toolsMenu->addAction(m_actions[ActionPathMaker]);
@@ -898,6 +904,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     tbarTools->setWindowTitle(tr("Tools"));
     tbarTools->addAction(m_actions[ActionDrawPencil]);
     tbarTools->addAction(m_actions[ActionDrawLine]);
+    tbarTools->addAction(m_actions[ActionDrawRect]);
     tbarTools->addAction(m_actions[ActionDrawFill]);
     tbarTools->addAction(m_actions[ActionDrawFlood]);
     tbarTools->addAction(m_actions[ActionPathMaker]);
@@ -937,6 +944,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
 
     connect(m_actions[ActionDrawPencil], &QAction::toggled, this, &CC2EditMain::onDrawPencilAction);
     connect(m_actions[ActionDrawLine], &QAction::toggled, this, &CC2EditMain::onDrawLineAction);
+    connect(m_actions[ActionDrawRect], &QAction::toggled, this, &CC2EditMain::onDrawRectAction);
     connect(m_actions[ActionDrawFill], &QAction::toggled, this, &CC2EditMain::onDrawFillAction);
     connect(m_actions[ActionDrawFlood], &QAction::toggled, this, &CC2EditMain::onDrawFloodAction);
     connect(m_actions[ActionPathMaker], &QAction::toggled, this, &CC2EditMain::onPathMakerAction);
@@ -2155,6 +2163,20 @@ void CC2EditMain::onDrawLineAction(bool checked)
 
     m_savedDrawMode = ActionDrawLine;
     m_currentDrawMode = CC2EditorWidget::DrawLine;
+    uncheckAll(m_modalToolGroup);
+
+    CC2EditorWidget* editor = currentEditor();
+    if (editor)
+        editor->setDrawMode(m_currentDrawMode);
+}
+
+void CC2EditMain::onDrawRectAction(bool checked)
+{
+    if (!checked)
+        return;
+
+    m_savedDrawMode = ActionDrawRect;
+    m_currentDrawMode = CC2EditorWidget::DrawRect;
     uncheckAll(m_modalToolGroup);
 
     CC2EditorWidget* editor = currentEditor();

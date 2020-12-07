@@ -50,6 +50,27 @@ static void plot_box(CC2EditorWidget* self, QPoint from, QPoint to,
             self->putTile(drawTile, x, y, mode);
 }
 
+static void plot_rect(CC2EditorWidget* self, QPoint from, QPoint to,
+                      const cc2::Tile& drawTile, CC2EditorWidget::CombineMode mode)
+{
+    if (from == QPoint(-1, -1))
+        return;
+
+    int lowY = std::min(from.y(), to.y());
+    int lowX = std::min(from.x(), to.x());
+    int highY = std::max(from.y(), to.y());
+    int highX = std::max(from.x(), to.x());
+
+    for (int x = lowX; x <= highX; ++x) {
+        self->putTile(drawTile, x, lowY, mode);
+        self->putTile(drawTile, x, highY, mode);
+    }
+    for (int y = lowY + 1; y <= highY - 1; ++y) {
+        self->putTile(drawTile, lowX, y, mode);
+        self->putTile(drawTile, highX, y, mode);
+    }
+}
+
 static void plot_line(CC2EditorWidget* self, QPoint from, QPoint to,
                       const cc2::Tile& drawTile, CC2EditorWidget::CombineMode mode)
 {
@@ -763,13 +784,22 @@ void CC2EditorWidget::mouseMoveEvent(QMouseEvent* event)
                                  ? m_leftTile : m_rightTile;
         if (m_drawMode == DrawPencil) {
             putTile(curTile, posX, posY, select_cmode(event->modifiers()));
-        } else if (m_drawMode == DrawLine || m_drawMode == DrawFill) {
+        } else if (m_drawMode >= DrawLine && m_drawMode <= DrawFill) {
             m_map->copyFrom(m_editCache);
             // Draw current pending operation
-            if (m_drawMode == DrawLine)
+            switch (m_drawMode) {
+            case DrawLine:
                 plot_line(this, m_origin, m_current, curTile, select_cmode(event->modifiers()));
-            else if (m_drawMode == DrawFill)
+                break;
+            case DrawRect:
+                plot_rect(this, m_origin, m_current, curTile, select_cmode(event->modifiers()));
+                break;
+            case DrawFill:
                 plot_box(this, m_origin, m_current, curTile, select_cmode(event->modifiers()));
+                break;
+            default:
+                Q_ASSERT(false);
+            }
             dirtyBuffer();
         } else if (m_drawMode == DrawPathMaker) {
             cc2::Tile oldTile = map.tile(posX, posY);
@@ -1027,8 +1057,7 @@ void CC2EditorWidget::mousePressEvent(QMouseEvent* event)
     m_editCache->copyFrom(m_map);
 
     if ((m_cachedButton == Qt::LeftButton || m_cachedButton == Qt::RightButton)
-        && (m_drawMode == DrawPencil || m_drawMode == DrawLine || m_drawMode == DrawFill
-            || m_drawMode == DrawFlood || m_drawMode == DrawPathMaker || m_drawMode == DrawWires))
+            && m_drawMode >= DrawPencil && m_drawMode <= DrawWires)
         beginEdit(CC2EditHistory::EditMap);
 
     if (m_drawMode != DrawSelect && event->button() != Qt::MiddleButton) {
@@ -1075,8 +1104,7 @@ void CC2EditorWidget::mouseReleaseEvent(QMouseEvent* event)
     if (resetOrigin)
         m_origin = QPoint(-1, -1);
     if ((m_cachedButton == Qt::LeftButton || m_cachedButton == Qt::RightButton)
-        && (m_drawMode == DrawPencil || m_drawMode == DrawLine || m_drawMode == DrawFill
-            || m_drawMode == DrawFlood || m_drawMode == DrawPathMaker || m_drawMode == DrawWires))
+            && m_drawMode >= DrawPencil && m_drawMode <= DrawWires)
         endEdit();
 
     update();

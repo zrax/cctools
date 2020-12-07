@@ -48,6 +48,27 @@ static void plot_box(EditorWidget* self, QPoint from, QPoint to, tile_t drawTile
             self->putTile(drawTile, x, y, layer);
 }
 
+static void plot_rect(EditorWidget* self, QPoint from, QPoint to, tile_t drawTile,
+                      EditorWidget::DrawLayer layer)
+{
+    if (from == QPoint(-1, -1))
+        return;
+
+    int lowY = std::min(from.y(), to.y());
+    int lowX = std::min(from.x(), to.x());
+    int highY = std::max(from.y(), to.y());
+    int highX = std::max(from.x(), to.x());
+
+    for (int x = lowX; x <= highX; ++x) {
+        self->putTile(drawTile, x, lowY, layer);
+        self->putTile(drawTile, x, highY, layer);
+    }
+    for (int y = lowY + 1; y <= highY - 1; ++y) {
+        self->putTile(drawTile, lowX, y, layer);
+        self->putTile(drawTile, highX, y, layer);
+    }
+}
+
 static void plot_line(EditorWidget* self, QPoint from, QPoint to, tile_t drawTile,
                       EditorWidget::DrawLayer layer)
 {
@@ -497,13 +518,22 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
                        ? m_leftTile : m_rightTile;
         if (m_drawMode == DrawPencil) {
             putTile(curtile, posX, posY, select_layer(event->modifiers()));
-        } else if (m_drawMode == DrawLine || m_drawMode == DrawFill) {
+        } else if (m_drawMode >= DrawLine && m_drawMode <= DrawFill) {
             m_levelData->copyFrom(m_levelEditCache);
             // Draw current pending operation
-            if (m_drawMode == DrawLine)
+            switch (m_drawMode) {
+            case DrawLine:
                 plot_line(this, m_origin, m_current, curtile, select_layer(event->modifiers()));
-            else if (m_drawMode == DrawFill)
+                break;
+            case DrawRect:
+                plot_rect(this, m_origin, m_current, curtile, select_layer(event->modifiers()));
+                break;
+            case DrawFill:
                 plot_box(this, m_origin, m_current, curtile, select_layer(event->modifiers()));
+                break;
+            default:
+                Q_ASSERT(false);
+            }
             dirtyBuffer();
         } else if (m_drawMode == DrawPathMaker) {
             if (m_origin != m_current) {
@@ -689,8 +719,7 @@ void EditorWidget::mousePressEvent(QMouseEvent* event)
     m_levelEditCache->copyFrom(m_levelData);
 
     if ((m_cachedButton == Qt::LeftButton || m_cachedButton == Qt::RightButton)
-        && (m_drawMode == DrawPencil || m_drawMode == DrawLine || m_drawMode == DrawFill
-            || m_drawMode == DrawFlood || m_drawMode == DrawPathMaker))
+            && m_drawMode >= DrawPencil && m_drawMode <= DrawPathMaker)
         emit editingStarted();
 
     if (m_drawMode != DrawSelect && event->button() != Qt::MiddleButton) {
@@ -802,8 +831,7 @@ void EditorWidget::mouseReleaseEvent(QMouseEvent* event)
     if (resetOrigin)
         m_origin = QPoint(-1, -1);
     if ((m_cachedButton == Qt::LeftButton || m_cachedButton == Qt::RightButton)
-        && (m_drawMode == DrawPencil || m_drawMode == DrawLine || m_drawMode == DrawFill
-            || m_drawMode == DrawFlood || m_drawMode == DrawPathMaker))
+            && m_drawMode >= DrawPencil && m_drawMode <= DrawPathMaker)
         emit editingFinished();
 
     update();

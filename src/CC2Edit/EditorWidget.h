@@ -31,8 +31,8 @@ class CC2EditorWidget : public QWidget {
 
 public:
     enum DrawMode {
-        DrawPencil, DrawLine, DrawFill, DrawFlood, DrawSelect, DrawPathMaker,
-        DrawWires, DrawInspectTile, DrawInspectHint,
+        DrawPencil, DrawLine, DrawRect, DrawFill, DrawFlood, DrawPathMaker,
+        DrawWires, DrawInspectTile, DrawInspectHint, DrawSelect,
     };
 
     enum CombineMode {

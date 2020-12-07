@@ -25,6 +25,7 @@
     <file>res/arrow-down.png</file>
     <file>res/draw-freehand.png</file>
     <file>res/draw-line.png</file>
+    <file>res/draw-rect.png</file>
     <file>res/draw-box.png</file>
     <file>res/draw-fill.png</file>
     <file>res/draw-path.png</file>
