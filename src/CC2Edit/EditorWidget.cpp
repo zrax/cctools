@@ -1197,6 +1197,7 @@ void CC2EditorWidget::putTile(const cc2::Tile& tile, int x, int y, CombineMode m
     cc2::Tile& curTile = m_map->mapData().tile(x, y);
     cc2::Tile& baseTile = curTile.bottom();
     // WARNING: Modifying curTile's layers can invalidate the baseTile reference!
+    uint32_t baseWires = baseTile.supportsWires() ? baseTile.modifier() : 0;
 
     if (baseTile.type() == cc2::Tile::Clue) {
         if (tile.type() == cc2::Tile::Clue)
@@ -1215,6 +1216,8 @@ void CC2EditorWidget::putTile(const cc2::Tile& tile, int x, int y, CombineMode m
             pushTile(curTile, tile, REPLACE_TYPE);
         } else {
             baseTile = tile;
+            if (tile.supportsWires())
+                baseTile.setModifier(baseWires & cc2::TileModifier::WireMask);
         }
     } else if (tile.type() == cc2::Tile::Floor && tile.modifier() == 0) {
         // Floor with no wires should always be a replacement
@@ -1286,9 +1289,13 @@ void CC2EditorWidget::putTile(const cc2::Tile& tile, int x, int y, CombineMode m
         pushTile(curTile, tile, REPLACE_CLASS);
     } else if (tile.isTerrain()) {
         baseTile = tile;
+        if (baseTile.supportsWires())
+            baseTile.setModifier(baseWires & cc2::TileModifier::WireMask);
     } else {
         // For everything else: just replace the entire tile
         curTile = tile;
+        if (curTile.supportsWires())
+            curTile.setModifier(baseWires & cc2::TileModifier::WireMask);
     }
 
     if (tile.type() == cc2::Tile::TrainTracks) {
