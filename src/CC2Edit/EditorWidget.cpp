@@ -1244,10 +1244,8 @@ void CC2EditorWidget::putTile(const cc2::Tile& tile, int x, int y, CombineMode m
                     panelFlags |= cc2::Tile::PanelEast;
                 *curPanelCanopy = cc2::Tile::panelTile(panelFlags);
             }
-        } else if (curTile.haveLower()) {
-            pushTile(curTile, tile, REPLACE_CLASS);
         } else {
-            curTile = tile;
+            pushTile(curTile, tile, REPLACE_CLASS);
         }
     } else if (tile.type() == cc2::Tile::Cloner || tile.type() == cc2::Tile::CC1_Cloner) {
         if (curTile.isCreature()) {
