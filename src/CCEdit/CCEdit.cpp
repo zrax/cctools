@@ -18,6 +18,7 @@
 #include "CCEdit.h"
 
 #include <QApplication>
+#include <QDesktopServices>
 #include <QMenuBar>
 #include <QToolBar>
 #include <QDockWidget>
@@ -277,6 +278,10 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionTestTWorldLynx]->setStatusTip(tr("Test the current level in Tile World with the Lynx Ruleset"));
     m_actions[ActionTestTWorldLynx]->setShortcut(Qt::Key_F7);
     m_actions[ActionTestTWorldLynx]->setEnabled(false);
+    m_actions[ActionTestLexy] = new QAction(tr("Test in &Lexy's Labyrinth"), this);
+    m_actions[ActionTestLexy]->setStatusTip(tr("Test the current level in Lexy's Labyrinth (opens browser)"));
+    m_actions[ActionTestLexy]->setShortcut(Qt::Key_F8);
+    m_actions[ActionTestLexy]->setEnabled(false);
     m_actions[ActionTestSetup] = new QAction(tr("&Setup Testing..."), this);
     m_actions[ActionTestSetup]->setStatusTip(tr("Setup testing parameters and options"));
 
@@ -614,6 +619,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     testMenu->addAction(m_actions[ActionTestChips]);
     testMenu->addAction(m_actions[ActionTestTWorldCC]);
     testMenu->addAction(m_actions[ActionTestTWorldLynx]);
+    testMenu->addAction(m_actions[ActionTestLexy]);
     testMenu->addSeparator();
     testMenu->addAction(m_actions[ActionTestSetup]);
 
@@ -708,6 +714,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionTestTWorldLynx], &QAction::triggered, this, [this] {
         onTestTWorld(ccl::Levelset::TypeLynx);
     });
+    connect(m_actions[ActionTestLexy], &QAction::triggered, this, &CCEditMain::onTestLexy);
     connect(m_actions[ActionTestSetup], &QAction::triggered, this, [] {
         TestSetupDialog dlg;
         dlg.exec();
@@ -2163,6 +2170,36 @@ void CCEditMain::onTestTWorld(unsigned int levelsetType)
     QDir::setCurrent(cwd);
 }
 
+void CCEditMain::onTestLexy()
+{
+    auto editor = currentEditor();
+    if (!editor)
+        return;
+
+    // Thanks @eevee for making this easy :)
+    ccl::BufferStream bs;
+    try {
+        // Generate a fake levelset...
+        bs.write32(m_levelset->type());
+        bs.write16(1);
+        editor->levelData()->write(&bs);
+    } catch (const ccl::RuntimeError& err) {
+        QMessageBox::critical(this, tr("Error"),
+                              tr("Failed to write level data to memory buffer: %1")
+                              .arg(err.message()));
+        return;
+    }
+    QByteArray buffer(reinterpret_cast<const char *>(bs.buffer()), bs.size());
+    QByteArray b64data = buffer.toBase64(QByteArray::Base64UrlEncoding);
+
+    QSettings settings;
+    QString lexyUrl = settings.value(QStringLiteral("LexyUrl"),
+                                     DEFAULT_LEXY_URL).toString();
+
+    QDesktopServices::openUrl(QUrl(lexyUrl + QStringLiteral("?level=")
+                                   + QString::fromLatin1(b64data)));
+}
+
 void CCEditMain::onTilePicked(int x, int y)
 {
     EditorWidget* editor = currentEditor();
@@ -2541,6 +2578,7 @@ void CCEditMain::onTabChanged(int tabIdx)
         m_actions[ActionTestChips]->setEnabled(false);
         m_actions[ActionTestTWorldCC]->setEnabled(false);
         m_actions[ActionTestTWorldLynx]->setEnabled(false);
+        m_actions[ActionTestLexy]->setEnabled(false);
         m_drawModeGroup->setEnabled(false);
         m_modalToolGroup->setEnabled(false);
         return;
@@ -2569,6 +2607,7 @@ void CCEditMain::onTabChanged(int tabIdx)
     m_actions[ActionTestChips]->setEnabled(true);
     m_actions[ActionTestTWorldCC]->setEnabled(true);
     m_actions[ActionTestTWorldLynx]->setEnabled(true);
+    m_actions[ActionTestLexy]->setEnabled(true);
     m_drawModeGroup->setEnabled(true);
     m_modalToolGroup->setEnabled(true);
 }

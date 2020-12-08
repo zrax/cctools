@@ -84,6 +84,11 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     m_usePGPatch = new QCheckBox(tr("MSCC: Use PGChip (Ice Blocks)"), this);
     m_usePGPatch->setChecked(settings.value(QStringLiteral("TestPGPatch"), false).toBool());
 
+    m_lexyUrl = new QLineEdit(settings.value(QStringLiteral("LexyUrl"),
+                                             DEFAULT_LEXY_URL).toString(), this);
+    auto lblLexyUrl = new QLabel(tr("&Lexy's Labyrinth URL:"), this);
+    lblLexyUrl->setBuddy(m_lexyUrl);
+
     auto layout = new QGridLayout(this);
     layout->setContentsMargins(8, 8, 8, 8);
     layout->setVerticalSpacing(4);
@@ -100,6 +105,8 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     layout->addWidget(lblTWorldPath, ++row, 0);
     layout->addWidget(m_tworldPath, row, 1);
     layout->addWidget(browseTWorld, row, 2);
+    layout->addWidget(lblLexyUrl, ++row, 0);
+    layout->addWidget(m_lexyUrl, row, 1, 1, 2);
 #ifndef Q_OS_WIN
     layout->addWidget(new QLabel(
             tr("Note: Leave WINE or Tile World paths empty to use system-installed locations"),
@@ -132,6 +139,7 @@ void TestSetupDialog::onSaveSettings()
     settings.setValue(QStringLiteral("TWorldExe"), m_tworldPath->text());
     settings.setValue(QStringLiteral("TestCCPatch"), m_useCCPatch->isChecked());
     settings.setValue(QStringLiteral("TestPGPatch"), m_usePGPatch->isChecked());
+    settings.setValue(QStringLiteral("LexyUrl"), m_lexyUrl->text());
     accept();
 }
 

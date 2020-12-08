@@ -259,10 +259,14 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     zoomGroup->addAction(m_actions[ActionZoomCust]);
     zoomGroup->addAction(m_actions[ActionZoomFit]);
 
-    m_actions[ActionTest] = new QAction(tr("&Test"), this);
-    m_actions[ActionTest]->setStatusTip(tr("Test the current level in Chip's Challenge 2"));
-    m_actions[ActionTest]->setShortcut(Qt::Key_F5);
-    m_actions[ActionTest]->setEnabled(false);
+    m_actions[ActionTestCC2] = new QAction(tr("&Test in CC2"), this);
+    m_actions[ActionTestCC2]->setStatusTip(tr("Test the current level in Chip's Challenge 2"));
+    m_actions[ActionTestCC2]->setShortcut(Qt::Key_F5);
+    m_actions[ActionTestCC2]->setEnabled(false);
+    m_actions[ActionTestLexy] = new QAction(tr("Test in &Lexy's Labyrinth"), this);
+    m_actions[ActionTestLexy]->setStatusTip(tr("Test the current level in Lexy's Labyrinth (opens browser)"));
+    m_actions[ActionTestLexy]->setShortcut(Qt::Key_F6);
+    m_actions[ActionTestLexy]->setEnabled(false);
     m_actions[ActionTestSetup] = new QAction(tr("&Setup Testing..."), this);
     m_actions[ActionTestSetup]->setStatusTip(tr("Setup testing parameters and options"));
 
@@ -875,7 +879,8 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     zoomMenu->addAction(m_actions[ActionZoomFit]);
 
     QMenu* testMenu = menuBar()->addMenu(tr("Te&st"));
-    testMenu->addAction(m_actions[ActionTest]);
+    testMenu->addAction(m_actions[ActionTestCC2]);
+    testMenu->addAction(m_actions[ActionTestLexy]);
     testMenu->addSeparator();
     testMenu->addAction(m_actions[ActionTestSetup]);
 
@@ -967,7 +972,8 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     connect(m_actions[ActionZoomCust], &QAction::triggered, this, &CC2EditMain::onZoomCust);
     connect(m_actions[ActionZoomFit], &QAction::triggered, this, &CC2EditMain::onZoomFit);
 
-    connect(m_actions[ActionTest], &QAction::triggered, this, &CC2EditMain::onTestChips2);
+    connect(m_actions[ActionTestCC2], &QAction::triggered, this, &CC2EditMain::onTestChips2);
+    connect(m_actions[ActionTestLexy], &QAction::triggered, this, &CC2EditMain::onTestLexy);
     connect(m_actions[ActionTestSetup], &QAction::triggered, this, [] {
         TestSetupDialog dlg;
         dlg.exec();
@@ -2571,6 +2577,33 @@ void CC2EditMain::onTestChips2()
     QDir::setCurrent(cwd);
 }
 
+void CC2EditMain::onTestLexy()
+{
+    auto editor = currentEditor();
+    if (!editor)
+        return;
+
+    // Thanks @eevee for making this easy :)
+    ccl::BufferStream bs;
+    try {
+        editor->map()->write(&bs);
+    } catch (const ccl::RuntimeError& err) {
+        QMessageBox::critical(this, tr("Error"),
+                              tr("Failed to write map to memory buffer: %1")
+                              .arg(err.message()));
+        return;
+    }
+    QByteArray buffer(reinterpret_cast<const char *>(bs.buffer()), bs.size());
+    QByteArray b64data = buffer.toBase64(QByteArray::Base64UrlEncoding);
+
+    QSettings settings;
+    QString lexyUrl = settings.value(QStringLiteral("LexyUrl"),
+                                     DEFAULT_LEXY_URL).toString();
+
+    QDesktopServices::openUrl(QUrl(lexyUrl + QStringLiteral("?level=")
+                                   + QString::fromLatin1(b64data)));
+}
+
 void CC2EditMain::onTabClosed(int index)
 {
     CC2EditorWidget* mapEditor = getEditorAt(index);
@@ -2637,7 +2670,8 @@ void CC2EditMain::onTabChanged(int index)
     m_actions[ActionPaste]->setEnabled(false);
     m_actions[ActionClear]->setEnabled(false);
     m_actions[ActionToggleGreens]->setEnabled(!!mapEditor);
-    m_actions[ActionTest]->setEnabled(!!mapEditor);
+    m_actions[ActionTestCC2]->setEnabled(!!mapEditor);
+    m_actions[ActionTestLexy]->setEnabled(!!mapEditor);
     m_drawModeGroup->setEnabled(!!mapEditor);
     m_modalToolGroup->setEnabled(!!mapEditor);
 

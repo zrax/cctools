@@ -110,6 +110,7 @@ private slots:
     void onZoomFit();
     void onTilesetMenu(QAction*);
     void onTestChips2();
+    void onTestLexy();
 
     void onTabClosed(int);
     void onTabChanged(int);
@@ -148,7 +149,8 @@ private:
         ActionInspectHints, ActionInspectTiles, ActionToggleGreens,
         ActionViewViewport, ActionViewMonsterPaths, ActionZoom200, ActionZoom150,
         ActionZoom100, ActionZoom75, ActionZoom50, ActionZoom25, ActionZoom125,
-        ActionZoomCust, ActionZoomFit, ActionTest, ActionTestSetup, ActionAbout,
+        ActionZoomCust, ActionZoomFit, ActionTestCC2, ActionTestLexy,
+        ActionTestSetup, ActionAbout,
         ActionScriptHelp, ActionReloadScript, ActionEditScript,
         NUM_ACTIONS
     };

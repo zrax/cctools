@@ -66,6 +66,11 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     auto browseChips2 = new QToolButton(this);
     browseChips2->setIcon(ICON("document-open-folder-sm"));
     browseChips2->setAutoRaise(true);
+
+    m_lexyUrl = new QLineEdit(settings.value(QStringLiteral("LexyUrl"),
+                                             DEFAULT_LEXY_URL).toString(), this);
+    auto lblLexyUrl = new QLabel(tr("&Lexy's Labyrinth URL:"), this);
+    lblLexyUrl->setBuddy(m_lexyUrl);
     auto buttons = new QDialogButtonBox(
             QDialogButtonBox::Save | QDialogButtonBox::Cancel,
             Qt::Horizontal, this);
@@ -90,7 +95,9 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     layout->addWidget(lblChips2Path, ++row, 0);
     layout->addWidget(m_chips2Path, row, 1);
     layout->addWidget(browseChips2, row, 2);
-    auto chips1Label = new QLabel(tr("Notes: <ul>"
+    layout->addWidget(lblLexyUrl, ++row, 0);
+    layout->addWidget(m_lexyUrl, row, 1, 1, 2);
+    auto chips1Label = new QLabel(tr("Notes for playtesting in CC2: <ul>"
             "<li>The Steam version of Chip's Challenge 1 (chips1.exe) may also be used.</li>"
             "<li>Steam must be <b>running</b> and <b>logged in</b> for playtesting to work properly.</li>"
             "</ul>"), this);
@@ -116,6 +123,7 @@ void TestSetupDialog::onSaveSettings()
     settings.setValue(QStringLiteral("WineExe"), m_winePath->text());
 #endif
     settings.setValue(QStringLiteral("Chips2Exe"), m_chips2Path->text());
+    settings.setValue(QStringLiteral("LexyUrl"), m_lexyUrl->text());
     accept();
 }
 

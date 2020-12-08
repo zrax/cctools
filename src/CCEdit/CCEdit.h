@@ -79,7 +79,7 @@ private:
         ActionZoom200, ActionZoom150,
         ActionZoom100, ActionZoom75, ActionZoom50, ActionZoom25, ActionZoom125,
         ActionZoomCust, ActionZoomFit, ActionTestChips, ActionTestTWorldCC,
-        ActionTestTWorldLynx, ActionTestSetup, ActionAbout,
+        ActionTestTWorldLynx, ActionTestLexy, ActionTestSetup, ActionAbout,
         ActionAddLevel, ActionDelLevel, ActionMoveUp, ActionMoveDown,
         ActionProperties, ActionOrganize,
         NUM_ACTIONS
@@ -171,6 +171,7 @@ private slots:
     void onTilesetMenu(QAction*);
     void onTestChips();
     void onTestTWorld(unsigned int levelsetType);
+    void onTestLexy();
 
     void onTilePicked(int x, int y);
 

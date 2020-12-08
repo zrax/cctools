@@ -33,6 +33,7 @@ private:
     QLineEdit* m_winePath;
 #endif
     QLineEdit* m_chips2Path;
+    QLineEdit* m_lexyUrl;
 
 private slots:
     void onSaveSettings();

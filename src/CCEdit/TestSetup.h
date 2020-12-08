@@ -32,6 +32,7 @@ private:
     QLineEdit* m_winePath;
     QLineEdit* m_msccPath;
     QLineEdit* m_tworldPath;
+    QLineEdit* m_lexyUrl;
 
     QCheckBox* m_useCCPatch;
     QCheckBox* m_usePGPatch;

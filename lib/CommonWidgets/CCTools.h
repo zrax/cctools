@@ -38,6 +38,8 @@
 #   define FILE_COMPARE_CS Qt::CaseSensitive
 #endif
 
+#define DEFAULT_LEXY_URL QStringLiteral("https://c.eev.ee/lexys-labyrinth/")
+
 class QSettings;
 
 class AboutWidget : public QWidget {
