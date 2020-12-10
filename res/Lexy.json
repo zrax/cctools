@@ -3,5 +3,6 @@
   "name": "Lexy's Labyrinth/Editor 32x32",
   "desc": "Lexy's Labyrinth 32x32 Editor Graphics",
   "base": "tileset-lexy-tw-editor-base.png",
-  "overlay": "tileset-lexy-tw-editor-overlay.png"
+  "overlay": "tileset-lexy-tw-editor-overlay.png",
+  "cc2": "tileset-lexy-cc2-editor.png"
 }
