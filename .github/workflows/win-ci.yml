@@ -14,8 +14,9 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
         with:
+          fetch-depth: 0
           submodules: true
       - name: Install Qt5
         uses: jurplel/install-qt-action@v2
@@ -85,5 +86,5 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: CCTools
+          name: CCTools-win32
           path: CCTools-*.*

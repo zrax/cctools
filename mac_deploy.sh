@@ -6,10 +6,10 @@ if [[ "$1" == "" ]]; then
 fi
 cd "$1"
 
-macdeployqt CCEdit.app -executable=CCEdit.app/Contents/MacOS/CCEdit
-macdeployqt CC2Edit.app -executable=CC2Edit.app/Contents/MacOS/CC2Edit
-macdeployqt CCPlay.app -executable=CCPlay.app/Contents/MacOS/CCPlay
-macdeployqt CCHack.app -executable=CCHack.app/Contents/MacOS/CCHack
+macdeployqt CCEdit.app -executable=CCEdit.app/Contents/MacOS/CCEdit -appstore-compliant
+macdeployqt CC2Edit.app -executable=CC2Edit.app/Contents/MacOS/CC2Edit -appstore-compliant
+macdeployqt CCPlay.app -executable=CCPlay.app/Contents/MacOS/CCPlay -appstore-compliant
+macdeployqt CCHack.app -executable=CCHack.app/Contents/MacOS/CCHack -appstore-compliant
 
 cp -r share CCEdit.app/Contents/
 cp -r share CC2Edit.app/Contents/
