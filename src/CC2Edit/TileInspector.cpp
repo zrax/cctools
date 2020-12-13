@@ -146,7 +146,7 @@ TileInspector::TileInspector(QWidget* parent)
 void TileInspector::setTileset(CC2ETileset* tileset)
 {
     m_tileset = tileset;
-    m_layers->setIconSize(m_tileset->qsize());
+    m_layers->setIconSize(m_tileset->iconSize());
 }
 
 void TileInspector::loadTile(const cc2::Tile& tile)

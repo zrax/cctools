@@ -22,8 +22,7 @@
 #include <QLayout>
 
 LayerWidget::LayerWidget(QWidget* parent)
-           : QFrame(parent), m_tileset(0), m_upper(ccl::TileWall),
-             m_lower(ccl::TileFloor)
+    : QFrame(parent), m_tileset(), m_upper(ccl::TileWall), m_lower(ccl::TileFloor)
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 }
@@ -51,11 +50,12 @@ void LayerWidget::setLower(tile_t tile)
 void LayerWidget::paintEvent(QPaintEvent* event)
 {
     QFrame::paintEvent(event);
-    if (m_tileset == 0)
+    if (!m_tileset)
         return;
 
     QPainter painter(this);
-    int halfway = m_tileset->size() / 2;
+    painter.scale(m_tileset->uiScale(), m_tileset->uiScale());
+    const int halfway = m_tileset->size() / 2;
     m_tileset->drawAt(painter, halfway, halfway, m_lower);
     m_tileset->drawAt(painter, 0, 0, m_upper);
 }

@@ -30,13 +30,17 @@ class CCETileset : public QObject {
 
 public:
     explicit CCETileset(QObject* parent = nullptr)
-        : QObject(parent), m_size()
+        : QObject(parent), m_size(), m_uiScale(1.0)
     { }
 
     QString name() const { return m_name; }
     QString description() const { return m_description; }
     int size() const { return m_size; }
-    QSize qsize() const { return QSize(m_size, m_size); }
+
+    qreal uiScale() const { return m_uiScale; }
+    void setUiScale(qreal scale) { m_uiScale = scale; }
+    int uiSize() const { return m_size * m_uiScale; }
+    QSize iconSize() const { return QSize(uiSize(), uiSize()); }
 
     bool load(const QString& filename);
     QString filename() const { return m_filename; }
@@ -56,6 +60,7 @@ private:
     QString m_name, m_filename;
     QString m_description;
     int m_size;
+    qreal m_uiScale;
 
     QPixmap m_base[ccl::NUM_TILE_TYPES];
     QPixmap m_overlay[ccl::NUM_TILE_TYPES];

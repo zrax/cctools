@@ -106,9 +106,12 @@ void CCETileset::drawAt(QPainter& painter, int x, int y, tile_t upper, tile_t lo
 
 QPixmap CCETileset::getPixmap(tile_t tile) const
 {
-    return (tile < ccl::NUM_TILE_TYPES)
-            ? m_base[tile]
-            : m_base[ccl::Tile_UNUSED_20];
+    QPixmap img = (tile < ccl::NUM_TILE_TYPES)
+                ? m_base[tile]
+                : m_base[ccl::Tile_UNUSED_20];
+    if (m_uiScale != 1.0)
+        return img.scaled(img.width() * m_uiScale, img.height() * m_uiScale);
+    return img;
 }
 
 QString CCETileset::TileName(tile_t tile)

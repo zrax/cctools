@@ -49,7 +49,7 @@ public:
 
     QSize sizeHint() const override
     {
-        int tsetSize = (m_tileset != 0) ? m_tileset->size() : 32;
+        const int tsetSize = m_tileset ? m_tileset->uiSize() : 32;
         return QSize(tsetSize * 7, tsetSize * 16);
     }
 

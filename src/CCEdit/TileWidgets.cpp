@@ -24,14 +24,14 @@
 void TileListWidget::addTiles(const QVector<tile_t>& tiles)
 {
     for (tile_t tile : tiles) {
-        QListWidgetItem* item = new QListWidgetItem(CCETileset::TileName(tile), this);
+        auto item = new QListWidgetItem(CCETileset::TileName(tile), this);
         item->setData(Qt::UserRole, (int)tile);
     }
 }
 
 void TileListWidget::setTileImages(CCETileset* tileset)
 {
-    setIconSize(tileset->qsize());
+    setIconSize(tileset->iconSize());
     for (int i = 0; i < count(); ++i)
         item(i)->setIcon(tileset->getIcon(item(i)->data(Qt::UserRole).toInt()));
 }
@@ -39,14 +39,14 @@ void TileListWidget::setTileImages(CCETileset* tileset)
 void TileListWidget::mousePressEvent(QMouseEvent* event)
 {
     QAbstractItemView::mousePressEvent(event);
-    if (currentItem() == 0)
+    if (!currentItem())
         return;
 
     if (event->button() == Qt::LeftButton)
         emit itemSelectedLeft((tile_t)currentItem()->data(Qt::UserRole).toUInt());
     else if (event->button() == Qt::RightButton)
         emit itemSelectedRight((tile_t)currentItem()->data(Qt::UserRole).toUInt());
-    setCurrentItem(0);
+    setCurrentItem(nullptr);
 }
 
 
@@ -66,10 +66,11 @@ void BigTileWidget::setTileset(CCETileset* tileset)
 
 void BigTileWidget::paintEvent(QPaintEvent*)
 {
-    if (m_tileset == 0)
+    if (!m_tileset)
         return;
 
     QPainter painter(this);
+    painter.scale(m_tileset->uiScale(), m_tileset->uiScale());
     for (int y=0; y<16; ++y) {
         for (int x=0; x<7; ++x) {
             m_tileset->drawAt(painter, x * m_tileset->size(), y * m_tileset->size(),
@@ -80,13 +81,13 @@ void BigTileWidget::paintEvent(QPaintEvent*)
 
 void BigTileWidget::mousePressEvent(QMouseEvent* event)
 {
-    if (!m_tileset || event->x() >= (m_tileset->size() * 7)
-            || event->y() >= (m_tileset->size() * 16)) {
+    if (!m_tileset || event->x() >= (m_tileset->uiSize() * 7)
+            || event->y() >= (m_tileset->uiSize() * 16)) {
         return;
     }
 
-    tile_t tileid = ((event->x() / m_tileset->size()) * 16)
-                  + (event->y() / m_tileset->size());
+    tile_t tileid = ((event->x() / m_tileset->uiSize()) * 16)
+                  + (event->y() / m_tileset->uiSize());
     if (event->button() == Qt::LeftButton)
         emit itemSelectedLeft(tileid);
     else if (event->button() == Qt::RightButton)
@@ -96,13 +97,13 @@ void BigTileWidget::mousePressEvent(QMouseEvent* event)
 void BigTileWidget::mouseMoveEvent(QMouseEvent* event)
 {
     QWidget::mouseMoveEvent(event);
-    if (!m_tileset || event->x() >= (m_tileset->size() * 7)
-            || event->y() >= (m_tileset->size() * 16)) {
+    if (!m_tileset || event->x() >= (m_tileset->uiSize() * 7)
+            || event->y() >= (m_tileset->uiSize() * 16)) {
         setToolTip(QString());
         return;
     }
 
-    tile_t tileid = ((event->x() / m_tileset->size()) * 16)
-                  + (event->y() / m_tileset->size());
+    tile_t tileid = ((event->x() / m_tileset->uiSize()) * 16)
+                  + (event->y() / m_tileset->uiSize());
     setToolTip(CCETileset::TileName(tileid));
 }

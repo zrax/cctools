@@ -25,7 +25,7 @@ class LayerWidget : public QFrame {
     Q_OBJECT
 
 public:
-    LayerWidget(QWidget* parent = 0);
+    LayerWidget(QWidget* parent = nullptr);
 
     void setTileset(CCETileset* tileset);
     CCETileset* tileset() const { return m_tileset; }
@@ -41,7 +41,7 @@ public:
     {
         if (m_tileset == 0)
             return QSize();
-        int size = (m_tileset->size() * 3) / 2;
+        const int size = (m_tileset->uiSize() * 3) / 2;
         return QSize(size, size);
     }
 

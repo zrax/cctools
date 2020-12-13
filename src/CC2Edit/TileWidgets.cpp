@@ -55,6 +55,7 @@ void LayerWidget::paintEvent(QPaintEvent* event)
         return;
 
     QPainter painter(this);
+    painter.scale(m_tileset->uiScale(), m_tileset->uiScale());
     const int halfway = m_tileset->size() / 2;
     m_tileset->drawAt(painter, halfway, halfway, &m_lower, false);
     m_tileset->drawAt(painter, 0, 0, &m_upper, false);
@@ -80,7 +81,7 @@ const cc2::Tile* TileListWidget::tile(int index)
 
 void TileListWidget::setTileImages(CC2ETileset* tileset)
 {
-    setIconSize(tileset->qsize());
+    setIconSize(tileset->iconSize());
     for (int i = 0; i < count(); ++i)
         item(i)->setIcon(tileset->getIcon(tile(i)));
 }
@@ -283,6 +284,7 @@ void BigTileWidget::paintEvent(QPaintEvent* event)
         return;
 
     QPainter painter(this);
+    painter.scale(m_tileset->uiScale(), m_tileset->uiScale());
     int x = 0, y = 0;
     for (const cc2::Tile& tile : tileList()) {
         if (tile.type() != cc2::Tile::Invalid)
@@ -296,12 +298,12 @@ void BigTileWidget::paintEvent(QPaintEvent* event)
 
 void BigTileWidget::mousePressEvent(QMouseEvent* event)
 {
-    if (!m_tileset || event->x() >= (m_tileset->size() * 9))
+    if (!m_tileset || event->x() >= (m_tileset->uiSize() * 9))
         return;
 
     const auto& tiles = tileList();
-    size_t which = ((event->y() / m_tileset->size()) * 9)
-                 + (event->x() / m_tileset->size());
+    const int tileSize = m_tileset->uiSize();
+    size_t which = ((event->y() / tileSize) * 9) + (event->x() / tileSize);
     if (which >= tiles.size() || tiles[which].type() == cc2::Tile::Invalid)
         return;
     if (event->button() == Qt::LeftButton)
@@ -313,14 +315,14 @@ void BigTileWidget::mousePressEvent(QMouseEvent* event)
 void BigTileWidget::mouseMoveEvent(QMouseEvent* event)
 {
     QWidget::mouseMoveEvent(event);
-    if (!m_tileset || event->x() >= (m_tileset->size() * 9)) {
+    if (!m_tileset || event->x() >= (m_tileset->uiSize() * 9)) {
         setToolTip(QString());
         return;
     }
 
     const auto& tiles = tileList();
-    size_t which = ((event->y() / m_tileset->size()) * 9)
-                 + (event->x() / m_tileset->size());
+    const int tileSize = m_tileset->uiSize();
+    size_t which = ((event->y() / tileSize) * 9) + (event->x() / tileSize);
     if (which >= tiles.size() || tiles[which].type() == cc2::Tile::Invalid) {
         setToolTip(QString());
         return;

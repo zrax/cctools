@@ -55,7 +55,7 @@ public:
     bool saveMap(cc2::Map* map, const QString& filename);
     bool saveScript(const QString& script, const QString& filename);
 
-    void findTilesets();
+    void populateTilesets();
     void loadTileset(CC2ETileset* tileset);
 
     CC2EditorWidget* getEditorAt(int idx);
@@ -161,6 +161,7 @@ private:
     QMenu* m_recentFiles;
     QMenu* m_tilesetMenu;
     QActionGroup* m_tilesetGroup;
+    QActionGroup* m_scaleGroup;
     CC2ETileset* m_currentTileset;
     ActionType m_savedDrawMode;
     CC2EditorWidget::DrawMode m_currentDrawMode;

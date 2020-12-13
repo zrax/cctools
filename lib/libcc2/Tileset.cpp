@@ -1165,9 +1165,10 @@ void CC2ETileset::drawWires(QPainter& painter, int x, int y, uint32_t wireMask,
 
 QIcon CC2ETileset::getIcon(const cc2::Tile* tile) const
 {
-    QPixmap ico(m_size, m_size);
+    QPixmap ico(m_size * m_uiScale, m_size * m_uiScale);
     if (tile) {
         QPainter painter(&ico);
+        painter.scale(m_uiScale, m_uiScale);
         draw(painter, 0, 0, tile, false);
         painter.end();
     }

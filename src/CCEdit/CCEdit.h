@@ -47,7 +47,7 @@ public:
     void saveLevelset(const QString& filename);
     bool closeLevelset();
     void loadTileset(CCETileset* tileset);
-    void findTilesets();
+    void populateTilesets();
 
     void loadLevel(int level);
     void loadLevel(ccl::LevelData* levelPtr);
@@ -91,6 +91,7 @@ private:
     QMenu* m_recentFiles;
     QMenu* m_tilesetMenu;
     QActionGroup* m_tilesetGroup;
+    QActionGroup* m_scaleGroup;
     QUndoStack* m_undoStack;
     EditorUndoCommand* m_undoCommand;
     CCETileset* m_currentTileset;

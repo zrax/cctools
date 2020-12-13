@@ -796,7 +796,27 @@ CCEditMain::CCEditMain(QWidget* parent)
     }
     m_levelManDock->raise();
 
-    findTilesets();
+    m_scaleGroup = new QActionGroup(this);
+    QAction* scale1x = m_scaleGroup->addAction(tr("Original Size"));
+    scale1x->setData(1);
+    scale1x->setCheckable(true);
+    scale1x->setStatusTip(tr("Render tiles at 1X scale"));
+    QAction* scale2x = m_scaleGroup->addAction(tr("Scale 2X"));
+    scale2x->setData(2);
+    scale2x->setCheckable(true);
+    scale2x->setStatusTip(tr("Render tiles at 2X scale (for high DPI displays)"));
+
+    for (QAction* scaleAction : m_scaleGroup->actions()) {
+        int scale = scaleAction->data().toInt();
+        connect(scaleAction, &QAction::triggered, this, [this, scale] {
+            m_currentTileset->setUiScale(qreal(scale));
+            if (m_zoomFactor != 0.0)
+                setZoomFactor(m_zoomFactor);
+            emit tilesetChanged(m_currentTileset);
+        });
+    }
+
+    populateTilesets();
     if (m_tilesetGroup->actions().size() == 0) {
         QMessageBox::critical(this, tr("Error loading tilesets"),
                 tr("Error: No tilesets found.  Please check your CCTools installation"),
@@ -839,6 +859,12 @@ CCEditMain::CCEditMain(QWidget* parent)
         m_actions[ActionZoom125]->setChecked(true);
     else
         m_actions[ActionZoomCust]->setChecked(true);
+
+    const int tilesetScale = settings.value(QStringLiteral("TilesetScale"), 1).toInt();
+    for (QAction* scaleAction : m_scaleGroup->actions()) {
+        if (scaleAction->data().toInt() == tilesetScale)
+            scaleAction->activate(QAction::Trigger);
+    }
 
     setLeftTile(ccl::TileWall);
     setRightTile(ccl::TileFloor);
@@ -1101,6 +1127,11 @@ void CCEditMain::closeEvent(QCloseEvent* event)
                       m_actions[ActionViewErrors]->isChecked());
     settings.setValue(QStringLiteral("TilesetName"),
                       m_currentTileset->filename());
+
+    for (QAction* scaleAction : m_scaleGroup->actions()) {
+        if (scaleAction->isChecked())
+            settings.setValue(QStringLiteral("TilesetScale"), scaleAction->data().toInt());
+    }
 }
 
 void CCEditMain::resizeEvent(QResizeEvent* event)
@@ -1215,7 +1246,7 @@ void CCEditMain::registerTileset(const QString& filename)
     m_tilesetGroup->addAction(menuItem);
 }
 
-void CCEditMain::findTilesets()
+void CCEditMain::populateTilesets()
 {
     m_tilesetMenu->clear();
 
@@ -1259,6 +1290,10 @@ void CCEditMain::findTilesets()
     tilesets.removeDuplicates();
     for (const QString& file : tilesets)
         registerTileset(file);
+
+    m_tilesetMenu->addSeparator();
+    for (QAction* scaleAction : m_scaleGroup->actions())
+        m_tilesetMenu->addAction(scaleAction);
 }
 
 void CCEditMain::loadLevel(int levelNum)
@@ -1339,7 +1374,7 @@ EditorWidget* CCEditMain::addEditor(ccl::LevelData* level)
     editor->setLeftTile(m_leftTile);
     editor->setRightTile(m_rightTile);
     if (m_zoomFactor != 0.0)
-        editor->setZoom(m_zoomFactor);
+        editor->setZoom(m_zoomFactor * m_currentTileset->uiScale());
     m_editorTabs->addFloatingTab(scroll, ccl::fromLatin1(level->name()));
     resizeEvent(nullptr);
 
@@ -1914,8 +1949,9 @@ void CCEditMain::onViewErrorsToggled(bool view)
 void CCEditMain::setZoomFactor(double zoom)
 {
     m_zoomFactor = zoom;
+    const double adjustedZoom = zoom * m_currentTileset->uiScale();
     for (int i=0; i<m_editorTabs->count(); ++i)
-        getEditorAt(i)->setZoom(m_zoomFactor);
+        getEditorAt(i)->setZoom(adjustedZoom);
 }
 
 void CCEditMain::onZoomCust()

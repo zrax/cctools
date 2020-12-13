@@ -41,7 +41,7 @@ public:
     {
         if (!m_tileset)
             return QSize();
-        int size = (m_tileset->size() * 3) / 2;
+        const int size = (m_tileset->uiSize() * 3) / 2;
         return QSize(size, size);
     }
 
@@ -87,7 +87,8 @@ public:
 
     QSize sizeHint() const override
     {
-        int tsetSize = m_tileset ? m_tileset->size() : 32;
+        const int tsetSize = m_tileset
+                    ? (m_tileset->size() * m_tileset->uiScale()) : 32;
         return QSize(tsetSize * 9, tsetSize * 15);
     }
 
