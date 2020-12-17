@@ -29,7 +29,7 @@ enum CheckMode {
 };
 
 ErrorCheckDialog::ErrorCheckDialog(QWidget* parent)
-                : QDialog(parent), m_levelset(0), m_dacFile(0)
+    : QDialog(parent), m_levelset(), m_dacFile()
 {
     setWindowTitle(tr("Check for Errors"));
     QSettings settings;
@@ -184,6 +184,10 @@ void ErrorCheckDialog::checkLevel(int level)
                 bg <= ccl::TilePlayerSwim_E && bg != ccl::TileIceBlock))
                 reportError(level, tr("[Invalid Tile]\n"
                                       "Use of reserved tile at (%1, %2)")
+                                   .arg(x).arg(y));
+            if (fg >= ccl::NUM_TILE_TYPES || bg >= ccl::NUM_TILE_TYPES)
+                reportError(level, tr("[Invalid Tile]\n"
+                                      "Use of invalid tile at (%1, %2)")
                                    .arg(x).arg(y));
         }
     }
