@@ -149,6 +149,9 @@ public:
         ActiveTrack_NW = 0x300,
         ActiveTrack_WE = 0x400,
         ActiveTrack_NS = 0x500,
+
+        TrackEntered_MASK = 0xf000,
+        TrackEntered_SHIFT = 12,
     };
 
     enum AsciiGlyphType {

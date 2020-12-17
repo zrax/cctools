@@ -1314,6 +1314,20 @@ void CC2EditorWidget::putTile(const cc2::Tile& tile, int x, int y, CombineMode m
         }
     }
 
+    if (curTile.bottom().type() == cc2::Tile::TrainTracks) {
+        // Ensure the "entered" direction is set for train tracks with mobs
+        cc2::Tile& trackTile = curTile.bottom();
+        const uint32_t baseMod = trackTile.modifier() & ~cc2::TileModifier::TrackEntered_MASK;
+        cc2::Tile* mobTile = &curTile;
+        while (mobTile != nullptr) {
+            if (mobTile->haveDirection()) {
+                trackTile.setModifier(baseMod | mobTile->direction() << cc2::TileModifier::TrackEntered_SHIFT);
+                break;
+            }
+            mobTile = mobTile->lower();
+        }
+    }
+
     if (curTile.bottom().type() == cc2::Tile::Clue)
         emit clueAdded(x, y);
 
