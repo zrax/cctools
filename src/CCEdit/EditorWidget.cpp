@@ -318,7 +318,7 @@ void EditorWidget::renderTileBuffer()
                          && m_levelData->map().getFG(x, y) <= ccl::TileBlock_E)
                     && m_levelData->map().getFG(x, y) != ccl::TileBlock
                     && m_levelData->map().getFG(x, y) != ccl::TileIceBlock
-                    && !MASKED_TILE(m_levelData->map().getFG(x, y)))
+                    && !MONSTER_TILE(m_levelData->map().getFG(x, y)))
                     tilePainter.drawPixmap(x * m_tileset->size(), y * m_tileset->size(), m_errmk);
             }
         }
@@ -351,14 +351,12 @@ void EditorWidget::renderTo(QPainter& painter)
     }
 
     if ((m_paintFlags & ShowMovement) != 0) {
-        std::list<ccl::Point>::const_iterator move_iter;
         int num = 0;
-        for (move_iter = m_levelData->moveList().begin();
-             move_iter != m_levelData->moveList().end(); ++move_iter) {
-            if (!isValidPoint(*move_iter))
+        for (const ccl::Point& mover : m_levelData->moveList()) {
+            if (!isValidPoint(mover))
                 continue;
-            painter.drawPixmap((move_iter->X + 1) * m_tileset->size() * m_zoomFactor - 16,
-                               (move_iter->Y + 1) * m_tileset->size() * m_zoomFactor - 10,
+            painter.drawPixmap((mover.X + 1) * m_tileset->size() * m_zoomFactor - 16,
+                               (mover.Y + 1) * m_tileset->size() * m_zoomFactor - 10,
                                m_numbers, 0, num++ * 10, 16, 10);
         }
     }
@@ -943,16 +941,6 @@ void EditorWidget::putTile(tile_t tile, int x, int y, DrawLayer layer)
                   tile == ccl::TileExit || tile == ccl::TileThief ||
                   tile == ccl::TileSocket || FORCE_TILE(tile) ||
                   (tile >= ccl::TileKey_Blue && tile <= ccl::TileForceBoots))) {
-        m_levelData->map().setBG(x, y, tile);
-    } else if ((tile >= ccl::TileKey_Blue && tile <= ccl::TileForceBoots)
-               && (oldUpper == ccl::TileIce || FORCE_TILE(oldUpper) ||
-                  (oldUpper >= ccl::TileIce_SE && oldUpper <= ccl::TileIce_NE) ||
-                  oldUpper == ccl::TileWater || oldUpper == ccl::TileFire)) {
-        m_levelData->map().push(x, y, tile);
-    } else if ((oldUpper >= ccl::TileKey_Blue && oldUpper <= ccl::TileForceBoots)
-               && (tile == ccl::TileIce || FORCE_TILE(tile) ||
-                  (tile >= ccl::TileIce_SE && tile <= ccl::TileIce_NE) ||
-                  tile == ccl::TileWater || tile == ccl::TileFire)) {
         m_levelData->map().setBG(x, y, tile);
     } else if (MASKED_TILE(tile) || tile == ccl::TileBlock || tile == ccl::TileIceBlock) {
         m_levelData->map().setFG(x, y, tile);
