@@ -2466,8 +2466,16 @@ void CC2EditMain::onTestChips2()
     }
 #endif
 
-    QDir chips2Dir(chips2Exe);
-    chips2Dir.cdUp();
+    QFile exeFile(chips2Exe);
+    bool v2save = true;     // Default to assuming we are v2.0 or later
+    if (exeFile.open(QIODevice::ReadOnly)) {
+        QByteArray exeContent = exeFile.readAll();
+        exeFile.close();
+        if (!exeContent.contains(QByteArrayLiteral("\\data\\saves\\")))
+            v2save = false;
+    }
+
+    QDir chips2Dir = QFileInfo(chips2Exe).absoluteDir();
     m_testGameDir = chips2Dir.absolutePath();
     if (!chips2Dir.cd(QStringLiteral("data/games"))) {
         QMessageBox::critical(this, tr("Could not find game data"),
@@ -2518,23 +2526,28 @@ void CC2EditMain::onTestChips2()
     //levelScore.saveData().setChecksum(what?);
 
     QDir savesDir(m_testGameDir);
-    if (!savesDir.mkpath(QStringLiteral("data/saves")) || !savesDir.cd(QStringLiteral("data/saves"))) {
-        QMessageBox::critical(this, tr("Error"),
-                        tr("Could not find or create save data directory relative to Chips2 executable."));
-        return;
-    }
+    if (v2save) {
+        if (!savesDir.mkpath(QStringLiteral("data/saves")) || !savesDir.cd(QStringLiteral("data/saves"))) {
+            QMessageBox::critical(this, tr("Error"),
+                            tr("Could not find or create save data directory relative to Chips2 executable."));
+            return;
+        }
 
-    if (savesDir.exists(playtestDirName) && savesDir.cd(playtestDirName)) {
-        savesDir.removeRecursively();
-        savesDir.cdUp();
+        if (savesDir.exists(playtestDirName) && savesDir.cd(playtestDirName)) {
+            savesDir.removeRecursively();
+            savesDir.cdUp();
+        }
+        if (!savesDir.mkdir(playtestDirName)) {
+            QMessageBox::critical(this, tr("Error"),
+                            tr("Could not create playtest saves directory at %1.")
+                            .arg(savesDir.absoluteFilePath(playtestDirName)));
+            return;
+        }
+        savesDir.cd(playtestDirName);
+    } else {
+        // Write save files to the game directory...
+        savesDir = chips2Dir;
     }
-    if (!savesDir.mkdir(playtestDirName)) {
-        QMessageBox::critical(this, tr("Error"),
-                        tr("Could not create playtest saves directory at %1.")
-                        .arg(savesDir.absoluteFilePath(playtestDirName)));
-        return;
-    }
-    savesDir.cd(playtestDirName);
 
     ccl::FileStream fs;
     const QString saveFilename = savesDir.absoluteFilePath(QStringLiteral("save.c2s"));
@@ -2582,7 +2595,10 @@ void CC2EditMain::onTestChips2()
                 tr("Could not open %1 for writing.").arg(listFile.fileName()));
         return;
     }
-    listFile.write("CC2Edit-playtest/save.c2s");
+    if (v2save)
+        listFile.write("CC2Edit-playtest/save.c2s");
+    else
+        listFile.write("data/games/CC2Edit-playtest/save.c2s");
     listFile.close();
 
     QString cwd = QDir::currentPath();
