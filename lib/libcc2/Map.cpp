@@ -1468,7 +1468,7 @@ void cc2::Map::write(ccl::Stream* stream) const
     writeTaggedBlock<0>(stream, "END ");
 }
 
-std::string cc2::Map::clueForTile(int x, int y)
+std::string cc2::Map::clueForTile(int x, int y) const
 {
     if (m_mapData.tile(x, y).bottom().type() != Tile::Clue)
         return std::string();
@@ -1637,6 +1637,29 @@ void cc2::ClipboardMap::read(ccl::Stream* stream)
 
     std::unique_ptr<ccl::Stream> ustream = stream->unpack(size);
     m_mapData.read(ustream.get(), ustream->size());
+
+    for ( ;; ) {
+        if (stream->read(tag, 1, sizeof(tag)) != sizeof(tag))
+            throw ccl::IOError(ccl::RuntimeError::tr("Read past end of stream"));
+        size = stream->read32();
+
+        if (memcmp(tag, "CLUE", 4) == 0) {
+            m_clueData.clear();
+            for ( ;; ) {
+                uint32_t strSize = stream->read32();
+                if (!strSize)
+                    break;
+                m_clueData.emplace_back(stream->readString(strSize));
+            }
+        } else if (memcmp(tag, "END ", 4) == 0) {
+            stream->seek(long(size), SEEK_CUR);
+            break;
+        } else {
+            fprintf(stderr, "Warning: Unrecognized field '%c%c%c%c' in clipboard data.\n",
+                    tag[0], tag[1], tag[2], tag[3]);
+            stream->seek(long(size), SEEK_CUR);
+        }
+    }
 }
 
 void cc2::ClipboardMap::write(ccl::Stream* stream) const
@@ -1644,6 +1667,17 @@ void cc2::ClipboardMap::write(ccl::Stream* stream) const
     ccl::BufferStream unpackedMap;
     m_mapData.write(&unpackedMap);
     writeTagged(stream, "PACK", [&] { stream->pack(&unpackedMap); });
+
+    writeTagged(stream, "CLUE", [&] {
+        for (const std::string& clue : m_clueData) {
+            stream->write32(clue.size() + 1);
+            stream->writeString(clue);
+        }
+        stream->write32(0);
+    });
+
+    // End of tagged data
+    writeTaggedBlock<0>(stream, "END ");
 }
 
 

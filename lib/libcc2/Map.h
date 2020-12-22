@@ -464,7 +464,7 @@ public:
         m_option.setReplayMD5(zero_md5);
     }
 
-    std::string clueForTile(int x, int y);
+    std::string clueForTile(int x, int y) const;
     void setClueForTile(int x, int y, const std::string& clue);
 
     void insertClue(int x, int y);
@@ -509,11 +509,15 @@ public:
     MapData& mapData() { return m_mapData; }
     const MapData& mapData() const { return m_mapData; }
 
+    std::vector<std::string>& clueData() { return m_clueData; }
+    const std::vector<std::string>& clueData() const { return m_clueData; }
+
     void read(ccl::Stream* stream);
     void write(ccl::Stream* stream) const;
 
 private:
     MapData m_mapData;
+    std::vector<std::string> m_clueData;
 };
 
 class SaveData {

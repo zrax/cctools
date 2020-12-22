@@ -2049,10 +2049,18 @@ void CC2EditMain::onCopyAction()
 
         cc2::ClipboardMap cbMap;
         const QRect selection = mapEditor->selection();
+        const cc2::Map* editorMap = mapEditor->map();
         cbMap.mapData().resize(selection.width(), selection.height());
-        cbMap.mapData().copyFrom(mapEditor->map()->mapData(),
+        cbMap.mapData().copyFrom(editorMap->mapData(),
                                  selection.x(), selection.y(), 0, 0,
                                  selection.width(), selection.height());
+
+        for (int y = selection.top(); y <= selection.bottom(); ++y) {
+            for (int x = selection.left(); x <= selection.right(); ++x) {
+                if (editorMap->mapData().tile(x, y).bottom().type() == cc2::Tile::Clue)
+                    cbMap.clueData().emplace_back(editorMap->clueForTile(x, y));
+            }
+        }
 
         try {
             ccl::BufferStream cbStream;
@@ -2126,15 +2134,40 @@ void CC2EditMain::onPasteAction()
             destY = mapEditor->selection().top();
         }
 
+        cc2::Map* editorMap = mapEditor->map();
         int width = std::min((int)cbMap.mapData().width(),
-                             mapEditor->map()->mapData().width() - destX);
+                             editorMap->mapData().width() - destX);
         int height = std::min((int)cbMap.mapData().height(),
-                              mapEditor->map()->mapData().height() - destY);
+                              editorMap->mapData().height() - destY);
 
         mapEditor->beginEdit(CC2EditHistory::EditMap);
         mapEditor->selectRegion(destX, destY, width, height);
-        mapEditor->map()->mapData().copyFrom(cbMap.mapData(), 0, 0, destX, destY, width, height);
+
+        for (int y = destY; y < destY + height; ++y) {
+            for (int x = destX; x < destX + width; ++x) {
+                if (editorMap->mapData().tile(x, y).bottom().type() == cc2::Tile::Clue)
+                    editorMap->deleteClue(x, y);
+            }
+        }
+
+        editorMap->mapData().copyFrom(cbMap.mapData(), 0, 0, destX, destY, width, height);
+
+        auto clue_iter = cbMap.clueData().cbegin();
+        for (int y = 0; y < cbMap.mapData().height(); ++y) {
+            for (int x = 0; x < cbMap.mapData().width(); ++x) {
+                if (cbMap.mapData().tile(x, y).bottom().type() == cc2::Tile::Clue) {
+                    const int dx = x + destX, dy = y + destY;
+                    std::string clue = *clue_iter++;
+                    if (dx < editorMap->mapData().width() && dy < editorMap->mapData().height()) {
+                        editorMap->insertClue(dx, dy);
+                        editorMap->setClueForTile(dx, dy, clue);
+                    }
+                }
+            }
+        }
+
         mapEditor->endEdit();
+        updateMapProperties(editorMap);
     } else if (scriptEditor) {
         scriptEditor->paste();
     }
