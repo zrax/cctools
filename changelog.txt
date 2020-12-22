@@ -1,3 +1,38 @@
+2020-12-21 - 3.0 BETA 3 (2.97.0)
+~~~~~~~~~~
+Features:
+  * CC2Edit/CCEdit: Add playtest support for Lexy's Labyrinth
+  * CC2Edit/CCEdit: Add menu items for 150% and 200% zoom.
+  * CC2Edit/CCEdit: Add a global tileset scale option (original or 2X) to the
+    tileset menu for high DPI displays.
+  * CC2Edit/CCEdit: Add a Rectangle drawing tool.
+  * CC2Edit/CCEdit: Use a custom cursor when modal tools (button connector,
+    tile inspector, hint editor, wire tool) are active.
+  * CC2Edit/CCEdit: Change Ctrl+W to close only the current tab, and remap
+    "Close levelset" / "Close game" to Ctrl+Shift+W.
+  * CC2Edit/CCEdit: Add a Recent Files list to the File menu.  Somehow this
+    got missed in the original rewrite from 1.x to 2.0...
+
+Tilesets:
+  * Add a 48x48 TileWorld tileset
+  * Add a 32x32 Lexy's Labyrinth tileset (Thanks @eevee!)
+  * Extend the WEP tileset with CC2 (CC2Edit) support
+
+Bugfixes:
+  * CC2Edit: Always combine thin walls and canopies with existing tiles.
+    (previously, CC2Edit would only combine with non-terrain tiles).
+  * CC2Edit: Don't erase wires when replacing a wired tile with another
+    wire-able tile (e.g. floor -> steel wall).
+  * CC2Edit: Fix playtesting compatibility with old (1.x) versions of CC2.
+  * CC2Edit: Fix for mobs unable to move when starting on train tracks.
+  * CC2Edit: Copying and pasting hint tiles now also copies and pastes the
+    associated hint texts from the Note field.
+  * CCEdit: Mark keys and boots on top of elemental tiles (ice, fire, force
+    floors, water) as invalid, and don't combine them automatically.
+  * CCHack: Don't export section padding bytes from bitmap resources.
+  * CC2 Tileset: Use "CC1" chip label for CCEdit tileset variant.
+
+
 2020-11-30 - 3.0 BETA 2 (2.96.0)
 ~~~~~~~~~~
 Features

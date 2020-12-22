@@ -12,8 +12,8 @@ C2M_FILE                ICON    DISCARDABLE         "icons\\c2m.ico"
 
 /* Version Info */
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,96,0,0
- PRODUCTVERSION 2,96,0,0
+ FILEVERSION 2,97,0,0
+ PRODUCTVERSION 2,97,0,0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -29,7 +29,7 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "Michael Hansen"
-            VALUE "FileVersion", "2.96"
+            VALUE "FileVersion", "2.97"
             VALUE "InternalName", "CC2Edit"
             VALUE "LegalCopyright", "Copyright (C) 2020 Michael Hansen"
             VALUE "OriginalFilename", "CCEdit.exe"
