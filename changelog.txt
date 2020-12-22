@@ -85,7 +85,7 @@ New Tool: CC2Edit
     * Tile errors and monster paths are not currently rendered. [FIXED: Beta 2]
     * Tiles are not rendered in the same layer order as CC2 in some cases.
       [FIXED: Beta 2]
-    * Teleport destination highlight doesn't respect wires yet.
+    * Teleport destination highlight doesn't respect wires yet. [GH #8]
     * HTML Report generation is not yet implemented. [FIXED: Beta 2]
 
 CCEdit Changes:
