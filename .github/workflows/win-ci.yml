@@ -63,24 +63,13 @@ jobs:
           $buildver = ((git describe --tags --dirty) | Out-String).Trim()
           $Env:VCINSTALLDIR = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC"
           cd "${Env:GITHUB_WORKSPACE}\Dist"
-          windeployqt CCEdit.exe --release --no-angle --no-opengl-sw
-          windeployqt CC2Edit.exe --release --no-angle --no-opengl-sw
-          windeployqt CCHack.exe --release --no-angle --no-opengl-sw
-          windeployqt CCPlay.exe --release --no-angle --no-opengl-sw
           cmake -E copy "${Env:GITHUB_WORKSPACE}\LICENSE" `
               "${Env:GITHUB_WORKSPACE}\LICENSE-oxygen-icon-theme" `
               "${Env:GITHUB_WORKSPACE}\changelog.txt" `
               "${Env:RUNNER_WORKSPACE}\Qt\${Env:QT_VERSION}\msvc2019\bin\KF5SyntaxHighlighting.dll" `
               .
-          windeployqt KF5SyntaxHighlighting.dll --release --no-angle --no-opengl-sw
-          cmake -E tar cf "..\cctools-${buildver}.zip" --format=zip `
-              CCEdit.exe CC2Edit.exe CCHack.exe CCPlay.exe `
-              KF5SyntaxHighlighting.dll Qt5Core.dll Qt5Gui.dll Qt5Network.dll `
-              Qt5Sql.dll Qt5Widgets.dll Qt5Xml.dll `
-              WEP.tis TW32.tis CC2.tis `
-              bearer imageformats platforms sqldrivers styles translations `
-              LICENSE LICENSE-oxygen-icon-theme changelog.txt `
-              vc_redist.x86.exe
+          windeployqt CCEdit.exe CC2Edit.exe CCHack.exe CCPlay.exe KF5SyntaxHighlighting.dll `
+              --release --no-angle --no-opengl-sw
           iscc setup.iss
           cmake -E rename CCTools.exe "..\CCTools-${buildver}.exe"
       - name: Upload artifacts
