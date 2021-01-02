@@ -96,9 +96,8 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile,
                          bool allLayers) const
 {
     if (allLayers) {
-        std::vector<const cc2::Tile*> layers = tile->sortedLayers();
         bool needXray = false;
-        for (const cc2::Tile* lt : layers) {
+        for (const cc2::Tile* lt : tile->sortedLayers()) {
             cc2::Tile::DrawLayer lay = lt->layer();
             if ((lay == cc2::Tile::BaseLayer && lt->needXray())
                     || (lay == cc2::Tile::ItemLayer || lay == cc2::Tile::MobLayer))

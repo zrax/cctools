@@ -258,7 +258,7 @@ std::vector<const cc2::Tile*> cc2::Tile::sortedLayers() const
         sorted.push_back(tp);
         tp = tp->lower();
     }
-    std::sort(sorted.begin(), sorted.end(), [](const Tile* t1, const Tile* t2) {
+    std::stable_sort(sorted.begin(), sorted.end(), [](const Tile* t1, const Tile* t2) {
         return t1->layer() < t2->layer();
     });
     return sorted;
