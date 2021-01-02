@@ -304,11 +304,12 @@ public:
     bool haveTile(const std::vector<Tile::Type>& types) const;
 
     // For drawing tiles in the appropriate render order
-    const Tile* baseLayer() const;
-    const Tile* itemLayer() const;
-    const Tile* mobLayer() const;
-    const Tile* blockLayer() const;
-    const Tile* topLayer() const;
+    enum DrawLayer {
+        BaseLayer, ItemLayer, DisallowLayer, MobLayer, BlockLayer,
+        PanelCanopyLayer, InvalidLayer,
+    };
+    DrawLayer layer() const;
+    std::vector<const Tile*> sortedLayers() const;
 
     static bool haveLower(int type);
     static bool haveDirection(int type);

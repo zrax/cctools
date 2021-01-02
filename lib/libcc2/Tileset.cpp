@@ -96,34 +96,14 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile,
                          bool allLayers) const
 {
     if (allLayers) {
-        const cc2::Tile* base = tile->baseLayer();
-        const cc2::Tile* item = tile->itemLayer();
-        const cc2::Tile* mob = tile->mobLayer();
-        const cc2::Tile* block = tile->blockLayer();
-        const cc2::Tile* top = tile->topLayer();
-
-        const bool needXray = (item != nullptr) || (item != nullptr)
-                              || (mob != nullptr) || base->needXray();
-
-        std::stack<const cc2::Tile*> tileStack;
-#define WALK_STACK(stack)                               \
-        while (stack) {                                 \
-            tileStack.push(stack);                      \
-            stack = stack->lower();                     \
-            if (stack)                                  \
-                stack = stack->stack##Layer();          \
-        }
-
-        WALK_STACK(top)
-        WALK_STACK(block)
-        WALK_STACK(mob)
-        WALK_STACK(item)
-        WALK_STACK(base)
-#undef WALK_STACK
-
-        while (!tileStack.empty()) {
-            drawLayer(painter, x, y, tileStack.top(), needXray);
-            tileStack.pop();
+        std::vector<const cc2::Tile*> layers = tile->sortedLayers();
+        bool needXray = false;
+        for (const cc2::Tile* lt : layers) {
+            cc2::Tile::DrawLayer lay = lt->layer();
+            if ((lay == cc2::Tile::BaseLayer && lt->needXray())
+                    || (lay == cc2::Tile::ItemLayer || lay == cc2::Tile::MobLayer))
+                needXray = true;
+            drawLayer(painter, x, y, lt, needXray);
         }
     } else {
         painter.drawPixmap(x, y, m_gfx[cc2::G_Floor]);

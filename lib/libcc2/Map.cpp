@@ -232,65 +232,36 @@ bool cc2::Tile::haveTile(const std::vector<Tile::Type>& types) const
     return false;
 }
 
-const cc2::Tile* cc2::Tile::baseLayer() const
+cc2::Tile::DrawLayer cc2::Tile::layer() const
 {
-    const Tile* tp = this;
-    for ( ;; ) {
-        if (!tp->haveLower() || tp->isInvalidClass())
-            return tp;
-        tp = tp->m_lower;
-    }
+    if (m_type == Disallow)
+        return DisallowLayer;
+    if (!haveLower() || isInvalidClass())
+        return BaseLayer;
+    if (isItem())
+        return ItemLayer;
+    if (isCreature() || isPlayer())
+        return MobLayer;
+    if (isBlock())
+        return BlockLayer;
+    if (isPanelCanopy())
+        return PanelCanopyLayer;
+
+    return InvalidLayer;
 }
 
-const cc2::Tile* cc2::Tile::itemLayer() const
+std::vector<const cc2::Tile*> cc2::Tile::sortedLayers() const
 {
+    std::vector<const Tile*> sorted;
     const Tile* tp = this;
-    for ( ;; ) {
-        if (!tp->haveLower())
-            return nullptr;
-        if (tp->isItem())
-            return tp;
-        tp = tp->m_lower;
+    while (tp) {
+        sorted.push_back(tp);
+        tp = tp->lower();
     }
-}
-
-const cc2::Tile* cc2::Tile::mobLayer() const
-{
-    const Tile* tp = this;
-    for ( ;; ) {
-        if (!tp->haveLower())
-            return nullptr;
-        if (tp->isCreature() || tp->isPlayer())
-            return tp;
-        tp = tp->m_lower;
-    }
-}
-
-const cc2::Tile* cc2::Tile::blockLayer() const
-{
-    // NOTE: CC2 actually puts block on the Mob layer, but we move it into
-    // its own layer to handle the Xray logic properly while rendering all
-    // tiles (instead of only one per layer, as CC2 does).
-    const Tile* tp = this;
-    for ( ;; ) {
-        if (!tp->haveLower())
-            return nullptr;
-        if (tp->isBlock())
-            return tp;
-        tp = tp->m_lower;
-    }
-}
-
-const cc2::Tile* cc2::Tile::topLayer() const
-{
-    const Tile* tp = this;
-    for ( ;; ) {
-        if (!tp->haveLower())
-            return nullptr;
-        if (tp->isPanelCanopy() || tp->type() == cc2::Tile::Disallow)
-            return tp;
-        tp = tp->m_lower;
-    }
+    std::sort(sorted.begin(), sorted.end(), [](const Tile* t1, const Tile* t2) {
+        return t1->layer() < t2->layer();
+    });
+    return sorted;
 }
 
 bool cc2::Tile::haveLower(int type)
