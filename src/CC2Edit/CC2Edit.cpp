@@ -595,6 +595,27 @@ CC2EditMain::CC2EditMain(QWidget* parent)
         cc2::Tile(cc2::Tile::Floor, cc2::TileModifier::WireEast | cc2::TileModifier::WireTunnelEast),
         cc2::Tile(cc2::Tile::Floor, cc2::TileModifier::WireSouth | cc2::TileModifier::WireTunnelSouth),
         cc2::Tile(cc2::Tile::Floor, cc2::TileModifier::WireWest | cc2::TileModifier::WireTunnelWest),
+        cc2::Tile(cc2::Tile::Floor, cc2::TileModifier::WireNorth | cc2::TileModifier::WireTunnelNorth
+                                    | cc2::TileModifier::WireEast | cc2::TileModifier::WireTunnelEast),
+        cc2::Tile(cc2::Tile::Floor, cc2::TileModifier::WireEast | cc2::TileModifier::WireTunnelEast
+                                    | cc2::TileModifier::WireSouth | cc2::TileModifier::WireTunnelSouth),
+        cc2::Tile(cc2::Tile::Floor, cc2::TileModifier::WireSouth | cc2::TileModifier::WireTunnelSouth
+                                    | cc2::TileModifier::WireWest | cc2::TileModifier::WireTunnelWest),
+        cc2::Tile(cc2::Tile::Floor, cc2::TileModifier::WireWest | cc2::TileModifier::WireTunnelWest
+                                    | cc2::TileModifier::WireNorth | cc2::TileModifier::WireTunnelNorth),
+        cc2::Tile(cc2::Tile::Floor, cc2::TileModifier::WireNorth | cc2::TileModifier::WireTunnelNorth
+                                    | cc2::TileModifier::WireEast | cc2::TileModifier::WireTunnelEast
+                                    | cc2::TileModifier::WireSouth | cc2::TileModifier::WireTunnelSouth),
+        cc2::Tile(cc2::Tile::Floor, cc2::TileModifier::WireEast | cc2::TileModifier::WireTunnelEast
+                                    | cc2::TileModifier::WireSouth | cc2::TileModifier::WireTunnelSouth
+                                    | cc2::TileModifier::WireWest | cc2::TileModifier::WireTunnelWest),
+        cc2::Tile(cc2::Tile::Floor, cc2::TileModifier::WireSouth | cc2::TileModifier::WireTunnelSouth
+                                    | cc2::TileModifier::WireWest | cc2::TileModifier::WireTunnelWest
+                                    | cc2::TileModifier::WireNorth | cc2::TileModifier::WireTunnelNorth),
+        cc2::Tile(cc2::Tile::Floor, cc2::TileModifier::WireWest | cc2::TileModifier::WireTunnelWest
+                                    | cc2::TileModifier::WireNorth | cc2::TileModifier::WireTunnelNorth
+                                    | cc2::TileModifier::WireEast | cc2::TileModifier::WireTunnelEast),
+        cc2::Tile(cc2::Tile::Floor, cc2::TileModifier::WireMask | cc2::TileModifier::WireTunnelMask),
         DIR_LOGIC_GATE(cc2::TileModifier::Inverter),
         DIR_LOGIC_GATE(cc2::TileModifier::AndGate),
         DIR_LOGIC_GATE(cc2::TileModifier::OrGate),

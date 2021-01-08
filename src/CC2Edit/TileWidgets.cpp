@@ -106,7 +106,7 @@ BigTileWidget::BigTileWidget(QWidget* parent)
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     setMouseTracking(true);
 
-    // These are in the same order as CC2.  We face south by default.
+    // These are (mostly) in the same order as CC2.  We face south by default.
     m_tiles = std::vector<cc2::Tile>{
         cc2::Tile(cc2::Tile::Floor),
         cc2::Tile(cc2::Tile::Player, cc2::Tile::South, 0),
@@ -222,9 +222,9 @@ BigTileWidget::BigTileWidget(QWidget* parent)
         cc2::Tile(cc2::Tile::RedBomb),
         cc2::Tile(cc2::Tile::Slime),
         cc2::Tile(cc2::Tile::RevolvDoor_NW),
-        cc2::Tile(cc2::Tile::Floor, cc2::TileModifier::WireSouth | cc2::TileModifier::WireTunnelSouth),
         cc2::Tile(cc2::Tile::Switch_Off),
-        cc2::Tile(cc2::Tile::Lightning),
+        cc2::Tile(cc2::Tile::LogicGate, cc2::TileModifier::CounterGate_0),
+        cc2::Tile(cc2::Tile::Eye),
         cc2::Tile(cc2::Tile::RevLogicButton),
         cc2::Tile(cc2::Tile::LogicGate, cc2::TileModifier::AndGate_N),
         cc2::Tile(cc2::Tile::LogicGate, cc2::TileModifier::OrGate_N),
@@ -232,13 +232,16 @@ BigTileWidget::BigTileWidget(QWidget* parent)
         cc2::Tile(cc2::Tile::LogicGate, cc2::TileModifier::XorGate_N),
         cc2::Tile(cc2::Tile::LogicGate, cc2::TileModifier::LatchGateCW_N),
         cc2::Tile(cc2::Tile::LogicGate, cc2::TileModifier::LatchGateCCW_N),
-        cc2::Tile(cc2::Tile::LogicGate, cc2::TileModifier::CounterGate_0),
         cc2::Tile(cc2::Tile::LogicGate, cc2::TileModifier::Inverter_N),
-        cc2::Tile(cc2::Tile::Eye),
+        cc2::Tile(cc2::Tile::Lightning),
         cc2::Tile(cc2::Tile::Clue),
-        cc2::Tile(cc2::Tile::Invalid),
-        cc2::Tile(cc2::Tile::Invalid),
-        cc2::Tile(cc2::Tile::Invalid),
+        cc2::Tile(cc2::Tile::Floor, cc2::TileModifier::WireSouth | cc2::TileModifier::WireTunnelSouth),
+        cc2::Tile(cc2::Tile::Floor, cc2::TileModifier::WireSouth | cc2::TileModifier::WireTunnelSouth
+                                    | cc2::TileModifier::WireEast | cc2::TileModifier::WireTunnelEast),
+        cc2::Tile(cc2::Tile::Floor, cc2::TileModifier::WireSouth | cc2::TileModifier::WireTunnelSouth
+                                    | cc2::TileModifier::WireEast | cc2::TileModifier::WireTunnelEast
+                                    | cc2::TileModifier::WireWest | cc2::TileModifier::WireTunnelWest),
+        cc2::Tile(cc2::Tile::Floor, cc2::TileModifier::WireMask | cc2::TileModifier::WireTunnelMask),
         cc2::Tile(cc2::Tile::Invalid),
         cc2::Tile(cc2::Tile::Invalid),
         cc2::Tile::dirBlockTile(0),
