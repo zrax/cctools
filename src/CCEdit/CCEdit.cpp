@@ -813,6 +813,9 @@ CCEditMain::CCEditMain(QWidget* parent)
             if (m_zoomFactor != 0.0)
                 setZoomFactor(m_zoomFactor);
             emit tilesetChanged(m_currentTileset);
+
+            QSettings settings;
+            settings.setValue(QStringLiteral("TilesetScale"), scale);
         });
     }
 
@@ -863,7 +866,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     const int tilesetScale = settings.value(QStringLiteral("TilesetScale"), 1).toInt();
     for (QAction* scaleAction : m_scaleGroup->actions()) {
         if (scaleAction->data().toInt() == tilesetScale)
-            scaleAction->activate(QAction::Trigger);
+            scaleAction->setChecked(true);
     }
 
     setLeftTile(ccl::TileWall);
@@ -1125,13 +1128,6 @@ void CCEditMain::closeEvent(QCloseEvent* event)
                       m_actions[ActionViewMonsterPaths]->isChecked());
     settings.setValue(QStringLiteral("ViewErrors"),
                       m_actions[ActionViewErrors]->isChecked());
-    settings.setValue(QStringLiteral("TilesetName"),
-                      m_currentTileset->filename());
-
-    for (QAction* scaleAction : m_scaleGroup->actions()) {
-        if (scaleAction->isChecked())
-            settings.setValue(QStringLiteral("TilesetScale"), scaleAction->data().toInt());
-    }
 }
 
 void CCEditMain::resizeEvent(QResizeEvent* event)
@@ -1218,7 +1214,13 @@ bool CCEditMain::closeLevelset()
 
 void CCEditMain::loadTileset(CCETileset* tileset)
 {
+    QSettings settings;
+    const int tilesetScale = settings.value(QStringLiteral("TilesetScale"), 1).toInt();
     m_currentTileset = tileset;
+    m_currentTileset->setUiScale(qreal(tilesetScale));
+    if (m_zoomFactor != 0.0)
+        setZoomFactor(m_zoomFactor);
+
     emit tilesetChanged(tileset);
     resizeEvent(nullptr);
 }
@@ -1988,6 +1990,9 @@ void CCEditMain::onTilesetMenu(QAction* which)
 {
     auto tileset = which->data().value<CCETileset*>();
     loadTileset(tileset);
+
+    QSettings settings;
+    settings.setValue(QStringLiteral("TilesetName"), m_currentTileset->filename());
 }
 
 void CCEditMain::onTestChips()

@@ -1075,6 +1075,9 @@ CC2EditMain::CC2EditMain(QWidget* parent)
             if (m_zoomFactor != 0.0)
                 setZoomFactor(m_zoomFactor);
             emit tilesetChanged(m_currentTileset);
+
+            QSettings settings;
+            settings.setValue(QStringLiteral("TilesetScale"), scale);
         });
     }
 
@@ -1125,7 +1128,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     const int tilesetScale = settings.value(QStringLiteral("TilesetScale"), 1).toInt();
     for (QAction* scaleAction : m_scaleGroup->actions()) {
         if (scaleAction->data().toInt() == tilesetScale)
-            scaleAction->activate(QAction::Trigger);
+            scaleAction->setChecked(true);
     }
 
     // Set default editor tiles
@@ -1519,7 +1522,13 @@ void CC2EditMain::populateTilesets()
 
 void CC2EditMain::loadTileset(CC2ETileset* tileset)
 {
+    QSettings settings;
+    const int tilesetScale = settings.value(QStringLiteral("TilesetScale"), 1).toInt();
     m_currentTileset = tileset;
+    m_currentTileset->setUiScale(qreal(tilesetScale));
+    if (m_zoomFactor != 0.0)
+        setZoomFactor(m_zoomFactor);
+
     emit tilesetChanged(tileset);
 }
 
@@ -1725,12 +1734,6 @@ void CC2EditMain::closeEvent(QCloseEvent* event)
                       m_actions[ActionViewViewport]->isChecked());
     settings.setValue(QStringLiteral("ViewMonsterPaths"),
                       m_actions[ActionViewMonsterPaths]->isChecked());
-    settings.setValue(QStringLiteral("TilesetName"), m_currentTileset->filename());
-
-    for (QAction* scaleAction : m_scaleGroup->actions()) {
-        if (scaleAction->isChecked())
-            settings.setValue(QStringLiteral("TilesetScale"), scaleAction->data().toInt());
-    }
 }
 
 void CC2EditMain::resizeEvent(QResizeEvent* event)
@@ -2482,6 +2485,9 @@ void CC2EditMain::onTilesetMenu(QAction* which)
 {
     auto tileset = which->data().value<CC2ETileset*>();
     loadTileset(tileset);
+
+    QSettings settings;
+    settings.setValue(QStringLiteral("TilesetName"), m_currentTileset->filename());
 }
 
 void CC2EditMain::onTestChips2()
