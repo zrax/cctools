@@ -1199,11 +1199,7 @@ void CC2EditorWidget::putTile(const cc2::Tile& tile, int x, int y, CombineMode m
     // WARNING: Modifying curTile's layers can invalidate the baseTile reference!
     uint32_t baseWires = baseTile.supportsWires() ? baseTile.modifier() : 0;
 
-    if (baseTile.type() == cc2::Tile::Clue) {
-        if (tile.type() == cc2::Tile::Clue)
-            return;
-        emit clueDeleted(x, y);
-    }
+    const bool clueTile = (baseTile.type() == cc2::Tile::Clue);
 
     if (mode == Replace) {
         curTile = tile;
@@ -1328,7 +1324,9 @@ void CC2EditorWidget::putTile(const cc2::Tile& tile, int x, int y, CombineMode m
         }
     }
 
-    if (curTile.bottom().type() == cc2::Tile::Clue)
+    if (clueTile && curTile.bottom().type() != cc2::Tile::Clue)
+        emit clueDeleted(x, y);
+    else if (!clueTile && curTile.bottom().type() == cc2::Tile::Clue)
         emit clueAdded(x, y);
 
     dirtyBuffer();

@@ -1538,18 +1538,17 @@ void cc2::Map::setClueForTile(int x, int y, const std::string& clue)
 
 void cc2::Map::insertClue(int x, int y)
 {
-    if (m_mapData.tile(x, y).bottom().type() != Tile::Clue
-            || m_note.find("[CLUE]") == std::string::npos)
+    if (m_note.find("[CLUE]") == std::string::npos)
         return;
 
     size_t start = 0;
     for (int sy = 0; sy < m_mapData.height(); ++sy) {
         for (int sx = 0; sx < m_mapData.width(); ++sx) {
-            if (m_mapData.tile(sx, sy).bottom().type() != Tile::Clue)
-                continue;
-
-            // Scan the NOTE for the next [CLUE] tag
-            start = scanNextClue(m_note, start);
+            if (m_mapData.tile(sx, sy).bottom().type() == Tile::Clue
+                    || (sx == x && sy == y)) {
+                // Scan the NOTE for the next [CLUE] tag
+                start = scanNextClue(m_note, start);
+            }
 
             if (sx == x && sy == y) {
                 m_note.insert(start, "[CLUE]\n");
@@ -1563,18 +1562,17 @@ void cc2::Map::insertClue(int x, int y)
 
 void cc2::Map::deleteClue(int x, int y)
 {
-    if (m_mapData.tile(x, y).bottom().type() != Tile::Clue
-            || m_note.find("[CLUE]") == std::string::npos)
+    if (m_note.find("[CLUE]") == std::string::npos)
         return;
 
     size_t start = 0;
     for (int sy = 0; sy < m_mapData.height(); ++sy) {
         for (int sx = 0; sx < m_mapData.width(); ++sx) {
-            if (m_mapData.tile(sx, sy).bottom().type() != Tile::Clue)
-                continue;
-
-            // Scan the NOTE for the next [CLUE] tag
-            start = scanNextClue(m_note, start);
+            if (m_mapData.tile(sx, sy).bottom().type() == Tile::Clue
+                    || (sx == x && sy == y)) {
+                // Scan the NOTE for the next [CLUE] tag
+                start = scanNextClue(m_note, start);
+            }
 
             if (sx == x && sy == y) {
                 size_t next = m_note.find("[CLUE]", start);
