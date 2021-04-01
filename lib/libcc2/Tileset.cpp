@@ -98,11 +98,12 @@ void CC2ETileset::drawAt(QPainter& painter, int x, int y, const cc2::Tile* tile,
     if (allLayers) {
         bool needXray = false;
         for (const cc2::Tile* lt : tile->sortedLayers()) {
+            drawLayer(painter, x, y, lt, needXray);
+
             cc2::Tile::DrawLayer lay = lt->layer();
             if ((lay == cc2::Tile::BaseLayer && lt->needXray())
-                    || (lay == cc2::Tile::ItemLayer || lay == cc2::Tile::MobLayer))
+                    || (lay > cc2::Tile::BaseLayer))
                 needXray = true;
-            drawLayer(painter, x, y, lt, needXray);
         }
     } else {
         painter.drawPixmap(x, y, m_gfx[cc2::G_Floor]);
