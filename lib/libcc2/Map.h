@@ -311,6 +311,8 @@ public:
     DrawLayer layer() const;
     std::vector<const Tile*> sortedLayers() const;
 
+    Tile* topVisible();
+
     static bool haveLower(int type);
     static bool haveDirection(int type);
     static bool supportsWires(int type);

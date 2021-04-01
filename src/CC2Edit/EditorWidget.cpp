@@ -1192,6 +1192,18 @@ static void pushTile(cc2::Tile& destTile, cc2::Tile tile, ReplaceMode mode)
     }
 }
 
+static void popTile(cc2::Tile& destTile)
+{
+    // Pop the top *visible* layer, which might not be the actual top of
+    // the tile list...
+    cc2::Tile* topLayer = destTile.topVisible();
+    cc2::Tile* lower = topLayer->lower();
+    if (lower)
+        *topLayer = *lower;
+    else
+        *topLayer = cc2::Tile();
+}
+
 void CC2EditorWidget::putTile(const cc2::Tile& tile, int x, int y, CombineMode mode)
 {
     cc2::Tile& curTile = m_map->mapData().tile(x, y);
@@ -1216,8 +1228,8 @@ void CC2EditorWidget::putTile(const cc2::Tile& tile, int x, int y, CombineMode m
                 baseTile.setModifier(baseWires & cc2::TileModifier::WireMask);
         }
     } else if (tile.type() == cc2::Tile::Floor && tile.modifier() == 0) {
-        // Floor with no wires should always be a replacement
-        curTile = tile;
+        // Floor with no wires pops the top layer
+        popTile(curTile);
     } else if ((tile.type() == cc2::Tile::Floor && tile.modifier() != 0
                     && baseTile.type() == cc2::Tile::Floor)
                 || (tile.type() == cc2::Tile::TrainTracks

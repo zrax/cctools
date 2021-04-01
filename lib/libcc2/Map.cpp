@@ -264,6 +264,18 @@ std::vector<const cc2::Tile*> cc2::Tile::sortedLayers() const
     return sorted;
 }
 
+cc2::Tile* cc2::Tile::topVisible()
+{
+    Tile* top = this;
+    Tile* tp = this;
+    while (tp) {
+        if (top->layer() < tp->layer())
+            top = tp;
+        tp = tp->lower();
+    }
+    return top;
+}
+
 bool cc2::Tile::haveLower(int type)
 {
     switch (type) {
