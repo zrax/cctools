@@ -98,15 +98,20 @@ Name: {app}\zlib1.dll; Type: files
 Name: {app}; Type: dirifempty
 
 [Tasks]
-Name: CC1Files; Description: Associate .ccl Files with CCEdit; Components: CCEdit
-Name: CC2Files; Description: Associate .c2g and .c2m Files with CC2Edit; Components: CC2Edit
-Name: CCHackFiles; Description: Associate .ccp Files with CCHack; Components: CCHack
+Name: CC1Files; Description: "Associate .ccl Files with CCEdit"; Components: CCEdit
+Name: DATFiles; Description: "Associate .dat Files with CCEdit"; Components: CCEdit; Flags: unchecked
+Name: CC2Files; Description: "Associate .c2g and .c2m Files with CC2Edit"; Components: CC2Edit
+Name: CCHackFiles; Description: "Associate .ccp Files with CCHack"; Components: CCHack
 
 [Registry]
 Root: HKCR; SubKey: .ccl; ValueType: string; ValueData: CCLFile; Flags: uninsdeletekey; Tasks: CC1Files; Components: CCEdit
 Root: HKCR; SubKey: CCLFile; ValueType: string; ValueData: Chip's Challenge Levelset; Flags: uninsdeletekey; Tasks: CC1Files; Components: CCEdit
 Root: HKCR; SubKey: CCLFile\Shell\Edit\Command; ValueType: string; ValueData: """{app}\CCEdit.exe"" ""%1"""; Flags: uninsdeletevalue; Tasks: CC1Files; Components: CCEdit
 Root: HKCR; Subkey: CCLFile\DefaultIcon; ValueType: string; ValueData: {app}\CCEdit.exe,1; Flags: uninsdeletevalue; Tasks: CC1Files; Components: CCEdit
+Root: HKCR; SubKey: .dat; ValueType: string; ValueData: DATFile; Flags: uninsdeletekey; Tasks: DATFiles; Components: CCEdit
+Root: HKCR; SubKey: DATFile; ValueType: string; ValueData: Chip's Challenge Levelset; Flags: uninsdeletekey; Tasks: DATFiles; Components: CCEdit
+Root: HKCR; SubKey: DATFile\Shell\Edit\Command; ValueType: string; ValueData: """{app}\CCEdit.exe"" ""%1"""; Flags: uninsdeletevalue; Tasks: DATFiles; Components: CCEdit
+Root: HKCR; Subkey: DATFile\DefaultIcon; ValueType: string; ValueData: {app}\CCEdit.exe,1; Flags: uninsdeletevalue; Tasks: DATFiles; Components: CCEdit
 Root: HKCR; SubKey: .c2g; ValueType: string; ValueData: C2GFile; Flags: uninsdeletekey; Tasks: CC2Files; Components: CC2Edit
 Root: HKCR; SubKey: C2GFile; ValueType: string; ValueData: Chip's Challenge 2 Game Script; Flags: uninsdeletekey; Tasks: CC2Files; Components: CC2Edit
 Root: HKCR; SubKey: C2GFile\Shell\Edit\Command; ValueType: string; ValueData: """{app}\CC2Edit.exe"" ""%1"""; Flags: uninsdeletevalue; Tasks: CC2Files; Components: CC2Edit
