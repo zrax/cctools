@@ -1298,17 +1298,22 @@ void cc2::Map::read(ccl::Stream* stream)
 {
     char tag[4];
     uint32_t size;
-    bool have_magic = false;
+
+    if (stream->read(tag, 1, sizeof(tag)) != sizeof(tag))
+        throw ccl::IOError(ccl::RuntimeError::tr("Read past end of stream"));
+    size = stream->read32();
+
+    if (memcmp(tag, "CC2M", 4) == 0)
+        m_version = stream->readString(size);
+    else
+        throw ccl::FormatError(ccl::RuntimeError::tr("Invalid c2m file format"));
 
     for ( ;; ) {
         if (stream->read(tag, 1, sizeof(tag)) != sizeof(tag))
             throw ccl::IOError(ccl::RuntimeError::tr("Read past end of stream"));
         size = stream->read32();
 
-        if (memcmp(tag, "CC2M", 4) == 0) {
-            m_version = stream->readString(size);
-            have_magic = true;
-        } else if (memcmp(tag, "LOCK", 4) == 0) {
+        if (memcmp(tag, "LOCK", 4) == 0) {
             m_lock = stream->readString(size);
         } else if (memcmp(tag, "TITL", 4) == 0) {
             m_title = toGenericLF(stream->readString(size));
@@ -1355,9 +1360,6 @@ void cc2::Map::read(ccl::Stream* stream)
             stream->read(&unknown.data[0], 1, size);
         }
     }
-
-    if (!have_magic)
-        throw ccl::FormatError(ccl::RuntimeError::tr("Invalid c2m file format"));
 }
 
 template <typename Writer>
@@ -1758,17 +1760,22 @@ void cc2::CC2HighScore::read(ccl::Stream* stream)
 {
     char tag[4];
     uint32_t size;
-    bool have_magic = false;
+
+    if (stream->read(tag, 1, sizeof(tag)) != sizeof(tag))
+        throw ccl::IOError(ccl::RuntimeError::tr("Read past end of stream"));
+    size = stream->read32();
+
+    if (memcmp(tag, "CC2H", 4) == 0)
+        m_version = stream->readString(size);
+    else
+        throw ccl::FormatError(ccl::RuntimeError::tr("Invalid c2h file format"));
 
     for ( ;; ) {
         if (stream->read(tag, 1, sizeof(tag)) != sizeof(tag))
             throw ccl::IOError(ccl::RuntimeError::tr("Read past end of stream"));
         size = stream->read32();
 
-        if (memcmp(tag, "CC2H", 4) == 0) {
-            m_version = stream->readString(size);
-            have_magic = true;
-        } else if (memcmp(tag, "FILE", 4) == 0) {
+        if (memcmp(tag, "FILE", 4) == 0) {
             m_scores.emplace_back();
             m_scores.back().setFilename(stream->readString(size));
         } else if (memcmp(tag, "TYPE", 4) == 0) {
@@ -1795,9 +1802,6 @@ void cc2::CC2HighScore::read(ccl::Stream* stream)
             stream->read(&unknown.data[0], 1, size);
         }
     }
-
-    if (!have_magic)
-        throw ccl::FormatError(ccl::RuntimeError::tr("Invalid c2h file format"));
 }
 
 void cc2::CC2HighScore::write(ccl::Stream* stream) const
@@ -1820,17 +1824,22 @@ void cc2::CC2Save::read(ccl::Stream* stream)
 {
     char tag[4];
     uint32_t size;
-    bool have_magic = false;
+
+    if (stream->read(tag, 1, sizeof(tag)) != sizeof(tag))
+        throw ccl::IOError(ccl::RuntimeError::tr("Read past end of stream"));
+    size = stream->read32();
+
+    if (memcmp(tag, "CC2S", 4) == 0)
+        m_version = stream->readString(size);
+    else
+        throw ccl::FormatError(ccl::RuntimeError::tr("Invalid c2s file format"));
 
     for ( ;; ) {
         if (stream->read(tag, 1, sizeof(tag)) != sizeof(tag))
             throw ccl::IOError(ccl::RuntimeError::tr("Read past end of stream"));
         size = stream->read32();
 
-        if (memcmp(tag, "CC2S", 4) == 0) {
-            m_version = stream->readString(size);
-            have_magic = true;
-        } else if (memcmp(tag, "FILE", 4) == 0) {
+        if (memcmp(tag, "FILE", 4) == 0) {
             m_filename = stream->readString(size);
         } else if (memcmp(tag, "PATH", 4) == 0) {
             m_gamePath = stream->readString(size);
@@ -1848,9 +1857,6 @@ void cc2::CC2Save::read(ccl::Stream* stream)
             stream->read(&unknown.data[0], 1, size);
         }
     }
-
-    if (!have_magic)
-        throw ccl::FormatError(ccl::RuntimeError::tr("Invalid c2h file format"));
 }
 
 void cc2::CC2Save::write(ccl::Stream* stream) const
