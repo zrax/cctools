@@ -46,7 +46,7 @@ TileInspector::TileInspector(QWidget* parent)
     auto upperTypeLabel = new QLabel(tr("&Upper Tile:"), this);
     upperTypeLabel->setBuddy(m_upperType);
     m_upperTypeId = new QSpinBox(this);
-    m_upperTypeId->setRange(0, 254);     // Don't use 255 -- it's the RLE marker!
+    m_upperTypeId->setRange(0, 255);
     m_upperTypeId->setEnabled(false);
 
     connect(m_upperType, QOverload<int>::of(&QComboBox::currentIndexChanged),
@@ -70,7 +70,7 @@ TileInspector::TileInspector(QWidget* parent)
     auto lowerTypeLabel = new QLabel(tr("&Lower Tile:"), this);
     lowerTypeLabel->setBuddy(m_lowerType);
     m_lowerTypeId = new QSpinBox(this);
-    m_lowerTypeId->setRange(0, 254);     // Don't use 255 -- it's the RLE marker!
+    m_lowerTypeId->setRange(0, 255);
     m_lowerTypeId->setEnabled(false);
 
     connect(m_lowerType, QOverload<int>::of(&QComboBox::currentIndexChanged),

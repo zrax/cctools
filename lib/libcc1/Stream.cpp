@@ -136,7 +136,7 @@ static uint16_t rleLength(const tile_t* src, size_t size)
             ++cur;
             ++count;
         }
-        if (count > 3)
+        if (count > 3 || tile == (tile_t)0xff)
             dataLen += 3;
         else
             dataLen += count;
@@ -157,7 +157,7 @@ long ccl::Stream::writeRLE(const tile_t* src, size_t size)
             ++cur;
             ++count;
         }
-        if (count > 3) {
+        if (count > 3 || tile == (tile_t)0xff) {
             write8(0xFF);
             write8((uint8_t)count);
             write8((uint8_t)tile);
