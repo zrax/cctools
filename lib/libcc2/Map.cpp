@@ -240,10 +240,8 @@ cc2::Tile::DrawLayer cc2::Tile::layer() const
         return BaseLayer;
     if (isItem())
         return ItemLayer;
-    if (isCreature() || isPlayer())
+    if (isCreature() || isPlayer() || isBlock())
         return MobLayer;
-    if (isBlock())
-        return BlockLayer;
     if (isPanelCanopy())
         return PanelCanopyLayer;
 

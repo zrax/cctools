@@ -1158,12 +1158,12 @@ static uint32_t cloneModifier(cc2::Tile::Direction dir)
     }
 }
 
-enum ReplaceMode { REPLACE_NONE, REPLACE_CLASS, REPLACE_TYPE };
+enum ReplaceMode { REPLACE_NONE, REPLACE_LAYER, REPLACE_TYPE };
 static bool matchTiles(const cc2::Tile& first, const cc2::Tile& second, ReplaceMode mode)
 {
     switch (mode) {
-    case REPLACE_CLASS:
-        return first.tileClass() == second.tileClass();
+    case REPLACE_LAYER:
+        return first.layer() == second.layer();
     case REPLACE_TYPE:
         return first.type() == second.type();
     default:
@@ -1257,7 +1257,7 @@ void CC2EditorWidget::putTile(const cc2::Tile& tile, int x, int y, CombineMode m
                 *curPanelCanopy = cc2::Tile::panelTile(panelFlags);
             }
         } else {
-            pushTile(curTile, tile, REPLACE_CLASS);
+            pushTile(curTile, tile, REPLACE_LAYER);
         }
     } else if (tile.type() == cc2::Tile::Cloner || tile.type() == cc2::Tile::CC1_Cloner) {
         if (curTile.isCreature()) {
@@ -1295,7 +1295,7 @@ void CC2EditorWidget::putTile(const cc2::Tile& tile, int x, int y, CombineMode m
             curTile = tile;
         }
     } else if (tile.haveLower() && !baseTile.isOtherClass()) {
-        pushTile(curTile, tile, REPLACE_CLASS);
+        pushTile(curTile, tile, REPLACE_LAYER);
     } else if (tile.isTerrain()) {
         baseTile = tile;
         if (baseTile.supportsWires())

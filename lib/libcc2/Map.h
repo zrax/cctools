@@ -305,8 +305,8 @@ public:
 
     // For drawing tiles in the appropriate render order
     enum DrawLayer {
-        BaseLayer, ItemLayer, DisallowLayer, MobLayer, BlockLayer,
-        PanelCanopyLayer, InvalidLayer,
+        BaseLayer, ItemLayer, DisallowLayer, MobLayer, PanelCanopyLayer,
+        InvalidLayer,
     };
     DrawLayer layer() const;
     std::vector<const Tile*> sortedLayers() const;
