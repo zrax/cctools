@@ -638,7 +638,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     tileLists[ListGlyphs] = new TileListWidget(tileBox);
     std::vector<cc2::Tile> glyphTiles;
     glyphTiles.reserve(cc2::TileModifier::GlyphMAX - cc2::TileModifier::GlyphMIN);
-    for (uint32_t i = cc2::TileModifier::GlyphMIN; i < cc2::TileModifier::GlyphMAX; ++i)
+    for (uint32_t i = cc2::TileModifier::GlyphMIN; i <= cc2::TileModifier::GlyphMAX; ++i)
         glyphTiles.emplace_back(cc2::Tile::AsciiGlyph, i);
     tileLists[ListGlyphs]->setTiles(glyphTiles);
     tileBox->addItem(tileLists[ListGlyphs], tr("Glyph Tiles"));

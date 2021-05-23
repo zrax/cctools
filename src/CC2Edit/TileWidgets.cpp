@@ -249,7 +249,7 @@ BigTileWidget::BigTileWidget(QWidget* parent)
     };
 
     m_glyphs.reserve(cc2::TileModifier::GlyphMAX - cc2::TileModifier::GlyphMIN);
-    for (int i = cc2::TileModifier::GlyphMIN; i < cc2::TileModifier::GlyphMAX; ++i)
+    for (int i = cc2::TileModifier::GlyphMIN; i <= cc2::TileModifier::GlyphMAX; ++i)
         m_glyphs.emplace_back(cc2::Tile::AsciiGlyph, i);
 }
 
