@@ -137,7 +137,7 @@ private slots:
     void onProcessError(QProcess::ProcessError err);
     void onProcessFinished(int result, QProcess::ExitStatus status);
 
-    void setGameName(const QString& name);
+    void setGameName(const QString& name, const QString& filename = QString());
 
 private:
     enum ActionType {

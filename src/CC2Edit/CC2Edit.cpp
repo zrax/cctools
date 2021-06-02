@@ -290,10 +290,6 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_gameProperties = new QWidget(this);
     m_gameName = new QLabel(m_gameProperties);
     m_gameName->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
-    auto gameNameFont = m_gameName->font();
-    gameNameFont.setBold(true);
-    gameNameFont.setPointSize((gameNameFont.pointSize() * 3) / 2);
-    m_gameName->setFont(gameNameFont);
     auto tbarGameScript = new QToolBar(m_gameProperties);
     tbarGameScript->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
     tbarGameScript->addWidget(m_gameName);
@@ -1227,12 +1223,16 @@ bool CC2EditMain::loadMap(const QString& filename, bool floatTab)
 bool CC2EditMain::loadScript(const QString& filename)
 {
     m_gameMapList->clear();
-    setGameName(tr("(Unknown)"));
+    QString scriptName = QFileInfo(filename).fileName();
+    setGameName(tr("(No name)"), scriptName);
 
     ScriptMapLoader mapLoader;
-    connect(&mapLoader, &ScriptMapLoader::gameName, this, &CC2EditMain::setGameName);
+    connect(&mapLoader, &ScriptMapLoader::gameName, this,
+            [this, scriptName](const QString& name) {
+        setGameName(name, scriptName);
+    });
     connect(&mapLoader, &ScriptMapLoader::mapAdded, this,
-            [this](int levelNum, const QString &filename) {
+            [this](int levelNum, const QString& filename) {
         cc2::Map map;
         ccl::FileStream fs;
         if (fs.open(filename, ccl::FileStream::Read)) {
@@ -3095,16 +3095,18 @@ void CC2EditMain::onProcessFinished(int, QProcess::ExitStatus)
     m_subProc = nullptr;
 }
 
-void CC2EditMain::setGameName(const QString& name)
+void CC2EditMain::setGameName(const QString& name, const QString& filename)
 {
-    if (name.isEmpty()) {
+    QString displayName = name;
+    if (displayName.isEmpty()) {
         if (m_currentGameScript.isEmpty())
-            m_gameName->setText(tr("(No game script)"));
+            displayName = tr("(No game script)");
         else
-            m_gameName->setText(tr("(Empty)"));
-    } else {
-        m_gameName->setText(name);
+            displayName = tr("(Empty name)");
     }
+
+    m_gameName->setText(tr("<b><font size=\"+3\">%1</font></b><br><i>%2</i>")
+                        .arg(displayName, filename));
 }
 
 
