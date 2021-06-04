@@ -65,6 +65,10 @@ struct BitmapCoreHeader
     uint16_t bcHeight;
     uint16_t bcPlanes;
     uint16_t bcBitCount;
+
+    BitmapCoreHeader()
+        : bcSize(), bcWidth(), bcHeight(), bcPlanes(), bcBitCount()
+    { }
 };
 static_assert(sizeof(BitmapCoreHeader) == 12,
               "Invalid compiler packing for BitmapCoreHeader");
@@ -82,6 +86,12 @@ struct BitmapInfoHeader
     int32_t biYPelsPerMeter;
     uint32_t biClrUsed;
     uint32_t biClrImportant;
+
+    BitmapInfoHeader()
+        : biSize(), biWidth(), biHeight(), biPlanes(), biBitCount(),
+          biCompression(), biSizeImage(), biXPelsPerMeter(), biYPelsPerMeter(),
+          biClrUsed(), biClrImportant()
+    { }
 };
 static_assert(sizeof(BitmapInfoHeader) == 40,
               "Invalid compiler packing for BitmapInfoHeader");
@@ -134,7 +144,7 @@ void CCHack::PageBitmap::setValues(HackSettings* settings)
         buffer.open(QIODevice::ReadWrite);
         buffer.write("BM", 2);
 
-        BitmapInfoHeader bmih = {0};
+        BitmapInfoHeader bmih;
         uint32_t paletteSize = 0;
         memcpy(&bmih.biSize, bmpData.constData(), sizeof(bmih.biSize));
         if (bmih.biSize >= 40 && bmih.biSize != 64) {
@@ -145,7 +155,7 @@ void CCHack::PageBitmap::setValues(HackSettings* settings)
                     paletteSize = 1u << bmih.biBitCount;
             }
         } else {
-            BitmapCoreHeader bmch = {0};
+            BitmapCoreHeader bmch;
             memcpy(&bmch, bmpData.constData(), sizeof(bmch));
             if (bmch.bcBitCount <= 8)
                 paletteSize = 1u << bmch.bcBitCount;
