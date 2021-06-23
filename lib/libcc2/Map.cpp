@@ -653,6 +653,11 @@ void cc2::Tile::rotateLeft()
             m_modifier = ((m_modifier + 3) % 4) | (m_modifier & ~0x03);
         }
         break;
+    case AsciiGlyph:
+        m_modifier = ((m_modifier - cc2::TileModifier::GlyphMIN + cc2::TileModifier::GlyphCOUNT - 1)
+                            % cc2::TileModifier::GlyphCOUNT)
+                     + cc2::TileModifier::GlyphMIN;
+        break;
     default:
         break;
     }
@@ -742,6 +747,11 @@ void cc2::Tile::rotateRight()
         } else {
             m_modifier = ((m_modifier + 1) % 4) | (m_modifier & ~0x03);
         }
+        break;
+    case AsciiGlyph:
+        m_modifier = ((m_modifier - cc2::TileModifier::GlyphMIN + 1)
+                            % cc2::TileModifier::GlyphCOUNT)
+                     + cc2::TileModifier::GlyphMIN;
         break;
     default:
         break;

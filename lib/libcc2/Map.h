@@ -165,6 +165,7 @@ public:
         GlyphASCII_MAX = '_',
         GlyphMIN = GlyphUp,
         GlyphMAX = GlyphASCII_MAX,
+        GlyphCOUNT = (GlyphMAX - GlyphMIN) + 1,
     };
 };
 
