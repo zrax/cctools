@@ -30,6 +30,9 @@ public:
     void addFloatingTab(QWidget* widget, const QString& label);
     void promoteTab() { promoteTab(currentIndex()); }
     void promoteTab(int index);
+
+    // Shadows QTabWidget::setTabText()
+    void setTabText(int index, const QString& label);
 };
 
 #endif

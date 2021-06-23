@@ -111,7 +111,14 @@ EditorTabWidget::EditorTabWidget(QWidget* parent)
     setTabsClosable(true);
 }
 
-void EditorTabWidget::addFloatingTab(QWidget *tabWidget, const QString &label)
+static QString escapeTabName(const QString& label)
+{
+    QString cleanLabel = label;
+    cleanLabel.replace(QLatin1Char('&'), QLatin1String("&&"));
+    return cleanLabel;
+}
+
+void EditorTabWidget::addFloatingTab(QWidget* tabWidget, const QString& label)
 {
     int floatingTab = -1;
     for (int i = 0; i < count(); ++i) {
@@ -123,7 +130,7 @@ void EditorTabWidget::addFloatingTab(QWidget *tabWidget, const QString &label)
     if (floatingTab >= 0)
         delete widget(floatingTab);
 
-    int newIndex = addTab(tabWidget, label);
+    int newIndex = addTab(tabWidget, escapeTabName(label));
     tabBar()->setTabData(newIndex, TabFloating);
     if (floatingTab >= 0)
         tabBar()->moveTab(newIndex, floatingTab);
@@ -132,4 +139,9 @@ void EditorTabWidget::addFloatingTab(QWidget *tabWidget, const QString &label)
 void EditorTabWidget::promoteTab(int index)
 {
     static_cast<EditorTabBar*>(tabBar())->promoteTab(index);
+}
+
+void EditorTabWidget::setTabText(int index, const QString& label)
+{
+    QTabWidget::setTabText(index, escapeTabName(label));
 }
