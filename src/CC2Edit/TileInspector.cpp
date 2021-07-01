@@ -28,6 +28,8 @@
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QMessageBox>
+#include <QAction>
+#include <QToolBar>
 
 TileInspector::TileInspector(QWidget* parent)
     : QDialog(parent), m_tileset(), m_paging(false)
@@ -36,6 +38,31 @@ TileInspector::TileInspector(QWidget* parent)
     setWindowIcon(ICON("draw-inspect"));
 
     m_layers = new QListWidget(this);
+
+    m_addLayer = new QAction(ICON("list-add"), tr("&Add Layer"), this);
+    m_addLayer->setStatusTip(tr("Add a new layer above this layer"));
+    m_addLayer->setEnabled(true);
+    m_removeLayer = new QAction(ICON("list-remove"), tr("&Remove Layer"), this);
+    m_removeLayer->setStatusTip(tr("Remove this layer"));
+    m_removeLayer->setEnabled(true);
+    m_moveLayerUp = new QAction(ICON("arrow-up"), tr("Move &Up"), this);
+    m_moveLayerUp->setStatusTip(tr("Move the current level up in the level list"));
+    m_moveLayerUp->setEnabled(false);
+    m_moveLayerDown = new QAction(ICON("arrow-down"), tr("Move &Down"), this);
+    m_moveLayerDown->setStatusTip(tr("Move the current level down in the level list"));
+    m_moveLayerDown->setEnabled(false);
+
+    m_layerToolbox = new QToolBar(this);
+
+    m_layerToolbox->addAction(m_addLayer);
+    m_layerToolbox->addAction(m_removeLayer);
+    m_layerToolbox->addAction(m_moveLayerUp);
+    m_layerToolbox->addAction(m_moveLayerDown);
+
+    connect(m_addLayer, &QAction::triggered, this, &TileInspector::createLayerAbove);
+    connect(m_removeLayer, &QAction::triggered, this, &TileInspector::removeLayer);
+    connect(m_moveLayerDown, &QAction::triggered, this, &TileInspector::moveLayerDown);
+    connect(m_moveLayerUp, &QAction::triggered, this, &TileInspector::moveLayerUp);
 
     m_tileType = new QComboBox(this);
     for (int i = 0; i < cc2::Tile::NUM_TILE_TYPES; ++i) {
@@ -133,6 +160,7 @@ TileInspector::TileInspector(QWidget* parent)
     layout->addWidget(m_tileDir, row, 2);
     layout->addWidget(m_tileDirValue, row, 3);
     layout->addWidget(m_flagsGroup, ++row, 1, 1, 3);
+    layout->addWidget(m_layerToolbox, ++row, 1, 1, 3);
     layout->addItem(new QSpacerItem(0, 0, QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding),
                     ++row, 1, 1, 3);
     layout->addWidget(buttons, ++row, 0, 1, 4);
@@ -212,6 +240,10 @@ void TileInspector::onChangeLayer(int layer)
 
     for (int i = 0; i < 8; ++i)
         m_tileFlags[i]->setChecked((tile->tileFlags() & (1u << i)) != 0);
+
+    // These conditions are a bit more strict than you'd expect to avoid nonsensical movement of the lowest layer
+    m_moveLayerUp->setEnabled(layer != 0 && tile->haveLower());
+    m_moveLayerDown->setEnabled(tile->haveLower() && tile->lower()->haveLower());
 
     m_paging = false;
 }
@@ -323,3 +355,76 @@ cc2::Tile* TileInspector::tileLayer(int index)
         tile = tile->lower();
     return tile;
 }
+
+void TileInspector::createLayerAbove() {
+    int layer = m_layers->currentRow();
+    cc2::Tile* tile = tileLayer(layer);
+
+    cc2::Tile newTile = cc2::Tile(cc2::Tile::Chip);
+    *newTile.lower() = *tile;
+    if (layer == 0) m_tile = newTile;
+    else {
+        cc2::Tile* parentTile = tileLayer(layer - 1);
+        *parentTile->lower() = newTile;
+    }
+    m_layers->clear();
+    addLayers(&m_tile);
+    m_layers->setCurrentRow(layer);
+}
+
+void TileInspector::removeLayer() {
+    int layer = m_layers->currentRow();
+    cc2::Tile* tile = tileLayer(layer);
+    if (layer == 0) {
+        if (tile->haveLower()) m_tile = *tile->lower();
+        else m_tile = *new cc2::Tile(cc2::Tile::Floor);
+    }
+    else {
+        cc2::Tile* aboveTile = tileLayer(layer - 1);
+        if (tile->haveLower()) *aboveTile->lower() = *tile->lower();
+        else *aboveTile->lower() = *new cc2::Tile(cc2::Tile::Floor);
+    }
+    m_layers->clear();
+    addLayers(&m_tile);
+    m_layers->setCurrentRow(layer);
+}
+
+void TileInspector::swapLayers(int layer) {
+    if (layer == -1) layer = m_layers->currentRow();
+
+    cc2::Tile* tile = tileLayer(layer);
+
+    // Assert that this swap is sane and doesn't involve the lowest layer
+    Q_ASSERT(tile->haveLower() && tile->lower()->haveLower());
+
+    // This must not be a pointer, this will make an infinite pointer loop otherwise
+    cc2::Tile swappedTile = *tile->lower();
+
+    *tile->lower() = *swappedTile.lower();
+
+    *swappedTile.lower() = *tile;
+
+    if(layer == 0) m_tile = swappedTile;
+    else {
+        cc2::Tile* aboveTile = tileLayer(layer - 1);
+        *aboveTile->lower() = swappedTile;
+    }
+}
+
+void TileInspector::moveLayerUp() {
+    int layer = m_layers->currentRow();
+    swapLayers(layer - 1);
+    m_layers->clear();
+    addLayers(&m_tile);
+    m_layers->setCurrentRow(layer - 1);
+}
+
+
+void TileInspector::moveLayerDown() {
+    int layer = m_layers->currentRow();
+    swapLayers(layer);
+    m_layers->clear();
+    addLayers(&m_tile);
+    m_layers->setCurrentRow(layer + 1);
+}
+

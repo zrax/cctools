@@ -26,8 +26,9 @@ class QComboBox;
 class QSpinBox;
 class QCheckBox;
 class QGroupBox;
+class QAction;
+class QToolBar;
 class CC2ETileset;
-
 class TileInspector : public QDialog {
     Q_OBJECT
 
@@ -60,8 +61,17 @@ private:
     QSpinBox* m_tileDirValue;
     QGroupBox* m_flagsGroup;
     QCheckBox* m_tileFlags[8];
-
+    QAction* m_addLayer;
+    QAction* m_removeLayer;
+    QAction* m_moveLayerUp;
+    QAction* m_moveLayerDown;
+    QToolBar* m_layerToolbox;
     void addLayers(const cc2::Tile* tile);
+    void createLayerAbove();
+    void removeLayer();
+    void swapLayers(int layer);
+    void moveLayerUp();
+    void moveLayerDown();
     cc2::Tile* tileLayer(int index);
 };
 
