@@ -381,8 +381,7 @@ void TileInspector::removeLayer()
             m_tile = *tile->lower();
         else
             m_tile = cc2::Tile(cc2::Tile::Floor);
-    }
-    else {
+    } else {
         cc2::Tile* aboveTile = tileLayer(layer - 1);
         if (tile->haveLower())
             *aboveTile->lower() = *tile->lower();
@@ -396,7 +395,8 @@ void TileInspector::removeLayer()
 
 void TileInspector::swapLayers(int layer)
 {
-    if (layer == -1) layer = m_layers->currentRow();
+    if (layer == -1)
+        layer = m_layers->currentRow();
 
     cc2::Tile* tile = tileLayer(layer);
 
