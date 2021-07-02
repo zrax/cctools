@@ -29,6 +29,7 @@ class QGroupBox;
 class QAction;
 class QToolBar;
 class CC2ETileset;
+
 class TileInspector : public QDialog {
     Q_OBJECT
 
@@ -66,6 +67,7 @@ private:
     QAction* m_moveLayerUp;
     QAction* m_moveLayerDown;
     QToolBar* m_layerToolbox;
+
     void addLayers(const cc2::Tile* tile);
     void createLayerAbove();
     void removeLayer();

@@ -41,14 +41,12 @@ TileInspector::TileInspector(QWidget* parent)
 
     m_addLayer = new QAction(ICON("list-add"), tr("&Add Layer"), this);
     m_addLayer->setStatusTip(tr("Add a new layer above this layer"));
-    m_addLayer->setEnabled(true);
     m_removeLayer = new QAction(ICON("list-remove"), tr("&Remove Layer"), this);
     m_removeLayer->setStatusTip(tr("Remove this layer"));
-    m_removeLayer->setEnabled(true);
     m_moveLayerUp = new QAction(ICON("arrow-up"), tr("Move &Up"), this);
     m_moveLayerUp->setStatusTip(tr("Move the current level up in the level list"));
     m_moveLayerUp->setEnabled(false);
-    m_moveLayerDown = new QAction(ICON("arrow-down"), tr("Move &Down"), this);
+    m_moveLayerDown = new QAction(ICON("arrow-down"), tr("Move D&own"), this);
     m_moveLayerDown->setStatusTip(tr("Move the current level down in the level list"));
     m_moveLayerDown->setEnabled(false);
 
@@ -65,7 +63,7 @@ TileInspector::TileInspector(QWidget* parent)
     connect(m_moveLayerUp, &QAction::triggered, this, &TileInspector::moveLayerUp);
 
     m_tileType = new QComboBox(this);
-    for (int i = 0; i < cc2::Tile::NUM_TILE_TYPES; ++i) {
+    for (int i = 0; i< cc2::Tile::NUM_TILE_TYPES; ++i) {
         if (i == cc2::Tile::Modifier8 || i == cc2::Tile::Modifier16
                 || i == cc2::Tile::Modifier32)
             continue;
@@ -356,40 +354,48 @@ cc2::Tile* TileInspector::tileLayer(int index)
     return tile;
 }
 
-void TileInspector::createLayerAbove() {
+void TileInspector::createLayerAbove()
+{
     int layer = m_layers->currentRow();
     cc2::Tile* tile = tileLayer(layer);
 
     cc2::Tile newTile = cc2::Tile(cc2::Tile::Chip);
     *newTile.lower() = *tile;
-    if (layer == 0) m_tile = newTile;
+    if (layer == 0)
+        m_tile = std::move(newTile);
     else {
         cc2::Tile* parentTile = tileLayer(layer - 1);
-        *parentTile->lower() = newTile;
+        *parentTile->lower() = std::move(newTile);
     }
     m_layers->clear();
     addLayers(&m_tile);
     m_layers->setCurrentRow(layer);
 }
 
-void TileInspector::removeLayer() {
+void TileInspector::removeLayer()
+{
     int layer = m_layers->currentRow();
     cc2::Tile* tile = tileLayer(layer);
     if (layer == 0) {
-        if (tile->haveLower()) m_tile = *tile->lower();
-        else m_tile = *new cc2::Tile(cc2::Tile::Floor);
+        if (tile->haveLower())
+            m_tile = *tile->lower();
+        else
+            m_tile = cc2::Tile(cc2::Tile::Floor);
     }
     else {
         cc2::Tile* aboveTile = tileLayer(layer - 1);
-        if (tile->haveLower()) *aboveTile->lower() = *tile->lower();
-        else *aboveTile->lower() = *new cc2::Tile(cc2::Tile::Floor);
+        if (tile->haveLower())
+            *aboveTile->lower() = *tile->lower();
+        else
+            *aboveTile->lower() = cc2::Tile(cc2::Tile::Floor);
     }
     m_layers->clear();
     addLayers(&m_tile);
     m_layers->setCurrentRow(layer);
 }
 
-void TileInspector::swapLayers(int layer) {
+void TileInspector::swapLayers(int layer)
+{
     if (layer == -1) layer = m_layers->currentRow();
 
     cc2::Tile* tile = tileLayer(layer);
@@ -400,18 +406,20 @@ void TileInspector::swapLayers(int layer) {
     // This must not be a pointer, this will make an infinite pointer loop otherwise
     cc2::Tile swappedTile = *tile->lower();
 
-    *tile->lower() = *swappedTile.lower();
+    *tile->lower() = std::move(*swappedTile.lower());
 
-    *swappedTile.lower() = *tile;
+    *swappedTile.lower() = std::move(*tile);
 
-    if(layer == 0) m_tile = swappedTile;
+    if (layer == 0)
+        m_tile = std::move(swappedTile);
     else {
         cc2::Tile* aboveTile = tileLayer(layer - 1);
-        *aboveTile->lower() = swappedTile;
+        *aboveTile->lower() = std::move(swappedTile);
     }
 }
 
-void TileInspector::moveLayerUp() {
+void TileInspector::moveLayerUp()
+{
     int layer = m_layers->currentRow();
     swapLayers(layer - 1);
     m_layers->clear();
@@ -420,7 +428,8 @@ void TileInspector::moveLayerUp() {
 }
 
 
-void TileInspector::moveLayerDown() {
+void TileInspector::moveLayerDown()
+{
     int layer = m_layers->currentRow();
     swapLayers(layer);
     m_layers->clear();
