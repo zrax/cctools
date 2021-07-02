@@ -63,7 +63,7 @@ TileInspector::TileInspector(QWidget* parent)
     connect(m_moveLayerUp, &QAction::triggered, this, &TileInspector::moveLayerUp);
 
     m_tileType = new QComboBox(this);
-    for (int i = 0; i< cc2::Tile::NUM_TILE_TYPES; ++i) {
+    for (int i = 0; i < cc2::Tile::NUM_TILE_TYPES; ++i) {
         if (i == cc2::Tile::Modifier8 || i == cc2::Tile::Modifier16
                 || i == cc2::Tile::Modifier32)
             continue;
