@@ -318,6 +318,8 @@ void EditorWidget::renderTileBuffer()
                          && m_levelData->map().getFG(x, y) <= ccl::TileBlock_E)
                     && m_levelData->map().getFG(x, y) != ccl::TileBlock
                     && m_levelData->map().getFG(x, y) != ccl::TileIceBlock
+                    && !(m_levelData->map().getFG(x, y) >= ccl::TilePlayer_N
+                        && m_levelData->map().getFG(x, y) <= ccl::TilePlayer_E)
                     && !MONSTER_TILE(m_levelData->map().getFG(x, y)))
                     tilePainter.drawPixmap(x * m_tileset->size(), y * m_tileset->size(), m_errmk);
             }
