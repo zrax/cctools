@@ -75,8 +75,9 @@ private:
 class LevelData {
 public:
     enum FieldMarker {
-        FieldName = 3, FieldTraps = 4, FieldClones = 5, FieldPassword = 6,
-        FieldHint = 7, FieldMoveList = 10,
+        FieldTimeLimit = 1, FieldChips = 2, FieldName = 3, FieldTraps = 4,
+        FieldClones = 5, FieldPassword = 6, FieldHint = 7,
+        FieldPlainPassword = 8, FieldMoveList = 10,
     };
 
 public:

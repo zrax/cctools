@@ -271,6 +271,16 @@ long ccl::LevelData::read(ccl::Stream* stream, bool forClipboard)
             throw ccl::IOError(ccl::RuntimeError::tr("Invalid or corrupt level data"));
 
         switch (field) {
+        case FieldTimeLimit:
+            if (size != sizeof(uint16_t))
+                throw ccl::IOError(ccl::RuntimeError::tr("Invalid time limit field size"));
+            m_timer = stream->read16();
+            break;
+        case FieldChips:
+            if (size != sizeof(uint16_t))
+                throw ccl::IOError(ccl::RuntimeError::tr("Invalid chips field size"));
+            m_chips = stream->read16();
+            break;
         case FieldName:
             m_name = stream->readString(size);
             break;
@@ -279,6 +289,9 @@ long ccl::LevelData::read(ccl::Stream* stream, bool forClipboard)
             break;
         case FieldPassword:
             m_password = stream->readString(size, true);
+            break;
+        case FieldPlainPassword:
+            m_password = stream->readString(size, false);
             break;
         case FieldTraps:
             if ((size % 10) != 0)
