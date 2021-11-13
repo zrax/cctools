@@ -117,6 +117,7 @@ void ccl::LevelData::copyFrom(const ccl::LevelData* init)
     m_name = init->m_name;
     m_hint = init->m_hint;
     m_password = init->m_password;
+    m_author = init->m_author;
     m_levelNum = init->m_levelNum;
     m_chips = init->m_chips;
     m_timer = init->m_timer;
@@ -293,6 +294,9 @@ long ccl::LevelData::read(ccl::Stream* stream, bool forClipboard)
         case FieldPlainPassword:
             m_password = stream->readString(size, false);
             break;
+        case FieldAuthor_EXT:
+            m_author = stream->readString(size, false);
+            break;
         case FieldTraps:
             if ((size % 10) != 0)
                 throw ccl::IOError(ccl::RuntimeError::tr("Invalid trap field size"));
@@ -402,6 +406,11 @@ long ccl::LevelData::write(ccl::Stream* stream, bool forClipboard) const
             stream->write8(it->X);
             stream->write8(it->Y);
         }
+    }
+    if (!m_author.empty()) {
+        stream->write8((uint8_t)FieldAuthor_EXT);
+        stream->write8((uint8_t)(m_author.size() + 1));
+        stream->writeString(m_author);
     }
 
     // Update checksums
