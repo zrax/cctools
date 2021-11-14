@@ -249,6 +249,7 @@ enum TileType {
 #define MONSTER_TILE(tile) ((tile) >= ccl::MONSTER_FIRST && (tile) <= ccl::MONSTER_LAST)
 #define FORCE_TILE(tile)   ((tile) == ccl::TileForce_S || (tile) == ccl::TileForce_N \
                             || (tile) == ccl::TileForce_E || (tile) == ccl::TileForce_W)
+#define BOOT_TILE(tile)    ((tile) >= ccl::TileFlippers && (tile) <= ccl::TileForceBoots)
 #define MASKED_TILE(tile)  ((tile) >= ccl::MONSTER_FIRST && (tile) < ccl::NUM_TILE_TYPES)
 
 } /* {ccl} */
