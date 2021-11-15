@@ -20,8 +20,8 @@
 
 #include <QDialog>
 
-#define CCTOOLS_VERSION "3.0-beta3"
-#define CCTOOLS_APP_VER "2.97"
+#define CCTOOLS_VERSION "3.0-rc1"
+#define CCTOOLS_APP_VER "2.99"
 
 #define ICON(name)  QIcon(QStringLiteral(":/res/" name ".png"))
 
@@ -43,11 +43,15 @@
 class QSettings;
 
 class AboutWidget : public QWidget {
+    Q_OBJECT
+
 public:
     AboutWidget(const QString& name, const QPixmap& icon, QWidget *parent = nullptr);
 };
 
 class AboutDialog : public QDialog {
+    Q_OBJECT
+
 public:
     AboutDialog(const QString& name, const QPixmap& icon, QWidget* parent = nullptr);
 };
