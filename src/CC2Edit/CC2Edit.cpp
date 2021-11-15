@@ -1133,6 +1133,8 @@ CC2EditMain::CC2EditMain(QWidget* parent)
 
     setGameName(QString());
     onClipboardDataChanged();
+
+    installEventFilter(this);
 }
 
 void CC2EditMain::createNewMap()
@@ -1750,6 +1752,30 @@ void CC2EditMain::resizeEvent(QResizeEvent* event)
             editor->setZoom(std::min(zx, zy));
         }
     }
+}
+
+bool CC2EditMain::eventFilter(QObject* obj, QEvent* event)
+{
+    if (event->type() == QEvent::KeyPress) {
+        auto keyEvent = static_cast<QKeyEvent*>(event);
+        int key = keyEvent->key();
+        if ((keyEvent->modifiers() & ~Qt::ShiftModifier) == 0
+                && key >= cc2::TileModifier::GlyphASCII_MIN
+                && key <= cc2::TileModifier::GlyphASCII_MAX) {
+            // Update ASCII glyph with the pressed character, if an ASCII glyph
+            // tile is currently selected for drawing
+            if (m_leftTile.type() == cc2::Tile::AsciiGlyph) {
+                m_leftTile.setModifier(key);
+                emit leftTileChanged(m_leftTile);
+                return true;
+            } else if (m_rightTile.type() == cc2::Tile::AsciiGlyph) {
+                m_rightTile.setModifier(key);
+                emit rightTileChanged(m_rightTile);
+                return true;
+            }
+        }
+    }
+    return QMainWindow::eventFilter(obj, event);
 }
 
 void CC2EditMain::onOpenAction()

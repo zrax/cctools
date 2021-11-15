@@ -74,6 +74,7 @@ signals:
 protected:
     void closeEvent(QCloseEvent*) override;
     void resizeEvent(QResizeEvent*) override;
+    bool eventFilter(QObject*, QEvent*) override;
 
 private slots:
     void onOpenAction();
