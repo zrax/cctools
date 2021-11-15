@@ -191,8 +191,8 @@ private:
     QCheckBox* m_hideLogic;
     QCheckBox* m_cc1Boots;
     QCheckBox* m_readOnly;
-    QPlainTextEdit* m_clue;
-    QPlainTextEdit* m_note;
+    CC2ScriptEditor* m_clue;
+    CC2ScriptEditor* m_note;
 
     cc2::Tile m_leftTile, m_rightTile;
 

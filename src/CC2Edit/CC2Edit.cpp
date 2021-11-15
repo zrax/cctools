@@ -369,12 +369,10 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_readOnly = new QCheckBox(tr("&Read-Only"), m_mapProperties);
     auto optionsLabel = new QLabel(tr("Options:"), m_mapProperties);
 
-    m_clue = new QPlainTextEdit(m_mapProperties);
-    m_clue->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
+    m_clue = new CC2ScriptEditor(CC2ScriptEditor::PlainMode, m_mapProperties);
     auto clueLabel = new QLabel(tr("C&lue:"), m_mapProperties);
     clueLabel->setBuddy(m_clue);
-    m_note = new QPlainTextEdit(m_mapProperties);
-    m_note->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
+    m_note = new CC2ScriptEditor(CC2ScriptEditor::NotesMode, m_mapProperties);
     auto noteLabel = new QLabel(tr("&Notes:"), m_mapProperties);
     noteLabel->setBuddy(m_note);
 
@@ -1641,7 +1639,7 @@ CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename, 
 
 CC2ScriptEditor* CC2EditMain::addScriptEditor(const QString& filename)
 {
-    auto editor = new CC2ScriptEditor(m_editorTabs);
+    auto editor = new CC2ScriptEditor(CC2ScriptEditor::ScriptMode, m_editorTabs);
     if (filename.isEmpty()) {
         m_editorTabs->addTab(editor, tr("Untitled Script"));
     } else {

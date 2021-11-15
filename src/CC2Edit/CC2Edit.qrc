@@ -1,5 +1,5 @@
 <!DOCTYPE RCC><RCC version="1.0">
-<qresource>
+  <qresource>
     <file>res/document-new.png</file>
     <file>res/document-open.png</file>
     <file>res/document-open-folder-sm.png</file>
@@ -44,8 +44,9 @@
     <file>icons/boot-16.png</file>
     <file>icons/boot-24.png</file>
     <file>icons/boot-32.png</file>
-</qresource>
-<qresource prefix="/cc2-syntax">
+  </qresource>
+  <qresource prefix="/cc2-syntax">
     <file>syntax/cc2game.xml</file>
-</qresource>
+    <file>syntax/cc2notes.xml</file>
+  </qresource>
 </RCC>

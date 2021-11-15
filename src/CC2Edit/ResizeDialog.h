@@ -23,6 +23,8 @@
 class QSpinBox;
 
 class ResizeDialog : public QDialog {
+    Q_OBJECT
+
 public:
     explicit ResizeDialog(const QSize& curSize, QWidget* parent = nullptr);
 

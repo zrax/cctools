@@ -32,12 +32,10 @@ static KSyntaxHighlighting::Repository* SyntaxRepo()
     return s_repo;
 }
 
-CC2ScriptEditor::CC2ScriptEditor(QWidget* parent)
+CC2ScriptEditor::CC2ScriptEditor(Mode mode, QWidget* parent)
     : SyntaxTextEdit(parent)
 {
     setTabWidth(4);
-    setHighlightCurrentLine(true);
-    setShowLineNumbers(true);
 
 #if defined(_WIN32)
     // Included in Vista or Office 2007, both of which are "Old Enough" (2018)
@@ -54,9 +52,29 @@ CC2ScriptEditor::CC2ScriptEditor(QWidget* parent)
     editFont.setFixedPitch(true);
     setDefaultFont(editFont);
 
-    auto syntaxDef = SyntaxRepo()->definitionForName(QStringLiteral("CC2 Game Script"));
+    QString syntaxName;
+    switch (mode) {
+    case ScriptMode:
+        setHighlightCurrentLine(true);
+        setShowLineNumbers(true);
+        syntaxName = QStringLiteral("CC2 Game Script");
+        break;
+    case NotesMode:
+        setShowFolding(true);
+        syntaxName = QStringLiteral("CC2 Game Notes");
+        break;
+    case PlainMode:
+        // Just for visual consistency with NotesMode
+        setShowFolding(true);
+        break;
+    default:
+        // Missing mode case
+        Q_ASSERT(false);
+    }
+
+    auto syntaxDef = SyntaxRepo()->definitionForName(syntaxName);
     if (!syntaxDef.isValid())
-        qDebug("Warning: Could not find syntax defintion for .c2g files");
+        qDebug("Warning: Could not find syntax defintion for \"%s\"", qPrintable(syntaxName));
     setSyntax(syntaxDef);
 }
 
