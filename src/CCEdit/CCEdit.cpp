@@ -2239,7 +2239,9 @@ void CCEditMain::onTestLexy()
         return;
     }
     QByteArray buffer(reinterpret_cast<const char *>(bs.buffer()), bs.size());
-    QByteArray b64data = buffer.toBase64(QByteArray::Base64UrlEncoding);
+    QByteArray zdata = qCompress(buffer);
+    zdata.remove(0, 4);     // Strip Qt's custom size header...
+    QByteArray b64data = zdata.toBase64(QByteArray::Base64UrlEncoding);
 
     QSettings settings;
     QString lexyUrl = settings.value(QStringLiteral("LexyUrl"),
