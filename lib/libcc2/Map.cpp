@@ -17,6 +17,7 @@
 
 #include "Map.h"
 #include "libcc1/Levelset.h"
+#include "libcc2/CC2MD5.h"
 
 #include <QtGlobal>
 #include <algorithm>
@@ -1371,7 +1372,8 @@ void cc2::Map::read(ccl::Stream* stream)
 }
 
 template <typename Writer>
-void writeTagged(ccl::Stream* stream, const char* tag, const Writer& writer)
+void writeTagged(ccl::Stream* stream, const char* tag, const Writer& writer,
+                 CC2MD5* lockMd5 = nullptr)
 {
     if (stream->write(tag, 1, 4) != 4)
         throw ccl::IOError(ccl::RuntimeError::tr("Error writing to stream"));
@@ -1384,10 +1386,13 @@ void writeTagged(ccl::Stream* stream, const char* tag, const Writer& writer)
     stream->write32(bs.size());
     if (stream->write(bs.buffer(), 1, bs.size()) != bs.size())
         throw ccl::IOError(ccl::RuntimeError::tr("Error writing to stream"));
+
+    if (lockMd5)
+        lockMd5->update(bs.buffer(), bs.size());
 }
 
 static void writeTaggedString(ccl::Stream* stream, const char* tag,
-                              const std::string& str)
+                              const std::string& str, CC2MD5* lockMd5 = nullptr)
 {
     if (stream->write(tag, 1, 4) != 4)
         throw ccl::IOError(ccl::RuntimeError::tr("Error writing to stream"));
@@ -1398,6 +1403,12 @@ static void writeTaggedString(ccl::Stream* stream, const char* tag,
 
     // Nul-terminator
     stream->write8(0);
+
+    if (lockMd5) {
+        uint8_t nul = 0;
+        lockMd5->update(str.c_str(), str.size());
+        lockMd5->update(&nul, 1);
+    }
 }
 
 template <size_t FixedSize>
@@ -1418,27 +1429,32 @@ void cc2::Map::write(ccl::Stream* stream) const
     // Always required
     writeTaggedString(stream, "CC2M", m_version);
 
-    if (!m_lock.empty())
-        writeTaggedString(stream, "LOCK", m_lock);
-    if (!m_title.empty())
-        writeTaggedString(stream, "TITL", toWindowsCRLF(m_title));
-    if (!m_author.empty())
-        writeTaggedString(stream, "AUTH", toWindowsCRLF(m_author));
     if (!m_editorVersion.empty())
         writeTaggedString(stream, "VERS", m_editorVersion);
+
+    CC2MD5 lockMd5(CC2MD5::CC2Lock);
+    if (!m_lock.empty())
+        writeTaggedString(stream, "LOCK", m_lock, &lockMd5);
+    if (!m_title.empty())
+        writeTaggedString(stream, "TITL", toWindowsCRLF(m_title), &lockMd5);
+    if (!m_author.empty())
+        writeTaggedString(stream, "AUTH", toWindowsCRLF(m_author), &lockMd5);
     if (!m_clue.empty())
-        writeTaggedString(stream, "CLUE", toWindowsCRLF(m_clue));
+        writeTaggedString(stream, "CLUE", toWindowsCRLF(m_clue), &lockMd5);
     if (!m_note.empty())
-        writeTaggedString(stream, "NOTE", toWindowsCRLF(m_note));
+        writeTaggedString(stream, "NOTE", toWindowsCRLF(m_note), &lockMd5);
 
     // To match the maps that ship with CC2, we always write at least
     // 3 bytes of the OPTN field
-    writeTagged(stream, "OPTN", [this](ccl::Stream* s) { m_option.write(s); });
+    writeTagged(stream, "OPTN", [this](ccl::Stream* s) { m_option.write(s); }, &lockMd5);
 
     ccl::BufferStream unpackedMap;
     m_mapData.write(&unpackedMap);
-    writeTagged(stream, "PACK", [&unpackedMap](ccl::Stream* s) { s->pack(&unpackedMap); });
-    writeTaggedBlock<sizeof(m_key)>(stream, "KEY ", m_key);
+    writeTagged(stream, "PACK", [&unpackedMap](ccl::Stream* s) { s->pack(&unpackedMap); }, &lockMd5);
+
+    QByteArray key = lockMd5.finish();
+    Q_ASSERT(key.size() == sizeof(m_key));
+    writeTaggedBlock<sizeof(m_key)>(stream, "KEY ", key.data());
 
     // Ensure any unrecognized fields are preserved upon write
     for (const auto& unknown : m_unknown) {
