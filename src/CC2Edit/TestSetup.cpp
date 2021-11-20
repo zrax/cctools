@@ -66,10 +66,6 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     auto browseSteam = new QToolButton(this);
     browseSteam->setIcon(ICON("document-open-folder-sm"));
     browseSteam->setAutoRaise(true);
-
-    m_steamAppId = new QLineEdit(settings.value(QStringLiteral("SteamAppId")).toString(), this);
-    auto lblSteamAppId = new QLabel(tr("Steam &App id:"), this);
-    lblSteamAppId->setBuddy(m_steamAppId);
 #endif
 
     m_chips2Path = new QLineEdit(settings.value(QStringLiteral("Chips2Exe")).toString(), this);
@@ -100,8 +96,6 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     layout->addWidget(lblSteamPath, ++row, 0);
     layout->addWidget(m_steamRoot, row, 1);
     layout->addWidget(browseSteam, row, 2);
-    layout->addWidget(lblSteamAppId, ++row, 0);
-    layout->addWidget(m_steamAppId, row, 1);
     auto protonLabel = new QLabel(
             tr("Note: Leave Steam-related inputs empty to use system-installed locations."),
             this);
@@ -118,9 +112,6 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     auto chips1Label = new QLabel(tr("Notes for playtesting in CC2: <ul>"
             "<li>The Steam version of Chip's Challenge 1 (chips1.exe) may also be used.</li>"
             "<li>Steam must be <b>running</b> and <b>logged in</b> for playtesting to work properly.</li>"
-#ifndef Q_OS_WINDOWS
-             "<li>If no CC2 path is specified, the CC executable will be derived from the given Steam path.</li>"
-#endif
             "</ul>"), this);
     chips1Label->setWordWrap(true);
     layout->addWidget(chips1Label, ++row, 0, 1, 3);
@@ -144,7 +135,6 @@ void TestSetupDialog::onSaveSettings()
 #ifndef Q_OS_WIN
     settings.setValue(QStringLiteral("ProtonExe"), m_protonPath->text());
     settings.setValue(QStringLiteral("SteamRoot"), m_steamRoot->text());
-    settings.setValue(QStringLiteral("SteamAppId"), m_steamAppId->text());
 #endif
     settings.setValue(QStringLiteral("Chips2Exe"), m_chips2Path->text());
     settings.setValue(QStringLiteral("LexyUrl"), m_lexyUrl->text());

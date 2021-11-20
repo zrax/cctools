@@ -32,7 +32,6 @@ private:
 #ifndef Q_OS_WIN
     QLineEdit* m_protonPath;
     QLineEdit* m_steamRoot;
-    QLineEdit* m_steamAppId;
 #endif
     QLineEdit* m_chips2Path;
     QLineEdit* m_lexyUrl;
