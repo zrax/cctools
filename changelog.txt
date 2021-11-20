@@ -1,3 +1,48 @@
+2021-11-15 - 3.0 RC1 (2.99.0)
+~~~~~~~~~~
+Features:
+  * CC2Edit: Add buttons for adding/moving/deleting individual layers in the
+    Tile Inspector (Thanks @TheGLander).
+  * CC2Edit: Add additional tiles for multi-direction wire tunnels to the
+    tile picker widgets.
+  * CC2Edit: Show the .c2g filename in addition to the name set by its script.
+  * CC2Edit: Allow ',' and '.' keys to also cycle through Glyphs, to match
+    CC2's built-in editor.
+  * CC2Edit: When drawing glyph tiles, the keyboard can be used to pick a
+    glyph value directly (this matches CC2's built-in editor).
+  * CC2Edit: Add syntax highlighting for [COM] sections in the Notes field.
+  * CCEdit: Add support for an Author field as field ID 9.  This matches the
+    implementation already used in SuperCC and Lexy's Labyrinth.
+  * CCEdit: Support reading and writing tile id 0xFF (255).
+
+Bugfixes:
+  * CC2Edit/CCEdit: Fix tileset scale setting being ignored when switching
+    tilesets within the application.
+  * CC2Edit/CCEdit: Fix tab widgets incorrectly rendering '&' characters as
+    keyboard shortcuts.
+  * CC2Edit: Drawing with a normal floor tile now pops the top layer instead
+    of replacing the whole tile (this matches CCEdit's behavior).
+  * CC2Edit: Don't erase clue text when drawing over clue tiles.
+  * CC2Edit: Fix issue with rendering blocks under (X-rayed) canopies.
+  * CC2Edit: Further improve tile layer render order, to fix some incorrectly
+    drawn combinations from previous builds.
+  * CC2Edit: Fix missing '_' from the Glyph tiles in both tile selectors.
+  * CC2Edit: Improve default layer combination/replacement logic to avoid some
+    invalid combinations and allow some valid ones which were previously
+    disallowed in the default drawing mode.
+  * CC2Edit: Fix regression when replacing a non-wired tile with a wire tunnel.
+  * CC2Edit: Properly validate file headers before trying to load the rest
+    of its content.
+  * CCEdit: Fix some valid tile combos being rendered as invalid (Thanks
+    @TheGLander).
+  * CCEdit: Fix monster path visualization incorrectly treating boots as
+    non-blocking tiles.
+  * CCEdit: Support reading fields 1 (alternate time limit), 2 (alternate
+    chip counter), and 8 (plain text password) from CC1 data files.
+  * Tilesets: Fix incorrect Teeth graphic in CC2 tileset.
+  * Windows Installer: Optionally allow associating CCEdit with .dat files.
+
+
 2020-12-21 - 3.0 BETA 3 (2.97.0)
 ~~~~~~~~~~
 Features:
@@ -116,8 +161,7 @@ CCEdit Changes:
     above it.
   * Copying a selection will now also copy a graphic of the selected tiles.
   * Add a flood-fill drawing tool.
-  * Add a tile inspector tool, which can set any valid or invalid tile
-    (except tile 255, which is reserved for RLE encoding).
+  * Add a tile inspector tool, which can set any valid or invalid tile.
   * Fixed a crash when dragging levels in the Levelset Organizer dialog.
   * Fixed a crash when using Pedantic mode in the Error Checker.
   * Fixed a crash when rendering levels that have tiles outside of the

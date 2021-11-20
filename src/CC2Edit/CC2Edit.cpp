@@ -369,12 +369,10 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_readOnly = new QCheckBox(tr("&Read-Only"), m_mapProperties);
     auto optionsLabel = new QLabel(tr("Options:"), m_mapProperties);
 
-    m_clue = new QPlainTextEdit(m_mapProperties);
-    m_clue->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
+    m_clue = new CC2ScriptEditor(CC2ScriptEditor::PlainMode, m_mapProperties);
     auto clueLabel = new QLabel(tr("C&lue:"), m_mapProperties);
     clueLabel->setBuddy(m_clue);
-    m_note = new QPlainTextEdit(m_mapProperties);
-    m_note->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
+    m_note = new CC2ScriptEditor(CC2ScriptEditor::NotesMode, m_mapProperties);
     auto noteLabel = new QLabel(tr("&Notes:"), m_mapProperties);
     noteLabel->setBuddy(m_note);
 
@@ -1135,6 +1133,8 @@ CC2EditMain::CC2EditMain(QWidget* parent)
 
     setGameName(QString());
     onClipboardDataChanged();
+
+    installEventFilter(this);
 }
 
 void CC2EditMain::createNewMap()
@@ -1641,7 +1641,7 @@ CC2EditorWidget* CC2EditMain::addEditor(cc2::Map* map, const QString& filename, 
 
 CC2ScriptEditor* CC2EditMain::addScriptEditor(const QString& filename)
 {
-    auto editor = new CC2ScriptEditor(m_editorTabs);
+    auto editor = new CC2ScriptEditor(CC2ScriptEditor::ScriptMode, m_editorTabs);
     if (filename.isEmpty()) {
         m_editorTabs->addTab(editor, tr("Untitled Script"));
     } else {
@@ -1752,6 +1752,30 @@ void CC2EditMain::resizeEvent(QResizeEvent* event)
             editor->setZoom(std::min(zx, zy));
         }
     }
+}
+
+bool CC2EditMain::eventFilter(QObject* obj, QEvent* event)
+{
+    if (event->type() == QEvent::KeyPress) {
+        auto keyEvent = static_cast<QKeyEvent*>(event);
+        int key = keyEvent->key();
+        if ((keyEvent->modifiers() & ~Qt::ShiftModifier) == 0
+                && key >= cc2::TileModifier::GlyphASCII_MIN
+                && key <= cc2::TileModifier::GlyphASCII_MAX) {
+            // Update ASCII glyph with the pressed character, if an ASCII glyph
+            // tile is currently selected for drawing
+            if (m_leftTile.type() == cc2::Tile::AsciiGlyph) {
+                m_leftTile.setModifier(key);
+                emit leftTileChanged(m_leftTile);
+                return true;
+            } else if (m_rightTile.type() == cc2::Tile::AsciiGlyph) {
+                m_rightTile.setModifier(key);
+                emit rightTileChanged(m_rightTile);
+                return true;
+            }
+        }
+    }
+    return QMainWindow::eventFilter(obj, event);
 }
 
 void CC2EditMain::onOpenAction()
@@ -2708,7 +2732,9 @@ void CC2EditMain::onTestLexy()
         return;
     }
     QByteArray buffer(reinterpret_cast<const char *>(bs.buffer()), bs.size());
-    QByteArray b64data = buffer.toBase64(QByteArray::Base64UrlEncoding);
+    QByteArray zdata = qCompress(buffer);
+    zdata.remove(0, 4);     // Strip Qt's custom size header...
+    QByteArray b64data = zdata.toBase64(QByteArray::Base64UrlEncoding);
 
     QSettings settings;
     QString lexyUrl = settings.value(QStringLiteral("LexyUrl"),

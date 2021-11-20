@@ -1294,12 +1294,8 @@ void CC2EditorWidget::putTile(const cc2::Tile& tile, int x, int y, CombineMode m
             // Something unclonable is being placed...
             curTile = tile;
         }
-    } else if (tile.haveLower() && !baseTile.isOtherClass()) {
+    } else if (tile.haveLower()) {
         pushTile(curTile, tile, REPLACE_LAYER);
-    } else if (tile.isTerrain()) {
-        baseTile = tile;
-        if (baseTile.supportsWires())
-            baseTile.setModifier(baseWires | tile.modifier());
     } else {
         // For everything else: just replace the entire tile
         curTile = tile;

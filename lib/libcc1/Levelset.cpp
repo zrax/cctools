@@ -117,6 +117,7 @@ void ccl::LevelData::copyFrom(const ccl::LevelData* init)
     m_name = init->m_name;
     m_hint = init->m_hint;
     m_password = init->m_password;
+    m_author = init->m_author;
     m_levelNum = init->m_levelNum;
     m_chips = init->m_chips;
     m_timer = init->m_timer;
@@ -271,6 +272,16 @@ long ccl::LevelData::read(ccl::Stream* stream, bool forClipboard)
             throw ccl::IOError(ccl::RuntimeError::tr("Invalid or corrupt level data"));
 
         switch (field) {
+        case FieldTimeLimit:
+            if (size != sizeof(uint16_t))
+                throw ccl::IOError(ccl::RuntimeError::tr("Invalid time limit field size"));
+            m_timer = stream->read16();
+            break;
+        case FieldChips:
+            if (size != sizeof(uint16_t))
+                throw ccl::IOError(ccl::RuntimeError::tr("Invalid chips field size"));
+            m_chips = stream->read16();
+            break;
         case FieldName:
             m_name = stream->readString(size);
             break;
@@ -279,6 +290,12 @@ long ccl::LevelData::read(ccl::Stream* stream, bool forClipboard)
             break;
         case FieldPassword:
             m_password = stream->readString(size, true);
+            break;
+        case FieldPlainPassword:
+            m_password = stream->readString(size, false);
+            break;
+        case FieldAuthor_EXT:
+            m_author = stream->readString(size, false);
             break;
         case FieldTraps:
             if ((size % 10) != 0)
@@ -389,6 +406,11 @@ long ccl::LevelData::write(ccl::Stream* stream, bool forClipboard) const
             stream->write8(it->X);
             stream->write8(it->Y);
         }
+    }
+    if (!m_author.empty()) {
+        stream->write8((uint8_t)FieldAuthor_EXT);
+        stream->write8((uint8_t)(m_author.size() + 1));
+        stream->writeString(m_author);
     }
 
     // Update checksums

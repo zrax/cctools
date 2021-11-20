@@ -18,13 +18,20 @@
 #ifndef _SCRIPTEDITOR_H
 #define _SCRIPTEDITOR_H
 
-#include "qtextpad/syntaxtextedit.h"
+#include "qtextpad/src/syntaxtextedit.h"
 
 class CC2ScriptEditor : public SyntaxTextEdit {
     Q_OBJECT
 
 public:
-    explicit CC2ScriptEditor(QWidget* parent = nullptr);
+    enum Mode
+    {
+        ScriptMode,
+        NotesMode,
+        PlainMode,
+    };
+
+    explicit CC2ScriptEditor(Mode mode, QWidget* parent = nullptr);
 
     QString filename() const { return m_filename; }
     void setFilename(const QString& filename) { m_filename = filename; }

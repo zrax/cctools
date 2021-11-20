@@ -1376,15 +1376,14 @@ void writeTagged(ccl::Stream* stream, const char* tag, const Writer& writer)
     if (stream->write(tag, 1, 4) != 4)
         throw ccl::IOError(ccl::RuntimeError::tr("Error writing to stream"));
 
-    stream->write32(0);
-    long start = stream->tell();
-    writer();
-    long end = stream->tell();
+    // Write the content to a buffer first, so we can compute its size without
+    // doing a bunch of seeking...
+    ccl::BufferStream bs;
+    writer(&bs);
 
-    // Go back and write the size word
-    stream->seek(start - 4, SEEK_SET);
-    stream->write32((uint32_t)(end - start));
-    stream->seek(end, SEEK_SET);
+    stream->write32(bs.size());
+    if (stream->write(bs.buffer(), 1, bs.size()) != bs.size())
+        throw ccl::IOError(ccl::RuntimeError::tr("Error writing to stream"));
 }
 
 static void writeTaggedString(ccl::Stream* stream, const char* tag,
@@ -1434,24 +1433,24 @@ void cc2::Map::write(ccl::Stream* stream) const
 
     // To match the maps that ship with CC2, we always write at least
     // 3 bytes of the OPTN field
-    writeTagged(stream, "OPTN", [&] { m_option.write(stream); });
+    writeTagged(stream, "OPTN", [this](ccl::Stream* s) { m_option.write(s); });
 
     ccl::BufferStream unpackedMap;
     m_mapData.write(&unpackedMap);
-    writeTagged(stream, "PACK", [&] { stream->pack(&unpackedMap); });
+    writeTagged(stream, "PACK", [&unpackedMap](ccl::Stream* s) { s->pack(&unpackedMap); });
     writeTaggedBlock<sizeof(m_key)>(stream, "KEY ", m_key);
 
     // Ensure any unrecognized fields are preserved upon write
     for (const auto& unknown : m_unknown) {
-        writeTagged(stream, unknown.tag, [&] {
-            stream->write(&unknown.data[0], 1, unknown.data.size());
+        writeTagged(stream, unknown.tag, [&unknown](ccl::Stream* s) {
+            s->write(&unknown.data[0], 1, unknown.data.size());
         });
     }
 
     if (!m_replay.empty()) {
         ccl::BufferStream unpackedReplay;
         unpackedReplay.write(&m_replay[0], 1, m_replay.size());
-        writeTagged(stream, "PRPL", [&] { stream->pack(&unpackedReplay); });
+        writeTagged(stream, "PRPL", [&unpackedReplay](ccl::Stream* s) { s->pack(&unpackedReplay); });
     }
 
     if (m_readOnly)
@@ -1657,14 +1656,14 @@ void cc2::ClipboardMap::write(ccl::Stream* stream) const
 {
     ccl::BufferStream unpackedMap;
     m_mapData.write(&unpackedMap);
-    writeTagged(stream, "PACK", [&] { stream->pack(&unpackedMap); });
+    writeTagged(stream, "PACK", [&unpackedMap](ccl::Stream* s) { s->pack(&unpackedMap); });
 
-    writeTagged(stream, "CLUE", [&] {
+    writeTagged(stream, "CLUE", [this](ccl::Stream* s) {
         for (const std::string& clue : m_clueData) {
-            stream->write32(clue.size() + 1);
-            stream->writeString(clue);
+            s->write32(clue.size() + 1);
+            s->writeString(clue);
         }
-        stream->write32(0);
+        s->write32(0);
     });
 
     // End of tagged data
@@ -1820,7 +1819,7 @@ void cc2::CC2HighScore::write(ccl::Stream* stream) const
         writeTaggedString(stream, "FILE", score.filename());
         writeTaggedString(stream, "TYPE", score.gameType());
         writeTaggedString(stream, "NAME", score.title());
-        writeTagged(stream, "SAVE", [&] { score.saveData().write(stream); });
+        writeTagged(stream, "SAVE", [&score](ccl::Stream* s) { score.saveData().write(s); });
     }
 
     // End of tagged data
@@ -1873,7 +1872,7 @@ void cc2::CC2Save::write(ccl::Stream* stream) const
 
     writeTaggedString(stream, "FILE", m_filename);
     writeTaggedString(stream, "PATH", m_gamePath);
-    writeTagged(stream, "GAME", [&] { m_save.write(stream); });
+    writeTagged(stream, "GAME", [this](ccl::Stream* s) { m_save.write(s); });
 
     // End of tagged data
     writeTaggedBlock<0>(stream, "END ");

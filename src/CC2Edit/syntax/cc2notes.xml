@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE language SYSTEM "language.dtd">
+<language name="CC2 Game Notes" section="Other" version="1" kateversion="5.0"
+          casesensitive="0" author="Michael Hansen" license="MIT">
+  <highlighting>
+    <contexts>
+      <context name="Normal" attribute="Normal Text" lineEndContext="#stay">
+        <IncludeRules context="Section Rules"/>
+      </context>
+
+      <context name="Section Rules" attribute="Normal Text" lineEndContext="#stay">
+        <StringDetect attribute="Section" String="[com]" context="Script Section"
+                      firstNonSpace="true" insensitive="true"
+                      beginRegion="Section" endRegion="Section"/>
+        <RangeDetect attribute="Section" char="[" char1="]" context="Other Section"
+                     firstNonSpace="true" beginRegion="Section" endRegion="Section"/>
+      </context>
+
+      <context name="Script Section" attribute="Normal Text" lineEndContext="#stay">
+        <IncludeRules context="Section Rules"/>
+        <IncludeRules context="##CC2 Game Script"/>
+      </context>
+
+      <context name="Other Section" attribute="Normal Text" lineEndContext="#stay">
+        <IncludeRules context="Section Rules"/>
+      </context>
+    </contexts>
+
+    <itemDatas>
+      <itemData name="Normal Text" defStyleNum="dsNormal" spellChecking="true"/>
+      <itemData name="Section" defStyleNum="dsKeyword" spellChecking="false"/>
+    </itemDatas>
+  </highlighting>
+</language>

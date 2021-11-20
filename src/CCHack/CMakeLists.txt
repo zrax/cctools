@@ -41,7 +41,8 @@ set(CCHack_SOURCES
 )
 
 if(WIN32)
-    set(CCHack_SOURCES ${CCHack_SOURCES} CCHack.rc)
+    configure_file(CCHack.rc.in CCHack.rc @ONLY)
+    list(APPEND CCHack_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/CCHack.rc")
 endif()
 
 add_executable(CCHack WIN32 MACOSX_BUNDLE
@@ -58,8 +59,8 @@ if(APPLE)
     set(MACOSX_BUNDLE true)
     set(MACOSX_BUNDLE_NAME CCHack)
     set(MACOSX_BUNDLE_INFO_STRING "CCHack 3.0")
-    set(MACOSX_BUNDLE_LONG_VERSION_STRING "2.97.0")
-    set(MACOSX_BUNDLE_SHORT_VERSION_STRING "2.97.0")
+    set(MACOSX_BUNDLE_LONG_VERSION_STRING "${CCTOOLS_VER_STRING_FULL}")
+    set(MACOSX_BUNDLE_SHORT_VERSION_STRING "${CCTOOLS_VER_STRING_FULL}")
     set(MACOSX_BUNDLE_COPYRIGHT "Copyright (C) 2020 Michael Hansen")
     set(MACOSX_BUNDLE_ICON_FILE "sock.icns")
 

@@ -103,6 +103,7 @@ private:
     EditorTabWidget* m_editorTabs;
     QListWidget* m_levelList;
     QLineEdit* m_nameEdit;
+    QLineEdit* m_authorEdit;
     QLineEdit* m_passwordEdit;
     QSpinBox* m_chipEdit;
     QSpinBox* m_timeEdit;
@@ -192,6 +193,7 @@ private slots:
     void onPasswordGenAction();
     void onChipCountAction();
     void onNameChanged(const QString&);
+    void onAuthorChanged(const QString&);
     void onPasswordChanged(const QString&);
     void onChipsChanged(int);
     void onTimerChanged(int);
