@@ -27,7 +27,8 @@ set(CCPlay_SOURCES
 )
 
 if(WIN32)
-    set(CCPlay_SOURCES ${CCPlay_SOURCES} CCPlay.rc)
+    configure_file(CCPlay.rc.in CCPlay.rc @ONLY)
+    list(APPEND CCPlay_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/CCPlay.rc")
 endif()
 
 add_executable(CCPlay WIN32 MACOSX_BUNDLE
@@ -45,8 +46,8 @@ if(APPLE)
     set(MACOSX_BUNDLE true)
     set(MACOSX_BUNDLE_NAME CCPlay)
     set(MACOSX_BUNDLE_INFO_STRING "CCPlay 3.0")
-    set(MACOSX_BUNDLE_LONG_VERSION_STRING "2.97.0")
-    set(MACOSX_BUNDLE_SHORT_VERSION_STRING "2.97.0")
+    set(MACOSX_BUNDLE_LONG_VERSION_STRING "${CCTOOLS_VER_STRING_FULL}")
+    set(MACOSX_BUNDLE_SHORT_VERSION_STRING "${CCTOOLS_VER_STRING_FULL}")
     set(MACOSX_BUNDLE_COPYRIGHT "Copyright (C) 2020 Michael Hansen")
     set(MACOSX_BUNDLE_ICON_FILE "chip.icns")
 

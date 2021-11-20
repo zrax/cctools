@@ -6,13 +6,14 @@
 
 /* Icons */
 APPICON                 ICON    DISCARDABLE         "icons\\boot.ico"
-CCL_FILE                ICON    DISCARDABLE         "icons\\ccl.ico"
+C2G_FILE                ICON    DISCARDABLE         "icons\\c2g.ico"
+C2M_FILE                ICON    DISCARDABLE         "icons\\c2m.ico"
 /* End of Icons */
 
 /* Version Info */
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,97,0,0
- PRODUCTVERSION 2,97,0,0
+ FILEVERSION @CCTOOLS_VER_MAJOR@,@CCTOOLS_VER_MINOR@,@CCTOOLS_VER_PATCH@,0
+ PRODUCTVERSION @CCTOOLS_VER_MAJOR@,@CCTOOLS_VER_MINOR@,@CCTOOLS_VER_PATCH@,0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -28,12 +29,12 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "Michael Hansen"
-            VALUE "FileVersion", "2.97"
-            VALUE "InternalName", "CCEdit"
+            VALUE "FileVersion", "@CCTOOLS_VER_STRING@"
+            VALUE "InternalName", "CC2Edit"
             VALUE "LegalCopyright", "Copyright (C) 2020 Michael Hansen"
-            VALUE "OriginalFilename", "CCEdit.exe"
+            VALUE "OriginalFilename", "CC2Edit.exe"
             VALUE "ProductName", "CCTools"
-            VALUE "ProductVersion", "3.0"
+            VALUE "ProductVersion", "@CCTOOLS_VER_STRING@"
         END
     END
     BLOCK "VarFileInfo"

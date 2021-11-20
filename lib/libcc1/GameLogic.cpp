@@ -66,32 +66,33 @@ void ccl::GetPreferredDirections(tile_t tile, Direction dirs[])
 static tile_t peekTile(const ccl::LevelData* level, int x, int y,
                        ccl::Direction dir)
 {
-    tile_t tile = ccl::TileWall;
-
     switch (dir) {
     case ccl::DirNorth:
-        tile = (y > 0) ? level->map().getFG(x, y - 1) : (tile_t)ccl::TileWall;
-        if (MASKED_TILE(tile))
-            tile = level->map().getBG(x, y - 1);
+        if (y <= 0)
+            return ccl::TileWall;
+        y -= 1;
         break;
     case ccl::DirWest:
-        tile = (x > 0) ? level->map().getFG(x - 1, y) : (tile_t)ccl::TileWall;
-        if (MASKED_TILE(tile))
-            tile = level->map().getBG(x - 1, y);
+        if (x <= 0)
+            return ccl::TileWall;
+        x -= 1;
         break;
     case ccl::DirSouth:
-        tile = (y < 31) ? level->map().getFG(x, y + 1) : (tile_t)ccl::TileWall;
-        if (MASKED_TILE(tile))
-            tile = level->map().getBG(x, y + 1);
+        if (y >= 31)
+            return ccl::TileWall;
+        y += 1;
         break;
     case ccl::DirEast:
-        tile = (x < 31) ? level->map().getFG(x + 1, y) : (tile_t)ccl::TileWall;
-        if (MASKED_TILE(tile))
-            tile = level->map().getBG(x + 1, y);
-        break;
+        if (x >= 31)
+            return ccl::TileWall;
+        x += 1;
     default:
         break;
     }
+
+    tile_t tile = level->map().getFG(x, y);
+    if (MASKED_TILE(tile) && !BOOT_TILE(tile))
+        tile = level->map().getBG(x, y);
 
     return tile;
 }
@@ -250,6 +251,7 @@ ccl::MoveState ccl::CheckMove(const LevelData* level, tile_t tile, int x, int y)
             || (peek >= TileBlueFloor && peek <= TileSocket)
             || (peek >= TileAppearingWall && peek <= TilePopUpWall)
             || (peek >= TileCloner && peek <= TileExitAnim3)
+            || (peek >= TileFlippers && peek <= TileForceBoots)
             || (peek >= NUM_TILE_TYPES))
             continue;
         if ((peek == TileBarrier_S || peek == TileBarrier_SE || peek == TileIce_NE

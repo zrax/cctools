@@ -45,7 +45,8 @@ set(CCEdit_SOURCES
 )
 
 if(WIN32)
-    set(CCEdit_SOURCES ${CCEdit_SOURCES} CCEdit.rc)
+    configure_file(CCEdit.rc.in CCEdit.rc @ONLY)
+    list(APPEND CCEdit_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/CCEdit.rc")
 endif()
 
 add_executable(CCEdit WIN32 MACOSX_BUNDLE
@@ -62,8 +63,8 @@ if(APPLE)
     set(MACOSX_BUNDLE true)
     set(MACOSX_BUNDLE_NAME CCEdit)
     set(MACOSX_BUNDLE_INFO_STRING "CCEdit 3.0")
-    set(MACOSX_BUNDLE_LONG_VERSION_STRING "2.97.0")
-    set(MACOSX_BUNDLE_SHORT_VERSION_STRING "2.97.0")
+    set(MACOSX_BUNDLE_LONG_VERSION_STRING "${CCTOOLS_VER_STRING_FULL}")
+    set(MACOSX_BUNDLE_SHORT_VERSION_STRING "${CCTOOLS_VER_STRING_FULL}")
     set(MACOSX_BUNDLE_COPYRIGHT "Copyright (C) 2020 Michael Hansen")
     set(MACOSX_BUNDLE_ICON_FILE "boot.icns")
 

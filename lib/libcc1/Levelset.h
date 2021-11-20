@@ -75,8 +75,9 @@ private:
 class LevelData {
 public:
     enum FieldMarker {
-        FieldName = 3, FieldTraps = 4, FieldClones = 5, FieldPassword = 6,
-        FieldHint = 7, FieldMoveList = 10,
+        FieldTimeLimit = 1, FieldChips = 2, FieldName = 3, FieldTraps = 4,
+        FieldClones = 5, FieldPassword = 6, FieldHint = 7,
+        FieldPlainPassword = 8, FieldAuthor_EXT = 9, FieldMoveList = 10,
     };
 
 public:
@@ -92,6 +93,7 @@ public:
     std::string name() const { return m_name; }
     std::string hint() const { return m_hint; }
     std::string password() const { return m_password; }
+    std::string author() const { return m_author; }
     unsigned short chips() const { return m_chips; }
     unsigned short timer() const { return m_timer; }
     const std::list<ccl::Trap>& traps() const { return m_traps; }
@@ -110,6 +112,7 @@ public:
     void setName(const std::string& name) { m_name = name; }
     void setHint(const std::string& hint) { m_hint = hint; }
     void setPassword(const std::string& pass) { m_password = pass; }
+    void setAuthor(const std::string& author) { m_author = author; }
     void setLevelNum(int num) { m_levelNum = num; }
     void setChips(int chips) { m_chips = chips; }
     void setTimer(int timer) { m_timer = timer; }
@@ -142,6 +145,7 @@ private:
     std::string m_name;
     std::string m_hint;
     std::string m_password;
+    std::string m_author;
     int m_levelNum;
     int m_chips, m_timer;
     std::list<ccl::Trap> m_traps;
@@ -245,6 +249,7 @@ enum TileType {
 #define MONSTER_TILE(tile) ((tile) >= ccl::MONSTER_FIRST && (tile) <= ccl::MONSTER_LAST)
 #define FORCE_TILE(tile)   ((tile) == ccl::TileForce_S || (tile) == ccl::TileForce_N \
                             || (tile) == ccl::TileForce_E || (tile) == ccl::TileForce_W)
+#define BOOT_TILE(tile)    ((tile) >= ccl::TileFlippers && (tile) <= ccl::TileForceBoots)
 #define MASKED_TILE(tile)  ((tile) >= ccl::MONSTER_FIRST && (tile) < ccl::NUM_TILE_TYPES)
 
 } /* {ccl} */

@@ -29,6 +29,8 @@ public:
 };
 
 class HintEditDialog : public QDialog {
+    Q_OBJECT
+
 public:
     HintEditDialog(int x, int y, QWidget* parent);
 

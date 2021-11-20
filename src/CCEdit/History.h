@@ -28,7 +28,8 @@ namespace ccl {
 
 namespace CCEditHistory {
     enum Type {
-        EditMap, EditName, EditPassword, EditChips, EditTimer, EditHint,
+        EditMap, EditName, EditAuthor, EditPassword, EditChips, EditTimer,
+        EditHint,
     };
 }
 

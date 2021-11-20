@@ -74,6 +74,7 @@ signals:
 protected:
     void closeEvent(QCloseEvent*) override;
     void resizeEvent(QResizeEvent*) override;
+    bool eventFilter(QObject*, QEvent*) override;
 
 private slots:
     void onOpenAction();
@@ -191,8 +192,8 @@ private:
     QCheckBox* m_hideLogic;
     QCheckBox* m_cc1Boots;
     QCheckBox* m_readOnly;
-    QPlainTextEdit* m_clue;
-    QPlainTextEdit* m_note;
+    CC2ScriptEditor* m_clue;
+    CC2ScriptEditor* m_note;
 
     cc2::Tile m_leftTile, m_rightTile;
 
