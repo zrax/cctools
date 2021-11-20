@@ -129,7 +129,7 @@ bool ScriptMapLoader::loadScript(const QString& filename)
                 auto paramNode = static_cast<cc2::StringNode*>(cmdNode->param());
                 // Convert this to use the native separator so that C2G-referenced subdirectories properly read on systems with the / separator
                 // Luckily the / character is illegal in Windows paths, so we can do this blunt replacement without making loading some paths impossible
-                QString param = QDir::toNativeSeparators(QString::fromStdString(paramNode->text()).replace(QString::fromStdString("\\"), QString::fromStdString("/")));
+                QString param = QDir::toNativeSeparators(QString::fromStdString(paramNode->text()).replace(QStringLiteral("\\"), QStringLiteral("/")));
                 if (node->type() == cc2::C2GNode::NodeMap)
                     emit mapAdded(static_cast<int>(locals["level"]++),
                                   scriptDir.absoluteFilePath(param));
