@@ -50,13 +50,26 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
 
 #ifndef Q_OS_WIN
     auto exeCompleter = new FileCompleter(EXE_LIST, this);
-    m_winePath = new QLineEdit(settings.value(QStringLiteral("WineExe")).toString(), this);
-    m_winePath->setCompleter(exeCompleter);
-    auto lblWinePath = new QLabel(tr("&WINE Path:"), this);
-    lblWinePath->setBuddy(m_winePath);
-    auto browseWine = new QToolButton(this);
-    browseWine->setIcon(ICON("document-open-folder-sm"));
-    browseWine->setAutoRaise(true);
+    m_protonPath = new QLineEdit(settings.value(QStringLiteral("ProtonExe")).toString(), this);
+    m_protonPath->setCompleter(exeCompleter);
+    auto lblProtonPath = new QLabel(tr("&Proton Path:"), this);
+    lblProtonPath->setBuddy(m_protonPath);
+    auto browseProton = new QToolButton(this);
+    browseProton->setIcon(ICON("document-open-folder-sm"));
+    browseProton->setAutoRaise(true);
+
+    auto dirCompleter = new DirCompleter(this);
+    m_steamRoot = new QLineEdit(settings.value(QStringLiteral("SteamRoot")).toString(), this);
+    m_steamRoot->setCompleter(dirCompleter);
+    auto lblSteamPath = new QLabel(tr("&Steam root Path:"), this);
+    lblSteamPath->setBuddy(m_steamRoot);
+    auto browseSteam = new QToolButton(this);
+    browseSteam->setIcon(ICON("document-open-folder-sm"));
+    browseSteam->setAutoRaise(true);
+
+    m_steamAppId = new QLineEdit(settings.value(QStringLiteral("SteamAppId")).toString(), this);
+    auto lblSteamAppId = new QLabel(tr("Steam &App id:"), this);
+    lblSteamAppId->setBuddy(m_steamAppId);
 #endif
 
     m_chips2Path = new QLineEdit(settings.value(QStringLiteral("Chips2Exe")).toString(), this);
@@ -81,14 +94,19 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     layout->setHorizontalSpacing(4);
     int row = 0;
 #ifndef Q_OS_WIN
-    layout->addWidget(lblWinePath, row, 0);
-    layout->addWidget(m_winePath, row, 1);
-    layout->addWidget(browseWine, row, 2);
-    auto wineLabel = new QLabel(
-            tr("Note: Leave WINE path empty to use system-installed location."),
+    layout->addWidget(lblProtonPath, row, 0);
+    layout->addWidget(m_protonPath, row, 1);
+    layout->addWidget(browseProton, row, 2);
+    layout->addWidget(lblSteamPath, ++row, 0);
+    layout->addWidget(m_steamRoot, row, 1);
+    layout->addWidget(browseSteam, row, 2);
+    layout->addWidget(lblSteamAppId, ++row, 0);
+    layout->addWidget(m_steamAppId, row, 1);
+    auto protonLabel = new QLabel(
+            tr("Note: Leave Steam-related inputs empty to use system-installed locations."),
             this);
-    wineLabel->setWordWrap(true);
-    layout->addWidget(wineLabel, ++row, 0, 1, 3);
+    protonLabel->setWordWrap(true);
+    layout->addWidget(protonLabel, ++row, 0, 1, 3);
     layout->addItem(new QSpacerItem(0, 10, QSizePolicy::Minimum, QSizePolicy::Minimum),
                     ++row, 0, 1, 3);
 #endif
@@ -100,6 +118,9 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     auto chips1Label = new QLabel(tr("Notes for playtesting in CC2: <ul>"
             "<li>The Steam version of Chip's Challenge 1 (chips1.exe) may also be used.</li>"
             "<li>Steam must be <b>running</b> and <b>logged in</b> for playtesting to work properly.</li>"
+#ifndef Q_OS_WINDOWS
+             "<li>If no CC2 path is specified, the CC executable will be derived from the given Steam path.</li>"
+#endif
             "</ul>"), this);
     chips1Label->setWordWrap(true);
     layout->addWidget(chips1Label, ++row, 0, 1, 3);
@@ -111,7 +132,8 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
     connect(buttons, &QDialogButtonBox::accepted, this, &TestSetupDialog::onSaveSettings);
 #ifndef Q_OS_WIN
-    connect(browseWine, &QToolButton::clicked, this, &TestSetupDialog::onBrowseWine);
+    connect(browseProton, &QToolButton::clicked, this, &TestSetupDialog::onBrowseProton);
+    connect(browseSteam, &QToolButton::clicked, this, &TestSetupDialog::onBrowseSteamRoot);
 #endif
     connect(browseChips2, &QToolButton::clicked, this, &TestSetupDialog::onBrowseChips2);
 }
@@ -120,22 +142,36 @@ void TestSetupDialog::onSaveSettings()
 {
     QSettings settings;
 #ifndef Q_OS_WIN
-    settings.setValue(QStringLiteral("WineExe"), m_winePath->text());
+    settings.setValue(QStringLiteral("ProtonExe"), m_protonPath->text());
+    settings.setValue(QStringLiteral("SteamRoot"), m_steamRoot->text());
+    settings.setValue(QStringLiteral("SteamAppId"), m_steamAppId->text());
 #endif
     settings.setValue(QStringLiteral("Chips2Exe"), m_chips2Path->text());
     settings.setValue(QStringLiteral("LexyUrl"), m_lexyUrl->text());
     accept();
 }
 
-void TestSetupDialog::onBrowseWine()
+void TestSetupDialog::onBrowseProton()
 {
 #ifndef Q_OS_WIN
-    QString path = QFileDialog::getOpenFileName(this, tr("Browse for Wine executable"),
-                                m_winePath->text(), EXE_FILTER);
+    QString path = QFileDialog::getOpenFileName(this, tr("Browse for Proton executable"),
+                                m_protonPath->text(), EXE_FILTER);
     if (!path.isEmpty())
-        m_winePath->setText(path);
+        m_protonPath->setText(path);
 #else
-    qCritical("onBrowseWine: Not supported on Windows platforms");
+    qCritical("onBrowseProton: Not supported on Windows platforms");
+#endif
+}
+
+void TestSetupDialog::onBrowseSteamRoot()
+{
+#ifndef Q_OS_WIN
+    QString path = QFileDialog::getExistingDirectory(this, tr("Browse for Steam Root"),
+                                m_steamRoot->text());
+    if (!path.isEmpty())
+        m_steamRoot->setText(path);
+#else
+    qCritical("onBrowseSteamRoot: Not supported on Windows platforms");
 #endif
 }
 
