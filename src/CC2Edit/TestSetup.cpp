@@ -97,7 +97,7 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     layout->addWidget(m_steamRoot, row, 1);
     layout->addWidget(browseSteam, row, 2);
     auto protonLabel = new QLabel(
-            tr("Note: Leave Steam-related inputs empty to use system-installed locations."),
+            tr("Note: Leave Steam-related paths empty to use system-installed locations."),
             this);
     protonLabel->setWordWrap(true);
     layout->addWidget(protonLabel, ++row, 0, 1, 3);

@@ -2537,12 +2537,17 @@ void CC2EditMain::onTestChips2()
         return;
     }
 #ifndef Q_OS_WIN
-    static auto versionRegex = new QRegExp(QStringLiteral("\\d{10} (?:proton|experimental)-6\\.\\d+-\\d+\n?"));
-    static auto slrSubdir = new QRegExp(QStringLiteral("[a-zA-Z0-9]+_platform_\\d+\\.\\d+\\.\\d+"));
+    static const QRegularExpression versionRegex(QStringLiteral(R"(^\d{10} (?:proton|experimental)-(\d+)\.(\d+)-(\d+)b?\n?$)"));
     QString steamRoot = settings.value(QStringLiteral("SteamRoot")).toString();
     if (steamRoot.isEmpty() || !QFile::exists(steamRoot)) {
         // The one which Steam looks for by default
-        steamRoot = QDir::homePath() + QStringLiteral("/.local/share/Steam");
+        for (QString& shareDir: QStandardPaths::standardLocations(QStandardPaths::GenericDataLocation)) {
+            QDir maybeSteamRoot(shareDir + QStringLiteral("/Steam"));
+            if (maybeSteamRoot.exists()) {
+                steamRoot = maybeSteamRoot.absolutePath();
+                break;
+            }
+        }
         if (!QFile::exists(steamRoot)) {
             QMessageBox::critical(this, tr("Could not find Steam Root"),
                     tr("Could not find Steam Root directory.\n"
@@ -2550,7 +2555,7 @@ void CC2EditMain::onTestChips2()
             return;
         }
     }
-    // Steam has it's own python version bundled for this, but it also requires injecting library files somehow, it's not worth it
+    // Steam has its own python version bundled for this, but it also requires injecting library files somehow, it's not worth it
     QString pythonExe = QStandardPaths::findExecutable(QStringLiteral("python3"));
     if (pythonExe.isEmpty() || !QFile::exists(pythonExe)) {
         QMessageBox::critical(this, tr("Could not find Python 3"),
@@ -2561,24 +2566,33 @@ void CC2EditMain::onTestChips2()
 
     QString protonExe = settings.value(QStringLiteral("ProtonExe")).toString();
     if (protonExe.isEmpty() || !QFile::exists(protonExe)) {
+        int major = 6, minor = -1;
         // Find a proton version from the Steam apps
         QDir steamApps(steamRoot + QStringLiteral("/steamapps/common"));
-        for(const QString &appPath: steamApps.entryList(QDir::Dirs)) {
+        for(const QString& appPath: steamApps.entryList(QDir::Dirs)) {
             QFile versionFile(steamApps.filePath(appPath + QStringLiteral("/version")));
-            if (!versionFile.exists() || !versionFile.open(QIODevice::ReadOnly)) continue;            
+            if (!versionFile.exists() || !versionFile.open(QIODevice::ReadOnly))
+                continue;
             QByteArray versionBytes = versionFile.readAll();
             versionFile.close();
             QString version = QString::fromUtf8(versionBytes);
-            if (versionRegex->exactMatch(version)) {
+            auto match = versionRegex.match(version);
+            if (!match.hasMatch())
+                continue;
+            // The patch version is not that important, so don't even compare it
+            if (match.captured(1).toInt() > major ||
+                    (match.captured(1).toInt() == major && match.captured(2).toInt() > minor)) {
                 protonExe = steamApps.filePath(appPath) + QStringLiteral("/proton");
-                if (!pythonExe.isEmpty()) break;
+                major = match.captured(1).toInt();
+                minor = match.captured(2).toInt();
             }
+
         }
 
         if (protonExe.isEmpty() || !QFile::exists(protonExe)) {
             QMessageBox::critical(this, tr("Could not find Proton"),
                     tr("Could not find Proton executable.\n"
-                       "If it's your first time playtesting, try launching CC via Proton first.\n"
+                       "If it's your first time playtesting, try launching the game via Proton first.\n"
                        "Otherwise, please configure Proton in the Test Setup dialog."));
             return;
         }
@@ -2751,7 +2765,7 @@ void CC2EditMain::onTestChips2()
     connect(m_subProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, &CC2EditMain::onProcessFinished);
     connect(m_subProc, &QProcess::errorOccurred, this, &CC2EditMain::onProcessError);
-    #ifndef Q_OS_WINDOWS
+#ifndef Q_OS_WINDOWS
     QProcessEnvironment env(QProcessEnvironment::systemEnvironment());
     env.insert(QStringLiteral("STEAM_COMPAT_CLIENT_INSTALL_PATH"), steamRoot);
     QDir compatRoot(steamRoot + QStringLiteral("/steamapps/compatdata/"));
@@ -2765,14 +2779,11 @@ void CC2EditMain::onTestChips2()
     env.insert(QStringLiteral("SteamAppId"), appId);
     env.insert(QStringLiteral("SteamGameId"), appId);
     m_subProc->setProcessEnvironment(env);
-    QStringList args;
-    args.append(protonExe);
-    args.append(QStringLiteral("run"));
-    args.append(chips2Exe);
+    QStringList args { protonExe, QStringLiteral("run"), chips2Exe };
     m_subProc->start(pythonExe, args);
-    #else
+#else
     m_subProc->start(chips2Exe, QStringList());
-    #endif
+#endif
     QDir::setCurrent(cwd);
 }
 
