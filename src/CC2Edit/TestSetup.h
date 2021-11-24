@@ -30,14 +30,16 @@ public:
 
 private:
 #ifndef Q_OS_WIN
-    QLineEdit* m_winePath;
+    QLineEdit* m_protonPath;
+    QLineEdit* m_steamRoot;
 #endif
     QLineEdit* m_chips2Path;
     QLineEdit* m_lexyUrl;
 
 private slots:
     void onSaveSettings();
-    void onBrowseWine();
+    void onBrowseProton();
+    void onBrowseSteamRoot();
     void onBrowseChips2();
 };
 
