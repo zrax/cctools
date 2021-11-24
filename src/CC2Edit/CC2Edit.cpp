@@ -2536,12 +2536,12 @@ void CC2EditMain::onTestChips2()
                    "Please configure Chips2 in the Test Setup dialog."));
         return;
     }
+
 #ifndef Q_OS_WIN
-    static const QRegularExpression versionRegex(QStringLiteral(R"(^\d{10} (?:proton|experimental)-(\d+)\.(\d+)-(\d+)b?\n?$)"));
     QString steamRoot = settings.value(QStringLiteral("SteamRoot")).toString();
     if (steamRoot.isEmpty() || !QFile::exists(steamRoot)) {
         // The one which Steam looks for by default
-        for (QString& shareDir: QStandardPaths::standardLocations(QStandardPaths::GenericDataLocation)) {
+        for (const QString& shareDir : QStandardPaths::standardLocations(QStandardPaths::GenericDataLocation)) {
             QDir maybeSteamRoot(shareDir + QStringLiteral("/Steam"));
             if (maybeSteamRoot.exists()) {
                 steamRoot = maybeSteamRoot.absolutePath();
@@ -2555,7 +2555,9 @@ void CC2EditMain::onTestChips2()
             return;
         }
     }
-    // Steam has its own python version bundled for this, but it also requires injecting library files somehow, it's not worth it
+    // Steam bundles its own python version with custom libraries that are
+    // potentially incompatible with the system versions, so it's not worth
+    // using Steam's version here.
     QString pythonExe = QStandardPaths::findExecutable(QStringLiteral("python3"));
     if (pythonExe.isEmpty() || !QFile::exists(pythonExe)) {
         QMessageBox::critical(this, tr("Could not find Python 3"),
@@ -2564,12 +2566,15 @@ void CC2EditMain::onTestChips2()
         return;
     }
 
+    static const QRegularExpression versionRegex(
+            QStringLiteral(R"(^\d{10} (?:proton|experimental)-(\d+)\.(\d+)-(\d+)b?\n?$)"));
+
     QString protonExe = settings.value(QStringLiteral("ProtonExe")).toString();
     if (protonExe.isEmpty() || !QFile::exists(protonExe)) {
+        // Find a proton version from the Steam apps.  We need at least 6.0
         int major = 6, minor = -1;
-        // Find a proton version from the Steam apps
         QDir steamApps(steamRoot + QStringLiteral("/steamapps/common"));
-        for(const QString& appPath: steamApps.entryList(QDir::Dirs)) {
+        for (const QString& appPath: steamApps.entryList(QDir::Dirs)) {
             QFile versionFile(steamApps.filePath(appPath + QStringLiteral("/version")));
             if (!versionFile.exists() || !versionFile.open(QIODevice::ReadOnly))
                 continue;
@@ -2586,7 +2591,6 @@ void CC2EditMain::onTestChips2()
                 major = match.captured(1).toInt();
                 minor = match.captured(2).toInt();
             }
-
         }
 
         if (protonExe.isEmpty() || !QFile::exists(protonExe)) {
@@ -2735,7 +2739,6 @@ void CC2EditMain::onTestChips2()
     listFile.close();
 
     QString appId;
-
     if (chips2Exe.contains(QLatin1String("chips2"), Qt::CaseInsensitive)) {
         // Chip's Challenge 2
         appId = QStringLiteral("348300");
