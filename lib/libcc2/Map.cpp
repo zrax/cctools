@@ -1382,7 +1382,7 @@ void writeTagged(ccl::Stream* stream, const char* tag, const Writer& writer)
     writer(&bs);
 
     stream->write32(bs.size());
-    if (stream->write(bs.buffer(), 1, bs.size()) != bs.size())
+    if (stream->write(bs.buffer(), 1, bs.size()) != (size_t)bs.size())
         throw ccl::IOError(ccl::RuntimeError::tr("Error writing to stream"));
 }
 
