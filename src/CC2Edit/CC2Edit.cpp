@@ -2768,6 +2768,12 @@ void CC2EditMain::onTestChips2()
     connect(m_subProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, &CC2EditMain::onProcessFinished);
     connect(m_subProc, &QProcess::errorOccurred, this, &CC2EditMain::onProcessError);
+    connect(m_subProc, &QProcess::readyReadStandardOutput, [this] {
+        fputs(m_subProc->readAllStandardOutput().data(), stdout);
+    });
+    connect(m_subProc, &QProcess::readyReadStandardError, [this] {
+        fputs(m_subProc->readAllStandardError().data(), stderr);
+    });
 #ifndef Q_OS_WINDOWS
     QProcessEnvironment env(QProcessEnvironment::systemEnvironment());
     env.insert(QStringLiteral("STEAM_COMPAT_CLIENT_INSTALL_PATH"), steamRoot);

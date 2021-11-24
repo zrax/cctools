@@ -2140,6 +2140,12 @@ void CCEditMain::onTestChips()
     connect(m_subProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, &CCEditMain::onProcessFinished);
     connect(m_subProc, &QProcess::errorOccurred, this, &CCEditMain::onProcessError);
+    connect(m_subProc, &QProcess::readyReadStandardOutput, [this] {
+        fputs(m_subProc->readAllStandardOutput().data(), stdout);
+    });
+    connect(m_subProc, &QProcess::readyReadStandardError, [this] {
+        fputs(m_subProc->readAllStandardError().data(), stderr);
+    });
     if (!winePath.isEmpty()) {
         // Launch with Wine (Unix) or WineVDM (Windows)
         m_subProc->start(winePath, QStringList{ m_tempExe });
@@ -2213,6 +2219,12 @@ void CCEditMain::onTestTWorld(unsigned int levelsetType)
     connect(m_subProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, &CCEditMain::onProcessFinished);
     connect(m_subProc, &QProcess::errorOccurred, this, &CCEditMain::onProcessError);
+    connect(m_subProc, &QProcess::readyReadStandardOutput, [this] {
+        fputs(m_subProc->readAllStandardOutput().data(), stdout);
+    });
+    connect(m_subProc, &QProcess::readyReadStandardError, [this] {
+        fputs(m_subProc->readAllStandardError().data(), stderr);
+    });
     m_subProc->start(tworldExe, QStringList{
         QStringLiteral("-pr"), m_tempDat, QString::number(levelNum + 1)
     });
