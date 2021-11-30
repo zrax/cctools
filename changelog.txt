@@ -1,3 +1,16 @@
+2021-12-01 - 3.0 RELEASE (3.0.0)
+~~~~~~~~~~
+Bugfixes:
+  * CC2Edit: Support launching CC2 via Proton instead of WINE for playtesting
+    on Linux (Thanks @TheGLander).
+  * CC2Edit: Fix loading maps within subdirectories from .c2g files on
+    non-Windows systems (Thanks @TheGLander).
+  * CC2Edit: Use compression to fix playtesting in Lexy's Labyrinth with some
+    large/complex maps.
+  * CC2Edit: Avoid excessive disk seeking when writing map data.
+  * CCEdit/CC2Edit: Don't hide stdout and stderr from playtest executables.
+
+
 2021-11-15 - 3.0 RC1 (2.99.0)
 ~~~~~~~~~~
 Features:
