@@ -22,6 +22,7 @@ set(CC2Edit_HEADERS
     HintEdit.h
     History.h
     ImportDialog.h
+    MapProperties.h
     ResizeDialog.h
     ScriptEditor.h
     ScriptTools.h
@@ -36,6 +37,7 @@ set(CC2Edit_SOURCES
     HintEdit.cpp
     History.cpp
     ImportDialog.cpp
+    MapProperties.cpp
     ResizeDialog.cpp
     ScriptEditor.cpp
     ScriptTools.cpp

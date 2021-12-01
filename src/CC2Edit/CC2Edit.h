@@ -36,6 +36,7 @@ class QPlainTextEdit;
 class QActionGroup;
 
 class EditorTabWidget;
+class MapProperties;
 
 class CC2EditMain : public QMainWindow {
     Q_OBJECT
@@ -115,24 +116,22 @@ private slots:
 
     void onTabClosed(int);
     void onTabChanged(int);
-    void updateCounters(const cc2::MapData& map);
-    void updateMapProperties(cc2::Map* map);
 
     void setLeftTile(const cc2::Tile&);
     void setRightTile(const cc2::Tile&);
 
-    void onTitleChanged(const QString&);
-    void onAuthorChanged(const QString&);
-    void onLockChanged(const QString&);
-    void onEditorVersionChanged(const QString&);
+    void onTitleChanged(const std::string&);
+    void onAuthorChanged(const std::string&);
+    void onLockChanged(const std::string&);
+    void onEditorVersionChanged(const std::string&);
     void onTimeLimitChanged(int);
-    void onViewportChanged();
-    void onBlobPatternChanged();
-    void onHideLogicChanged();
-    void onCC1BootsChanged();
-    void onReadOnlyChanged();
-    void onClueChanged();
-    void onNoteChanged();
+    void onViewportChanged(cc2::MapOption::Viewport);
+    void onBlobPatternChanged(cc2::MapOption::BlobPattern);
+    void onHideLogicChanged(bool);
+    void onCC1BootsChanged(bool);
+    void onReadOnlyChanged(bool);
+    void onClueChanged(const std::string&);
+    void onNoteChanged(const std::string&);
     void onResizeMap();
 
     void onProcessError(QProcess::ProcessError err);
@@ -178,22 +177,7 @@ private:
     QString m_currentGameScript;
 
     // Map properties
-    QWidget* m_mapProperties;
-    QLineEdit* m_title;
-    QLineEdit* m_author;
-    QLineEdit* m_lockText;
-    QLineEdit* m_editorVersion;
-    QLineEdit* m_mapSize;
-    QLineEdit* m_chipCounter;
-    QLineEdit* m_pointCounter;
-    QSpinBox* m_timeLimit;
-    QComboBox* m_viewport;
-    QComboBox* m_blobPattern;
-    QCheckBox* m_hideLogic;
-    QCheckBox* m_cc1Boots;
-    QCheckBox* m_readOnly;
-    CC2ScriptEditor* m_clue;
-    CC2ScriptEditor* m_note;
+    MapProperties *m_mapProperties;
 
     cc2::Tile m_leftTile, m_rightTile;
 
