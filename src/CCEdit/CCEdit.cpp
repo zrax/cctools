@@ -23,9 +23,9 @@
 #include <QToolBar>
 #include <QDockWidget>
 #include <QGridLayout>
+#include <QVBoxLayout>
 #include <QScrollArea>
 #include <QToolBox>
-#include <QToolButton>
 #include <QLabel>
 #include <QMessageBox>
 #include <QFileDialog>
@@ -51,6 +51,7 @@
 #include "Organizer.h"
 #include "TileWidgets.h"
 #include "LayerWidget.h"
+#include "LevelProperties.h"
 #include "AdvancedMechanics.h"
 #include "TestSetup.h"
 #include "ErrorCheck.h"
@@ -316,38 +317,7 @@ CCEditMain::CCEditMain(QWidget* parent)
 
     auto levelManWidget = new QWidget(this);
     m_levelList = new QListWidget(levelManWidget);
-    m_nameEdit = new QLineEdit(levelManWidget);
-    auto nameLabel = new QLabel(tr("&Name:"), levelManWidget);
-    nameLabel->setBuddy(m_nameEdit);
-    m_nameEdit->setMaxLength(254);
-    m_authorEdit = new QLineEdit(levelManWidget);
-    auto authorLabel = new QLabel(tr("&Author:"), levelManWidget);
-    authorLabel->setBuddy(m_authorEdit);
-    m_authorEdit->setMaxLength(254);
-    m_passwordEdit = new QLineEdit(levelManWidget);
-    auto passLabel = new QLabel(tr("&Password:"), levelManWidget);
-    passLabel->setBuddy(m_passwordEdit);
-    m_passwordEdit->setMaxLength(9);
-    auto passwordButton = new QToolButton(levelManWidget);
-    passwordButton->setIcon(ICON("view-refresh-sm"));
-    passwordButton->setStatusTip(tr("Generate new random level password"));
-    passwordButton->setAutoRaise(true);
-    m_chipEdit = new QSpinBox(levelManWidget);
-    auto chipLabel = new QLabel(tr("&Chips:"), levelManWidget);
-    chipLabel->setBuddy(m_chipEdit);
-    m_chipEdit->setRange(0, 32767);
-    auto chipsButton = new QToolButton(levelManWidget);
-    chipsButton->setIcon(ICON("view-refresh-sm"));
-    chipsButton->setStatusTip(tr("Count all chips in the selected level"));
-    chipsButton->setAutoRaise(true);
-    m_timeEdit = new QSpinBox(levelManWidget);
-    auto timeLabel = new QLabel(tr("&Time:"), levelManWidget);
-    timeLabel->setBuddy(m_timeEdit);
-    m_timeEdit->setRange(0, 32767);
-    m_hintEdit = new LLTextEdit(levelManWidget);
-    auto hintLabel = new QLabel(tr("&Hint Text:"), levelManWidget);
-    hintLabel->setBuddy(m_hintEdit);
-    m_hintEdit->setMaxLength(254);
+    m_levelProperties = new LevelProperties(levelManWidget);
 
     auto tbarLevelset = new QToolBar(levelManWidget);
     tbarLevelset->addAction(m_actions[ActionAddLevel]);
@@ -358,30 +328,13 @@ CCEditMain::CCEditMain(QWidget* parent)
     tbarLevelset->addSeparator();
     tbarLevelset->addAction(m_actions[ActionOrganize]);
 
-    auto levelManLayout = new QGridLayout(levelManWidget);
+    auto levelManLayout = new QVBoxLayout(levelManWidget);
     levelManLayout->setContentsMargins(4, 4, 4, 4);
-    levelManLayout->setVerticalSpacing(0);
-    levelManLayout->setHorizontalSpacing(4);
-    int row = -1;
-    levelManLayout->addWidget(m_levelList, ++row, 0, 1, 3);
-    levelManLayout->addWidget(tbarLevelset, ++row, 0, 1, 3);
-    levelManLayout->addItem(new QSpacerItem(0, 8), ++row, 0, 1, 3);
-    levelManLayout->addWidget(nameLabel, ++row, 0);
-    levelManLayout->addWidget(m_nameEdit, row, 1, 1, 2);
-    levelManLayout->addWidget(authorLabel, ++row, 0);
-    levelManLayout->addWidget(m_authorEdit, row, 1, 1, 2);
-    levelManLayout->addWidget(passLabel, ++row, 0);
-    levelManLayout->addWidget(m_passwordEdit, row, 1);
-    levelManLayout->addWidget(passwordButton, row, 2);
-    levelManLayout->addWidget(chipLabel, ++row, 0);
-    levelManLayout->addWidget(m_chipEdit, row, 1);
-    levelManLayout->addWidget(chipsButton, row, 2);
-    levelManLayout->addWidget(timeLabel, ++row, 0);
-    levelManLayout->addWidget(m_timeEdit, row, 1);
-    levelManLayout->addItem(new QSpacerItem(0, 8), ++row, 0, 1, 3);
-    levelManLayout->addWidget(hintLabel, ++row, 0);
-    levelManLayout->addWidget(m_hintEdit, row, 1, 1, 2);
-    m_hintEdit->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum));
+    levelManLayout->setSpacing(0);
+    levelManLayout->addWidget(m_levelList);
+    levelManLayout->addWidget(tbarLevelset);
+    levelManLayout->addItem(new QSpacerItem(0, 8));
+    levelManLayout->addWidget(m_levelProperties);
 
     m_levelManDock = new QDockWidget(this);
     m_levelManDock->setObjectName(QStringLiteral("LevelManagerDock"));
@@ -745,16 +698,21 @@ CCEditMain::CCEditMain(QWidget* parent)
         m_editorTabs->promoteTab();
     });
 
-    connect(m_nameEdit, &QLineEdit::textChanged, this, &CCEditMain::onNameChanged);
-    connect(m_authorEdit, &QLineEdit::textChanged, this, &CCEditMain::onAuthorChanged);
-    connect(m_passwordEdit, &QLineEdit::textChanged, this, &CCEditMain::onPasswordChanged);
-    connect(passwordButton, &QToolButton::clicked, this, &CCEditMain::onPasswordGenAction);
-    connect(m_chipEdit, QOverload<int>::of(&QSpinBox::valueChanged),
+    connect(m_levelProperties, &LevelProperties::nameChanged,
+            this, &CCEditMain::onNameChanged);
+    connect(m_levelProperties, &LevelProperties::authorChanged,
+            this, &CCEditMain::onAuthorChanged);
+    connect(m_levelProperties, &LevelProperties::passwordChanged,
+            this, &CCEditMain::onPasswordChanged);
+    connect(m_levelProperties, &LevelProperties::chipsChanged,
             this, &CCEditMain::onChipsChanged);
-    connect(chipsButton, &QToolButton::clicked, this, &CCEditMain::onChipCountAction);
-    connect(m_timeEdit, QOverload<int>::of(&QSpinBox::valueChanged),
+    connect(m_levelProperties, &LevelProperties::chipCountRequested,
+            this, &CCEditMain::onChipCountAction);
+    connect(m_levelProperties, &LevelProperties::timerChanged,
             this, &CCEditMain::onTimerChanged);
-    connect(m_hintEdit, &QPlainTextEdit::textChanged, this, &CCEditMain::onHintChanged);
+    connect(m_levelProperties, &LevelProperties::hintChanged,
+            this, &CCEditMain::onHintChanged);
+
     connect(QApplication::clipboard(), &QClipboard::dataChanged,
             this, &CCEditMain::onClipboardDataChanged);
 
@@ -2479,80 +2437,65 @@ void CCEditMain::onSelectLevel(int idx)
     loadLevel(idx);
 }
 
-void CCEditMain::onPasswordGenAction()
-{
-    if (!currentEditor())
-        return;
-    m_passwordEdit->setText(ccl::fromLatin1(ccl::Levelset::RandomPassword()));
-}
-
 void CCEditMain::onChipCountAction()
 {
     EditorWidget* editor = currentEditor();
     if (!editor)
         return;
 
-    int chips = 0;
     const ccl::LevelMap& map = editor->levelData()->map();
-
-    for (int x=0; x<32; ++x) {
-        for (int y=0; y<32; ++y) {
-            if (map.getFG(x, y) == ccl::TileChip)
-                ++chips;
-            if (map.getBG(x, y) == ccl::TileChip)
-                ++chips;
-        }
-    }
-    m_chipEdit->setValue(chips);
+    m_levelProperties->countChips(map);
 }
 
-void CCEditMain::onNameChanged(const QString& value)
+void CCEditMain::onNameChanged(const std::string& value)
 {
     EditorWidget* editor = currentEditor();
     if (!editor)
         return;
 
     ccl::LevelData* level = editor->levelData();
-    if (level->name() != ccl::toLatin1(value)) {
+    if (level->name() != value) {
         beginEdit(CCEditHistory::EditName);
-        level->setName(ccl::toLatin1(value));
+        level->setName(value);
         endEdit();
     }
+
+    const QString qtTitle = ccl::fromLatin1(value);
     const int levelNum = levelIndex(editor->levelData());
     QListWidgetItem* levelListItem = m_levelList->item(levelNum);
     if (levelListItem)
-        levelListItem->setText(QStringLiteral("%1 - %2").arg(levelNum + 1).arg(value));
+        levelListItem->setText(QStringLiteral("%1 - %2").arg(levelNum + 1).arg(qtTitle));
 
     for (int i=0; i<m_editorTabs->count(); ++i) {
         if (getEditorAt(i)->levelData() == level)
-            m_editorTabs->setTabText(i, value);
+            m_editorTabs->setTabText(i, qtTitle);
     }
 }
 
-void CCEditMain::onAuthorChanged(const QString& value)
+void CCEditMain::onAuthorChanged(const std::string& value)
 {
     EditorWidget* editor = currentEditor();
     if (!editor)
         return;
 
     ccl::LevelData* level = editor->levelData();
-    if (level->author() != ccl::toLatin1(value)) {
+    if (level->author() != value) {
         beginEdit(CCEditHistory::EditAuthor);
-        level->setAuthor(ccl::toLatin1(value));
+        level->setAuthor(value);
         endEdit();
     }
 }
 
-void CCEditMain::onPasswordChanged(const QString& value)
+void CCEditMain::onPasswordChanged(const std::string& value)
 {
     EditorWidget* editor = currentEditor();
     if (!editor)
         return;
 
     ccl::LevelData* level = editor->levelData();
-    if (level->password() != ccl::toLatin1(value)) {
+    if (level->password() != value) {
         beginEdit(CCEditHistory::EditPassword);
-        level->setPassword(ccl::toLatin1(value));
+        level->setPassword(value);
         endEdit();
     }
 }
@@ -2585,17 +2528,16 @@ void CCEditMain::onTimerChanged(int value)
     }
 }
 
-void CCEditMain::onHintChanged()
+void CCEditMain::onHintChanged(const std::string& value)
 {
     EditorWidget* editor = currentEditor();
     if (!editor)
         return;
 
     ccl::LevelData* level = editor->levelData();
-    const QString value = m_hintEdit->toPlainText();
-    if (level->hint() != ccl::toLatin1(value)) {
+    if (level->hint() != value) {
         beginEdit(CCEditHistory::EditHint);
-        level->setHint(ccl::toLatin1(value));
+        level->setHint(value);
         endEdit();
     }
 }
@@ -2635,18 +2577,8 @@ void CCEditMain::onTabChanged(int tabIdx)
 
     EditorWidget* editor = getEditorAt(tabIdx);
     if (!editor) {
-        m_nameEdit->setEnabled(false);
-        m_authorEdit->setEnabled(false);
-        m_passwordEdit->setEnabled(false);
-        m_chipEdit->setEnabled(false);
-        m_timeEdit->setEnabled(false);
-        m_hintEdit->setEnabled(false);
-        m_nameEdit->setText(QString());
-        m_authorEdit->setText(QString());
-        m_passwordEdit->setText(QString());
-        m_chipEdit->setValue(0);
-        m_timeEdit->setValue(0);
-        m_hintEdit->setPlainText(QString());
+        m_levelProperties->setEnabled(false);
+        m_levelProperties->clearAll();
 
         m_actions[ActionCut]->setEnabled(false);
         m_actions[ActionCopy]->setEnabled(false);
@@ -2665,18 +2597,8 @@ void CCEditMain::onTabChanged(int tabIdx)
 
     ccl::LevelData* level = editor->levelData();
     m_levelList->setCurrentRow(levelIndex(level));
-    m_nameEdit->setEnabled(true);
-    m_authorEdit->setEnabled(true);
-    m_passwordEdit->setEnabled(true);
-    m_chipEdit->setEnabled(true);
-    m_timeEdit->setEnabled(true);
-    m_hintEdit->setEnabled(true);
-    m_nameEdit->setText(ccl::fromLatin1(level->name()));
-    m_authorEdit->setText(ccl::fromLatin1(level->author()));
-    m_passwordEdit->setText(ccl::fromLatin1(level->password()));
-    m_chipEdit->setValue(level->chips());
-    m_timeEdit->setValue(level->timer());
-    m_hintEdit->setPlainText(ccl::fromLatin1(level->hint()));
+    m_levelProperties->setEnabled(true);
+    m_levelProperties->updateLevelProperties(level);
 
     const bool hasSelection = editor->selection() != QRect(-1, -1, -1, -1);
     m_actions[ActionCut]->setEnabled(hasSelection);

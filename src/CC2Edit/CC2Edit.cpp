@@ -41,13 +41,6 @@
 #include <QDockWidget>
 #include <QToolBox>
 #include <QLabel>
-#include <QLineEdit>
-#include <QSpinBox>
-#include <QComboBox>
-#include <QCheckBox>
-#include <QPlainTextEdit>
-#include <QPushButton>
-#include <QToolButton>
 #include <QMenuBar>
 #include <QToolBar>
 #include <QStatusBar>

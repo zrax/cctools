@@ -26,13 +26,8 @@
 #include "ScriptEditor.h"
 
 class QLabel;
-class QLineEdit;
-class QComboBox;
-class QCheckBox;
-class QSpinBox;
 class QListWidget;
 class QListWidgetItem;
-class QPlainTextEdit;
 class QActionGroup;
 
 class EditorTabWidget;

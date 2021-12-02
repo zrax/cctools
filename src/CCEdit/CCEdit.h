@@ -30,12 +30,10 @@ class QMenu;
 class QAction;
 class QActionGroup;
 class QListWidget;
-class QLineEdit;
-class QSpinBox;
 class QUndoStack;
 
 class EditorTabWidget;
-class LLTextEdit;
+class LevelProperties;
 
 class CCEditMain : public QMainWindow {
     Q_OBJECT
@@ -102,12 +100,7 @@ private:
     QDockWidget* m_levelManDock;
     EditorTabWidget* m_editorTabs;
     QListWidget* m_levelList;
-    QLineEdit* m_nameEdit;
-    QLineEdit* m_authorEdit;
-    QLineEdit* m_passwordEdit;
-    QSpinBox* m_chipEdit;
-    QSpinBox* m_timeEdit;
-    LLTextEdit* m_hintEdit;
+    LevelProperties* m_levelProperties;
     tile_t m_leftTile, m_rightTile;
 
     ccl::Levelset* m_levelset;
@@ -190,14 +183,13 @@ private slots:
     void onOrganizeAction();
 
     void onSelectLevel(int);
-    void onPasswordGenAction();
     void onChipCountAction();
-    void onNameChanged(const QString&);
-    void onAuthorChanged(const QString&);
-    void onPasswordChanged(const QString&);
+    void onNameChanged(const std::string&);
+    void onAuthorChanged(const std::string&);
+    void onPasswordChanged(const std::string&);
     void onChipsChanged(int);
     void onTimerChanged(int);
-    void onHintChanged();
+    void onHintChanged(const std::string&);
     void onClipboardDataChanged();
 
     void onTabChanged(int);
