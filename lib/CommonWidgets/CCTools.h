@@ -20,8 +20,8 @@
 
 #include <QDialog>
 
-#define CCTOOLS_VERSION "3.0"
-#define CCTOOLS_APP_VER "3.0"
+#define CCTOOLS_VERSION "3.1-alpha"
+#define CCTOOLS_APP_VER "3.0.90"
 
 #define ICON(name)  QIcon(QStringLiteral(":/res/" name ".png"))
 
