@@ -723,6 +723,7 @@ void CC2ETileset::drawLayer(QPainter& painter, int x, int y, const cc2::Tile* ti
         // based on the "direction" value...
         //painter.drawPixmap(x, y, m_gfx[cc2::G_Player_N]);
         painter.drawPixmap(x, y, m_gfx[cc2::G_InvalidBase]);
+        drawArrow(painter, x, y, tile->direction());
         break;
     case cc2::Tile::LogicButton:
         drawWires(painter, x, y, tile->modifier(), cc2::G_Floor);
@@ -997,7 +998,8 @@ void CC2ETileset::drawLayer(QPainter& painter, int x, int y, const cc2::Tile* ti
         painter.drawPixmap(x, y, m_gfx[cc2::G_Hook]);
         break;
     default:
-        painter.drawPixmap(x, y, m_gfx[cc2::G_Floor]);
+        if (tile->layer() == cc2::Tile::BaseLayer)
+            painter.drawPixmap(x, y, m_gfx[cc2::G_Floor]);
         painter.drawPixmap(x, y, m_gfx[cc2::G_InvalidBase]);
         if (tile->haveDirection())
             drawArrow(painter, x, y, tile->direction());

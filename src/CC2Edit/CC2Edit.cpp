@@ -608,6 +608,10 @@ CC2EditMain::CC2EditMain(QWidget* parent)
         cc2::Tile(cc2::Tile::UNUSED_85),
         cc2::Tile(cc2::Tile::UNUSED_86),
         cc2::Tile(cc2::Tile::UNUSED_91),
+        cc2::Tile(cc2::Tile::UNUSED_94),
+        cc2::Tile(cc2::Tile::UNUSED_9f),
+        cc2::Tile(cc2::Tile::UNUSED_a3),
+        cc2::Tile(cc2::Tile::UNUSED_f3)
     });
     tileBox->addItem(tileLists[ListAdvanced], tr("Advanced"));
 

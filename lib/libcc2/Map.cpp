@@ -340,6 +340,10 @@ bool cc2::Tile::haveLower(int type)
     case Bribe:
     case SpeedShoes:
     case Hook:
+    case UNUSED_94:
+    case UNUSED_9f:
+    case UNUSED_a3:
+    case UNUSED_f3:
         return true;
     default:
         return false;
@@ -374,6 +378,7 @@ bool cc2::Tile::haveDirection(int type)
     case DirBlock:
     case FloorMimic:
     case Ghost:
+    case UNUSED_a3:
         return true;
     default:
         return false;
@@ -434,6 +439,9 @@ cc2::Tile::TileClass cc2::Tile::tileClass(int type)
     case Bribe:
     case SpeedShoes:
     case Hook:
+    case UNUSED_94:
+    case UNUSED_9f:
+    case UNUSED_f3:
         return ClassItem;
     case Walker:
     case Ship:
@@ -451,6 +459,7 @@ cc2::Tile::TileClass cc2::Tile::tileClass(int type)
     case Rover:
     case FloorMimic:
     case Ghost:
+    case UNUSED_a3:
         return ClassCreature;
     case Player:
     case Player2:
@@ -1119,9 +1128,8 @@ void cc2::MapData::read(ccl::Stream* stream, size_t size)
     m_map = new Tile[mapSize];
     for (size_t i = 0; i < mapSize; ++i)
         m_map[i].read(stream);
-
-    if (start + (long)size != stream->tell())
-        throw ccl::FormatError(ccl::RuntimeError::tr("Failed to parse map data"));
+    if (start + (long)size < stream->tell())
+       throw ccl::FormatError(ccl::RuntimeError::tr("Failed to parse map data (%1 extra bytes in map data)").arg(start + (long)size - stream->tell()));
 }
 
 void cc2::MapData::write(ccl::Stream* stream) const

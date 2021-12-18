@@ -200,7 +200,8 @@ public:
         Flag2x, DirBlock, FloorMimic, GreenBomb, GreenChip,
         UNUSED_85, UNUSED_86, RevLogicButton, Switch_Off, Switch_On,
         KeyThief, Ghost, SteelFoil, Turtle, Eye, Bribe, SpeedShoes,
-        UNUSED_91, Hook,
+        UNUSED_91, Hook, UNUSED_94 = 0x94, UNUSED_9f = 0x9f,
+        UNUSED_a3 = 0xa3, UNUSED_f3 = 0xf3,
         NUM_TILE_TYPES,
     };
 
