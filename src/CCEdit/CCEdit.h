@@ -130,6 +130,7 @@ private:
     void doLevelsetLoad();
     void setLevelsetFilename(const QString& filename);
     void populateRecentFiles();
+    void killSubProc();
 
 private slots:
     void onOpenAction();

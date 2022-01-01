@@ -36,6 +36,7 @@ private:
 
     QCheckBox* m_useCCPatch;
     QCheckBox* m_usePGPatch;
+    QCheckBox* m_autoKill;
 
 private slots:
     void onSaveSettings();

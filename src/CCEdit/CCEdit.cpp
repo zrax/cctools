@@ -63,6 +63,11 @@
 #include "CommonWidgets/EditorTabWidget.h"
 #include "CommonWidgets/LLTextEdit.h"
 
+#ifndef Q_OS_WIN
+#include <csignal>
+#include <unistd.h>
+#endif
+
 static const QString s_appTitle = QStringLiteral("CCEdit " CCTOOLS_VERSION);
 static const QString s_clipboardFormat = QStringLiteral("CHIPEDIT MAPSECT");
 
@@ -1961,6 +1966,26 @@ void CCEditMain::onTilesetMenu(QAction* which)
     settings.setValue(QStringLiteral("TilesetName"), m_currentTileset->filename());
 }
 
+void CCEditMain::killSubProc() {
+    if (m_subProcType == SubprocMSCC) {
+#ifndef Q_OS_WIN
+        // Terminate the whole process group, otherwise WINE children won't be killed
+        if (kill(-m_subProc->processId(), SIGTERM) == -1) {
+            QMessageBox::critical(this, tr("Error while killing process"),
+                    tr("CCEdit failed to kill a test process. "
+                       "Please close the running process to start a new one. (Error code %1)").arg(errno),
+                    QMessageBox::Ok);
+            return;
+        }
+#else
+        m_subProc->terminate();
+#endif
+    } else {
+        m_subProc->terminate();
+    }
+    m_subProc->waitForFinished();
+}
+
 void CCEditMain::onTestChips()
 {
     EditorWidget* editor = currentEditor();
@@ -1970,15 +1995,23 @@ void CCEditMain::onTestChips()
     if (levelNum < 0)
         return;
 
+    QSettings settings;
+
+    bool autoKill = settings.value(QStringLiteral("AutoKillTest"), true).toBool();
+
     if (m_subProc) {
-        QMessageBox::critical(this, tr("Process already running"),
-                tr("A CCEdit test process is already running.  Please close the "
-                   "running process before trying to start a new one"),
-                QMessageBox::Ok);
-        return;
+        if (!autoKill) {
+            QMessageBox::critical(this, tr("Process already running"),
+                    tr("A CCEdit test process is already running.  Please close the "
+                       "running process before trying to start a new one "
+                       "(You can change this behaviour in Test Setup)"),
+                    QMessageBox::Ok);
+            return;
+        }
+        killSubProc();
     }
 
-    QSettings settings;
+
     QString chipsExe = settings.value(QStringLiteral("ChipsExe")).toString();
     if (chipsExe.isEmpty() || !QFile::exists(chipsExe)) {
         QMessageBox::critical(this, tr("Could not find CHIPS.EXE"),
@@ -2107,6 +2140,11 @@ void CCEditMain::onTestChips()
     if (!winePath.isEmpty()) {
         // Launch with Wine (Unix) or WineVDM (Windows)
         m_subProc->start(winePath, QStringList{ m_tempExe });
+#ifndef Q_OS_WIN
+        // Qt doesn't set the process group ID by default for some reason
+        // (we need it to kill subprocs of Proton), so do it manually here
+        setpgid(m_subProc->processId(), m_subProc->processId());
+#endif
     } else {
         // Native execution
         m_subProc->start(m_tempExe, QStringList());
@@ -2123,15 +2161,22 @@ void CCEditMain::onTestTWorld(unsigned int levelsetType)
     if (levelNum < 0)
         return;
 
+    QSettings settings;
+
+    bool autoKill = settings.value(QStringLiteral("AutoKillTest"), true).toBool();
+
     if (m_subProc) {
-        QMessageBox::critical(this, tr("Process already running"),
-                tr("A CCEdit test process is already running.  Please close the "
-                   "running process before trying to start a new one"),
-                QMessageBox::Ok);
-        return;
+        if (!autoKill) {
+            QMessageBox::critical(this, tr("Process already running"),
+                    tr("A CCEdit test process is already running.  Please close the "
+                       "running process before trying to start a new one "
+                       "(You can change this behaviour in Test Setup)"),
+                    QMessageBox::Ok);
+            return;
+        }
+        killSubProc();
     }
 
-    QSettings settings;
     QString tworldExe = settings.value(QStringLiteral("TWorldExe")).toString();
     if (tworldExe.isEmpty() || !QFile::exists(tworldExe)) {
         // Try standard paths

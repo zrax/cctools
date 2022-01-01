@@ -53,6 +53,11 @@
 #include <QTextBlock>
 #include <QElapsedTimer>
 
+#ifndef Q_OS_WIN
+#include <csignal>
+#include <unistd.h>
+#endif
+
 Q_DECLARE_METATYPE(CC2ETileset*)
 
 enum TileListId {
@@ -2408,15 +2413,34 @@ void CC2EditMain::onTestChips2()
     if (!editor)
         return;
 
+    QSettings settings;
+
+    bool autoKill = settings.value(QStringLiteral("AutoKillTest"), true).toBool();
+
     if (m_subProc) {
-        QMessageBox::critical(this, tr("Process already running"),
-                tr("A CC2Edit test process is already running.  Please close the "
-                   "running process before trying to start a new one"),
-                QMessageBox::Ok);
-        return;
+        if (!autoKill) {
+            QMessageBox::critical(this, tr("Process already running"),
+                    tr("A CC2Edit test process is already running.  Please close the "
+                       "running process before trying to start a new one "
+                       "(You can change this behaviour in Test Setup)"),
+                    QMessageBox::Ok);
+            return;
+        }
+#ifndef Q_OS_WIN
+        // Terminate the whole process group, otherwise WINE won't be killed
+        if (kill(-m_subProc->processId(), SIGTERM) == -1) {
+            QMessageBox::critical(this, tr("Error while killing process"),
+                    tr("CC2Edit failed to kill a test process. "
+                       "Please close the running process to start a new one. (Error code %1)").arg(errno),
+                    QMessageBox::Ok);
+            return;
+        }
+#else
+        m_subProc->terminate();
+#endif
+        m_subProc->waitForFinished();
     }
 
-    QSettings settings;
     QString chips2Exe = settings.value(QStringLiteral("Chips2Exe")).toString();
     if (chips2Exe.isEmpty() || !QFile::exists(chips2Exe)) {
         QMessageBox::critical(this, tr("Could not find Chips2 executable"),
@@ -2678,6 +2702,9 @@ void CC2EditMain::onTestChips2()
     m_subProc->setProcessEnvironment(env);
     QStringList args { protonExe, QStringLiteral("run"), chips2Exe };
     m_subProc->start(pythonExe, args);
+    // Qt doesn't set the process group ID by default for some reason
+    // (we need it to kill subprocs of Proton), so do it manually here
+    setpgid(m_subProc->processId(), m_subProc->processId());
 #else
     m_subProc->start(chips2Exe, QStringList());
 #endif

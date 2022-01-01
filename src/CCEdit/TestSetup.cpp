@@ -89,6 +89,9 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     auto lblLexyUrl = new QLabel(tr("&Lexy's Labyrinth URL:"), this);
     lblLexyUrl->setBuddy(m_lexyUrl);
 
+    m_autoKill = new QCheckBox(tr("Automatically kill the current test process when spawning a new one"), this);
+    m_autoKill->setChecked(settings.value(QStringLiteral("AutoKillTest"), true).toBool());
+
     auto layout = new QGridLayout(this);
     layout->setContentsMargins(8, 8, 8, 8);
     layout->setVerticalSpacing(4);
@@ -119,6 +122,7 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
     winevdmLabel->setOpenExternalLinks(true);
     layout->addWidget(winevdmLabel, ++row, 0, 1, 3);
 #endif
+    layout->addWidget(m_autoKill, ++row, 0, 1, 3);
     layout->addItem(new QSpacerItem(0, 0, QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding),
                     ++row, 0, 1, 3);
     layout->addWidget(buttons, ++row, 0, 1, 3);
