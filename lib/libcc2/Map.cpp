@@ -29,13 +29,15 @@ void cc2::MapOption::setReplayMD5(const uint8_t* md5)
 }
 
 #define KNOWN_OPTION_LENGTH 25
+#define BLOB_PATTERN 24
 
 void cc2::MapOption::read(ccl::Stream* stream, size_t size)
 {
-    // We treat all fields as optional with a zero-default
+    // We treat all fields as optional with a zero-default (except for blob pattern, which has 1 as default)
     size_t alloc_size = std::max((size_t)KNOWN_OPTION_LENGTH, size);
     std::unique_ptr<uint8_t[]> buffer(new uint8_t[alloc_size]);
     memset(buffer.get(), 0, alloc_size);
+    buffer[BLOB_PATTERN] = 1;
     if (stream->read(buffer.get(), 1, size) != size)
         throw ccl::IOError(ccl::RuntimeError::tr("Read past end of stream"));
 
@@ -85,7 +87,7 @@ void cc2::MapOption::write(ccl::Stream* stream) const
     Q_ASSERT((bufp - buffer) == KNOWN_OPTION_LENGTH);
 
     size_t writeLen = KNOWN_OPTION_LENGTH;
-    while (writeLen > 3 && buffer[writeLen - 1] == 0)
+    while (writeLen > 3 && buffer[writeLen - 1] == (writeLen - 1 == BLOB_PATTERN ? 1 : 0))
         --writeLen;
 
     // Never cut in the middle of the replay checksum
