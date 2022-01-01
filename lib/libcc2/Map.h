@@ -200,9 +200,13 @@ public:
         Flag2x, DirBlock, FloorMimic, GreenBomb, GreenChip,
         UNUSED_85, UNUSED_86, RevLogicButton, Switch_Off, Switch_On,
         KeyThief, Ghost, SteelFoil, Turtle, Eye, Bribe, SpeedShoes,
-        UNUSED_91, Hook, UNUSED_94 = 0x94, UNUSED_9f = 0x9f,
-        UNUSED_a3 = 0xa3, UNUSED_f3 = 0xf3,
-        NUM_TILE_TYPES,
+        UNUSED_91, Hook, NUM_NORMAL_TILE_TYPES, UNUSED_94 = 0x94,
+        UNUSED_9f = 0x9f, UNUSED_a3 = 0xa3, UNUSED_f3 = 0xf3,
+    };
+
+    static constexpr std::array<Type, 4> NotablePosthookTypes = {
+        UNUSED_94, UNUSED_9f,
+        UNUSED_a3, UNUSED_f3,
     };
 
     enum Direction { InvalidDir = -1, North, East, South, West };

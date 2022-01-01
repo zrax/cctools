@@ -96,6 +96,8 @@ void cc2::MapOption::write(ccl::Stream* stream) const
         throw ccl::IOError(ccl::RuntimeError::tr("Error writing to stream"));
 }
 
+// Create the constexpr from Map.h
+constexpr std::array<cc2::Tile::Type, 4> cc2::Tile::NotablePosthookTypes;
 
 cc2::Tile::Tile(const Tile& copy)
     : m_type(copy.m_type), m_direction(copy.m_direction),
