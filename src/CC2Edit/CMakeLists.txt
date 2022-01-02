@@ -29,6 +29,7 @@ set(CC2Edit_HEADERS
     TestSetup.h
     TileInspector.h
     TileWidgets.h
+    Preferences.h
 )
 
 set(CC2Edit_SOURCES
@@ -44,6 +45,7 @@ set(CC2Edit_SOURCES
     TestSetup.cpp
     TileInspector.cpp
     TileWidgets.cpp
+    Preferences.cpp
 )
 
 if(WIN32)

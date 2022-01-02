@@ -28,6 +28,7 @@
 #include "libcc2/GameLogic.h"
 #include "CommonWidgets/CCTools.h"
 #include "CommonWidgets/EditorTabWidget.h"
+#include "Preferences.h"
 
 #include <QApplication>
 #include <QDesktopServices>
@@ -115,6 +116,8 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_actions[ActionGenReport] = new QAction(tr("Generate &Report"), this);
     m_actions[ActionGenReport]->setStatusTip(tr("Generate an HTML report of the current game"));
     m_actions[ActionGenReport]->setEnabled(false);
+    m_actions[ActionPreferences] = new QAction(tr("&Prefrerences..."), this);
+    m_actions[ActionPreferences]->setStatusTip(tr("Change CC2Edit preferences"));
     m_actions[ActionExit] = new QAction(ICON("application-exit"), tr("E&xit"), this);
     m_actions[ActionExit]->setStatusTip(tr("Close CC2Edit"));
 
@@ -757,6 +760,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     fileMenu->addSeparator();
     fileMenu->addAction(m_actions[ActionGenReport]);
     fileMenu->addSeparator();
+    fileMenu->addAction(m_actions[ActionPreferences]);
     fileMenu->addAction(m_actions[ActionExit]);
 
     QMenu* editMenu = menuBar()->addMenu(tr("&Edit"));
@@ -866,6 +870,10 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     });
     connect(m_actions[ActionCloseGame], &QAction::triggered, this, &CC2EditMain::closeScript);
     connect(m_actions[ActionGenReport], &QAction::triggered, this, &CC2EditMain::onReportAction);
+    connect(m_actions[ActionPreferences], &QAction::triggered, this, [] {
+        PreferencesDialog dlg;
+        dlg.exec();
+    });
     connect(m_actions[ActionExit], &QAction::triggered, this, &CC2EditMain::close);
 
     connect(m_actions[ActionSelect], &QAction::toggled, this, &CC2EditMain::onSelectToggled);
@@ -1053,8 +1061,15 @@ CC2EditMain::CC2EditMain(QWidget* parent)
 
 void CC2EditMain::createNewMap()
 {
+    QSettings settings;
     auto map = new cc2::Map;
-    map->mapData().resize(32, 32);
+    map->mapData().resize(
+                settings.value(QStringLiteral("DefaultMapWidth"), 32).toUInt(),
+                settings.value(QStringLiteral("DefaultMapHeight"), 32).toUInt()
+    );
+    if (settings.value(QStringLiteral("UseDefaultAuthor"), false).toBool()) {
+        map->setAuthor(settings.value(QStringLiteral("AuthorName")).toString().toStdString());
+    }
     addEditor(map, QString(), false);
     map->unref();
 
