@@ -144,6 +144,7 @@ void TestSetupDialog::onSaveSettings()
     settings.setValue(QStringLiteral("TestCCPatch"), m_useCCPatch->isChecked());
     settings.setValue(QStringLiteral("TestPGPatch"), m_usePGPatch->isChecked());
     settings.setValue(QStringLiteral("LexyUrl"), m_lexyUrl->text());
+    settings.setValue(QStringLiteral("AutoKillTest"), m_autoKill->isChecked());
     accept();
 }
 
