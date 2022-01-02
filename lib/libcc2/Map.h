@@ -204,10 +204,7 @@ public:
         UNUSED_9f = 0x9f, UNUSED_a3 = 0xa3, UNUSED_f3 = 0xf3,
     };
 
-    static constexpr std::array<Type, 4> NotablePosthookTypes = {
-        UNUSED_94, UNUSED_9f,
-        UNUSED_a3, UNUSED_f3,
-    };
+    static const std::vector<Type> notablePosthookTypes;
 
     enum Direction { InvalidDir = -1, North, East, South, West };
 

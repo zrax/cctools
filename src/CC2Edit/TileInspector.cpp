@@ -70,10 +70,10 @@ TileInspector::TileInspector(QWidget* parent)
 
         m_tileType->addItem(CC2ETileset::baseName((cc2::Tile::Type)i), i);
     }
-    for (cc2::Tile::Type i: cc2::Tile::NotablePosthookTypes) {
+    for (cc2::Tile::Type i: cc2::Tile::notablePosthookTypes) {
         m_tileType->addItem(CC2ETileset::baseName((cc2::Tile::Type)i), i);
     };
-    m_tileType->insertSeparator(cc2::Tile::NUM_NORMAL_TILE_TYPES + cc2::Tile::NotablePosthookTypes.size());
+    m_tileType->insertSeparator(cc2::Tile::NUM_NORMAL_TILE_TYPES + cc2::Tile::notablePosthookTypes.size());
     m_tileType->addItem(tr("Other:"));
     auto tileTypeLabel = new QLabel(tr("Base &Type:"), this);
     tileTypeLabel->setBuddy(m_tileType);
