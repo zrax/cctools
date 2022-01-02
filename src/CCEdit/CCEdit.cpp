@@ -56,6 +56,7 @@
 #include "TestSetup.h"
 #include "ErrorCheck.h"
 #include "TileInspector.h"
+#include "Preferences.h"
 #include "libcc1/IniFile.h"
 #include "libcc1/ChipsHax.h"
 #include "libcc1/GameLogic.h"
@@ -114,6 +115,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionGenReport] = new QAction(tr("Generate &Report..."), this);
     m_actions[ActionGenReport]->setStatusTip(tr("Generate an HTML report of the current levelset"));
     m_actions[ActionGenReport]->setEnabled(false);
+    m_actions[ActionPreferences] = new QAction(tr("&Prefrerences..."), this);
+    m_actions[ActionPreferences]->setStatusTip(tr("Change CCEdit preferences"));
     m_actions[ActionExit] = new QAction(ICON("application-exit"), tr("E&xit"), this);
     m_actions[ActionExit]->setStatusTip(tr("Close CCEdit"));
 
@@ -525,6 +528,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     fileMenu->addAction(m_actions[ActionProperties]);
     fileMenu->addAction(m_actions[ActionGenReport]);
     fileMenu->addSeparator();
+    fileMenu->addAction(m_actions[ActionPreferences]);
     fileMenu->addAction(m_actions[ActionExit]);
 
     QMenu* editMenu = menuBar()->addMenu(tr("&Edit"));
@@ -637,6 +641,10 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionCloseLevelset], &QAction::triggered, this, &CCEditMain::closeLevelset);
     connect(m_actions[ActionProperties], &QAction::triggered, this, &CCEditMain::onPropertiesAction);
     connect(m_actions[ActionGenReport], &QAction::triggered, this, &CCEditMain::onReportAction);
+    connect(m_actions[ActionPreferences], &QAction::triggered, this, [] {
+        PreferencesDialog dlg;
+        dlg.exec();
+    });
     connect(m_actions[ActionExit], &QAction::triggered, this, &CCEditMain::close);
     connect(m_actions[ActionSelect], &QAction::toggled, this, &CCEditMain::onSelectToggled);
     connect(m_actions[ActionCut], &QAction::triggered, this, &CCEditMain::onCutAction);
@@ -1382,7 +1390,12 @@ void CCEditMain::createNewLevelset()
     if (!closeLevelset())
         return;
 
+    QSettings settings;
+
     m_levelset = new ccl::Levelset();
+    if (settings.value(QStringLiteral("UseDefaultAuthor"), false).toBool()) {
+        m_levelset->level(0)->setAuthor(settings.value(QStringLiteral("AuthorName")).toString().toStdString());
+    }
     doLevelsetLoad();
     setLevelsetFilename(QString());
     m_useDac = false;
@@ -2335,8 +2348,13 @@ void CCEditMain::onAddLevelAction()
     if (!m_levelset)
         return;
 
+    QSettings settings;
+
     auto undoCommand = new LevelsetUndoCommand(m_levelset);
-    m_levelset->addLevel();
+    auto newLevel = m_levelset->addLevel();
+    if (settings.value(QStringLiteral("UseDefaultAuthor"), false).toBool()) {
+        newLevel->setAuthor(settings.value(QStringLiteral("AuthorName")).toString().toStdString());
+    }
     undoCommand->captureLevelList(m_levelset);
     m_undoStack->push(undoCommand);
     doLevelsetLoad();
