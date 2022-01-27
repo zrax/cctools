@@ -61,8 +61,8 @@ target_link_libraries(CC2Edit PRIVATE
     CommonWidgets
 )
 
-target_include_directories(CC2Edit PRIVATE "${PROJECT_SOURCE_DIR}")
-target_link_libraries(CC2Edit PRIVATE qtextpad)
+target_include_directories(CC2Edit PRIVATE "${PROJECT_SOURCE_DIR}/qtextpad/lib")
+target_link_libraries(CC2Edit PRIVATE syntaxtextedit)
 
 if(APPLE)
     set(MACOSX_BUNDLE true)

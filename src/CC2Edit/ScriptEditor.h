@@ -18,7 +18,7 @@
 #ifndef _SCRIPTEDITOR_H
 #define _SCRIPTEDITOR_H
 
-#include "qtextpad/src/syntaxtextedit.h"
+#include "syntaxtextedit.h"
 
 class CC2ScriptEditor : public SyntaxTextEdit {
     Q_OBJECT
