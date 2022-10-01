@@ -1397,7 +1397,7 @@ void CCEditMain::onOpenAction()
     QSettings settings;
     QString filename = QFileDialog::getOpenFileName(this, tr("Open Levelset..."),
                             settings.value(QStringLiteral("DialogDir")).toString(),
-                            tr("All Levelsets (*.dat *.dac *.ccl)"));
+                            tr("All Levelsets (*.dat *.DAT *.dac *.ccl)"));
     if (!filename.isEmpty()) {
         loadLevelset(filename);
         settings.setValue(QStringLiteral("DialogDir"),
@@ -1417,7 +1417,7 @@ void CCEditMain::onSaveAsAction()
 {
     QSettings settings;
     QString filter = m_useDac ? tr("TWorld Levelsets (*.dac)")
-                              : tr("CC Levelsets (*.dat *.ccl)");
+                              : tr("CC Levelsets (*.dat *.DAT *.ccl)");
 
     if (m_levelsetFilename.isEmpty())
         m_levelsetFilename = settings.value(QStringLiteral("DialogDir")).toString();

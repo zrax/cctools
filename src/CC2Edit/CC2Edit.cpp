@@ -1703,7 +1703,7 @@ void CC2EditMain::onImportCC1Action()
     QSettings settings;
     QString filename = QFileDialog::getOpenFileName(this, tr("Import Map..."),
                             settings.value(QStringLiteral("Import/DialogDir")).toString(),
-                            tr("CC1 Levelsets (*.ccl *.dat)"));
+                            tr("CC1 Levelsets (*.ccl *.dat *.DAT)"));
     if (!filename.isEmpty()) {
         ImportDialog dialog(this);
         dialog.loadLevelset(filename);
