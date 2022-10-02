@@ -5,14 +5,14 @@ on:
   pull_request:
 
 env:
-  KF5_VERSION: "5.88"
-  KF5_FULLVER: "5.88.0"
+  KF5_VERSION: "5.98"
+  KF5_FULLVER: "5.98.0"
   QT_VERSION: "5.15.2"
   CM_GENERATOR: "Visual Studio 16 2019"
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2019
     steps:
       - uses: actions/checkout@v2
         with:
