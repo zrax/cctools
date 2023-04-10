@@ -249,9 +249,9 @@ long ccl::LevelData::read(ccl::Stream* stream, bool forClipboard)
     m_chips = stream->read16();
     dataSize -= 3 * sizeof(unsigned short);
 
-    long mapDetail = stream->read16();
+    uint16_t compressionType = stream->read16();
 
-    if (mapDetail != 1 && mapDetail != 0)
+    if (compressionType != 0 && compressionType != 1)
         throw ccl::IOError(ccl::RuntimeError::tr("Invalid map data field"));
     dataSize -= m_map.read(stream) + sizeof(unsigned short);
 
