@@ -63,14 +63,17 @@ TileInspector::TileInspector(QWidget* parent)
     connect(m_moveLayerUp, &QAction::triggered, this, &TileInspector::moveLayerUp);
 
     m_tileType = new QComboBox(this);
-    for (int i = 0; i < cc2::Tile::NUM_TILE_TYPES; ++i) {
+    for (int i = 0; i < cc2::Tile::NUM_NORMAL_TILE_TYPES; ++i) {
         if (i == cc2::Tile::Modifier8 || i == cc2::Tile::Modifier16
                 || i == cc2::Tile::Modifier32)
             continue;
 
         m_tileType->addItem(CC2ETileset::baseName((cc2::Tile::Type)i), i);
     }
-    m_tileType->insertSeparator(cc2::Tile::NUM_TILE_TYPES);
+    for (cc2::Tile::Type i: cc2::Tile::notablePosthookTypes) {
+        m_tileType->addItem(CC2ETileset::baseName((cc2::Tile::Type)i), i);
+    };
+    m_tileType->insertSeparator(cc2::Tile::NUM_NORMAL_TILE_TYPES + cc2::Tile::notablePosthookTypes.size());
     m_tileType->addItem(tr("Other:"));
     auto tileTypeLabel = new QLabel(tr("Base &Type:"), this);
     tileTypeLabel->setBuddy(m_tileType);
@@ -195,7 +198,7 @@ void TileInspector::tryAccept()
                     tr("Invalid tile type (%1).  Tile type must not be a modifier tile.")
                     .arg(tp->type()));
             return;
-        } else if (tp->type() >= cc2::Tile::NUM_TILE_TYPES) {
+        } else if (tp->type() >= cc2::Tile::NUM_NORMAL_TILE_TYPES) {
             rangeTile = tp->type();
         }
     }

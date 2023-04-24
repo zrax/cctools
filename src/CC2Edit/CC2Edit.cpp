@@ -28,6 +28,7 @@
 #include "libcc2/GameLogic.h"
 #include "CommonWidgets/CCTools.h"
 #include "CommonWidgets/EditorTabWidget.h"
+#include "Preferences.h"
 
 #include <QApplication>
 #include <QDesktopServices>
@@ -52,6 +53,11 @@
 #include <QProgressDialog>
 #include <QTextBlock>
 #include <QElapsedTimer>
+
+#ifndef Q_OS_WIN
+#include <csignal>
+#include <unistd.h>
+#endif
 
 Q_DECLARE_METATYPE(CC2ETileset*)
 
@@ -110,6 +116,8 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     m_actions[ActionGenReport] = new QAction(tr("Generate &Report"), this);
     m_actions[ActionGenReport]->setStatusTip(tr("Generate an HTML report of the current game"));
     m_actions[ActionGenReport]->setEnabled(false);
+    m_actions[ActionPreferences] = new QAction(tr("&Prefrerences..."), this);
+    m_actions[ActionPreferences]->setStatusTip(tr("Change CC2Edit preferences"));
     m_actions[ActionExit] = new QAction(ICON("application-exit"), tr("E&xit"), this);
     m_actions[ActionExit]->setStatusTip(tr("Close CC2Edit"));
 
@@ -608,6 +616,10 @@ CC2EditMain::CC2EditMain(QWidget* parent)
         cc2::Tile(cc2::Tile::UNUSED_85),
         cc2::Tile(cc2::Tile::UNUSED_86),
         cc2::Tile(cc2::Tile::UNUSED_91),
+        cc2::Tile(cc2::Tile::UNUSED_94),
+        cc2::Tile(cc2::Tile::UNUSED_9f),
+        cc2::Tile(cc2::Tile::UNUSED_a3),
+        cc2::Tile(cc2::Tile::UNUSED_f3)
     });
     tileBox->addItem(tileLists[ListAdvanced], tr("Advanced"));
 
@@ -748,6 +760,7 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     fileMenu->addSeparator();
     fileMenu->addAction(m_actions[ActionGenReport]);
     fileMenu->addSeparator();
+    fileMenu->addAction(m_actions[ActionPreferences]);
     fileMenu->addAction(m_actions[ActionExit]);
 
     QMenu* editMenu = menuBar()->addMenu(tr("&Edit"));
@@ -857,6 +870,10 @@ CC2EditMain::CC2EditMain(QWidget* parent)
     });
     connect(m_actions[ActionCloseGame], &QAction::triggered, this, &CC2EditMain::closeScript);
     connect(m_actions[ActionGenReport], &QAction::triggered, this, &CC2EditMain::onReportAction);
+    connect(m_actions[ActionPreferences], &QAction::triggered, this, [] {
+        PreferencesDialog dlg;
+        dlg.exec();
+    });
     connect(m_actions[ActionExit], &QAction::triggered, this, &CC2EditMain::close);
 
     connect(m_actions[ActionSelect], &QAction::toggled, this, &CC2EditMain::onSelectToggled);
@@ -1044,8 +1061,15 @@ CC2EditMain::CC2EditMain(QWidget* parent)
 
 void CC2EditMain::createNewMap()
 {
+    QSettings settings;
     auto map = new cc2::Map;
-    map->mapData().resize(32, 32);
+    map->mapData().resize(
+                settings.value(QStringLiteral("DefaultMapWidth"), 32).toUInt(),
+                settings.value(QStringLiteral("DefaultMapHeight"), 32).toUInt()
+    );
+    if (settings.value(QStringLiteral("UseDefaultAuthor"), false).toBool()) {
+        map->setAuthor(settings.value(QStringLiteral("AuthorName")).toString().toStdString());
+    }
     addEditor(map, QString(), false);
     map->unref();
 
@@ -2404,15 +2428,34 @@ void CC2EditMain::onTestChips2()
     if (!editor)
         return;
 
+    QSettings settings;
+
+    bool autoKill = settings.value(QStringLiteral("AutoKillTest"), true).toBool();
+
     if (m_subProc) {
-        QMessageBox::critical(this, tr("Process already running"),
-                tr("A CC2Edit test process is already running.  Please close the "
-                   "running process before trying to start a new one"),
-                QMessageBox::Ok);
-        return;
+        if (!autoKill) {
+            QMessageBox::critical(this, tr("Process already running"),
+                    tr("A CC2Edit test process is already running.  Please close the "
+                       "running process before trying to start a new one "
+                       "(You can change this behaviour in Test Setup)"),
+                    QMessageBox::Ok);
+            return;
+        }
+#ifndef Q_OS_WIN
+        // Terminate the whole process group, otherwise WINE won't be killed
+        if (kill(-m_subProc->processId(), SIGTERM) == -1) {
+            QMessageBox::critical(this, tr("Error while killing process"),
+                    tr("CC2Edit failed to kill a test process. "
+                       "Please close the running process to start a new one. (Error code %1)").arg(errno),
+                    QMessageBox::Ok);
+            return;
+        }
+#else
+        m_subProc->terminate();
+#endif
+        m_subProc->waitForFinished();
     }
 
-    QSettings settings;
     QString chips2Exe = settings.value(QStringLiteral("Chips2Exe")).toString();
     if (chips2Exe.isEmpty() || !QFile::exists(chips2Exe)) {
         QMessageBox::critical(this, tr("Could not find Chips2 executable"),
@@ -2674,6 +2717,9 @@ void CC2EditMain::onTestChips2()
     m_subProc->setProcessEnvironment(env);
     QStringList args { protonExe, QStringLiteral("run"), chips2Exe };
     m_subProc->start(pythonExe, args);
+    // Qt doesn't set the process group ID by default for some reason
+    // (we need it to kill subprocs of Proton), so do it manually here
+    setpgid(m_subProc->processId(), m_subProc->processId());
 #else
     m_subProc->start(chips2Exe, QStringList());
 #endif

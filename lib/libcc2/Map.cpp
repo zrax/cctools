@@ -29,13 +29,15 @@ void cc2::MapOption::setReplayMD5(const uint8_t* md5)
 }
 
 #define KNOWN_OPTION_LENGTH 25
+#define BLOB_PATTERN 24
 
 void cc2::MapOption::read(ccl::Stream* stream, size_t size)
 {
-    // We treat all fields as optional with a zero-default
+    // We treat all fields as optional with a zero-default (except for blob pattern, which has 1 as default)
     size_t alloc_size = std::max((size_t)KNOWN_OPTION_LENGTH, size);
     std::unique_ptr<uint8_t[]> buffer(new uint8_t[alloc_size]);
     memset(buffer.get(), 0, alloc_size);
+    buffer[BLOB_PATTERN] = 1;
     if (stream->read(buffer.get(), 1, size) != size)
         throw ccl::IOError(ccl::RuntimeError::tr("Read past end of stream"));
 
@@ -85,7 +87,7 @@ void cc2::MapOption::write(ccl::Stream* stream) const
     Q_ASSERT((bufp - buffer) == KNOWN_OPTION_LENGTH);
 
     size_t writeLen = KNOWN_OPTION_LENGTH;
-    while (writeLen > 3 && buffer[writeLen - 1] == 0)
+    while (writeLen > 3 && buffer[writeLen - 1] == (writeLen - 1 == BLOB_PATTERN ? 1 : 0))
         --writeLen;
 
     // Never cut in the middle of the replay checksum
@@ -96,6 +98,11 @@ void cc2::MapOption::write(ccl::Stream* stream) const
         throw ccl::IOError(ccl::RuntimeError::tr("Error writing to stream"));
 }
 
+// Create the notablePosthookTypes from Map.h
+const std::vector<cc2::Tile::Type> cc2::Tile::notablePosthookTypes = {
+        UNUSED_94, UNUSED_9f,
+        UNUSED_a3, UNUSED_f3,
+};
 
 cc2::Tile::Tile(const Tile& copy)
     : m_type(copy.m_type), m_direction(copy.m_direction),
@@ -340,6 +347,10 @@ bool cc2::Tile::haveLower(int type)
     case Bribe:
     case SpeedShoes:
     case Hook:
+    case UNUSED_94:
+    case UNUSED_9f:
+    case UNUSED_a3:
+    case UNUSED_f3:
         return true;
     default:
         return false;
@@ -374,6 +385,7 @@ bool cc2::Tile::haveDirection(int type)
     case DirBlock:
     case FloorMimic:
     case Ghost:
+    case UNUSED_a3:
         return true;
     default:
         return false;
@@ -434,6 +446,9 @@ cc2::Tile::TileClass cc2::Tile::tileClass(int type)
     case Bribe:
     case SpeedShoes:
     case Hook:
+    case UNUSED_94:
+    case UNUSED_9f:
+    case UNUSED_f3:
         return ClassItem;
     case Walker:
     case Ship:
@@ -451,6 +466,7 @@ cc2::Tile::TileClass cc2::Tile::tileClass(int type)
     case Rover:
     case FloorMimic:
     case Ghost:
+    case UNUSED_a3:
         return ClassCreature;
     case Player:
     case Player2:
@@ -1119,9 +1135,8 @@ void cc2::MapData::read(ccl::Stream* stream, size_t size)
     m_map = new Tile[mapSize];
     for (size_t i = 0; i < mapSize; ++i)
         m_map[i].read(stream);
-
-    if (start + (long)size != stream->tell())
-        throw ccl::FormatError(ccl::RuntimeError::tr("Failed to parse map data"));
+    if (start + (long)size < stream->tell())
+       throw ccl::FormatError(ccl::RuntimeError::tr("Failed to parse map data (%1 extra bytes in map data)").arg(start + (long)size - stream->tell()));
 }
 
 void cc2::MapData::write(ccl::Stream* stream) const

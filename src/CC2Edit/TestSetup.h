@@ -21,6 +21,7 @@
 #include <QDialog>
 
 class QLineEdit;
+class QCheckBox;
 
 class TestSetupDialog : public QDialog {
     Q_OBJECT
@@ -35,6 +36,7 @@ private:
 #endif
     QLineEdit* m_chips2Path;
     QLineEdit* m_lexyUrl;
+    QCheckBox* m_autoKill;
 
 private slots:
     void onSaveSettings();

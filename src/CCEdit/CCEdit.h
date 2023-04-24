@@ -67,7 +67,7 @@ private:
     enum ActionType {
         ActionNew, ActionOpen, ActionSave, ActionSaveAs, ActionCloseTab,
         ActionCloseLevelset,
-        ActionGenReport, ActionExit, ActionSelect, ActionCut, ActionCopy,
+        ActionGenReport, ActionPreferences, ActionExit, ActionSelect, ActionCut, ActionCopy,
         ActionPaste, ActionClear, ActionUndo, ActionRedo, ActionDrawPencil,
         ActionDrawLine, ActionDrawRect, ActionDrawFill, ActionDrawFlood,
         ActionPathMaker, ActionConnect, ActionAdvancedMech, ActionInspectTiles,
@@ -130,6 +130,7 @@ private:
     void doLevelsetLoad();
     void setLevelsetFilename(const QString& filename);
     void populateRecentFiles();
+    void killSubProc();
 
 private slots:
     void onOpenAction();
