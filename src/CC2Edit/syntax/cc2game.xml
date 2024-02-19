@@ -80,6 +80,7 @@
 
       <context name="Comment" attribute="Comment" lineEndContext="#pop">
         <DetectSpaces />
+        <RegExpr attribute="Comment Metadata" String="meta.+" context="#stay" />
         <IncludeRules context="##Alerts" />
         <DetectIdentifier />
       </context>
@@ -102,6 +103,7 @@
       <itemData name="String" defStyleNum="dsString"/>
       <itemData name="String Char" defStyleNum="dsChar"/>
       <itemData name="Comment" defStyleNum="dsComment"/>
+      <itemData name="Comment Metadata" defStyleNum="dsPreprocessor"/>
     </itemDatas>
   </highlighting>
 
