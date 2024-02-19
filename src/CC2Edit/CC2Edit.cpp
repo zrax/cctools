@@ -1059,7 +1059,7 @@ void CC2EditMain::createNewScript()
                 "game \"My CC2 Game\"\n"
                 "0 flags =\n"
                 "0 score =\n"
-                "0 hispeed =\n"
+                "0 speed =\n"
                 "1 level =\n"));
 
     // Select the game name for easy editing.
