@@ -20,8 +20,20 @@
 
 #include <QWidget>
 #include <QPainter>
+#include <unordered_map>
+#include <set>
 #include "libcc1/Tileset.h"
 #include "libcc1/Levelset.h"
+
+// Simple pair hash for computing the hash of an unordered_map<std::pair<int,int>,T> key
+struct pair_hash {
+    template <class T1, class T2>
+    std::size_t operator () (const std::pair<T1,T2> &pr) const {
+        auto h1 = std::hash<T1>{}(pr.first);
+        auto h2 = std::hash<T2>{}(pr.second);
+        return h1 ^ h2;
+    }
+};
 
 class EditorWidget : public QWidget {
     Q_OBJECT
@@ -41,8 +53,18 @@ public:
         ShowMovePaths = (1<<3),
         ShowViewBox = (1<<4),
         ShowErrors = (1<<5),
+        ShowCloneNumbers = (1<<6),
+        ShowTrapNumbers = (1<<7),
+        ShowDRCloneButtons = (1<<8),
+        ShowMultiTankLocations = (1<<9),
+        ShowConnectionsOnMouse = (1<<10),
+        // ShowAll is used for showing all the features when generating a report
+        // Not showing multiple tank locations and connections on mouse as the first
+        // is less useful in a levelset report, and the second is just used to
+        // show connections when the mouse passes over, thus being the same as ShowButtons
         ShowAll = ShowPlayer | ShowMovement | ShowButtons | ShowMovePaths |
-                  ShowViewBox | ShowErrors,
+                  ShowViewBox | ShowErrors | ShowCloneNumbers | ShowTrapNumbers |
+                  ShowDRCloneButtons,
 
         // Renders the upper layer very faintly over the lower layer.
         RevealLower = (1<<11),
@@ -127,11 +149,14 @@ private:
     ccl::LevelData* m_levelData;
     ccl::LevelData* m_levelEditCache;
     QList<QPoint> m_hilights;
+    std::set<std::tuple<int,int,int,int>> m_clonersHilights;
+    std::set<std::tuple<int,int,int,int>> m_trapsHilights;
+    std::set<std::tuple<int,int,int,int>> m_teleportsHilights;
     tile_t m_leftTile, m_rightTile;
     DrawMode m_drawMode;
     uint32_t m_paintFlags;
     Qt::MouseButton m_cachedButton;
-    QPixmap m_numbers, m_errmk;
+    QPixmap m_numbers, m_cloneNumbers, m_trapNumbers, m_drIcons, m_errmk;
     QPoint m_origin, m_current;
     ccl::Direction m_lastDir;
     QRect m_selectRect;

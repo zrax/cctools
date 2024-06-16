@@ -30,7 +30,7 @@ BEGIN
             VALUE "CompanyName", "Michael Hansen"
             VALUE "FileVersion", "@CCTOOLS_VER_STRING@"
             VALUE "InternalName", "CCEdit"
-            VALUE "LegalCopyright", "Copyright (C) 2020 Michael Hansen"
+            VALUE "LegalCopyright", "Copyright (C) 2024 Michael Hansen"
             VALUE "OriginalFilename", "CCEdit.exe"
             VALUE "ProductName", "CCTools"
             VALUE "ProductVersion", "@CCTOOLS_VER_STRING@"

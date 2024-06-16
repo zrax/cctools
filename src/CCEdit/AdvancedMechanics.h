@@ -38,6 +38,30 @@ private:
         NUM_ACTIONS
     };
 
+    enum MSCCDataResettingType {
+        LevelNumber_low=0,
+        LevelNumber_high=1,
+        NumberOfLevels_low=2,
+        NumberOfLevels_high=3,
+        TimeLimit_low=4,
+        TimeLimit_high=5,
+        NumberOfChipsReq_low=6,
+        NumberOfChipsReq_high=7,
+        Xcoordinate=8,
+        Ycoordinate=10,
+        SlidingState=12,
+        KeystrokeBufferState=14,
+        XdirectionKeystroke=18,
+        YdirectionKeystroke=20,
+        AutopsyReport=22,
+        XdirectionSliding=24,
+        YdirectionSliding=26,
+        AmountOfMonsters=28,
+        XinitialPosFirstMonster=30,
+        YinitialPosFirstMonster=31,
+        Unknown=32
+    };
+
     QTreeWidget* m_trapList;
     QTreeWidget* m_cloneList;
     QTreeWidget* m_moveOrderList;
