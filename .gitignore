@@ -12,6 +12,5 @@ desktop.ini
 /bin/Debug
 /build
 /res/*.tis
-.idea
-cmake-build-debug
-cmake-build-optimized
+/.idea
+/cmake-build-*

@@ -1293,15 +1293,6 @@ void CCEditMain::populateTilesets()
         for (const QString& file : path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name))
             tilesets << path.absoluteFilePath(file);
     }
-
-    // Search starting from the build directory when using CLion
-    path.setPath(QApplication::applicationDirPath());
-    for(int i = 0; i < 3; ++i) {
-        path.cdUp();
-    }
-    path.cd(QStringLiteral("share/cctools"));
-    for (const QString& file : path.entryList(tilesetGlob, QDir::Files | QDir::Readable, QDir::Name))
-        tilesets << path.absoluteFilePath(file);
 #endif
 
     // User-space local data

@@ -476,13 +476,11 @@ void EditorWidget::renderTo(QPainter& painter)
                         break;
                 }
 
-                // This if() is here just for an additional sanity check, but can be potentially removed, since
-                // num_img is never expected to assume a value < 0 or > 16
-                if(num_img>=0 && num_img<=16) {
-                    painter.drawPixmap((clone.button.X + 1) * m_tileset->size() * m_zoomFactor - 26,
-                                       clone.button.Y * m_tileset->size() * m_zoomFactor, // This is equivalent to (clone.button.Y + 1) * m_tileset->size() * m_zoomFactor - m_tileset->size() * m_zoomFactor
-                                       m_drIcons, 0, num_img * 10, 26, 10);
-                }
+                Q_ASSERT(num_img>=0 && num_img<=16);
+
+                painter.drawPixmap((clone.button.X + 1) * m_tileset->size() * m_zoomFactor - 26,
+                                   clone.button.Y * m_tileset->size() * m_zoomFactor, // This is equivalent to (clone.button.Y + 1) * m_tileset->size() * m_zoomFactor - m_tileset->size() * m_zoomFactor
+                                   m_drIcons, 0, num_img * 10, 26, 10);
             }
         }
     }

@@ -303,7 +303,8 @@ QTreeWidgetItem* AdvancedMechanicsDialog::addTrapItem(const ccl::Trap& trap)
     return item;
 }
 
-QTreeWidgetItem* AdvancedMechanicsDialog::addCloneItem(const ccl::Clone& clone) {
+QTreeWidgetItem* AdvancedMechanicsDialog::addCloneItem(const ccl::Clone& clone)
+{
     QTreeWidgetItem *item = new QTreeWidgetItem(m_cloneList);
     item->setText(0, QString::number(m_cloneList->topLevelItemCount()));
     item->setText(1, pointToStr(clone.button));
