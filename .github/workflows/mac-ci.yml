@@ -5,20 +5,20 @@ on:
   pull_request:
 
 env:
-  KF5_VERSION: "5.98"
-  KF5_FULLVER: "5.98.0"
+  KF5_VERSION: "5.116"
+  KF5_FULLVER: "5.116.0"
   QT_VERSION: "5.15.2"
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: true
       - name: Install Qt5
-        uses: jurplel/install-qt-action@v2
+        uses: jurplel/install-qt-action@v4
         with:
           arch: clang_64
           version: ${{ env.QT_VERSION }}
