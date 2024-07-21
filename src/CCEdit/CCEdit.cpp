@@ -207,6 +207,12 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionViewMovers] = new QAction(tr("Show &Monster Order"), this);
     m_actions[ActionViewMovers]->setStatusTip(tr("Display Monster Order in editor"));
     m_actions[ActionViewMovers]->setCheckable(true);
+    m_actions[ActionViewCloners] = new QAction(tr("Show &Clone Buttons/Machines Numbers"), this);
+    m_actions[ActionViewCloners]->setStatusTip(tr("Display clone button and related clone machine numbers in editor"));
+    m_actions[ActionViewCloners]->setCheckable(true);
+    m_actions[ActionViewTraps] = new QAction(tr("Show &Trap Buttons/Traps Numbers"), this);
+    m_actions[ActionViewTraps]->setStatusTip(tr("Display trap button and related trap numbers in editor"));
+    m_actions[ActionViewTraps]->setCheckable(true);
     m_actions[ActionViewActivePlayer] = new QAction(tr("Show &Player Starting Position"), this);
     m_actions[ActionViewActivePlayer]->setStatusTip(tr("Highlight the Player's start position"));
     m_actions[ActionViewActivePlayer]->setCheckable(true);
@@ -219,6 +225,16 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionViewErrors] = new QAction(tr("Show Tile Combo &Errors"), this);
     m_actions[ActionViewErrors]->setStatusTip(tr("Visually mark invalid tile combinations in the editor"));
     m_actions[ActionViewErrors]->setCheckable(true);
+    m_actions[ActionViewButtonsOnMouse] = new QAction(tr("Display Button and Teleport Connections on &Hover"), this);
+    m_actions[ActionViewButtonsOnMouse]->setStatusTip(tr("Visually show button connection when moving the mouse over a button or a trap/cloner"));
+    m_actions[ActionViewButtonsOnMouse]->setCheckable(true);
+
+    m_actions[ActionViewDRCloners] = new QAction(tr("Mark Known MSCC &Data Resetting Clone Buttons"), this);
+    m_actions[ActionViewDRCloners]->setStatusTip(tr("Mark known MSCC data resetting clone buttons in editor"));
+    m_actions[ActionViewDRCloners]->setCheckable(true);
+    m_actions[ActionViewMultiTanks] = new QAction(tr("Mar&k Multiple Tank Locations (Possible Multiple Tank Glitch)"), this);
+    m_actions[ActionViewMultiTanks]->setStatusTip(tr("Mark tiles where multiple tanks are inserted in the monster list (to possibly trigger the Multiple Tank Glitch)"));
+    m_actions[ActionViewMultiTanks]->setCheckable(true);
 
     m_actions[ActionZoom200] = new QAction(tr("200%"), this);
     m_actions[ActionZoom200]->setStatusTip(tr("Zoom to 200%"));
@@ -552,10 +568,17 @@ CCEditMain::CCEditMain(QWidget* parent)
     QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(m_actions[ActionViewButtons]);
     viewMenu->addAction(m_actions[ActionViewMovers]);
+    viewMenu->addAction(m_actions[ActionViewCloners]);
+    viewMenu->addAction(m_actions[ActionViewTraps]);
     viewMenu->addAction(m_actions[ActionViewActivePlayer]);
     viewMenu->addAction(m_actions[ActionViewViewport]);
     viewMenu->addAction(m_actions[ActionViewMonsterPaths]);
     viewMenu->addAction(m_actions[ActionViewErrors]);
+    viewMenu->addAction(m_actions[ActionViewButtonsOnMouse]);
+    viewMenu->addSeparator();
+    QMenu* advancedMSCCMenu = viewMenu->addMenu(tr("&Advanced (MSCC Only)"));
+    advancedMSCCMenu->addAction(m_actions[ActionViewDRCloners]);
+    advancedMSCCMenu->addAction(m_actions[ActionViewMultiTanks]);
     viewMenu->addSeparator();
     QMenu* dockMenu = viewMenu->addMenu(tr("&Toolbox"));
     dockMenu->addAction(m_levelManDock->toggleViewAction());
@@ -653,10 +676,15 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionCheckErrors], &QAction::triggered, this, &CCEditMain::onCheckErrorsAction);
     connect(m_actions[ActionViewButtons], &QAction::toggled, this, &CCEditMain::onViewButtonsToggled);
     connect(m_actions[ActionViewMovers], &QAction::toggled, this, &CCEditMain::onViewMoversToggled);
+    connect(m_actions[ActionViewCloners], &QAction::toggled, this, &CCEditMain::onViewClonersToggled);
+    connect(m_actions[ActionViewTraps], &QAction::toggled, this, &CCEditMain::onViewTrapsToggled);
+    connect(m_actions[ActionViewDRCloners], &QAction::toggled, this, &CCEditMain::onViewDRClonersToggled);
+    connect(m_actions[ActionViewMultiTanks], &QAction::toggled, this, &CCEditMain::onViewMultiTanksToggled);
     connect(m_actions[ActionViewActivePlayer], &QAction::toggled, this, &CCEditMain::onViewActivePlayerToggled);
     connect(m_actions[ActionViewViewport], &QAction::toggled, this, &CCEditMain::onViewViewportToggled);
     connect(m_actions[ActionViewMonsterPaths], &QAction::toggled, this, &CCEditMain::onViewMonsterPathsToggled);
     connect(m_actions[ActionViewErrors], &QAction::toggled, this, &CCEditMain::onViewErrorsToggled);
+    connect(m_actions[ActionViewButtonsOnMouse], &QAction::toggled, this, &CCEditMain::onViewButtonsOnMouseToggled);
     connect(m_tilesetGroup, &QActionGroup::triggered, this, &CCEditMain::onTilesetMenu);
     connect(m_actions[ActionZoom200], &QAction::triggered, this, [this] { setZoomFactor(2.0); });
     connect(m_actions[ActionZoom150], &QAction::triggered, this, [this] { setZoomFactor(1.5); });
@@ -733,6 +761,14 @@ CCEditMain::CCEditMain(QWidget* parent)
             settings.value(QStringLiteral("ViewButtons"), true).toBool());
     m_actions[ActionViewMovers]->setChecked(
             settings.value(QStringLiteral("ViewMovers"), true).toBool());
+    m_actions[ActionViewCloners]->setChecked(
+            settings.value(QStringLiteral("ViewCloners"), false).toBool());
+    m_actions[ActionViewTraps]->setChecked(
+            settings.value(QStringLiteral("ViewTraps"), false).toBool());
+    m_actions[ActionViewDRCloners]->setChecked(
+            settings.value(QStringLiteral("ViewDRClones"), false).toBool());
+    m_actions[ActionViewMultiTanks]->setChecked(
+            settings.value(QStringLiteral("ViewMultiTanks"), false).toBool());
     m_actions[ActionViewActivePlayer]->setChecked(
             settings.value(QStringLiteral("ViewActivePlayer"), false).toBool());
     m_actions[ActionViewViewport]->setChecked(
@@ -741,6 +777,8 @@ CCEditMain::CCEditMain(QWidget* parent)
             settings.value(QStringLiteral("ViewMonsterPaths"), false).toBool());
     m_actions[ActionViewErrors]->setChecked(
             settings.value(QStringLiteral("ViewErrors"), true).toBool());
+    m_actions[ActionViewButtonsOnMouse]->setChecked(
+            settings.value(QStringLiteral("ViewButtonsOnMouse"), false).toBool());
 
     // Make sure the toolbox docks are visible
     QDockWidget* docks[] = {m_levelManDock, sortedTilesDock, allTilesDock};
@@ -1086,6 +1124,14 @@ void CCEditMain::closeEvent(QCloseEvent* event)
                       m_actions[ActionViewButtons]->isChecked());
     settings.setValue(QStringLiteral("ViewMovers"),
                       m_actions[ActionViewMovers]->isChecked());
+    settings.setValue(QStringLiteral("ViewCloners"),
+                      m_actions[ActionViewCloners]->isChecked());
+    settings.setValue(QStringLiteral("ViewTraps"),
+                      m_actions[ActionViewTraps]->isChecked());
+    settings.setValue(QStringLiteral("ViewDRClones"),
+                      m_actions[ActionViewDRCloners]->isChecked());
+    settings.setValue(QStringLiteral("ViewMultiTanks"),
+                      m_actions[ActionViewMultiTanks]->isChecked());
     settings.setValue(QStringLiteral("ViewActivePlayer"),
                       m_actions[ActionViewActivePlayer]->isChecked());
     settings.setValue(QStringLiteral("ViewViewport"),
@@ -1094,6 +1140,8 @@ void CCEditMain::closeEvent(QCloseEvent* event)
                       m_actions[ActionViewMonsterPaths]->isChecked());
     settings.setValue(QStringLiteral("ViewErrors"),
                       m_actions[ActionViewErrors]->isChecked());
+    settings.setValue(QStringLiteral("ViewButtonsOnMouse"),
+                        m_actions[ActionViewButtonsOnMouse]->isChecked());
 }
 
 void CCEditMain::resizeEvent(QResizeEvent* event)
@@ -1328,6 +1376,14 @@ EditorWidget* CCEditMain::addEditor(ccl::LevelData* level)
         editor->setPaintFlag(EditorWidget::ShowButtons);
     if (m_actions[ActionViewMovers]->isChecked())
         editor->setPaintFlag(EditorWidget::ShowMovement);
+    if (m_actions[ActionViewCloners]->isChecked())
+        editor->setPaintFlag(EditorWidget::ShowCloneNumbers);
+    if (m_actions[ActionViewTraps]->isChecked())
+        editor->setPaintFlag(EditorWidget::ShowTrapNumbers);
+    if (m_actions[ActionViewDRCloners]->isChecked())
+        editor->setPaintFlag(EditorWidget::ShowDRCloneButtons);
+    if (m_actions[ActionViewMultiTanks]->isChecked())
+        editor->setPaintFlag(EditorWidget::ShowMultiTankLocations);
     if (m_actions[ActionViewActivePlayer]->isChecked())
         editor->setPaintFlag(EditorWidget::ShowPlayer);
     if (m_actions[ActionViewViewport]->isChecked())
@@ -1336,6 +1392,8 @@ EditorWidget* CCEditMain::addEditor(ccl::LevelData* level)
         editor->setPaintFlag(EditorWidget::ShowMovePaths);
     if (m_actions[ActionViewErrors]->isChecked())
         editor->setPaintFlag(EditorWidget::ShowErrors);
+    if (m_actions[ActionViewButtonsOnMouse]->isChecked())
+        editor->setPaintFlag(EditorWidget::ShowConnectionsOnMouse);
     editor->setDrawMode(m_currentDrawMode);
     editor->setTileset(m_currentTileset);
     editor->setLevelData(level);
@@ -1870,6 +1928,50 @@ void CCEditMain::onViewMoversToggled(bool view)
     }
 }
 
+void CCEditMain::onViewClonersToggled(bool view)
+{
+    if (view) {
+        for (int i=0; i<m_editorTabs->count(); ++i)
+            getEditorAt(i)->setPaintFlag(EditorWidget::ShowCloneNumbers);
+    } else {
+        for (int i=0; i<m_editorTabs->count(); ++i)
+            getEditorAt(i)->clearPaintFlag(EditorWidget::ShowCloneNumbers);
+    }
+}
+
+void CCEditMain::onViewTrapsToggled(bool view)
+{
+    if (view) {
+        for (int i=0; i<m_editorTabs->count(); ++i)
+            getEditorAt(i)->setPaintFlag(EditorWidget::ShowTrapNumbers);
+    } else {
+        for (int i=0; i<m_editorTabs->count(); ++i)
+            getEditorAt(i)->clearPaintFlag(EditorWidget::ShowTrapNumbers);
+    }
+}
+
+void CCEditMain::onViewDRClonersToggled(bool view)
+{
+    if (view) {
+        for (int i=0; i<m_editorTabs->count(); ++i)
+            getEditorAt(i)->setPaintFlag(EditorWidget::ShowDRCloneButtons);
+    } else {
+        for (int i=0; i<m_editorTabs->count(); ++i)
+            getEditorAt(i)->clearPaintFlag(EditorWidget::ShowDRCloneButtons);
+    }
+}
+
+void CCEditMain::onViewMultiTanksToggled(bool view)
+{
+    if (view) {
+        for (int i=0; i<m_editorTabs->count(); ++i)
+            getEditorAt(i)->setPaintFlag(EditorWidget::ShowMultiTankLocations);
+    } else {
+        for (int i=0; i<m_editorTabs->count(); ++i)
+            getEditorAt(i)->clearPaintFlag(EditorWidget::ShowMultiTankLocations);
+    }
+}
+
 void CCEditMain::onViewActivePlayerToggled(bool view)
 {
     if (view) {
@@ -1911,6 +2013,17 @@ void CCEditMain::onViewErrorsToggled(bool view)
     } else {
         for (int i=0; i<m_editorTabs->count(); ++i)
             getEditorAt(i)->clearPaintFlag(EditorWidget::ShowErrors);
+    }
+}
+
+void CCEditMain::onViewButtonsOnMouseToggled(bool view)
+{
+    if (view) {
+        for (int i=0; i<m_editorTabs->count(); ++i)
+            getEditorAt(i)->setPaintFlag(EditorWidget::ShowConnectionsOnMouse);
+    } else {
+        for (int i=0; i<m_editorTabs->count(); ++i)
+            getEditorAt(i)->clearPaintFlag(EditorWidget::ShowConnectionsOnMouse);
     }
 }
 
@@ -2639,7 +2752,6 @@ void CCEditMain::onProcessError(QProcess::ProcessError err)
     }
     onProcessFinished(-1, QProcess::NormalExit);
 }
-
 
 int main(int argc, char* argv[])
 {

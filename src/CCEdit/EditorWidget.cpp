@@ -242,6 +242,11 @@ static bool isValidPoint(const ccl::Point& point)
     return (point.X >= 0 && point.X < 32 && point.Y >= 0 && point.Y < 32);
 }
 
+static bool isDataResettingPoint(const ccl::Point& point)
+{
+    return (point.X >= 0 && point.X < 32 && point.Y == 32);
+}
+
 static QPoint find_player(ccl::LevelData* levelData)
 {
     for (int y = 31; y >= 0; --y) {
@@ -259,6 +264,9 @@ EditorWidget::EditorWidget(QWidget* parent)
     : QWidget(parent), m_tileset(), m_levelData(), m_leftTile(), m_rightTile(),
       m_drawMode(DrawPencil), m_paintFlags(), m_cachedButton(Qt::NoButton),
       m_numbers(QStringLiteral(":/res/numbers.png")),
+      m_cloneNumbers(QStringLiteral(":/res/clone-numbers.png")),
+      m_trapNumbers(QStringLiteral(":/res/trap-numbers.png")),
+      m_drIcons(QStringLiteral(":/res/dr-icons.png")),
       m_errmk(QStringLiteral(":/res/err-mark.png")),
       m_lastDir(ccl::DirInvalid), m_zoomFactor(1.0)
 {
@@ -363,6 +371,120 @@ void EditorWidget::renderTo(QPainter& painter)
         }
     }
 
+    if(m_paintFlags & ShowCloneNumbers) {
+        int num = 0;
+
+        for (const ccl::Clone& clone : m_levelData->clones()) {
+            if(isValidPoint(clone.button)) {
+                painter.drawPixmap((clone.button.X + 1) * m_tileset->size() * m_zoomFactor - 16,
+                                   (clone.button.Y + 1) * m_tileset->size() * m_zoomFactor - 10,
+                                   m_cloneNumbers, 0, num * 10, 16, 10);
+            }
+
+            if(isValidPoint(clone.clone)) {
+                painter.drawPixmap((clone.clone.X + 1) * m_tileset->size() * m_zoomFactor - 16,
+                                   (clone.clone.Y + 1) * m_tileset->size() * m_zoomFactor - 10,
+                                   m_cloneNumbers, 0, num * 10, 16, 10);
+            }
+
+            num++;
+        }
+    }
+
+    if(m_paintFlags & ShowTrapNumbers) {
+        int num = 0;
+
+        for (const ccl::Trap& trap : m_levelData->traps()) {
+            if(isValidPoint(trap.button)) {
+                painter.drawPixmap((trap.button.X + 1) * m_tileset->size() * m_zoomFactor - 16,
+                                   (trap.button.Y + 1) * m_tileset->size() * m_zoomFactor - 10,
+                                   m_trapNumbers, 0, num * 10, 16, 10);
+            }
+
+            if(isValidPoint(trap.trap)) {
+                painter.drawPixmap((trap.trap.X + 1) * m_tileset->size() * m_zoomFactor - 16,
+                                   (trap.trap.Y + 1) * m_tileset->size() * m_zoomFactor - 10,
+                                   m_trapNumbers, 0, num * 10, 16, 10);
+            }
+
+            num++;
+        }
+    }
+
+    // When marking the data resetting clone buttons, draw a small icon in the top-right part of the tile
+    if(m_paintFlags & ShowDRCloneButtons) {
+        for (const ccl::Clone& clone : m_levelData->clones()) {
+            // Mark only the "valid" data resetting clone buttons
+            if (isValidPoint(clone.button) && isDataResettingPoint(clone.clone)) {
+                int num_img=0;
+
+                switch (clone.clone.X) {
+                    case 0:
+                    case 1:
+                        num_img = 0;
+                        break;
+                    case 2:
+                    case 3:
+                        num_img = 1;
+                        break;
+                    case 4:
+                    case 5:
+                        num_img = 2;
+                        break;
+                    case 6:
+                    case 7:
+                        num_img = 3;
+                        break;
+                    case 8:
+                        num_img = 4;
+                        break;
+                    case 10:
+                        num_img = 5;
+                        break;
+                    case 12:
+                        num_img = 6;
+                        break;
+                    case 14:
+                        num_img = 7;
+                        break;
+                    case 18:
+                        num_img = 8;
+                        break;
+                    case 20:
+                        num_img = 9;
+                        break;
+                    case 22:
+                        num_img = 10;
+                        break;
+                    case 24:
+                        num_img = 11;
+                        break;
+                    case 26:
+                        num_img = 12;
+                        break;
+                    case 28:
+                        num_img = 13;
+                        break;
+                    case 30:
+                        num_img = 14;
+                        break;
+                    case 31:
+                        num_img = 15;
+                        break;
+                    default:
+                        num_img = 16;
+                        break;
+                }
+
+                Q_ASSERT(num_img>=0 && num_img<=16);
+
+                painter.drawPixmap((clone.button.X + 1) * m_tileset->size() * m_zoomFactor - 26,
+                                   clone.button.Y * m_tileset->size() * m_zoomFactor, // This is equivalent to (clone.button.Y + 1) * m_tileset->size() * m_zoomFactor - m_tileset->size() * m_zoomFactor
+                                   m_drIcons, 0, num_img * 10, 26, 10);
+            }
+        }
+    }
+
     if ((m_paintFlags & ShowMovePaths) != 0) {
         painter.setPen(QColor(0, 127, 255));
         for (ccl::Point from : m_levelData->moveList()) {
@@ -443,10 +565,126 @@ void EditorWidget::renderTo(QPainter& painter)
         painter.drawLine(calcTileCenter(m_origin), calcTileCenter(m_current));
     }
 
+    // To show the location where multiple tanks are in the monster list and may possibly trigger a Multiple Tank Glitch,
+    // first, we scan the moveList(). Then, we add to a map of (point;occurrences), i.e., the "tankList", only the
+    // entries that correspond to a tank with a sliding tile in lower layer.
+    // When such entries are found for the second time (and only for the second time), a transparent blue rectangle with
+    // a red "MT" text is drawn over the tile.
+    if ((m_paintFlags & ShowMultiTankLocations) != 0) {
+        std::unordered_map<std::pair<int,int>,int,pair_hash> tankList;
+
+        for (const ccl::Point& mover : m_levelData->moveList()) {
+            if (!isValidPoint(mover))
+                continue;
+
+            tile_t tile_fg = m_levelData->map().getFG(mover.X, mover.Y);
+            tile_t tile_bg = m_levelData->map().getBG(mover.X, mover.Y);
+
+            // Consider only entries that correspond to a tank with a sliding tile in lower layer
+            if ((tile_fg==ccl::TileTank_N || tile_fg==ccl::TileTank_E || tile_fg==ccl::TileTank_S || tile_fg==ccl::TileTank_W) &&
+                (tile_bg==ccl::TileForce_N || tile_bg==ccl::TileForce_E || tile_bg==ccl::TileForce_S || tile_bg==ccl::TileForce_W ||
+                tile_bg==ccl::TileIce || tile_bg==ccl::TileTeleport ||
+                tile_bg==ccl::TileIce_NE || tile_bg==ccl::TileIce_NW || tile_bg==ccl::TileIce_SE || tile_bg==ccl::TileIce_SW)) {
+                if (tankList.count(std::make_pair(mover.X,mover.Y)) > 0 && tankList[std::make_pair(mover.X, mover.Y)] == 1) {
+                    // Entry found for the second time
+
+                    // Draw the rectangle
+                    painter.setPen(QColor(0, 0, 255));
+                    painter.fillRect(calcTileRect(mover.X, mover.Y), QBrush(QColor(0, 0, 255, 100)));
+                    painter.drawRect(calcTileRect(mover.X, mover.Y));
+
+                    // Add the "MT" text
+                    painter.setPen(QColor(255, 0, 0));
+                    painter.drawText(calcTileRect(mover.X, mover.Y), QStringLiteral("MT"));
+
+                    // Increment the number of occurrences for this entry
+                    tankList[std::make_pair(mover.X, mover.Y)]++;
+                } else if(tankList.count(std::make_pair(mover.X,mover.Y)) == 0) {
+                    // Entry found for the first time -> add it to the tankList
+                    tankList[std::make_pair(mover.X, mover.Y)] = 1;
+                }
+            }
+        }
+        tankList.clear();
+    }
+
     // Highlight context-sensitive objects
     painter.setPen(QColor(255, 0, 0));
     for (const QPoint& hi : m_hilights)
         painter.drawRect(calcTileRect(hi));
+
+    // Highlight button connections when the mouse is over a clone/trap button, trap, cloner or teleport, if enabled
+    // via the "View" menu
+    // std::get<0>(conn) is the button x coordinate
+    // std::get<1>(conn) is the button y coordinate
+    // std::get<2>(conn) is the connected object x coordinate
+    // std::get<3>(conn) is the connected object y coordinate
+    if(m_paintFlags & ShowConnectionsOnMouse) {
+        // Show clone button connections
+        painter.setPen(QColor(255, 0, 0));
+        for (const std::tuple<int, int, int, int> &conn: m_clonersHilights) {
+            // Exclude for now all the connections to (32,y) where a cloner is located in the lower layer of (0,y+1)
+            // and which correspond to valid clone buttons
+            // The reason is better detailed below under the else() branch
+            if(std::get<2>(conn) != 32 || std::get<3>(conn)<0 || std::get<3>(conn) >= 31 ||
+                    m_levelData->map().getBG(std::get<2>(conn),std::get<3>(conn)) != ccl::TileCloner) {
+                // Draw invalid connections with a dashed line instead of a solid line
+                if(std::get<0>(conn)<0 || std::get<0>(conn)>31 || std::get<1>(conn)<0 || std::get<1>(conn)>31 ||
+                   std::get<2>(conn)<0 || std::get<2>(conn)>31 || std::get<3>(conn)<0 || std::get<3>(conn)>31) {
+                    QPen invalidConnPen;
+                    invalidConnPen.setColor(QColor(255, 0, 0));
+                    invalidConnPen.setStyle(Qt::DashLine);
+                    painter.setPen(invalidConnPen);
+                }
+
+                painter.drawLine(calcTileCenter(std::get<0>(conn), std::get<1>(conn)),
+                                 calcTileCenter(std::get<2>(conn), std::get<3>(conn)));
+            } else {
+                // Connections to (32,y), with y<31, may be made on purpose on MSCC
+                // (they will clone the object in (0,y+1) that will appear in (31,y))
+                // Show them as a dash-dotted lines only if a cloner is located in (0,y+1)
+                QPen MSCC32yPen;
+                MSCC32yPen.setColor(QColor(255, 0, 0));
+                MSCC32yPen.setStyle(Qt::DashDotLine);
+                painter.setPen(MSCC32yPen);
+
+                // Add a text marker to show that this might be a connection made on purpose to trigger the (32,y) "glitch"
+                // on MSCC
+                painter.drawText(calcTileRect(std::get<0>(conn), std::get<1>(conn)), QStringLiteral("32,y"));
+
+                // Draw a line to show both the possible cloning machine connection and the location where the object
+                // will appear
+                painter.drawLine(calcTileCenter(std::get<0>(conn), std::get<1>(conn)),
+                                 calcTileCenter(0, std::get<3>(conn)+1));
+                painter.drawLine(calcTileCenter(std::get<0>(conn), std::get<1>(conn)),
+                                 calcTileCenter(31, std::get<3>(conn)));
+            }
+        }
+
+        // Show trap button connections
+        painter.setPen(QColor(255, 0, 0));
+        for (const std::tuple<int, int, int, int> &conn: m_trapsHilights) {
+            // Draw invalid connections with a dashed line instead of a solid line
+            if(std::get<0>(conn)<0 || std::get<0>(conn)>31 || std::get<1>(conn)<0 || std::get<1>(conn)>31 ||
+               std::get<2>(conn)<0 || std::get<2>(conn)>31 || std::get<3>(conn)<0 || std::get<3>(conn)>31) {
+                QPen invalidConnPen;
+                invalidConnPen.setColor(QColor(255, 0, 0));
+                invalidConnPen.setStyle(Qt::DashLine);
+                painter.setPen(invalidConnPen);
+            }
+
+            painter.drawLine(calcTileCenter(std::get<0>(conn), std::get<1>(conn)),
+                             calcTileCenter(std::get<2>(conn), std::get<3>(conn)));
+        }
+
+        // Show teleport connections with a light blue straight line, highlighting the destination teleport in light blue
+        painter.setPen(QColor(0, 255, 255));
+        for (const std::tuple<int, int, int, int> &teleportCoordinates: m_teleportsHilights) {
+            painter.drawLine(calcTileCenter(std::get<0>(teleportCoordinates), std::get<1>(teleportCoordinates)),
+                             calcTileCenter(std::get<2>(teleportCoordinates), std::get<3>(teleportCoordinates)));
+            painter.drawRect(calcTileRect(std::get<2>(teleportCoordinates), std::get<3>(teleportCoordinates)));
+        }
+    }
 }
 
 /* This is only used to generate special reports, so no old draw/render state
@@ -609,6 +847,13 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
     QString tipText;
 
     m_hilights.clear();
+
+    if (m_paintFlags & ShowConnectionsOnMouse) {
+        m_clonersHilights.clear();
+        m_trapsHilights.clear();
+        m_teleportsHilights.clear();
+    }
+
     for (const auto& trap_iter : m_levelData->traps()) {
         if (trap_iter.button.X == posX && trap_iter.button.Y == posY) {
             if (isValidPoint(trap_iter.trap))
@@ -617,6 +862,10 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
                 tipText += QLatin1Char('\n');
             tipText += tr("Trap: (%1, %2)")
                        .arg(trap_iter.trap.X).arg(trap_iter.trap.Y);
+
+            if (m_paintFlags & ShowConnectionsOnMouse) {
+                m_trapsHilights.insert(std::make_tuple(trap_iter.button.X,trap_iter.button.Y,trap_iter.trap.X,trap_iter.trap.Y));
+            }
         }
         if (trap_iter.trap.X == posX && trap_iter.trap.Y == posY) {
             if (isValidPoint(trap_iter.button))
@@ -625,6 +874,10 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
                 tipText += QLatin1Char('\n');
             tipText += tr("Button: (%1, %2)")
                        .arg(trap_iter.button.X).arg(trap_iter.button.Y);
+
+            if (m_paintFlags & ShowConnectionsOnMouse) {
+                m_trapsHilights.insert(std::make_tuple(trap_iter.button.X,trap_iter.button.Y,trap_iter.trap.X,trap_iter.trap.Y));
+            }
         }
     }
     for (const auto& clone_iter : m_levelData->clones()) {
@@ -635,6 +888,10 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
                 tipText += QLatin1Char('\n');
             tipText += tr("Cloner: (%1, %2)")
                        .arg(clone_iter.clone.X).arg(clone_iter.clone.Y);
+
+            if (m_paintFlags & ShowConnectionsOnMouse) {
+                m_clonersHilights.insert(std::make_tuple(clone_iter.button.X,clone_iter.button.Y,clone_iter.clone.X,clone_iter.clone.Y));
+            }
         }
         if (clone_iter.clone.X == posX && clone_iter.clone.Y == posY) {
             if (isValidPoint(clone_iter.button))
@@ -643,6 +900,10 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
                 tipText += QLatin1Char('\n');
             tipText += tr("Button: (%1, %2)")
                        .arg(clone_iter.button.X).arg(clone_iter.button.Y);
+
+            if (m_paintFlags & ShowConnectionsOnMouse) {
+                m_clonersHilights.insert(std::make_tuple(clone_iter.button.X,clone_iter.button.Y,clone_iter.clone.X,clone_iter.clone.Y));
+            }
         }
     }
 
@@ -658,6 +919,8 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
 
     if (m_levelData->map().getFG(posX, posY) == ccl::TileTeleport
         || m_levelData->map().getBG(posX, posY) == ccl::TileTeleport) {
+        int initialPosX = posX;
+        int initialPosY = posY;
         // Scan for next teleport
         do {
             if (--posX < 0) {
@@ -672,6 +935,10 @@ void EditorWidget::mouseMoveEvent(QMouseEvent* event)
         if (!tipText.isEmpty())
             tipText += QLatin1Char('\n');
         tipText += tr("Teleport to: (%1, %2)").arg(posX).arg(posY);
+
+        if (m_paintFlags & ShowConnectionsOnMouse) {
+            m_teleportsHilights.insert(std::make_tuple(initialPosX,initialPosY,posX,posY));
+        }
     }
 
     if (MONSTER_TILE(m_levelData->map().getFG(posX, posY))) {

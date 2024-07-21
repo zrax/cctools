@@ -36,6 +36,9 @@
     <file>res/tab-new-sm.png</file>
     <file>res/tab-close-sm.png</file>
     <file>res/numbers.png</file>
+    <file>res/clone-numbers.png</file>
+    <file>res/trap-numbers.png</file>
+    <file>res/dr-icons.png</file>
     <file>res/level-organize.png</file>
     <file>res/err-mark.png</file>
     <file>res/cur-button.png</file>

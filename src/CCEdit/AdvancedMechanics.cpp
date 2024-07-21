@@ -147,6 +147,11 @@ static bool isValidPoint(const ccl::Point& point)
     return (point.X >= 0 && point.X < 32 && point.Y >= 0 && point.Y < 32);
 }
 
+static bool isDataResettingPoint(const ccl::Point& point)
+{
+    return (point.X >= 0 && point.X < 32 && point.Y == 32);
+}
+
 
 AdvancedMechanicsDialog::AdvancedMechanicsDialog(QWidget* parent)
     : QDialog(parent)
@@ -300,7 +305,7 @@ QTreeWidgetItem* AdvancedMechanicsDialog::addTrapItem(const ccl::Trap& trap)
 
 QTreeWidgetItem* AdvancedMechanicsDialog::addCloneItem(const ccl::Clone& clone)
 {
-    QTreeWidgetItem* item = new QTreeWidgetItem(m_cloneList);
+    QTreeWidgetItem *item = new QTreeWidgetItem(m_cloneList);
     item->setText(0, QString::number(m_cloneList->topLevelItemCount()));
     item->setText(1, pointToStr(clone.button));
     item->setText(2, pointToStr(clone.clone));
@@ -308,10 +313,80 @@ QTreeWidgetItem* AdvancedMechanicsDialog::addCloneItem(const ccl::Clone& clone)
         && (m_levelData->map().getFG(clone.button.X, clone.button.Y) == ccl::TileCloneButton
             || m_levelData->map().getBG(clone.button.X, clone.button.Y) == ccl::TileCloneButton)
         && (m_levelData->map().getFG(clone.clone.X, clone.clone.Y) == ccl::TileCloner
-            || m_levelData->map().getBG(clone.clone.X, clone.clone.Y) == ccl::TileCloner))
+            || m_levelData->map().getBG(clone.clone.X, clone.clone.Y) == ccl::TileCloner)) {
         item->setText(3, tr("OK"));
-    else
+    } else if(isValidPoint(clone.button) &&
+        (m_levelData->map().getFG(clone.button.X, clone.button.Y) == ccl::TileCloneButton ||
+        m_levelData->map().getBG(clone.button.X, clone.button.Y) == ccl::TileCloneButton) &&
+        isDataResettingPoint(clone.clone)) {
+        switch(clone.clone.X) {
+            case LevelNumber_low:
+                item->setText(3, tr("INVALID / MSCC DATA RES. (Level Number - low B) [resettable]"));
+                break;
+            case LevelNumber_high:
+                item->setText(3, tr("INVALID / MSCC DATA RES. (Level Number - high B) [resettable]"));
+                break;
+            case NumberOfLevels_low:
+                item->setText(3, tr("INVALID / MSCC DATA RES. (Number of Levels - low B)"));
+                break;
+            case NumberOfLevels_high:
+                item->setText(3, tr("INVALID / MSCC DATA RES. (Number of Levels - high B)"));
+                break;
+            case TimeLimit_low:
+                item->setText(3, tr("INVALID / MSCC DATA RES. (Time Limit - low B)"));
+                break;
+            case TimeLimit_high:
+                item->setText(3, tr("INVALID / MSCC DATA RES. (Time Limit - high B)"));
+                break;
+            case NumberOfChipsReq_low:
+                item->setText(3, tr("INVALID / MSCC DATA RES. (Number of Chips Req. - low B)"));
+                break;
+            case NumberOfChipsReq_high:
+                item->setText(3, tr("INVALID / MSCC DATA RES. (Number of Chips Req. - high B)"));
+                break;
+            case Xcoordinate:
+                item->setText(3, tr("INVALID / MSCC DATA RES. (X Coordinate) [resettable]"));
+                break;
+            case Ycoordinate:
+                item->setText(3, tr("INVALID / MSCC DATA RES. (Y Coordinate) [resettable]"));
+                break;
+            case SlidingState:
+                item->setText(3, tr("INVALID / MSCC DATA RES. (Sliding State) [resettable]"));
+                break;
+            case KeystrokeBufferState:
+                item->setText(3, tr("INVALID / MSCC DATA RES. (Keystroke Buffer State)"));
+                break;
+            case XdirectionKeystroke:
+                item->setText(3, tr("INVALID / MSCC DATA RES. (Keystroke X direction)"));
+                break;
+            case YdirectionKeystroke:
+                item->setText(3, tr("INVALID / MSCC DATA RES. (Keystroke Y direction)"));
+                break;
+            case AutopsyReport:
+                item->setText(3, tr("INVALID / MSCC DATA RES. (Autopsy Report) [resettable]"));
+                break;
+            case XdirectionSliding:
+                item->setText(3, tr("INVALID / MSCC DATA RES. (Sliding X direction)"));
+                break;
+            case YdirectionSliding:
+                item->setText(3, tr("INVALID / MSCC DATA RES. (Sliding Y direction)"));
+                break;
+            case AmountOfMonsters:
+                item->setText(3, tr("INVALID / MSCC DATA RES. (Amount of Monsters)"));
+                break;
+            case XinitialPosFirstMonster:
+                item->setText(3, tr("INVALID / MSCC DATA RES. (Initial X pos. first monster)"));
+                break;
+            case YinitialPosFirstMonster:
+                item->setText(3, tr("INVALID / MSCC DATA RES. (Initial Y pos. first monster)"));
+                break;
+            default:
+                item->setText(3, tr("INVALID / MSCC DATA RES. (Other)"));
+                break;
+        }
+    } else {
         item->setText(3, tr("INVALID"));
+    }
     return item;
 }
 
