@@ -649,8 +649,8 @@ void EditorWidget::renderTo(QPainter& painter)
                 painter.setPen(MSCC32yPen);
 
                 // Add a text marker to show that this might be a connection made on purpose to trigger the (32,y) "glitch"
-                // on MSCC, but it may also be an actual invalid connection
-                painter.drawText(calcTileRect(std::get<0>(conn), std::get<1>(conn)), QStringLiteral("←?"));
+                // on MSCC
+                painter.drawText(calcTileRect(std::get<0>(conn), std::get<1>(conn)), QStringLiteral("32,y"));
 
                 // Draw a line to show both the possible cloning machine connection and the location where the object
                 // will appear

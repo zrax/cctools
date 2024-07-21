@@ -14,3 +14,7 @@ desktop.ini
 /res/*.tis
 /.idea
 /cmake-build-*
+/.vs
+/out
+CMakePresets.json
+CMakeUserPresets.json
