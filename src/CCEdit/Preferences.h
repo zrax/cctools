@@ -15,34 +15,22 @@
  * along with CCTools.  If not, see <http://www.gnu.org/licenses/>.           *
  ******************************************************************************/
 
-#ifndef _TESTSETUP_H
-#define _TESTSETUP_H
+#ifndef _PREFERENCES_H
+#define _PREFERENCES_H
 
 #include <QDialog>
 #include <QLineEdit>
 #include <QCheckBox>
 
-class TestSetupDialog : public QDialog {
-    Q_OBJECT
-
+class PreferencesDialog : public QDialog {
 public:
-    TestSetupDialog(QWidget* parent = nullptr);
-
+    PreferencesDialog(QWidget* parent = nullptr);
 private:
-    QLineEdit* m_winePath;
-    QLineEdit* m_msccPath;
-    QLineEdit* m_tworldPath;
-    QLineEdit* m_lexyUrl;
-
-    QCheckBox* m_useCCPatch;
-    QCheckBox* m_usePGPatch;
-    QCheckBox* m_autoKill;
-
+    QCheckBox* m_useDefaultAuthor;
+    QLineEdit* m_authorName;
 private slots:
     void onSaveSettings();
-    void onBrowseWine();
-    void onBrowseChips();
-    void onBrowseTWorld();
+    void onUseDefaultAuthorChanged();
 };
 
 #endif

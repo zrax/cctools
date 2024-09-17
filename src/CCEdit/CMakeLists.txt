@@ -29,6 +29,7 @@ set(CCEdit_HEADERS
     Organizer.h
     TileInspector.h
     LevelProperties.h
+    Preferences.h
 )
 
 set(CCEdit_SOURCES
@@ -44,6 +45,7 @@ set(CCEdit_SOURCES
     Organizer.cpp
     TileInspector.cpp
     LevelProperties.cpp
+    Preferences.cpp
 )
 
 if(WIN32)

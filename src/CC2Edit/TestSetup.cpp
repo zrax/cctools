@@ -25,6 +25,7 @@
 #include <QGridLayout>
 #include <QIntValidator>
 #include <QFileDialog>
+#include <QCheckBox>
 #include "CommonWidgets/CCTools.h"
 #include "CommonWidgets/PathCompleter.h"
 
@@ -80,6 +81,10 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
                                              DEFAULT_LEXY_URL).toString(), this);
     auto lblLexyUrl = new QLabel(tr("&Lexy's Labyrinth URL:"), this);
     lblLexyUrl->setBuddy(m_lexyUrl);
+
+    m_autoKill = new QCheckBox(tr("Automatically kill the current test process when spawning a new one"), this);
+    m_autoKill->setChecked(settings.value(QStringLiteral("AutoKillTest"), true).toBool());
+
     auto buttons = new QDialogButtonBox(
             QDialogButtonBox::Save | QDialogButtonBox::Cancel,
             Qt::Horizontal, this);
@@ -115,6 +120,7 @@ TestSetupDialog::TestSetupDialog(QWidget* parent)
             "</ul>"), this);
     chips1Label->setWordWrap(true);
     layout->addWidget(chips1Label, ++row, 0, 1, 3);
+    layout->addWidget(m_autoKill, ++row, 0, 1, 3);
     layout->addItem(new QSpacerItem(0, 0, QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding),
                     ++row, 0, 1, 3);
     layout->addWidget(buttons, ++row, 0, 1, 3);
@@ -138,6 +144,7 @@ void TestSetupDialog::onSaveSettings()
 #endif
     settings.setValue(QStringLiteral("Chips2Exe"), m_chips2Path->text());
     settings.setValue(QStringLiteral("LexyUrl"), m_lexyUrl->text());
+    settings.setValue(QStringLiteral("AutoKillTest"), m_autoKill->isChecked());
     accept();
 }
 

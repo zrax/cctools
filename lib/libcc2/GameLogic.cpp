@@ -371,7 +371,7 @@ cc2::MoveState cc2::CheckMove(const MapData& map, const Tile* tile, int x, int y
 
         const Tile* peekBase = &peek->bottom();
         if (peekBase->type() == Tile::SteelWall || peekBase->type() == Tile::StyledWall
-                || peekBase->type() >= Tile::NUM_TILE_TYPES
+                || peekBase->type() >= Tile::NUM_NORMAL_TILE_TYPES
                 || peek->haveTile({Tile::MirrorPlayer, Tile::MirrorPlayer2, Tile::BlueTank,
                                    Tile::YellowTank, Tile::DirtBlock, Tile::IceBlock,
                                    Tile::DirBlock})) {

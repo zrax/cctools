@@ -56,12 +56,18 @@
 #include "TestSetup.h"
 #include "ErrorCheck.h"
 #include "TileInspector.h"
+#include "Preferences.h"
 #include "libcc1/IniFile.h"
 #include "libcc1/ChipsHax.h"
 #include "libcc1/GameLogic.h"
 #include "CommonWidgets/CCTools.h"
 #include "CommonWidgets/EditorTabWidget.h"
 #include "CommonWidgets/LLTextEdit.h"
+
+#ifndef Q_OS_WIN
+#include <csignal>
+#include <unistd.h>
+#endif
 
 static const QString s_appTitle = QStringLiteral("CCEdit " CCTOOLS_VERSION);
 static const QString s_clipboardFormat = QStringLiteral("CHIPEDIT MAPSECT");
@@ -109,6 +115,8 @@ CCEditMain::CCEditMain(QWidget* parent)
     m_actions[ActionGenReport] = new QAction(tr("Generate &Report..."), this);
     m_actions[ActionGenReport]->setStatusTip(tr("Generate an HTML report of the current levelset"));
     m_actions[ActionGenReport]->setEnabled(false);
+    m_actions[ActionPreferences] = new QAction(tr("&Prefrerences..."), this);
+    m_actions[ActionPreferences]->setStatusTip(tr("Change CCEdit preferences"));
     m_actions[ActionExit] = new QAction(ICON("application-exit"), tr("E&xit"), this);
     m_actions[ActionExit]->setStatusTip(tr("Close CCEdit"));
 
@@ -520,6 +528,7 @@ CCEditMain::CCEditMain(QWidget* parent)
     fileMenu->addAction(m_actions[ActionProperties]);
     fileMenu->addAction(m_actions[ActionGenReport]);
     fileMenu->addSeparator();
+    fileMenu->addAction(m_actions[ActionPreferences]);
     fileMenu->addAction(m_actions[ActionExit]);
 
     QMenu* editMenu = menuBar()->addMenu(tr("&Edit"));
@@ -632,6 +641,10 @@ CCEditMain::CCEditMain(QWidget* parent)
     connect(m_actions[ActionCloseLevelset], &QAction::triggered, this, &CCEditMain::closeLevelset);
     connect(m_actions[ActionProperties], &QAction::triggered, this, &CCEditMain::onPropertiesAction);
     connect(m_actions[ActionGenReport], &QAction::triggered, this, &CCEditMain::onReportAction);
+    connect(m_actions[ActionPreferences], &QAction::triggered, this, [] {
+        PreferencesDialog dlg;
+        dlg.exec();
+    });
     connect(m_actions[ActionExit], &QAction::triggered, this, &CCEditMain::close);
     connect(m_actions[ActionSelect], &QAction::toggled, this, &CCEditMain::onSelectToggled);
     connect(m_actions[ActionCut], &QAction::triggered, this, &CCEditMain::onCutAction);
@@ -1377,7 +1390,12 @@ void CCEditMain::createNewLevelset()
     if (!closeLevelset())
         return;
 
+    QSettings settings;
+
     m_levelset = new ccl::Levelset();
+    if (settings.value(QStringLiteral("UseDefaultAuthor"), false).toBool()) {
+        m_levelset->level(0)->setAuthor(settings.value(QStringLiteral("AuthorName")).toString().toStdString());
+    }
     doLevelsetLoad();
     setLevelsetFilename(QString());
     m_useDac = false;
@@ -1961,6 +1979,26 @@ void CCEditMain::onTilesetMenu(QAction* which)
     settings.setValue(QStringLiteral("TilesetName"), m_currentTileset->filename());
 }
 
+void CCEditMain::killSubProc() {
+    if (m_subProcType == SubprocMSCC) {
+#ifndef Q_OS_WIN
+        // Terminate the whole process group, otherwise WINE children won't be killed
+        if (kill(-m_subProc->processId(), SIGTERM) == -1) {
+            QMessageBox::critical(this, tr("Error while killing process"),
+                    tr("CCEdit failed to kill a test process. "
+                       "Please close the running process to start a new one. (Error code %1)").arg(errno),
+                    QMessageBox::Ok);
+            return;
+        }
+#else
+        m_subProc->terminate();
+#endif
+    } else {
+        m_subProc->terminate();
+    }
+    m_subProc->waitForFinished();
+}
+
 void CCEditMain::onTestChips()
 {
     EditorWidget* editor = currentEditor();
@@ -1970,15 +2008,23 @@ void CCEditMain::onTestChips()
     if (levelNum < 0)
         return;
 
+    QSettings settings;
+
+    bool autoKill = settings.value(QStringLiteral("AutoKillTest"), true).toBool();
+
     if (m_subProc) {
-        QMessageBox::critical(this, tr("Process already running"),
-                tr("A CCEdit test process is already running.  Please close the "
-                   "running process before trying to start a new one"),
-                QMessageBox::Ok);
-        return;
+        if (!autoKill) {
+            QMessageBox::critical(this, tr("Process already running"),
+                    tr("A CCEdit test process is already running.  Please close the "
+                       "running process before trying to start a new one "
+                       "(You can change this behaviour in Test Setup)"),
+                    QMessageBox::Ok);
+            return;
+        }
+        killSubProc();
     }
 
-    QSettings settings;
+
     QString chipsExe = settings.value(QStringLiteral("ChipsExe")).toString();
     if (chipsExe.isEmpty() || !QFile::exists(chipsExe)) {
         QMessageBox::critical(this, tr("Could not find CHIPS.EXE"),
@@ -2107,6 +2153,11 @@ void CCEditMain::onTestChips()
     if (!winePath.isEmpty()) {
         // Launch with Wine (Unix) or WineVDM (Windows)
         m_subProc->start(winePath, QStringList{ m_tempExe });
+#ifndef Q_OS_WIN
+        // Qt doesn't set the process group ID by default for some reason
+        // (we need it to kill subprocs of Proton), so do it manually here
+        setpgid(m_subProc->processId(), m_subProc->processId());
+#endif
     } else {
         // Native execution
         m_subProc->start(m_tempExe, QStringList());
@@ -2123,15 +2174,22 @@ void CCEditMain::onTestTWorld(unsigned int levelsetType)
     if (levelNum < 0)
         return;
 
+    QSettings settings;
+
+    bool autoKill = settings.value(QStringLiteral("AutoKillTest"), true).toBool();
+
     if (m_subProc) {
-        QMessageBox::critical(this, tr("Process already running"),
-                tr("A CCEdit test process is already running.  Please close the "
-                   "running process before trying to start a new one"),
-                QMessageBox::Ok);
-        return;
+        if (!autoKill) {
+            QMessageBox::critical(this, tr("Process already running"),
+                    tr("A CCEdit test process is already running.  Please close the "
+                       "running process before trying to start a new one "
+                       "(You can change this behaviour in Test Setup)"),
+                    QMessageBox::Ok);
+            return;
+        }
+        killSubProc();
     }
 
-    QSettings settings;
     QString tworldExe = settings.value(QStringLiteral("TWorldExe")).toString();
     if (tworldExe.isEmpty() || !QFile::exists(tworldExe)) {
         // Try standard paths
@@ -2290,8 +2348,13 @@ void CCEditMain::onAddLevelAction()
     if (!m_levelset)
         return;
 
+    QSettings settings;
+
     auto undoCommand = new LevelsetUndoCommand(m_levelset);
-    m_levelset->addLevel();
+    auto newLevel = m_levelset->addLevel();
+    if (settings.value(QStringLiteral("UseDefaultAuthor"), false).toBool()) {
+        newLevel->setAuthor(settings.value(QStringLiteral("AuthorName")).toString().toStdString());
+    }
     undoCommand->captureLevelList(m_levelset);
     m_undoStack->push(undoCommand);
     doLevelsetLoad();
