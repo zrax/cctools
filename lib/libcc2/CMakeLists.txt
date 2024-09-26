@@ -16,6 +16,7 @@
 include_directories(${CCTools_SOURCE_DIR}/lib)
 
 set(libcc2_HEADERS
+    CC2MD5.h
     GameLogic.h
     GameScript.h
     Map.h
@@ -23,6 +24,7 @@ set(libcc2_HEADERS
 )
 
 set(libcc2_SOURCES
+    CC2MD5.cpp
     GameLogic.cpp
     GameScript.cpp
     Map.cpp
