@@ -1057,9 +1057,13 @@ void CC2EditMain::createNewScript()
     auto editor = addScriptEditor(QString());
     editor->setPlainText(QStringLiteral(
                 "game \"My CC2 Game\"\n"
+                "; meta by: Put your name here\n"
+                "; meta description: A short-medium description of the set\n"
+                "; Rate the difficulty of the set between 1 and 5 (decimals allowed)\n"
+                "; meta difficulty: 3\n"
                 "0 flags =\n"
                 "0 score =\n"
-                "0 hispeed =\n"
+                "0 speed =\n"
                 "1 level =\n"));
 
     // Select the game name for easy editing.
